@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_button.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
+import 'package:appwrite_user_app/app/modules/auth/screens/signup_screen.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/screens/dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -420,7 +421,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           ),
                           GestureDetector(
                             onTap: () {
-                              // TODO: Navigate to sign up
+                              Get.to(()=> SignupScreen());
                             },
                             child: Text(
                               'Sign Up',

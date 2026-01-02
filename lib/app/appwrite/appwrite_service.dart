@@ -149,15 +149,68 @@ class AppwriteService {
     }
   }
 
-  Future<void> signUp({required String email, required String password, required String name}) async {
+  Future<User> signUp({
+    required String email,
+    required String password,
+    required String name,
+  }) async {
     log('====> SignUp request- email:$email, name:$name, password:$password');
     try {
-      await account.create(userId: ID.unique(), email: email, password: password, name: name);
-
+      final user = await account.create(
+        userId: ID.unique(),
+        email: email,
+        password: password,
+        name: name,
+      );
+      
+      // Automatically create a session after signup
+      await account.createEmailPasswordSession(email: email, password: password);
+      
+      return user;
     } on AppwriteException catch (e) {
       log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
+      rethrow;
     } catch (e) {
-      log('Upload error: $e');
+      log('Signup error: $e');
+      rethrow;
+    }
+  }
+
+  Future<Row> createUserDocument({
+    required String userId,
+    required String name,
+    required String email,
+    required String phone,
+    String role = 'customer',
+  }) async {
+    try {
+      log('====> Creating user document for: $email');
+      
+      return await databases.createRow(
+        databaseId: AppwriteConfig.databaseId,
+        tableId: AppwriteConfig.usersCollection,
+        rowId: userId,
+        data: {
+          'name': name,
+          'email': email,
+          'phone': phone,
+          'role': role,
+          'wallet_balance': 0.0,
+          'is_active': true,
+        },
+        permissions: [
+          Permission.read(Role.user(userId)),
+          Permission.update(Role.user(userId)),
+          Permission.read(Role.team('admin_team')),
+          Permission.update(Role.team('admin_team')),
+        ],
+      );
+    } on AppwriteException catch (e) {
+      log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
+      rethrow;
+    } catch (e) {
+      log('Create user document error: $e');
+      rethrow;
     }
   }
 
@@ -171,43 +224,6 @@ class AppwriteService {
       log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
     } catch (e) {
       log('Upload error: $e');
-    }
-  }
-
-  Future<bool> loginAdmin(String email, String password) async {
-    try {
-      // await account.deleteSession(sessionId: 'current'); // Kick them out
-      // return true;
-      // 1. Perform Standard Login
-      await account.createEmailPasswordSession(email: email, password: password);
-
-      // 2. SECURITY CHECK: Is this user in the 'admin' team?
-      final userTeams = await teams.list();
-
-      bool isAdmin = false;
-      for (var team in userTeams.teams) {
-        print('===========> User is in team: ${team.name} (ID: ${team.$id})');
-        if (team.name == 'admin' || team.$id == 'admin_team') {
-          isAdmin = true;
-          break;
-        }
-      }
-
-      if (isAdmin) {
-        print("✅ Welcome, Admin!");
-        return isAdmin;
-        // Navigate to Dashboard
-      } else {
-        // ⛔️ ACCESS DENIED
-        print("❌ You are logged in, but you are NOT an admin.");
-        await account.deleteSession(sessionId: 'current'); // Kick them out
-        return isAdmin;
-        // throw Exception("Access Denied: You do not have admin permissions.");
-      }
-
-    } catch (e) {
-      print("Login Failed: $e");
-      rethrow;
     }
   }
 

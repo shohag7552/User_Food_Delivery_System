@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
 import 'package:get/get.dart';
 
@@ -123,6 +124,48 @@ class AuthController extends GetxController implements GetxService {
 
   Future<bool> isAlreadyLoggedIn() async {
     return await authRepoInterface.isLoggedIn();
+  }
+
+  Future<bool> signup({
+    required String name,
+    required String email,
+    required String phone,
+    required String password,
+  }) async {
+    bool isSuccess = false;
+    _isLoading = true;
+    update();
+
+    try {
+      isSuccess = await authRepoInterface.signup(
+        name: name,
+        email: email,
+        phone: phone,
+        password: password,
+      );
+
+      if (isSuccess) {
+        customToster('Account created successfully!');
+
+      } else {
+        customToster('Failed to create account. Please try again.');
+
+      }
+    } catch (e) {
+      isSuccess = false;
+      String errorMessage = 'An error occurred during signup';
+      
+      if (e.toString().contains('409') || e.toString().contains('already exists')) {
+        errorMessage = 'Email already registered. Please login instead.';
+      } else if (e.toString().contains('network')) {
+        errorMessage = 'Network error. Please check your connection.';
+      }
+      customToster('Signup Failed: $errorMessage');
+    }
+
+    _isLoading = false;
+    update();
+    return isSuccess;
   }
 
   //

@@ -23,12 +23,43 @@ class AuthRepository implements AuthRepoInterface {
 
   @override
   Future<bool> loginAdmin(String email, String password) async {
-    return await appwriteService.loginAdmin(email, password);
+    return false;
   }
 
   @override
   Future<bool> isLoggedIn() async {
     // TODO: Check if user is logged in
     return await appwriteService.isLoggedIn();
+  }
+
+  @override
+  Future<bool> signup({
+    required String name,
+    required String email,
+    required String phone,
+    required String password,
+  }) async {
+    try {
+      // 1. Create Appwrite account
+      final user = await appwriteService.signUp(
+        email: email,
+        password: password,
+        name: name,
+      );
+
+      // 2. Create user document in users collection
+      await appwriteService.createUserDocument(
+        userId: user.$id,
+        name: name,
+        email: email,
+        phone: phone,
+        role: 'customer',
+      );
+
+      return true;
+    } catch (e) {
+      print('Signup error in repository: $e');
+      return false;
+    }
   }
 }
