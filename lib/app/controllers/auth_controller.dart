@@ -1,5 +1,5 @@
 import 'dart:developer';
-import 'package:appwrite_user_app/app/modules/login/domain/repository/auth_repo_interface.dart';
+import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
 import 'package:get/get.dart';
 
 class AuthController extends GetxController implements GetxService {

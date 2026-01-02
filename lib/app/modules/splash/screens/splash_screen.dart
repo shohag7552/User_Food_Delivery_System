@@ -1,6 +1,7 @@
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
+import 'package:appwrite_user_app/app/modules/auth/screens/login_screen.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/screens/dashboard_screen.dart';
-import 'package:appwrite_user_app/app/modules/login/screens/login_screen.dart';
+import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 class SplashScreen extends StatefulWidget {

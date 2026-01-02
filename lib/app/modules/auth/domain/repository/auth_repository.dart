@@ -1,6 +1,5 @@
 import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
-import 'package:appwrite_user_app/app/modules/login/domain/repository/auth_repo_interface.dart';
-import 'package:dart_appwrite/dart_appwrite.dart';
+import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthRepository implements AuthRepoInterface {
@@ -10,8 +9,8 @@ class AuthRepository implements AuthRepoInterface {
   AuthRepository({required this.sharedPreferences, required this.appwriteService});
 
   // @override
-  // Future<bool> login(String email, String password) async {
-  //   // TODO: Implement actual login logic with Appwrite
+  // Future<bool> auth(String email, String password) async {
+  //   // TODO: Implement actual auth logic with Appwrite
   //   // For now, return a placeholder
   //   return true;
   // }

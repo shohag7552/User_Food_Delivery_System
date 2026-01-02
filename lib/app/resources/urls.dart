@@ -2,7 +2,7 @@ class AppUrls{
 
   static const baseUrl = 'https://paharerdak.com';
   static const configUri = '/api/v1/config/list';
-  static const loginUri = '/api/v1/auth/login';
+  static const loginUri = '/api/v1/auth/auth';
   static const registrationUri = '/api/v1/auth/registration';
   static const deleteAccountUri = '/api/v1/profile/delete';
   static const otpVerifyUri = '/api/v1/auth/otp-verify';

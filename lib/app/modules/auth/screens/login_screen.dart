@@ -59,8 +59,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           }
         }
       });
-      // // TODO: Implement login logic
-      // // Simulate login delay
+      // // TODO: Implement auth logic
+      // // Simulate auth delay
       // Future.delayed(const Duration(seconds: 2), () {
       //   if (mounted) {
       //     setState(() {

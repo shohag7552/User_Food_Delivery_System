@@ -4,12 +4,12 @@ import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/coupon_controller.dart';
 import 'package:appwrite_user_app/app/controllers/localization_controller.dart';
+import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
+import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repository.dart';
 import 'package:appwrite_user_app/app/modules/categories/domain/repository/category_repo_interface.dart';
 import 'package:appwrite_user_app/app/modules/categories/domain/repository/category_repository.dart';
 import 'package:appwrite_user_app/app/modules/coupons/domain/repository/coupon_repo_interface.dart';
 import 'package:appwrite_user_app/app/modules/coupons/domain/repository/coupon_repository.dart';
-import 'package:appwrite_user_app/app/modules/login/domain/repository/auth_repo_interface.dart';
-import 'package:appwrite_user_app/app/modules/login/domain/repository/auth_repository.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
