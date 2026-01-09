@@ -136,16 +136,16 @@ class AppwriteService {
 
   /// Authentication
 
-  Future<User> getCurrentUser() async {
+  Future<User?> getCurrentUser() async {
     try {
       return await account.get();
 
     } on AppwriteException catch (e) {
       log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
-      rethrow;
+      return null;
     } catch (e) {
       log('Upload error: $e');
-      rethrow;
+      return null;
     }
   }
 
@@ -234,24 +234,12 @@ class AppwriteService {
       // If this fails (throws error), user is not logged in at all.
       print('=====> Checking current user session...');
       // await account.get();
-      await getCurrentUser().then((user) {
-        print('=====> Current logged in user: ${user.name} (${user.email})');
-      });
-
-      // Step 2: Check Team Membership
-      // Fetch all teams this user belongs to
-      final teamList = await teams.list();
-
-      // Look for a team named 'admin' (or whatever you named it in the seed script)
-      // You can also check by ID if you want to be stricter: team.$id == 'admin_team'
-      print('=====> User belongs to teams: ${teamList.teams.map((t) => t.name).join(', ')}');
-      bool hasAdminBadge = teamList.teams.any((team) => team.name == 'admin');
-
-      if (hasAdminBadge) {
-        print("✅ User is verified as Admin.");
+      User? user = await getCurrentUser();
+      if (user != null && user.email.isNotEmpty) {
+        print('===========here=====1');
         return true;
       } else {
-        print("⚠️ User is logged in, but is NOT an Admin.");
+        print('===========here=====2');
         return false;
       }
 

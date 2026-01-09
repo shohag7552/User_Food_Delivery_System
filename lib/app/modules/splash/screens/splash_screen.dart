@@ -16,11 +16,14 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    Future.delayed(const Duration(seconds: 1), () async {
+    Future.delayed(const Duration(milliseconds: 500), () async {
       // Navigate to the next screen after the splash duration
       if(!mounted) return;
 
-      if(await Get.find<AuthController>().isAlreadyLoggedIn()) {
+      bool isLoggedIn = await Get.find<AuthController>().isAlreadyLoggedIn();
+      print('Checking login status in Splash Screen: $isLoggedIn');
+      if(isLoggedIn) {
+        print('-------------User is logged in, navigating to Dashboard');
         Get.offAll(DashboardScreen());
       } else {
         Get.offAll(() => LoginScreen());
