@@ -164,6 +164,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                   _buildNewItems(isTablet),
                   
                   const SizedBox(height: 20),
+
+                  _buildAllProductsSection(isTablet),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
@@ -632,6 +635,492 @@ class _DashboardScreenState extends State<DashboardScreen>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildAllProductsSection(bool isTablet) {
+    // Sample product data - in real app, this would come from backend
+    final allProducts = [
+      {
+        'name': 'Margherita Pizza',
+        'imageUrl': 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002',
+        'description': 'Classic Italian pizza with fresh mozzarella and basil',
+        'price': 12.99,
+        'oldPrice': null,
+        'category': 'Pizza',
+        'rating': 4.8,
+        'isNew': false,
+      },
+      {
+        'name': 'Pepperoni Pizza',
+        'imageUrl': 'https://images.unsplash.com/photo-1628840042765-356cda07504e',
+        'description': 'Loaded with premium pepperoni and cheese',
+        'price': 14.99,
+        'oldPrice': 18.99,
+        'category': 'Pizza',
+        'rating': 4.9,
+        'isNew': false,
+      },
+      {
+        'name': 'Chicken Burger',
+        'imageUrl': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd',
+        'description': 'Juicy grilled chicken with special sauce',
+        'price': 8.99,
+        'oldPrice': null,
+        'category': 'Burgers',
+        'rating': 4.7,
+        'isNew': false,
+      },
+      {
+        'name': 'Beef Burger Deluxe',
+        'imageUrl': 'https://images.unsplash.com/photo-1550547660-d9450f859349',
+        'description': 'Premium beef patty with bacon and cheese',
+        'price': 11.99,
+        'oldPrice': 14.99,
+        'category': 'Burgers',
+        'rating': 4.8,
+        'isNew': true,
+      },
+      {
+        'name': 'California Roll',
+        'imageUrl': 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351',
+        'description': 'Fresh sushi roll with avocado and crab',
+        'price': 14.99,
+        'oldPrice': null,
+        'category': 'Sushi',
+        'rating': 4.9,
+        'isNew': false,
+      },
+      {
+        'name': 'Spicy Tuna Roll',
+        'imageUrl': 'https://images.unsplash.com/photo-1580822184713-fc5400e7fe10',
+        'description': 'Spicy tuna with cucumber and sesame',
+        'price': 16.99,
+        'oldPrice': null,
+        'category': 'Sushi',
+        'rating': 4.8,
+        'isNew': true,
+      },
+      {
+        'name': 'Chocolate Cake',
+        'imageUrl': 'https://images.unsplash.com/photo-1578985545062-69928b1d9587',
+        'description': 'Rich chocolate layer cake with ganache',
+        'price': 6.99,
+        'oldPrice': null,
+        'category': 'Desserts',
+        'rating': 4.9,
+        'isNew': false,
+      },
+      {
+        'name': 'Tiramisu',
+        'imageUrl': 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9',
+        'description': 'Classic Italian coffee-flavored dessert',
+        'price': 7.99,
+        'oldPrice': 9.99,
+        'category': 'Desserts',
+        'rating': 4.8,
+        'isNew': false,
+      },
+      {
+        'name': 'Iced Latte',
+        'imageUrl': 'https://images.unsplash.com/photo-1517487881594-2787fef5ebf7',
+        'description': 'Smooth espresso with cold milk and ice',
+        'price': 4.99,
+        'oldPrice': null,
+        'category': 'Drinks',
+        'rating': 4.7,
+        'isNew': false,
+      },
+      {
+        'name': 'Fresh Orange Juice',
+        'imageUrl': 'https://images.unsplash.com/photo-1600271886742-f049cd451bba',
+        'description': 'Freshly squeezed orange juice',
+        'price': 5.99,
+        'oldPrice': null,
+        'category': 'Drinks',
+        'rating': 4.6,
+        'isNew': false,
+      },
+      {
+        'name': 'Caesar Salad',
+        'imageUrl': 'https://images.unsplash.com/photo-1546793665-c74683f339c1',
+        'description': 'Crisp romaine with parmesan and croutons',
+        'price': 9.99,
+        'oldPrice': null,
+        'category': 'Salads',
+        'rating': 4.7,
+        'isNew': false,
+      },
+      {
+        'name': 'Greek Salad',
+        'imageUrl': 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe',
+        'description': 'Fresh vegetables with feta and olives',
+        'price': 8.99,
+        'oldPrice': null,
+        'category': 'Salads',
+        'rating': 4.6,
+        'isNew': true,
+      },
+      {
+        'name': 'Truffle Pasta',
+        'imageUrl': 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9',
+        'description': 'Creamy pasta with premium truffle oil',
+        'price': 18.99,
+        'oldPrice': null,
+        'category': 'Pizza',
+        'rating': 4.9,
+        'isNew': true,
+      },
+      {
+        'name': 'Vegan Buddha Bowl',
+        'imageUrl': 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c',
+        'description': 'Nutritious bowl with quinoa and vegetables',
+        'price': 14.99,
+        'oldPrice': null,
+        'category': 'Salads',
+        'rating': 4.8,
+        'isNew': true,
+      },
+      {
+        'name': 'Grilled Chicken Bowl',
+        'imageUrl': 'https://images.unsplash.com/photo-1546069901-eacef0df6022',
+        'description': 'Healthy bowl with grilled chicken and veggies',
+        'price': 12.99,
+        'oldPrice': 16.99,
+        'category': 'Salads',
+        'rating': 4.7,
+        'isNew': false,
+      },
+    ];
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.restaurant_menu,
+                    color: ColorResource.primaryDark,
+                    size: 28,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'All Products',
+                    style: poppinsBold.copyWith(
+                      fontSize: Constants.fontSizeExtraLarge,
+                      color: ColorResource.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              // Product count
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: ColorResource.primaryDark.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(Constants.radiusSmall),
+                ),
+                child: Text(
+                  '${allProducts.length} items',
+                  style: poppinsMedium.copyWith(
+                    fontSize: Constants.fontSizeSmall,
+                    color: ColorResource.primaryDark,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 20),
+          
+          // Products Grid
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: isTablet ? 3 : 1,
+              childAspectRatio: isTablet ? 0.75 : 1.3,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+            ),
+            itemCount: allProducts.length,
+            itemBuilder: (context, index) {
+              final product = allProducts[index];
+              return _buildProductCard(
+                name: product['name'] as String,
+                imageUrl: product['imageUrl'] as String,
+                description: product['description'] as String,
+                price: product['price'] as double,
+                oldPrice: product['oldPrice'] as double?,
+                rating: product['rating'] as double,
+                isNew: product['isNew'] as bool,
+                onTap: () {
+                  // TODO: Navigate to product details
+                },
+                onAddToCart: () {
+                  // TODO: Add to cart
+                },
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductCard({
+    required String name,
+    required String imageUrl,
+    required String description,
+    required double price,
+    double? oldPrice,
+    required double rating,
+    required bool isNew,
+    required VoidCallback onTap,
+    required VoidCallback onAddToCart,
+  }) {
+    final hasDiscount = oldPrice != null && oldPrice > price;
+    final discountPercentage = hasDiscount
+        ? ((oldPrice - price) / oldPrice * 100).toStringAsFixed(0)
+        : null;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: ColorResource.cardBackground,
+          borderRadius: BorderRadius.circular(Constants.radiusLarge),
+          boxShadow: [
+            BoxShadow(
+              color: ColorResource.shadowMedium,
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image with badges
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(Constants.radiusLarge),
+                    topRight: Radius.circular(Constants.radiusLarge),
+                  ),
+                  child: Image.network(
+                    imageUrl,
+                    width: double.infinity,
+                    height: 140,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: double.infinity,
+                        height: 140,
+                        decoration: BoxDecoration(
+                          gradient: ColorResource.primaryGradient,
+                        ),
+                        child: Icon(
+                          Icons.fastfood,
+                          size: 50,
+                          color: ColorResource.textWhite.withOpacity(0.5),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                // Discount badge
+                if (hasDiscount)
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: ColorResource.error,
+                        borderRadius: BorderRadius.circular(
+                          Constants.radiusSmall,
+                        ),
+                      ),
+                      child: Text(
+                        '$discountPercentage% OFF',
+                        style: poppinsBold.copyWith(
+                          fontSize: 10,
+                          color: ColorResource.textWhite,
+                        ),
+                      ),
+                    ),
+                  ),
+                // New badge
+                if (isNew && !hasDiscount)
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: ColorResource.info,
+                        borderRadius: BorderRadius.circular(
+                          Constants.radiusSmall,
+                        ),
+                      ),
+                      child: Text(
+                        'NEW',
+                        style: poppinsBold.copyWith(
+                          fontSize: 10,
+                          color: ColorResource.textWhite,
+                        ),
+                      ),
+                    ),
+                  ),
+                // Rating badge
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: ColorResource.cardBackground.withOpacity(0.95),
+                      borderRadius: BorderRadius.circular(
+                        Constants.radiusSmall,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.star,
+                          size: 12,
+                          color: ColorResource.ratingStarColor,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          rating.toStringAsFixed(1),
+                          style: poppinsMedium.copyWith(
+                            fontSize: 10,
+                            color: ColorResource.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            
+            // Product Details
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Name
+                    Text(
+                      name,
+                      style: poppinsBold.copyWith(
+                        fontSize: Constants.fontSizeDefault,
+                        color: ColorResource.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    
+                    // Description
+                    Expanded(
+                      child: Text(
+                        description,
+                        style: poppinsRegular.copyWith(
+                          fontSize: Constants.fontSizeSmall,
+                          color: ColorResource.textSecondary,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 8),
+                    
+                    // Price and Add Button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Price
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '\$${price.toStringAsFixed(2)}',
+                                style: poppinsBold.copyWith(
+                                  fontSize: Constants.fontSizeLarge,
+                                  color: ColorResource.primaryDark,
+                                ),
+                              ),
+                              if (hasDiscount)
+                                Text(
+                                  '\$${oldPrice.toStringAsFixed(2)}',
+                                  style: poppinsRegular.copyWith(
+                                    fontSize: Constants.fontSizeSmall,
+                                    color: ColorResource.textLight,
+                                    decoration: TextDecoration.lineThrough,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        // Add Button
+                        GestureDetector(
+                          onTap: onAddToCart,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              gradient: ColorResource.primaryGradient,
+                              borderRadius: BorderRadius.circular(
+                                Constants.radiusDefault,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: ColorResource.primaryMedium
+                                      .withOpacity(0.4),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.add_shopping_cart,
+                              color: ColorResource.textWhite,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
