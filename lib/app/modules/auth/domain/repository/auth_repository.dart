@@ -15,11 +15,11 @@ class AuthRepository implements AuthRepoInterface {
   //   return true;
   // }
 
-  // @override
-  // Future<bool> logout() async {
-  //   // TODO: Implement actual logout logic
-  //   return true;
-  // }
+  @override
+  Future<void> logout() async {
+    // TODO: Implement actual logout logic
+    return await appwriteService.signOut();
+  }
 
   @override
   Future<bool> loginAdmin(String email, String password) async {
@@ -39,17 +39,20 @@ class AuthRepository implements AuthRepoInterface {
     required String phone,
     required String password,
   }) async {
-    try {
       // 1. Create Appwrite account
-      final user = await appwriteService.signUp(
+      AppWriteResponse data = await appwriteService.signUp(
         email: email,
         password: password,
         name: name,
       );
 
+      print('Signup Response: ${data.response}');
       // 2. Create user document in users collection
+      if(data.response.$id.isEmpty) {
+        return false;
+      }
       await appwriteService.createUserDocument(
-        userId: user.$id,
+        userId: data.response.$id,
         name: name,
         email: email,
         phone: phone,
@@ -57,9 +60,5 @@ class AuthRepository implements AuthRepoInterface {
       );
 
       return true;
-    } catch (e) {
-      print('Signup error in repository: $e');
-      return false;
-    }
   }
 }

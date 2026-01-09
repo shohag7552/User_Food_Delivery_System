@@ -457,6 +457,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                             icon: Icons.g_mobiledata_rounded,
                             label: 'Google',
                             onTap: () {
+                              Get.find<AuthController>().logout();
                               // TODO: Implement Google signup
                             },
                           ),

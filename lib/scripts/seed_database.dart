@@ -91,7 +91,10 @@ Future<void> _setupUsers(Databases db) async {
         () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'users', key: 'wallet_balance', xrequired: false, xdefault: 0.0),
         () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'users', key: 'is_active', xrequired: false, xdefault: true),
   ], [
-    Permission.read(Role.users()),          // Everyone can see
+    Permission.read(Role.users()),
+    Permission.create(Role.users()),      // Any logged-in user can add
+    Permission.update(Role.users()), // Users can update their own addresses
+    Permission.delete(Role.users()), // Users can delete their own addresses// Everyone can see
     Permission.read(Role.team('admin_team')), // Only 'admin' team can edit
   ]);
 }
@@ -203,8 +206,10 @@ Future<void> _setupOrders(Databases db) async {
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'orders', key: 'order_items', size: 5000, xrequired: true), // Snapshot JSON
         () => db.createDatetimeAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'orders', key: 'created_at', xrequired: true),
   ], [
-    Permission.create(Role.users()),      // Any logged-in user can buy
-    Permission.read(Role.users()), // Optional: Verified users only
+    Permission.create(Role.users()),      // Any logged-in user can add
+    Permission.read(Role.users()), // Users can see their own addresses
+    Permission.update(Role.users()), // Users can update their own addresses
+    Permission.delete(Role.users()), // Users can delete their own addresses
     Permission.read(Role.team('admin_team')),  // Admins can see all orders
     Permission.update(Role.team('admin_team')), // Admins can update status
   ]);

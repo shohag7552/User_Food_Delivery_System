@@ -149,7 +149,7 @@ class AppwriteService {
     }
   }
 
-  Future<User> signUp({
+  Future<AppWriteResponse> signUp({
     required String email,
     required String password,
     required String name,
@@ -162,17 +162,17 @@ class AppwriteService {
         password: password,
         name: name,
       );
-      
+      print('====> Signup successful for user: ${user.$id}');
       // Automatically create a session after signup
       await account.createEmailPasswordSession(email: email, password: password);
       
-      return user;
+      return AppWriteResponse(code: 200, message: 'user create successfully', response: user);
     } on AppwriteException catch (e) {
       log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
-      rethrow;
+      return AppWriteResponse(code: e.code??404, message: e.message??'connection issue', response: e.response);
     } catch (e) {
       log('Signup error: $e');
-      rethrow;
+      return AppWriteResponse(code: 000, message: 'connection issue', response: e);
     }
   }
 
@@ -198,12 +198,13 @@ class AppwriteService {
           'wallet_balance': 0.0,
           'is_active': true,
         },
-        permissions: [
-          Permission.read(Role.user(userId)),
-          Permission.update(Role.user(userId)),
-          Permission.read(Role.team('admin_team')),
-          Permission.update(Role.team('admin_team')),
-        ],
+        // permissions: [
+        //   Permission.read(Role.user(userId)),
+        //   Permission.write(Role.user(userId)),
+        //   Permission.update(Role.user(userId)),
+        //   // Permission.read(Role.team('admin_team')),
+        //   // Permission.update(Role.team('admin_team')),
+        // ],
       );
     } on AppwriteException catch (e) {
       log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
@@ -382,4 +383,16 @@ class AppwriteService {
   //     return null;
   //   }
   // }
+}
+
+class AppWriteResponse{
+  final int code;
+  final String message;
+  final dynamic response;
+
+  AppWriteResponse({
+    required this.code,
+    required this.message,
+    required this.response,
+  });
 }

@@ -379,4 +379,8 @@ class AuthController extends GetxController implements GetxService {
   //   }
   //   customToast('Topic ${isSubscribe ? 'Subscribed' : 'Unsubscribed'} Successfully', isError: false);
   // }
+
+  void logout() async {
+    await authRepoInterface.logout();
+  }
 }
