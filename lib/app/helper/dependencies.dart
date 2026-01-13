@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
+import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/controllers/coupon_controller.dart';
 import 'package:appwrite_user_app/app/controllers/localization_controller.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
@@ -34,6 +35,7 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
 
   /// Controller Initialization
   Get.lazyPut(() => AuthController(authRepoInterface: Get.find()));
+  Get.lazyPut(() => CategoryController(categoryRepoInterface: Get.find()));
   Get.lazyPut(() => CouponController(couponRepoInterface: Get.find()));
 
 

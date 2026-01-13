@@ -171,7 +171,9 @@ Future<void> _setupProducts(Databases db) async {
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'image_id', size: 2000, xrequired: true),
         () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'is_veg', xrequired: false, xdefault: false),
         () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'is_available', xrequired: false, xdefault: true),
-        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'variants', size: 5000, xrequired: false), // Huge JSON String
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'variants', size: 5000, xrequired: false),
+        () => db.createIntegerAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'stock', xrequired: false, xdefault: 0),
+        () => db.createIntegerAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'order_count', xrequired: false, xdefault: 0),
   ], [
     Permission.read(Role.any()),          // Everyone can see
     Permission.write(Role.team('admin')), // Only 'admin' team can edit

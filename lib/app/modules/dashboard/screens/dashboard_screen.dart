@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/modules/dashboard/section_widget/category_section_widget.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -9,9 +10,10 @@ import 'package:appwrite_user_app/app/modules/dashboard/widgets/dashboard_stats_
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/quick_action_button.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/restaurant_card.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/food_item_card.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/widgets/category_chip.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/promotional_banner.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/order_tracking_widget.dart';
+import 'package:appwrite_user_app/app/controllers/category_controller.dart';
+import 'package:get/get.dart';
 
 
 
@@ -25,7 +27,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
-  late AnimationController _chartAnimationController;
+  // late AnimationController _chartAnimationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _slideAnimation;
   late Animation<double> _chartAnimation;
@@ -39,10 +41,6 @@ class _DashboardScreenState extends State<DashboardScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
-    _chartAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1800),
-    );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
@@ -55,25 +53,15 @@ class _DashboardScreenState extends State<DashboardScreen>
         curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
       ),
     );
-    _chartAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _chartAnimationController,
-        curve: Curves.easeInOutCubic,
-      ),
-    );
     _animationController.forward();
-    // Delay chart animation to start after page fade in
-    Future.delayed(const Duration(milliseconds: 400), () {
-      if (mounted) {
-        _chartAnimationController.forward();
-      }
-    });
+
+    Get.find<CategoryController>().getCategories();
+
   }
 
   @override
   void dispose() {
     _animationController.dispose();
-    _chartAnimationController.dispose();
     super.dispose();
   }
 
@@ -97,47 +85,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               child: Column(
                 children: [
                   const SizedBox(height: 20),
-                  
-                  // // Vendor Info Card
-                  // Padding(
-                  //   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  //   child: Transform.translate(
-                  //     offset: Offset(0, _slideAnimation.value),
-                  //     child: _buildVendorInfoCard(),
-                  //   ),
-                  // ),
-                  //
-                  // const SizedBox(height: 24),
-                  //
-                  // // Active Order Tracking
-                  // Padding(
-                  //   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  //   child: Transform.translate(
-                  //     offset: Offset(0, _slideAnimation.value),
-                  //     child: _buildActiveOrder(),
-                  //   ),
-                  // ),
-                  //
-                  // // Stats Cards
-                  // Padding(
-                  //   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  //   child: Transform.translate(
-                  //     offset: Offset(0, _slideAnimation.value),
-                  //     child: _buildStatsSection(isTablet),
-                  //   ),
-                  // ),
-                  //
-                  // const SizedBox(height: 24),
-                  //
-                  // // Quick Actions
-                  // Padding(
-                  //   padding: const EdgeInsets.only(left: 20),
-                  //   child: _buildQuickActions(),
-                  // ),
-                  //
-                  // const SizedBox(height: 28),
-                  
-                  // Promotional Banners
+
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: _buildPromotionalBanners(),
@@ -146,7 +94,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   const SizedBox(height: 28),
                   
                   // Categories
-                  _buildCategoriesSection(),
+                  CategorySectionWidget(),
                   
                   const SizedBox(height: 28),
                   
@@ -570,72 +518,6 @@ class _DashboardScreenState extends State<DashboardScreen>
     ];
     
     return PromotionalBanner(banners: banners);
-  }
-
-  Widget _buildCategoriesSection() {
-    final categories = [
-      {'label': 'All', 'icon': Icons.apps},
-      {'label': 'Pizza', 'icon': Icons.local_pizza},
-      {'label': 'Burgers', 'icon': Icons.lunch_dining},
-      {'label': 'Sushi', 'icon': Icons.set_meal},
-      {'label': 'Desserts', 'icon': Icons.cake},
-      {'label': 'Drinks', 'icon': Icons.local_cafe},
-      {'label': 'Salads', 'icon': Icons.restaurant},
-    ];
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Menu Categories',
-                style: poppinsBold.copyWith(
-                  fontSize: Constants.fontSizeExtraLarge,
-                  color: ColorResource.textPrimary,
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  // TODO: See all categories
-                },
-                child: Text(
-                  'See All',
-                  style: poppinsMedium.copyWith(
-                    fontSize: Constants.fontSizeDefault,
-                    color: ColorResource.primaryDark,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 50,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: categories.length,
-            itemBuilder: (context, index) {
-              final category = categories[index];
-              return CategoryChip(
-                label: category['label'] as String,
-                icon: category['icon'] as IconData,
-                isSelected: index == 0,
-                onTap: () {
-                  // TODO: Filter by category
-                },
-              );
-            },
-          ),
-        ),
-      ],
-    );
   }
 
   Widget _buildAllProductsSection(bool isTablet) {
