@@ -20,6 +20,17 @@ class ProductController extends GetxController implements GetxService {
   bool _isLoadingNew = false;
   bool get isLoadingNew => _isLoadingNew;
 
+  bool _isLoadingMore = false;
+  bool get isLoadingMore => _isLoadingMore;
+
+  int _currentPage = 0;
+  int get currentPage => _currentPage;
+
+  bool _hasMore = true;
+  bool get hasMore => _hasMore;
+
+  final int _pageSize = 10;
+
   List<ProductModel> _products = [];
   List<ProductModel> get products => _products;
 
@@ -44,15 +55,31 @@ class ProductController extends GetxController implements GetxService {
   String? _newErrorMessage;
   String? get newErrorMessage => _newErrorMessage;
 
-  /// Fetch all products
-  Future<void> getProducts() async {
+  /// Fetch all products (initial load)
+  Future<void> getProducts({bool refresh = false}) async {
     try {
+      if (refresh) {
+        _currentPage = 0;
+        _products.clear();
+        _hasMore = true;
+      }
+      
       _isLoading = true;
       _errorMessage = null;
       update();
 
-      _products = await productRepoInterface.getProducts();
-      log('====> Products loaded: ${_products.length}');
+      final newProducts = await productRepoInterface.getProducts(
+        offset: _currentPage * _pageSize,
+        limit: _pageSize,
+      );
+      
+      if (newProducts.length < _pageSize) {
+        _hasMore = false;
+      }
+      
+      _products.addAll(newProducts);
+      _currentPage++;
+      log('====> Products loaded: ${_products.length}, hasMore: $_hasMore');
       
       _isLoading = false;
       update();
@@ -60,6 +87,36 @@ class ProductController extends GetxController implements GetxService {
       _isLoading = false;
       _errorMessage = 'Failed to load products: $e';
       log('====> Error loading products: $e');
+      update();
+    }
+  }
+
+  /// Load more products (pagination)
+  Future<void> loadMoreProducts() async {
+    if (_isLoadingMore || !_hasMore) return;
+    
+    try {
+      _isLoadingMore = true;
+      update();
+
+      final newProducts = await productRepoInterface.getProducts(
+        offset: _currentPage * _pageSize,
+        limit: _pageSize,
+      );
+      
+      if (newProducts.length < _pageSize) {
+        _hasMore = false;
+      }
+      
+      _products.addAll(newProducts);
+      _currentPage++;
+      log('====> More products loaded: ${_products.length}, hasMore: $_hasMore');
+      
+      _isLoadingMore = false;
+      update();
+    } catch (e) {
+      _isLoadingMore = false;
+      log('====> Error loading more products: $e');
       update();
     }
   }

@@ -11,10 +11,14 @@ class ProductRepository implements ProductRepoInterface {
   ProductRepository({required this.appwriteService});
 
   @override
-  Future<List<ProductModel>> getProducts() async {
+  Future<List<ProductModel>> getProducts({int offset = 0, int limit = 10}) async {
     try {
       final response = await appwriteService.listTable(
         tableId: AppwriteConfig.productsCollection,
+        queries: [
+          Query.offset(offset),
+          Query.limit(limit),
+        ],
       );
       return response.rows.map((row) {
         log('====> Product Data: ${row.data}');
