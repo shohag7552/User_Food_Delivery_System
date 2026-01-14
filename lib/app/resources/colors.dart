@@ -31,14 +31,14 @@ class ColorResource {
   static const Color premiumBadge = Color(0xFFFFD700);
 
   // Shadow Colors
-  static Color shadowLight = Colors.black.withOpacity(0.05);
-  static Color shadowMedium = Colors.black.withOpacity(0.1);
-  static Color shadowDark = Colors.black.withOpacity(0.15);
+  static Color shadowLight = Colors.black.withValues(alpha: 0.05);
+  static Color shadowMedium = Colors.black.withValues(alpha: 0.1);
+  static Color shadowDark = Colors.black.withValues(alpha: 0.15);
 
   // Overlay Colors
-  static Color overlayLight = Colors.white.withOpacity(0.1);
-  static Color overlayMedium = Colors.white.withOpacity(0.2);
-  static Color overlayDark = Colors.black.withOpacity(0.3);
+  static Color overlayLight = Colors.white.withValues(alpha: 0.1);
+  static Color overlayMedium = Colors.white.withValues(alpha: 0.2);
+  static Color overlayDark = Colors.black.withValues(alpha: 0.3);
 
   // Gradient
   static const LinearGradient primaryGradient = LinearGradient(

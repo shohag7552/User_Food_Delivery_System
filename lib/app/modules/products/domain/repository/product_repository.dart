@@ -34,7 +34,7 @@ class ProductRepository implements ProductRepoInterface {
         tableId: AppwriteConfig.productsCollection,
         queries: [
           Query.isNotNull('discount_type'),
-          Query.greaterThan('discount_value', 0),
+          Query.greaterThan('discount_value', 5),
           Query.equal('is_available', true),
         ],
       );
