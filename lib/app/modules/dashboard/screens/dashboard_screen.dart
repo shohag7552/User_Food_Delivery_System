@@ -1,4 +1,5 @@
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/category_section_widget.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/section_widget/todays_specials_widget.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -13,6 +14,7 @@ import 'package:appwrite_user_app/app/modules/dashboard/widgets/food_item_card.d
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/promotional_banner.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/order_tracking_widget.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
+import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:get/get.dart';
 
 
@@ -56,6 +58,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     _animationController.forward();
 
     Get.find<CategoryController>().getCategories();
+    Get.find<ProductController>().getSpecialProducts();
 
   }
 
@@ -99,7 +102,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   const SizedBox(height: 28),
                   
                   // Today's Specials
-                  _buildTodaysSpecials(),
+                  const TodaysSpecialsWidget(),
                   
                   const SizedBox(height: 28),
                   
@@ -1006,76 +1009,6 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  Widget _buildTodaysSpecials() {
-    final specials = [
-      {
-        'name': 'Chef\'s Special Pizza',
-        'imageUrl': 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002',
-        'description': 'Handcrafted pizza with premium toppings',
-        'price': 16.99,
-        'oldPrice': 22.99,
-      },
-      {
-        'name': 'Grilled Chicken Bowl',
-        'imageUrl': 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c',
-        'description': 'Healthy bowl with grilled chicken & veggies',
-        'price': 12.99,
-        'oldPrice': 16.99,
-      },
-    ];
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            children: [
-              Icon(
-                Icons.emoji_events,
-                color: ColorResource.warning,
-                size: 28,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Today\'s Specials',
-                style: poppinsBold.copyWith(
-                  fontSize: Constants.fontSizeExtraLarge,
-                  color: ColorResource.textPrimary,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 280,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: specials.length,
-            itemBuilder: (context, index) {
-              final dish = specials[index];
-              return FoodItemCard(
-                name: dish['name'] as String,
-                imageUrl: dish['imageUrl'] as String,
-                description: dish['description'] as String,
-                price: dish['price'] as double,
-                oldPrice: dish['oldPrice'] as double?,
-                onTap: () {
-                  // TODO: Navigate to dish details
-                },
-                onAddToCart: () {
-                  // TODO: Add to cart
-                },
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildPopularDishes() {
     final dishes = [

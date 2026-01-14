@@ -21,20 +21,20 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<LocalizationController>(
-        builder: (localizeController) {
-          return GetMaterialApp(
-            title: Constants.appName,
-            debugShowCheckedModeBanner: false,
-            theme: localizeController.darkTheme ? darkTheme : lightTheme,
-            // theme: darkTheme,
-            locale: localizeController.locale,
-            translations: Messages(languages: languages),
-            fallbackLocale: Locale(Constants.languages[0].languageCode!, Constants.languages[0].countryCode),
-            getPages: AppPages.routes,
-            // home: VerificationScreen(tempToken: '', registrationModel: null),
-            initialRoute: AppPages.goToSplashPage(),
-          );
-        }
+      builder: (localizeController) {
+        return GetMaterialApp(
+          title: Constants.appName,
+          debugShowCheckedModeBanner: false,
+          theme: localizeController.darkTheme ? darkTheme : lightTheme,
+          // theme: darkTheme,
+          locale: localizeController.locale,
+          translations: Messages(languages: languages),
+          fallbackLocale: Locale(Constants.languages[0].languageCode!, Constants.languages[0].countryCode),
+          getPages: AppPages.routes,
+          // home: VerificationScreen(tempToken: '', registrationModel: null),
+          initialRoute: AppPages.goToSplashPage(),
+        );
+      }
     );
   }
 }

@@ -59,4 +59,12 @@ class ColorResource {
       Color(0xFFF8F9FA),
     ],
   );
+
+  static const List<BoxShadow>?  customShadow = [
+    BoxShadow(
+      color: Colors.black12,
+      blurRadius: 10,
+      offset: Offset(0, 4),
+    ),
+  ];
 }
