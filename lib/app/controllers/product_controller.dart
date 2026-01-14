@@ -14,17 +14,35 @@ class ProductController extends GetxController implements GetxService {
   bool _isLoadingSpecials = false;
   bool get isLoadingSpecials => _isLoadingSpecials;
 
+  bool _isLoadingPopular = false;
+  bool get isLoadingPopular => _isLoadingPopular;
+
+  bool _isLoadingNew = false;
+  bool get isLoadingNew => _isLoadingNew;
+
   List<ProductModel> _products = [];
   List<ProductModel> get products => _products;
 
   List<ProductModel> _specialProducts = [];
   List<ProductModel> get specialProducts => _specialProducts;
 
+  List<ProductModel> _popularProducts = [];
+  List<ProductModel> get popularProducts => _popularProducts;
+
+  List<ProductModel> _newProducts = [];
+  List<ProductModel> get newProducts => _newProducts;
+
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
   String? _specialsErrorMessage;
   String? get specialsErrorMessage => _specialsErrorMessage;
+
+  String? _popularErrorMessage;
+  String? get popularErrorMessage => _popularErrorMessage;
+
+  String? _newErrorMessage;
+  String? get newErrorMessage => _newErrorMessage;
 
   /// Fetch all products
   Future<void> getProducts() async {
@@ -62,6 +80,46 @@ class ProductController extends GetxController implements GetxService {
       _isLoadingSpecials = false;
       _specialsErrorMessage = 'Failed to load special products: $e';
       log('====> Error loading special products: $e');
+      update();
+    }
+  }
+
+  /// Fetch popular products
+  Future<void> getPopularProducts() async {
+    try {
+      _isLoadingPopular = true;
+      _popularErrorMessage = null;
+      update();
+
+      _popularProducts = await productRepoInterface.getPopularProducts();
+      log('====> Popular products loaded: ${_popularProducts.length}');
+      
+      _isLoadingPopular = false;
+      update();
+    } catch (e) {
+      _isLoadingPopular = false;
+      _popularErrorMessage = 'Failed to load popular products: $e';
+      log('====> Error loading popular products: $e');
+      update();
+    }
+  }
+
+  /// Fetch new products
+  Future<void> getNewProducts() async {
+    try {
+      _isLoadingNew = true;
+      _newErrorMessage = null;
+      update();
+
+      _newProducts = await productRepoInterface.getNewProducts();
+      log('====> New products loaded: ${_newProducts.length}');
+      
+      _isLoadingNew = false;
+      update();
+    } catch (e) {
+      _isLoadingNew = false;
+      _newErrorMessage = 'Failed to load new products: $e';
+      log('====> Error loading new products: $e');
       update();
     }
   }

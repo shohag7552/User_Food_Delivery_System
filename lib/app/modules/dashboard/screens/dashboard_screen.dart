@@ -1,5 +1,7 @@
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/category_section_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/todays_specials_widget.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/section_widget/popular_dishes_widget.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/section_widget/new_items_widget.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -59,6 +61,8 @@ class _DashboardScreenState extends State<DashboardScreen>
 
     Get.find<CategoryController>().getCategories();
     Get.find<ProductController>().getSpecialProducts();
+    Get.find<ProductController>().getPopularProducts();
+    Get.find<ProductController>().getNewProducts();
 
   }
 
@@ -107,12 +111,12 @@ class _DashboardScreenState extends State<DashboardScreen>
                   const SizedBox(height: 28),
                   
                   // Popular Dishes
-                  _buildPopularDishes(),
+                  const PopularDishesWidget(),
                   
                   const SizedBox(height: 28),
                   
                   // New Items
-                  _buildNewItems(isTablet),
+                  const NewItemsWidget(),
                   
                   const SizedBox(height: 20),
 
@@ -1010,83 +1014,6 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
 
-  Widget _buildPopularDishes() {
-    final dishes = [
-      {
-        'name': 'Margherita Pizza',
-        'imageUrl': 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002',
-        'description': 'Classic Italian pizza with fresh mozzarella',
-        'price': 12.99,
-        'oldPrice': null,
-      },
-      {
-        'name': 'Chicken Burger',
-        'imageUrl': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd',
-        'description': 'Juicy chicken patty with special sauce',
-        'price': 8.99,
-        'oldPrice': null,
-      },
-      {
-        'name': 'California Roll',
-        'imageUrl': 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351',
-        'description': 'Fresh sushi roll with avocado and crab',
-        'price': 14.99,
-        'oldPrice': null,
-      },
-    ];
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            children: [
-              Icon(
-                Icons.trending_up,
-                color: ColorResource.success,
-                size: 28,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Popular Dishes',
-                style: poppinsBold.copyWith(
-                  fontSize: Constants.fontSizeExtraLarge,
-                  color: ColorResource.textPrimary,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 280,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: dishes.length,
-            itemBuilder: (context, index) {
-              final dish = dishes[index];
-              return FoodItemCard(
-                name: dish['name'] as String,
-                imageUrl: dish['imageUrl'] as String,
-                description: dish['description'] as String,
-                price: dish['price'] as double,
-                oldPrice: dish['oldPrice'] as double?,
-                onTap: () {
-                  // TODO: Navigate to dish details
-                },
-                onAddToCart: () {
-                  // TODO: Add to cart
-                },
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildNewItems(bool isTablet) {
     final newItems = [
