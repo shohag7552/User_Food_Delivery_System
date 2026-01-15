@@ -1,16 +1,24 @@
 import 'dart:async';
+import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
+import 'package:appwrite_user_app/app/models/banner_model.dart';
 
 class PromotionalBanner extends StatefulWidget {
-  final List<BannerData> banners;
+  final List<BannerModel> banners;
+  final bool isLoading;
+  final String? errorMessage;
+  final VoidCallback? onRetry;
   final Duration autoScrollDuration;
 
   const PromotionalBanner({
     super.key,
     required this.banners,
+    this.isLoading = false,
+    this.errorMessage,
+    this.onRetry,
     this.autoScrollDuration = const Duration(seconds: 4),
   });
 
@@ -58,6 +66,17 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
 
   @override
   Widget build(BuildContext context) {
+    // Loading state
+    if (widget.isLoading) {
+      return _buildLoadingState();
+    }
+
+    // Error state
+    if (widget.errorMessage != null) {
+      return _buildErrorState();
+    }
+
+    // Empty state
     if (widget.banners.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -77,7 +96,12 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
             itemBuilder: (context, index) {
               final banner = widget.banners[index];
               return GestureDetector(
-                onTap: banner.onTap,
+                onTap: () {
+                  // Handle banner tap based on action type
+                  if (banner.hasAction) {
+                    _handleBannerTap(banner);
+                  }
+                },
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   decoration: BoxDecoration(
@@ -115,6 +139,7 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
                             );
                           },
                         ),
+                        CustomNetworkImage(image: banner.imageUrl, width: double.infinity, height: double.infinity),
                         // Gradient overlay
                         Container(
                           decoration: BoxDecoration(
@@ -195,18 +220,84 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
       ],
     );
   }
-}
 
-class BannerData {
-  final String imageUrl;
-  final String? title;
-  final String? subtitle;
-  final VoidCallback onTap;
+  Widget _buildLoadingState() {
+    return Container(
+      height: 160,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(
+        color: ColorResource.cardBackground,
+        borderRadius: BorderRadius.circular(Constants.radiusLarge),
+        boxShadow: [
+          BoxShadow(
+            color: ColorResource.shadowMedium,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(ColorResource.primaryDark),
+        ),
+      ),
+    );
+  }
 
-  BannerData({
-    required this.imageUrl,
-    this.title,
-    this.subtitle,
-    required this.onTap,
-  });
+  Widget _buildErrorState() {
+    return Container(
+      height: 160,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(
+        color: ColorResource.cardBackground,
+        borderRadius: BorderRadius.circular(Constants.radiusLarge),
+        border: Border.all(
+          color: ColorResource.error.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                color: ColorResource.error,
+                size: 40,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Failed to load banners',
+                style: poppinsMedium.copyWith(
+                  fontSize: Constants.fontSizeDefault,
+                  color: ColorResource.textPrimary,
+                ),
+              ),
+              if (widget.onRetry != null) ...[
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: widget.onRetry,
+                  child: Text(
+                    'Retry',
+                    style: poppinsMedium.copyWith(
+                      fontSize: Constants.fontSizeDefault,
+                      color: ColorResource.primaryDark,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleBannerTap(BannerModel banner) {
+    // TODO: Implement navigation based on action type
+    // This can be implemented when needed
+    print('Banner tapped: ${banner.actionType} - ${banner.actionValue}');
+  }
 }

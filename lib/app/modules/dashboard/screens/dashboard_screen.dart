@@ -19,6 +19,7 @@ import 'package:appwrite_user_app/app/modules/dashboard/widgets/promotional_bann
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/order_tracking_widget.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
+import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:get/get.dart';
 
 
@@ -63,6 +64,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     _animationController.forward();
 
     Get.find<CategoryController>().getCategories();
+    Get.find<BannerController>().getBanners();
     Get.find<ProductController>().getSpecialProducts();
     Get.find<ProductController>().getPopularProducts();
     Get.find<ProductController>().getNewProducts();
@@ -142,51 +144,31 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
             ),
 
-            // SliverPersistentHeader(
-            //   pinned: true,
-            //   delegate: SliverDelegate(
-            //     height: 90,
-            //     child: Row(
-            //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //       children: [
-            //         Row(
-            //           children: [
-            //             Icon(
-            //               Icons.restaurant_menu,
-            //               color: ColorResource.primaryDark,
-            //               size: 28,
-            //             ),
-            //             const SizedBox(width: 8),
-            //             Text(
-            //               'All Products',
-            //               style: poppinsBold.copyWith(
-            //                 fontSize: Constants.fontSizeExtraLarge,
-            //                 color: ColorResource.textPrimary,
-            //               ),
-            //             ),
-            //           ],
-            //         ),
-            //         // Product count
-            //         Container(
-            //           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            //           decoration: BoxDecoration(
-            //             color: ColorResource.primaryDark.withOpacity(0.1),
-            //             borderRadius: BorderRadius.circular(Constants.radiusSmall),
-            //           ),
-            //           child: Text(
-            //             '${Get.find<ProductController>().products.length} items',
-            //             style: poppinsMedium.copyWith(
-            //               fontSize: Constants.fontSizeSmall,
-            //               color: ColorResource.primaryDark,
-            //             ),
-            //           ),
-            //         ),
-            //       ],
-            //     ),
-            //   ),
-            // ),
+            SliverAppBar(
+              automaticallyImplyLeading: false,
+              pinned: true,
+              backgroundColor: ColorResource.scaffoldBackground,
+              elevation: 0,
+              toolbarHeight: 0,
+              flexibleSpace: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'All Products',
+                      style: poppinsBold.copyWith(
+                        fontSize: Constants.fontSizeExtraLarge,
+                        color: ColorResource.textPrimary,
+                      ),
+                    ),
 
-            // All Products Section - Now returns slivers directly
+                    IconButton(onPressed: (){}, icon: Icon(Icons.filter_list) )
+                  ],
+                ),
+              ),
+            ),
+
             AllProductsWidget(isTablet: isTablet, scrollController: _scrollController),
           ],
         ),
@@ -345,28 +327,16 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildPromotionalBanners() {
-    final banners = [
-      BannerData(
-        imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836',
-        title: '50% OFF',
-        subtitle: 'On your first order',
-        onTap: () {},
-      ),
-      BannerData(
-        imageUrl: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1',
-        title: 'Free Delivery',
-        subtitle: 'Orders above \$30',
-        onTap: () {},
-      ),
-      BannerData(
-        imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38',
-        title: 'Weekend Special',
-        subtitle: 'Get extra 20% off',
-        onTap: () {},
-      ),
-    ];
-    
-    return PromotionalBanner(banners: banners);
+    return GetBuilder<BannerController>(
+      builder: (bannerController) {
+        return PromotionalBanner(
+          banners: bannerController.banners,
+          isLoading: bannerController.isLoading,
+          errorMessage: bannerController.errorMessage,
+          onRetry: () => bannerController.getBanners(),
+        );
+      },
+    );
   }
 
   int _selectedIndex = 0;

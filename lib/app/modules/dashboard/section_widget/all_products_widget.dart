@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -95,11 +96,11 @@ class AllProductsWidget extends StatelessWidget {
           slivers: [
             // Products Grid
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
               sliver: SliverGrid(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: isTablet ? 3 : 1,
-                  childAspectRatio: isTablet ? 0.75 : 1.3,
+                  crossAxisCount: isTablet ? 3 : 2,
+                  childAspectRatio: isTablet ? 0.75 : 0.65,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
                 ),
@@ -156,7 +157,7 @@ class AllProductsWidget extends StatelessWidget {
         ? ((product.price - product.finalPrice) / product.price * 100).toStringAsFixed(0)
         : null;
 
-    return GestureDetector(
+    return CustomClickableWidget(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(

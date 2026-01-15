@@ -17,4 +17,5 @@ class AppwriteConfig {
   static const String businessSetup = 'business_setup';
   static const String couponsCollection = 'coupons';
   static const String storeSetup = 'store_setup';
+  static const String bannersCollection = 'banners';
 }

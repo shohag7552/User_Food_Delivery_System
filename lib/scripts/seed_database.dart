@@ -41,6 +41,7 @@ void main() async {
     await _setupCoupons(databases);
     await _setupBusinessSetup(databases);
     await _setupStoreSetup(databases);
+    await _setupBanners(databases);
 
     print("\n🎉 SETUP COMPLETE! Your Appwrite backend is ready.");
   } catch (e) {
@@ -82,14 +83,14 @@ Future<void> _createCollection(Databases db, String id, String name, List<Functi
 // --- DEFINING SPECIFIC SCHEMAS ---
 
 Future<void> _setupUsers(Databases db) async {
-  await _createCollection(db, 'users', 'Users', [
-        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'users', key: 'name', size: 128, xrequired: true),
-        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'users', key: 'email', size: 128, xrequired: true),
-        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'users', key: 'phone', size: 20, xrequired: true),
-        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'users', key: 'role', elements: ['customer', 'driver', 'manager', 'admin'], xrequired: true),
-        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'users', key: 'fcm_token', size: 255, xrequired: false),
-        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'users', key: 'wallet_balance', xrequired: false, xdefault: 0.0),
-        () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'users', key: 'is_active', xrequired: false, xdefault: true),
+  await _createCollection(db, AppwriteConfig.usersCollection, 'Users', [
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.usersCollection, key: 'name', size: 128, xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.usersCollection, key: 'email', size: 128, xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.usersCollection, key: 'phone', size: 20, xrequired: true),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.usersCollection, key: 'role', elements: ['customer', 'driver', 'manager', 'admin'], xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.usersCollection, key: 'fcm_token', size: 255, xrequired: false),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.usersCollection, key: 'wallet_balance', xrequired: false, xdefault: 0.0),
+        () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.usersCollection, key: 'is_active', xrequired: false, xdefault: true),
   ], [
     Permission.read(Role.users()),
     Permission.create(Role.users()),      // Any logged-in user can add
@@ -145,12 +146,12 @@ Future<void> _setupBusinessSetup(Databases db) async {
 }
 
 Future<void> _setupCategories(Databases db) async {
-  await _createCollection(db, 'categories', 'Categories', [
-        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'categories', key: 'name', size: 64, xrequired: true),
-        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'categories', key: 'description', size: 64, xrequired: true),
-        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'categories', key: 'image_path', size: 2000, xrequired: true),
-        () => db.createIntegerAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'categories', key: 'sort_order', xrequired: false),
-        () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'categories', key: 'is_active', xrequired: false, xdefault: true),
+  await _createCollection(db, AppwriteConfig.categoriesCollection, 'Categories', [
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.categoriesCollection, key: 'name', size: 64, xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.categoriesCollection, key: 'description', size: 64, xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.categoriesCollection, key: 'image_path', size: 2000, xrequired: true),
+        () => db.createIntegerAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.categoriesCollection, key: 'sort_order', xrequired: false),
+        () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.categoriesCollection, key: 'is_active', xrequired: false, xdefault: true),
   ], [
     Permission.read(Role.any()),          // Everyone can see
     Permission.create(Role.team('admin_team')),
@@ -272,6 +273,36 @@ Future<void> _setupStoreSetup(Databases db) async {
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.storeSetup, key: 'twitter', size: 256, xrequired: false),
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.storeSetup, key: 'logo_url', size: 2000, xrequired: false),
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.storeSetup, key: 'cover_url', size: 2000, xrequired: false),
+  ], [
+    Permission.read(Role.any()),          // Everyone can see
+    Permission.create(Role.team('admin_team')),
+    Permission.read(Role.team('admin_team')),
+    Permission.update(Role.team('admin_team')),
+    Permission.delete(Role.team('admin_team')),
+  ]);
+}
+
+Future<void> _setupBanners(Databases db) async {
+  await _createCollection(db, AppwriteConfig.bannersCollection, 'Banners', [
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.bannersCollection, key: 'image_url', size: 2000, xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.bannersCollection, key: 'title', size: 128, xrequired: false),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.bannersCollection, key: 'subtitle', size: 256, xrequired: false),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.bannersCollection, key: 'action_type', elements: ['none', 'product', 'category', 'url'], xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.bannersCollection, key: 'action_value', size: 256, xrequired: false),
+        () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.bannersCollection, key: 'is_active', xrequired: false, xdefault: true),
+        () => db.createIntegerAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.bannersCollection, key: 'sort_order', xrequired: false, xdefault: 0),
+        () => db.createRelationshipAttribute(
+          databaseId: AppwriteConfig.dbId,
+          collectionId: AppwriteConfig.bannersCollection,
+          relatedCollectionId: AppwriteConfig.categoriesCollection,
+          type: RelationshipType.manyToOne,
+          twoWay: true,
+          key: 'category_id',
+          twoWayKey: AppwriteConfig.bannersCollection,
+          onDelete: RelationMutate.restrict, // Don't let someone delete a User if they have active orders (Safe)
+        ),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.bannersCollection, key: 'url', size: 256, xrequired: false),
+
   ], [
     Permission.read(Role.any()),          // Everyone can see
     Permission.create(Role.team('admin_team')),
