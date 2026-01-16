@@ -42,7 +42,7 @@ class PopularDishesWidget extends StatelessWidget {
             // Loading State
             if (controller.isLoadingPopular)
               SizedBox(
-                height: 280,
+                height: 220,
                 child: Center(
                   child: CircularProgressIndicator(
                     color: ColorResource.primaryDark,
@@ -53,7 +53,7 @@ class PopularDishesWidget extends StatelessWidget {
             // Error State
             else if (controller.popularErrorMessage != null)
               SizedBox(
-                height: 280,
+                height: 220,
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -90,7 +90,7 @@ class PopularDishesWidget extends StatelessWidget {
             // Empty State
             else if (controller.popularProducts.isEmpty)
               SizedBox(
-                height: 280,
+                height: 220,
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -116,7 +116,7 @@ class PopularDishesWidget extends StatelessWidget {
             // Products List
             else
               SizedBox(
-                height: 280,
+                height: 220,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),

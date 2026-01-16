@@ -1,4 +1,3 @@
-import 'package:appwrite_user_app/app/common/widgets/sliver_deligate.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/category_section_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/todays_specials_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/popular_dishes_widget.dart';
@@ -8,20 +7,11 @@ import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:appwrite_user_app/app/modules/categories/screens/category_screen.dart';
-import 'package:appwrite_user_app/app/modules/coupons/screens/coupons_screen.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/widgets/dashboard_stats_card.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/widgets/quick_action_button.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/widgets/restaurant_card.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/widgets/food_item_card.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/promotional_banner.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/widgets/order_tracking_widget.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:get/get.dart';
-
 
 
 class DashboardScreen extends StatefulWidget {

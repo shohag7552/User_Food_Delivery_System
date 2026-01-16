@@ -51,7 +51,7 @@ class NewItemsWidget extends StatelessWidget {
             // Loading State
             if (controller.isLoadingNew)
               SizedBox(
-                height: 280,
+                height: 220,
                 child: Center(
                   child: CircularProgressIndicator(
                     color: ColorResource.primaryDark,
@@ -62,7 +62,7 @@ class NewItemsWidget extends StatelessWidget {
             // Error State
             else if (controller.newErrorMessage != null)
               SizedBox(
-                height: 280,
+                height: 220,
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -99,7 +99,7 @@ class NewItemsWidget extends StatelessWidget {
             // Empty State
             else if (controller.newProducts.isEmpty)
               SizedBox(
-                height: 280,
+                height: 220,
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -125,7 +125,7 @@ class NewItemsWidget extends StatelessWidget {
             // Products List
             else
               SizedBox(
-                height: 280,
+                height: 220,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),

@@ -43,7 +43,7 @@ class TodaysSpecialsWidget extends StatelessWidget {
             // Loading State
             if (controller.isLoadingSpecials)
               SizedBox(
-                height: 280,
+                height: 220,
                 child: Center(
                   child: CircularProgressIndicator(
                     color: ColorResource.primaryDark,
@@ -54,7 +54,7 @@ class TodaysSpecialsWidget extends StatelessWidget {
             // Error State
             else if (controller.specialsErrorMessage != null)
               SizedBox(
-                height: 280,
+                height: 220,
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -91,7 +91,7 @@ class TodaysSpecialsWidget extends StatelessWidget {
             // Empty State
             else if (controller.specialProducts.isEmpty)
               SizedBox(
-                height: 280,
+                height: 220,
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -117,7 +117,7 @@ class TodaysSpecialsWidget extends StatelessWidget {
             // Products List
             else
               SizedBox(
-                height: 280,
+                height: 220,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),

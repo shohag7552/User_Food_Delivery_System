@@ -44,7 +44,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
     return CustomClickableWidget(
       onTap: widget.onTap,
       child: Container(
-        width: 280,
+        width: 200,
         margin: const EdgeInsets.only(right: 16, bottom: Constants.paddingSizeSmall),
         decoration: BoxDecoration(
           color: ColorResource.cardBackground,
@@ -110,17 +110,17 @@ class _FoodItemCardState extends State<FoodItemCard> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  // Description
-                  Text(
-                    widget.description,
-                    style: poppinsRegular.copyWith(
-                      fontSize: Constants.fontSizeSmall,
-                      color: ColorResource.textSecondary,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 12),
+                  // // Description
+                  // Text(
+                  //   widget.description,
+                  //   style: poppinsRegular.copyWith(
+                  //     fontSize: Constants.fontSizeSmall,
+                  //     color: ColorResource.textSecondary,
+                  //   ),
+                  //   maxLines: 2,
+                  //   overflow: TextOverflow.ellipsis,
+                  // ),
+                  // const SizedBox(height: 12),
                   // Price and add button
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
