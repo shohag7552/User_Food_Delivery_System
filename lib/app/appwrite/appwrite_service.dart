@@ -43,8 +43,7 @@ class AppwriteService {
         rowId: documentId ?? ID.unique(),
         data: data,
         permissions: [
-          Permission.write(Role.user(user.$id)),  // only this user can write
-          Permission.write(Role.team('admin_team')),
+          Permission.write(Role.user(user.$id)),
         ],
       );
     } on AppwriteException catch (e) {

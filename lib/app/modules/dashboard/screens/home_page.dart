@@ -33,8 +33,7 @@ class _HomePageState extends State<HomePage>
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
       // Load more when near bottom
       Get.find<ProductController>().loadMoreProducts();
     }

@@ -1,0 +1,136 @@
+import 'dart:developer';
+import 'package:appwrite_user_app/app/models/cart_item_model.dart';
+import 'package:appwrite_user_app/app/modules/cart/domain/repository/cart_repo_interface.dart';
+import 'package:get/get.dart';
+
+class CartController extends GetxController implements GetxService {
+  final CartRepoInterface cartRepoInterface;
+
+  CartController({required this.cartRepoInterface});
+
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  List<CartItemModel> _cartItems = [];
+  List<CartItemModel> get cartItems => _cartItems;
+
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
+
+  // Cart totals
+  int get itemCount => _cartItems.fold(0, (sum, item) => sum + item.quantity);
+
+  double get subtotal =>
+      _cartItems.fold(0.0, (sum, item) => sum + item.itemTotal);
+
+  double get tax => subtotal * 0.10; // 10% tax
+
+  double get total => subtotal + tax;
+
+  /// Fetch cart items for user
+  Future<void> getCartItems(String userId) async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      update();
+
+      _cartItems = await cartRepoInterface.getCartItems(userId);
+      
+      _isLoading = false;
+      update();
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = 'Failed to load cart: $e';
+      log('Error loading cart: $e');
+      update();
+    }
+  }
+
+  /// Add item to cart
+  Future<void> addToCart(CartItemModel item) async {
+    try {
+      await cartRepoInterface.addCartItem(item);
+      
+      // Refresh cart
+      await getCartItems(item.userId);
+      
+      log('Item added to cart successfully');
+    } catch (e) {
+      _errorMessage = 'Failed to add item: $e';
+      log('Error adding to cart: $e');
+      update();
+      rethrow;
+    }
+  }
+
+  /// Update item quantity
+  Future<void> updateQuantity(String itemId, int quantity) async {
+    try {
+      if (quantity < 1) return;
+
+      await cartRepoInterface.updateCartItem(itemId, quantity);
+      
+      // Update local state
+      final index = _cartItems.indexWhere((item) => item.id == itemId);
+      if (index != -1) {
+        final item = _cartItems[index];
+        final newItemTotal = item.unitPrice * quantity;
+        _cartItems[index] = item.copyWith(
+          quantity: quantity,
+          itemTotal: newItemTotal,
+        );
+        update();
+      }
+    } catch (e) {
+      _errorMessage = 'Failed to update quantity: $e';
+      log('Error updating quantity: $e');
+      update();
+    }
+  }
+
+  /// Increment quantity
+  void incrementQuantity(String itemId) {
+    final item = _cartItems.firstWhere((item) => item.id == itemId);
+    updateQuantity(itemId, item.quantity + 1);
+  }
+
+  /// Decrement quantity
+  void decrementQuantity(String itemId) {
+    final item = _cartItems.firstWhere((item) => item.id == itemId);
+    if (item.quantity > 1) {
+      updateQuantity(itemId, item.quantity - 1);
+    }
+  }
+
+  /// Remove item from cart
+  Future<void> removeItem(String itemId) async {
+    try {
+      await cartRepoInterface.removeCartItem(itemId);
+      
+      // Update local state
+      _cartItems.removeWhere((item) => item.id == itemId);
+      update();
+      
+      log('Item removed from cart');
+    } catch (e) {
+      _errorMessage = 'Failed to remove item: $e';
+      log('Error removing item: $e');
+      update();
+    }
+  }
+
+  /// Clear entire cart
+  Future<void> clearCart(String userId) async {
+    try {
+      await cartRepoInterface.clearCart(userId);
+      _cartItems.clear();
+      update();
+      
+      log('Cart cleared successfully');
+    } catch (e) {
+      _errorMessage = 'Failed to clear cart: $e';
+      log('Error clearing cart: $e');
+      update();
+    }
+  }
+}

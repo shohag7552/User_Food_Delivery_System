@@ -1,9 +1,13 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
+import 'package:appwrite_user_app/app/models/cart_item_model.dart';
+import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
+import 'package:appwrite_user_app/app/modules/cart/screens/cart_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class ProductDetailBottomSheet extends StatefulWidget {
   final ProductModel product;
@@ -88,6 +92,44 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
       }
     }
     return true;
+  }
+
+  List<SelectedVariant> _buildSelectedVariants() {
+    List<SelectedVariant> result = [];
+    
+    for (var variant in widget.product.variants) {
+      if (_selectedVariants.containsKey(variant.title)) {
+        List<VariantSelection> selections = [];
+        
+        if (variant.type == 'radio') {
+          VariantOption? option = _selectedVariants[variant.title];
+          if (option != null) {
+            selections.add(VariantSelection(
+              optionName: option.name,
+              optionPrice: option.price,
+            ));
+          }
+        } else {
+          List<VariantOption> options = _selectedVariants[variant.title] ?? [];
+          for (var option in options) {
+            selections.add(VariantSelection(
+              optionName: option.name,
+              optionPrice: option.price,
+            ));
+          }
+        }
+        
+        if (selections.isNotEmpty) {
+          result.add(SelectedVariant(
+            groupTitle: variant.title,
+            groupType: variant.type,
+            selections: selections,
+          ));
+        }
+      }
+    }
+    
+    return result;
   }
 
   @override
@@ -653,22 +695,64 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
       child: SafeArea(
         child: GestureDetector(
           onTap: _canAddToCart
-              ? () {
-                  // TODO: Add to cart logic
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        '${widget.product.name} added to cart!',
-                        style: poppinsMedium.copyWith(
-                          color: ColorResource.textWhite,
+              ? () async {
+                  try {
+                    // Create cart item
+                    final cartItem = CartItemModel(
+                      id: '', // Will be set by database
+                      userId: 'user_001', // TODO: Get from auth controller
+                      productId: widget.product.id,
+                      productName: widget.product.name,
+                      productImage: widget.product.imageId,
+                      basePrice: widget.product.price,
+                      discountType: widget.product.discountType,
+                      discountValue: widget.product.discountValue,
+                      finalPrice: widget.product.finalPrice,
+                      selectedVariants: _buildSelectedVariants(),
+                      quantity: _quantity,
+                      itemTotal: _totalPrice,
+                    );
+
+                    // Add to cart
+                    await Get.find<CartController>().addToCart(cartItem);
+                    
+                    Navigator.pop(context);
+                    
+                    // Show success with cart option
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          '${widget.product.name} added to cart!',
+                          style: poppinsMedium.copyWith(
+                            color: ColorResource.textWhite,
+                          ),
+                        ),
+                        backgroundColor: Colors.green,
+                        behavior: SnackBarBehavior.floating,
+                        duration: const Duration(seconds: 3),
+                        action: SnackBarAction(
+                          label: 'View Cart',
+                          textColor: ColorResource.textWhite,
+                          onPressed: () {
+                            Get.to(() => const CartPage());
+                          },
                         ),
                       ),
-                      backgroundColor: Colors.green,
-                      behavior: SnackBarBehavior.floating,
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
+                    );
+                  } catch (e) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Failed to add to cart',
+                          style: poppinsMedium.copyWith(
+                            color: ColorResource.textWhite,
+                          ),
+                        ),
+                        backgroundColor: ColorResource.error,
+                      ),
+                    );
+                  }
                 }
               : null,
           child: Container(

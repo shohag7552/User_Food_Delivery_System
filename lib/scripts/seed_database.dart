@@ -42,6 +42,7 @@ void main() async {
     await _setupBusinessSetup(databases);
     await _setupStoreSetup(databases);
     await _setupBanners(databases);
+    await _setupCart(databases);
 
     print("\n🎉 SETUP COMPLETE! Your Appwrite backend is ready.");
   } catch (e) {
@@ -309,6 +310,27 @@ Future<void> _setupBanners(Databases db) async {
     Permission.read(Role.team('admin_team')),
     Permission.update(Role.team('admin_team')),
     Permission.delete(Role.team('admin_team')),
+  ]);
+}
+
+Future<void> _setupCart(Databases db) async {
+  await _createCollection(db, AppwriteConfig.cartCollection, 'Cart Items', [
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.cartCollection, key: 'user_id', size: 128, xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.cartCollection, key: 'product_id', size: 128, xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.cartCollection, key: 'product_name', size: 256, xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.cartCollection, key: 'product_image', size: 1000, xrequired: true),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.cartCollection, key: 'base_price', xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.cartCollection, key: 'discount_type', size: 50, xrequired: false),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.cartCollection, key: 'discount_value', xrequired: false),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.cartCollection, key: 'final_price', xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.cartCollection, key: 'selected_variants', size: 1000, xrequired: false),
+        () => db.createIntegerAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.cartCollection, key: 'quantity', xrequired: true),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.cartCollection, key: 'item_total', xrequired: true),
+  ], [
+    Permission.read(Role.users()),
+    Permission.create(Role.users()),
+    Permission.update(Role.users()),
+    Permission.delete(Role.users()),
   ]);
 }
 
