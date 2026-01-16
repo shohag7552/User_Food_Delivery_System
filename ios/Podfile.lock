@@ -2,7 +2,7 @@ PODS:
   - device_info_plus (0.0.1):
     - Flutter
   - Flutter (1.0.0)
-  - flutter_web_auth_2 (5.0.0-alpha.2):
+  - flutter_web_auth_2 (5.0.0):
     - Flutter
   - fluttertoast (0.0.2):
     - Flutter
@@ -59,7 +59,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  flutter_web_auth_2: c35a99b4799ad94b0dc140880f406cf59a4af866
+  flutter_web_auth_2: 646fc9df97a01c59e5eea99b237da2c6360f8439
   fluttertoast: 2c67e14dce98bbdb200df9e1acf610d7a6264ea1
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499

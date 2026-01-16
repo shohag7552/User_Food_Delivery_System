@@ -1,6 +1,7 @@
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
+import 'package:appwrite_user_app/app/modules/checkout/screens/checkout_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -259,12 +260,7 @@ class CartPage extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // TODO: Navigate to checkout
-                  Get.snackbar(
-                    'Checkout',
-                    'Checkout feature coming soon!',
-                    snackPosition: SnackPosition.BOTTOM,
-                  );
+                  Get.to(() => const CheckoutPage());
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: ColorResource.primaryDark,
