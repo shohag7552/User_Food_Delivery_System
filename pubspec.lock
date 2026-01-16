@@ -5,10 +5,10 @@ packages:
     dependency: "direct main"
     description:
       name: appwrite
-      sha256: f0f5f4b80b1180592db272cbb483d3812805a5d3540ff2697009c89a584481f3
+      sha256: "874451092247d1a2409aa91f607fb42966c9e564e26146d2daa1c36b6ff150be"
       url: "https://pub.dev"
     source: hosted
-    version: "20.3.2"
+    version: "20.3.3"
   async:
     dependency: transitive
     description:
@@ -109,10 +109,10 @@ packages:
     dependency: "direct main"
     description:
       name: dart_appwrite
-      sha256: "50248f6e9fdfd3c1280f07071084c7de2c0d83a2b5823c84e8573ca3eb4db917"
+      sha256: ab83c08abd5911da0b9a91712bff07387e0e1a29309b2ff31c5d8f3d4787c9dc
       url: "https://pub.dev"
     source: hosted
-    version: "20.1.0"
+    version: "20.1.1"
   desktop_webview_window:
     dependency: transitive
     description:
@@ -141,10 +141,10 @@ packages:
     dependency: transitive
     description:
       name: equatable
-      sha256: "567c64b3cb4cf82397aac55f4f0cbd3ca20d77c6c03bedbc4ceaddc08904aef7"
+      sha256: "3e0141505477fd8ad55d6eb4e7776d3fe8430be8e497ccb1521370c3f21a3e2b"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.7"
+    version: "2.0.8"
   fake_async:
     dependency: transitive
     description:
@@ -157,10 +157,10 @@ packages:
     dependency: transitive
     description:
       name: ffi
-      sha256: "289279317b4b16eb2bb7e271abccd4bf84ec9bdcbe999e278a94b804f5630418"
+      sha256: d07d37192dbf97461359c1518788f203b0c9102cfd2c35a716b823741219542c
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.4"
+    version: "2.1.5"
   file:
     dependency: transitive
     description:
@@ -255,18 +255,18 @@ packages:
     dependency: transitive
     description:
       name: flutter_web_auth_2
-      sha256: fb584c8a285722eb98363240f0aac608cc546f8d28080cdf05edfad27ace2af0
+      sha256: "7a63332eba61ddce6cc5acd7a4b26441fa0045ab6673ba40519a00dfaf87f2a9"
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.0-alpha.7"
+    version: "5.0.0"
   flutter_web_auth_2_platform_interface:
     dependency: transitive
     description:
       name: flutter_web_auth_2_platform_interface
-      sha256: e25eb45c50b3eef5a80d0ae73c7ecf82e291c152387da8d2008bfd607ba43087
+      sha256: ba0fbba55bffb47242025f96852ad1ffba34bc451568f56ef36e613612baffab
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.0-alpha.4"
+    version: "5.0.0"
   flutter_web_plugins:
     dependency: transitive
     description: flutter
@@ -777,10 +777,10 @@ packages:
     dependency: transitive
     description:
       name: url_launcher_web
-      sha256: "4bd2b7b4dc4d4d0b94e5babfffbca8eac1a126c7f3d6ecbc1a11013faa3abba2"
+      sha256: d0412fcf4c6b31ecfdb7762359b7206ffba3bbffd396c6d9f9c4616ece476c1f
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.1"
+    version: "2.4.2"
   url_launcher_windows:
     dependency: transitive
     description:
@@ -871,4 +871,4 @@ packages:
     version: "1.1.0"
 sdks:
   dart: ">=3.10.1 <4.0.0"
-  flutter: ">=3.35.0"
+  flutter: ">=3.38.0"

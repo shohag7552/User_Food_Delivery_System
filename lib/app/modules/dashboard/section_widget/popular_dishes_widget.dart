@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/food_item_card.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -131,12 +132,10 @@ class PopularDishesWidget extends StatelessWidget {
                       price: product.finalPrice,
                       oldPrice: product.hasDiscount ? product.price : null,
                       onTap: () {
-                        // TODO: Navigate to product details
-                        print('====> Tapped on product: ${product.name}');
+                        ProductDetailBottomSheet.show(context, product);
                       },
                       onAddToCart: () {
-                        // TODO: Add to cart
-                        print('====> Add to cart: ${product.name}');
+                        ProductDetailBottomSheet.show(context, product);
                       },
                     );
                   },
