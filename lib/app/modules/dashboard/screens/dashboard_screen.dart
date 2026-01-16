@@ -2,6 +2,7 @@ import 'package:appwrite_user_app/app/modules/dashboard/screens/home_page.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/screens/menu_page.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/screens/orders_page.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/screens/profile_page.dart';
+import 'package:appwrite_user_app/app/modules/cart/screens/cart_page.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -9,6 +10,7 @@ import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
+import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:get/get.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -26,6 +28,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final List<Widget> _pages = [
     const HomePage(),
     const MenuPage(),
+    const CartPage(),
     const OrdersPage(),
     const ProfilePage(),
   ];
@@ -42,6 +45,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Get.find<ProductController>().getPopularProducts();
     Get.find<ProductController>().getNewProducts();
     Get.find<ProductController>().getProducts();
+    
+    // Load cart items (using hardcoded user_id for now)
+    Get.find<CartController>().getCartItems('user_001');
   }
 
   @override
@@ -98,8 +104,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               _buildNavItem(Icons.home, 'Home', 0),
               _buildNavItem(Icons.restaurant_menu, 'Menu', 1),
-              _buildNavItem(Icons.receipt_long, 'Orders', 2),
-              _buildNavItem(Icons.person, 'Profile', 3),
+              _buildCartNavItem(),
+              _buildNavItem(Icons.receipt_long, 'Orders', 3),
+              _buildNavItem(Icons.person, 'Profile', 4),
             ],
           ),
         ),
@@ -142,6 +149,123 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildCartNavItem() {
+    final isSelected = _selectedIndex == 2;
+
+    return GetBuilder<CartController>(
+      builder: (cartController) {
+        final itemCount = cartController.itemCount;
+        final hasItems = itemCount > 0;
+
+        return GestureDetector(
+          onTap: () {
+            Get.to(() => const CartPage());
+            // _onNavItemTapped(2);
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              gradient: isSelected
+                  ? ColorResource.primaryGradient
+                  : (hasItems
+                      ? LinearGradient(
+                          colors: [
+                            ColorResource.primaryDark.withValues(alpha: 0.15),
+                            ColorResource.primaryDark.withValues(alpha: 0.08),
+                          ],
+                        )
+                      : null),
+              borderRadius: BorderRadius.circular(Constants.radiusLarge),
+              border: hasItems && !isSelected
+                  ? Border.all(
+                      color: ColorResource.primaryDark.withValues(alpha: 0.3),
+                      width: 1,
+                    )
+                  : null,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(
+                      Icons.shopping_cart,
+                      color: isSelected
+                          ? ColorResource.textWhite
+                          : (hasItems
+                              ? ColorResource.primaryDark
+                              : ColorResource.textSecondary),
+                      size: 24,
+                    ),
+                    if (hasItems)
+                      Positioned(
+                        right: -8,
+                        top: -8,
+                        child: TweenAnimationBuilder<double>(
+                          duration: const Duration(milliseconds: 500),
+                          tween: Tween(begin: 0.0, end: 1.0),
+                          builder: (context, value, child) {
+                            return Transform.scale(
+                              scale: 0.8 + (0.2 * value),
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      ColorResource.error,
+                                      ColorResource.error.withValues(alpha: 0.8),
+                                    ],
+                                  ),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: ColorResource.error
+                                          .withValues(alpha: 0.5),
+                                      blurRadius: 6,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
+                                ),
+                                constraints: const BoxConstraints(
+                                  minWidth: 18,
+                                  minHeight: 18,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    itemCount > 99 ? '99+' : '$itemCount',
+                                    style: poppinsBold.copyWith(
+                                      fontSize: 10,
+                                      color: ColorResource.textWhite,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+                if (isSelected) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    'Cart',
+                    style: poppinsMedium.copyWith(
+                      fontSize: Constants.fontSizeSmall,
+                      color: ColorResource.textWhite,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
