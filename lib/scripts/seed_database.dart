@@ -220,18 +220,68 @@ Future<void> _setupOrders(Databases db) async {
 }
 
 Future<void> _setupAddresses(Databases db) async {
-  await _createCollection(db, 'addresses', 'Addresses', [
-        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'addresses', key: 'user_id', size: 64, xrequired: true),
-        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'addresses', key: 'label', size: 64, xrequired: true),
-        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'addresses', key: 'address', size: 512, xrequired: true),
-    // Note: Creating Spatial Indexes via API is complex, we just store string Lat/Lng for now.
-    // In production, manually add a Spatial Index on this location attribute in Console.
-        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'addresses', key: 'location', size: 128, xrequired: true),
+  await _createCollection(db, AppwriteConfig.addressesCollection, 'Addresses', [
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.addressesCollection,
+      key: 'user_id',
+      size: 128,
+      xrequired: true,
+    ),
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.addressesCollection,
+      key: 'name',
+      size: 256,
+      xrequired: true,
+    ),
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.addressesCollection,
+      key: 'phone',
+      size: 50,
+      xrequired: true,
+    ),
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.addressesCollection,
+      key: 'address_line_1',
+      size: 500,
+      xrequired: true,
+    ),
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.addressesCollection,
+      key: 'address_line_2',
+      size: 500,
+      xrequired: false,
+    ),
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.addressesCollection,
+      key: 'city',
+      size: 128,
+      xrequired: true,
+    ),
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.addressesCollection,
+      key: 'postal_code',
+      size: 20,
+      xrequired: true,
+    ),
+    () => db.createBooleanAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.addressesCollection,
+      key: 'is_default',
+      xrequired: false,
+      xdefault: false,
+    ),
   ], [
-    Permission.create(Role.users()),      // Any logged-in user can add
-    Permission.read(Role.users()), // Users can see their own addresses
-    Permission.update(Role.users()), // Users can update their own addresses
-    Permission.delete(Role.users()), // Users can delete their own addresses
+    Permission.read(Role.users()),
+    Permission.create(Role.users()),
+    Permission.update(Role.users()),
+    Permission.delete(Role.users()),
   ]);
 }
 

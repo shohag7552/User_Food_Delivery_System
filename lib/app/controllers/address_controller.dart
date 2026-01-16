@@ -1,9 +1,10 @@
 import 'dart:developer';
+import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
 import 'package:appwrite_user_app/app/modules/address/domain/repository/address_repo_interface.dart';
 import 'package:get/get.dart';
 
-class AddressController extends GetxController {
+class AddressController extends GetxController implements GetxService {
   final AddressRepoInterface addressRepoInterface;
 
   AddressController({required this.addressRepoInterface});
@@ -62,14 +63,10 @@ class AddressController extends GetxController {
       await addressRepoInterface.addAddress(address);
       await fetchAddresses(); // Refresh list
       Get.back(); // Close add address page
-      Get.snackbar(
-        'Success',
-        'Address added successfully',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      customToster('Address added successfully');
     } catch (e) {
       log('Error adding address: $e');
-      Get.snackbar('Error', 'Failed to add address');
+      customToster('Failed to add address', isSuccess: false);
     }
   }
 
