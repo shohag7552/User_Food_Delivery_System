@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/modules/address/screens/addresses_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -40,7 +41,8 @@ class ProfilePage extends StatelessWidget {
                         title: 'Saved Addresses',
                         subtitle: 'Manage your delivery addresses',
                         onTap: () {
-                          Get.snackbar('Addresses', 'Feature coming soon');
+                          Get.to(AddressesPage());
+                          // Get.snackbar('Addresses', 'Feature coming soon');
                         },
                       ),
                       _ProfileOption(

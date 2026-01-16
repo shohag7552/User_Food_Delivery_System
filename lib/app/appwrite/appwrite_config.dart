@@ -19,4 +19,5 @@ class AppwriteConfig {
   static const String storeSetup = 'store_setup';
   static const String bannersCollection = 'banners';
   static const String cartCollection = 'cart_items';
+  static const String addressesCollection = 'addresses';
 }

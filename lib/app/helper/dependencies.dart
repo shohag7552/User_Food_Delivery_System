@@ -8,6 +8,7 @@ import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:appwrite_user_app/app/controllers/localization_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
+import 'package:appwrite_user_app/app/controllers/address_controller.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repository.dart';
 import 'package:appwrite_user_app/app/modules/categories/domain/repository/category_repo_interface.dart';
@@ -20,6 +21,8 @@ import 'package:appwrite_user_app/app/modules/banners/domain/repository/banner_r
 import 'package:appwrite_user_app/app/modules/banners/domain/repository/banner_repository.dart';
 import 'package:appwrite_user_app/app/modules/cart/domain/repository/cart_repo_interface.dart';
 import 'package:appwrite_user_app/app/modules/cart/domain/repository/cart_repository.dart';
+import 'package:appwrite_user_app/app/modules/address/domain/repository/address_repo_interface.dart';
+import 'package:appwrite_user_app/app/modules/address/domain/repository/address_repository.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -50,6 +53,9 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   CartRepoInterface cartRepoInterface = CartRepository(appwriteService: Get.find());
   Get.lazyPut(() => cartRepoInterface);
 
+  AddressRepoInterface addressRepoInterface = AddressRepository(appwriteService: Get.find());
+  Get.lazyPut(() => addressRepoInterface);
+
 
   /// Controller Initialization
   Get.lazyPut(() => AuthController(authRepoInterface: Get.find()));
@@ -58,6 +64,7 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   Get.lazyPut(() => ProductController(productRepoInterface: Get.find()));
   Get.lazyPut(() => BannerController(bannerRepoInterface: Get.find()));
   Get.lazyPut(() => CartController(cartRepoInterface: Get.find()));
+  Get.lazyPut(() => AddressController(addressRepoInterface: Get.find()));
 
 
   /// Retrieving localized data
