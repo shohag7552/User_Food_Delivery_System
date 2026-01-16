@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:appwrite/models.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
 import 'package:get/get.dart';
@@ -168,6 +169,11 @@ class AuthController extends GetxController implements GetxService {
     return isSuccess;
   }
 
+  Future<String?> getUserId() async {
+    User? user = await authRepoInterface.getCurrentUser();
+    return user?.$id;
+  }
+
   //
   // Future<bool> registrationSubmit(RegistrationModel registrationModel) async {
   //   bool isSuccess = false;
@@ -299,9 +305,6 @@ class AuthController extends GetxController implements GetxService {
   //   return authRepoInterface.alreadyLoggedIn();
   // }
   // //
-  // // String getUserId(){
-  // //   return authRepository.getUserUid();
-  // // }
   // //
   // // void removeToken() {
   // //   authRepoInterface.clearToken();

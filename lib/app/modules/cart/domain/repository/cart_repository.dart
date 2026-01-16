@@ -1,9 +1,10 @@
 import 'dart:developer';
+import 'package:appwrite/models.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/modules/cart/domain/repository/cart_repo_interface.dart';
-import 'package:dart_appwrite/models.dart';
+// import 'package:dart_appwrite/models.dart' hide User;
 import 'package:dart_appwrite/dart_appwrite.dart';
 
 class CartRepository implements CartRepoInterface {
@@ -12,12 +13,18 @@ class CartRepository implements CartRepoInterface {
   CartRepository({required this.appwriteService});
 
   @override
-  Future<List<CartItemModel>> getCartItems(String userId) async {
+  Future<List<CartItemModel>> getCartItems() async {
     try {
+      User? user = await appwriteService.getCurrentUser();
+
+      if (user == null) {
+        throw Exception('User not logged in');
+      }
+
       final response = await appwriteService.listTable(
         tableId: AppwriteConfig.cartCollection,
         queries: [
-          Query.equal('user_id', userId),
+          Query.equal('user_id', user.$id),
           Query.orderDesc('\$createdAt'),
         ],
       );
@@ -90,9 +97,9 @@ class CartRepository implements CartRepoInterface {
   }
 
   @override
-  Future<void> clearCart(String userId) async {
+  Future<void> clearCart() async {
     try {
-      final items = await getCartItems(userId);
+      final items = await getCartItems();
       
       for (var item in items) {
         await removeCartItem(item.id);

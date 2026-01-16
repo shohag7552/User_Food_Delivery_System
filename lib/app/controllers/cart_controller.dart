@@ -28,13 +28,13 @@ class CartController extends GetxController implements GetxService {
   double get total => subtotal + tax;
 
   /// Fetch cart items for user
-  Future<void> getCartItems(String userId) async {
+  Future<void> getCartItems() async {
     try {
       _isLoading = true;
       _errorMessage = null;
       update();
 
-      _cartItems = await cartRepoInterface.getCartItems(userId);
+      _cartItems = await cartRepoInterface.getCartItems();
       
       _isLoading = false;
       update();
@@ -52,7 +52,7 @@ class CartController extends GetxController implements GetxService {
       await cartRepoInterface.addCartItem(item);
       
       // Refresh cart
-      await getCartItems(item.userId);
+      await getCartItems();
       
       log('Item added to cart successfully');
     } catch (e) {
@@ -120,9 +120,9 @@ class CartController extends GetxController implements GetxService {
   }
 
   /// Clear entire cart
-  Future<void> clearCart(String userId) async {
+  Future<void> clearCart() async {
     try {
-      await cartRepoInterface.clearCart(userId);
+      await cartRepoInterface.clearCart();
       _cartItems.clear();
       update();
       

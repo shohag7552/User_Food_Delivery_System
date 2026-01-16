@@ -1,3 +1,4 @@
+import 'package:appwrite/models.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,7 +29,6 @@ class AuthRepository implements AuthRepoInterface {
 
   @override
   Future<bool> isLoggedIn() async {
-    // TODO: Check if user is logged in
     return await appwriteService.isLoggedIn();
   }
 
@@ -60,5 +60,10 @@ class AuthRepository implements AuthRepoInterface {
       );
 
       return true;
+  }
+
+  @override
+  Future<User?> getCurrentUser() async {
+    return await appwriteService.getCurrentUser();
   }
 }

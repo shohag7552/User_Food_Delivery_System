@@ -1,3 +1,5 @@
+import 'package:appwrite/models.dart';
+
 abstract class AuthRepoInterface {
   // Future<bool> auth(String email, String password);
   Future<void> logout();
@@ -9,4 +11,5 @@ abstract class AuthRepoInterface {
     required String phone,
     required String password,
   });
+  Future<User?> getCurrentUser();
 }

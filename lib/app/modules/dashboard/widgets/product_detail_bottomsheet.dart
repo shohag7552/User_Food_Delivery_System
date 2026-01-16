@@ -1,4 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
+import 'package:appwrite_user_app/app/helper/auth_helper.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
@@ -697,10 +699,11 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
           onTap: _canAddToCart
               ? () async {
                   try {
+                    String? userId = await Get.find<AuthController>().getUserId();
                     // Create cart item
                     final cartItem = CartItemModel(
                       id: '', // Will be set by database
-                      userId: 'user_001', // TODO: Get from auth controller
+                      userId: userId ?? '',
                       productId: widget.product.id,
                       productName: widget.product.name,
                       productImage: widget.product.imageId,

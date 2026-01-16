@@ -47,7 +47,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Get.find<ProductController>().getProducts();
     
     // Load cart items (using hardcoded user_id for now)
-    Get.find<CartController>().getCartItems('user_001');
+    Get.find<CartController>().getCartItems();
   }
 
   @override
