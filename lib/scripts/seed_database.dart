@@ -187,12 +187,12 @@ Future<void> _setupProducts(Databases db) async {
 }
 
 Future<void> _setupOrders(Databases db) async {
-  await _createCollection(db, 'orders', 'Orders', [
-        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'orders', key: 'customer_id', size: 64, xrequired: true),
+  await _createCollection(db, AppwriteConfig.ordersCollection, 'Orders', [
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'customer_id', size: 64, xrequired: true),
         //make relation ship attribute between orders and users
         () => db.createRelationshipAttribute(
       databaseId: AppwriteConfig.dbId,
-      collectionId: 'orders',
+      collectionId: AppwriteConfig.ordersCollection,
       relatedCollectionId: 'users',
       type: RelationshipType.manyToOne,
       twoWay: true,
@@ -200,15 +200,15 @@ Future<void> _setupOrders(Databases db) async {
       twoWayKey: 'orders',
       onDelete: RelationMutate.restrict, // Don't let someone delete a User if they have active orders (Safe)
     ),
-        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'orders', key: 'driver_id', size: 64, xrequired: false),
-        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'orders', key: 'status', elements: ['pending', 'cooking', 'ready', 'on_way', 'delivered', 'cancelled'], xrequired: true),
-        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'orders', key: 'payment_method', elements: ['cod', 'online', 'wallet'], xrequired: true),
-        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'orders', key: 'payment_status', elements: ['paid', 'unpaid'], xrequired: true),
-        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'orders', key: 'total_amount', xrequired: true),
-        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'orders', key: 'delivery_fee', xrequired: true),
-        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'orders', key: 'delivery_address', size: 2000, xrequired: true), // Snapshot JSON
-        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'orders', key: 'order_items', size: 5000, xrequired: true), // Snapshot JSON
-        () => db.createDatetimeAttribute(databaseId: AppwriteConfig.dbId, collectionId: 'orders', key: 'created_at', xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'driver_id', size: 64, xrequired: false),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'status', elements: ['pending', 'cooking', 'ready', 'on_way', 'delivered', 'cancelled'], xrequired: true),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'payment_method', elements: ['cod', 'online', 'wallet'], xrequired: true),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'payment_status', elements: ['paid', 'unpaid'], xrequired: true),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'total_amount', xrequired: true),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'delivery_fee', xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'delivery_address', size: 2000, xrequired: true), // Snapshot JSON
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'order_items', size: 5000, xrequired: true), // Snapshot JSON
+        () => db.createDatetimeAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'created_at', xrequired: true),
   ], [
     Permission.create(Role.users()),      // Any logged-in user can add
     Permission.read(Role.users()), // Users can see their own addresses

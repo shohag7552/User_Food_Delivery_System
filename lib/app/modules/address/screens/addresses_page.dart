@@ -102,103 +102,185 @@ class AddressesPage extends StatelessWidget {
         boxShadow: ColorResource.customShadow,
         border: address.isDefault
             ? Border.all(color: ColorResource.primaryDark, width: 2)
-            : null,
+            : Border.all(color: Colors.grey.shade200, width: 1),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      child: Column(
+        children: [
+          // Header Section with Toggle
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: address.isDefault 
+                  ? ColorResource.primaryDark.withOpacity(0.05)
+                  : Colors.grey.shade50,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(Constants.radiusLarge),
+                topRight: Radius.circular(Constants.radiusLarge),
+              ),
+            ),
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          gradient: address.isDefault 
+                              ? ColorResource.primaryGradient
+                              : LinearGradient(
+                                  colors: [Colors.grey.shade300, Colors.grey.shade400],
+                                ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.location_on_rounded, 
+                          color: ColorResource.textWhite,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              address.name,
+                              style: poppinsBold.copyWith(
+                                fontSize: Constants.fontSizeLarge,
+                                color: ColorResource.textPrimary,
+                              ),
+                            ),
+                            if (address.isDefault)
+                              Text(
+                                'Default Address',
+                                style: poppinsMedium.copyWith(
+                                  fontSize: 11,
+                                  color: ColorResource.primaryDark,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Toggle Switch for Default
+                Transform.scale(
+                  scale: 0.9,
+                  child: Switch(
+                    value: address.isDefault,
+                    onChanged: (value) {
+                      if (value && !address.isDefault) {
+                        controller.setDefaultAddress(address.id);
+                      }
+                    },
+                    activeColor: ColorResource.primaryDark,
+                    activeTrackColor: ColorResource.primaryDark.withOpacity(0.3),
+                    inactiveThumbColor: Colors.grey.shade400,
+                    inactiveTrackColor: Colors.grey.shade200,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Content Section
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Phone Number
                 Row(
                   children: [
-                    Icon(Icons.location_on, color: ColorResource.primaryDark),
+                    Icon(
+                      Icons.phone_outlined, 
+                      size: 16, 
+                      color: ColorResource.textSecondary,
+                    ),
                     const SizedBox(width: 8),
                     Text(
-                      address.name,
-                      style: poppinsBold.copyWith(
-                        fontSize: Constants.fontSizeLarge,
-                        color: ColorResource.textPrimary,
+                      address.phone,
+                      style: poppinsMedium.copyWith(
+                        fontSize: Constants.fontSizeDefault,
+                        color: ColorResource.textSecondary,
                       ),
                     ),
                   ],
                 ),
-                if (address.isDefault)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      gradient: ColorResource.primaryGradient,
-                      borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 12),
+                
+                // Full Address
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.home_outlined, 
+                      size: 16, 
+                      color: ColorResource.textSecondary,
                     ),
-                    child: Text(
-                      'DEFAULT',
-                      style: poppinsBold.copyWith(
-                        fontSize: 10,
-                        color: ColorResource.textWhite,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        address.fullAddress,
+                        style: poppinsRegular.copyWith(
+                          fontSize: Constants.fontSizeDefault,
+                          color: ColorResource.textPrimary,
+                          height: 1.4,
+                        ),
                       ),
                     ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 12),
-           Text(
-              address.phone,
-              style: poppinsRegular.copyWith(
-                fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              address.fullAddress,
-              style: poppinsRegular.copyWith(
-                fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                if (!address.isDefault)
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => controller.setDefaultAddress(address.id),
-                      icon: const Icon(Icons.check_circle_outline, size: 18),
-                      label: const Text('Set as Default'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: ColorResource.primaryDark,
-                        side: BorderSide(color: ColorResource.primaryDark),
-                      ),
-                    ),
-                  ),
-                if (!address.isDefault) const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Get.to(() => AddEditAddressPage(address: address));
-                    },
-                    icon: const Icon(Icons.edit_outlined, size: 18),
-                    label: const Text('Edit'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: ColorResource.textSecondary,
-                    ),
-                  ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                OutlinedButton.icon(
-                  onPressed: () => _showDeleteConfirmation(context, address, controller),
-                  icon: const Icon(Icons.delete_outline, size: 18),
-                  label: const Text('Delete'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: ColorResource.error,
-                  ),
+                
+                const SizedBox(height: 16),
+                const Divider(height: 1),
+                const SizedBox(height: 12),
+                
+                // Action Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Get.to(() => AddEditAddressPage(address: address));
+                        },
+                        icon: const Icon(Icons.edit_outlined, size: 18),
+                        label: const Text('Edit'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: ColorResource.primaryDark,
+                          side: BorderSide(color: ColorResource.primaryDark),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _showDeleteConfirmation(context, address, controller),
+                        icon: const Icon(Icons.delete_outline, size: 18),
+                        label: const Text('Delete'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: ColorResource.error,
+                          side: BorderSide(color: ColorResource.error),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

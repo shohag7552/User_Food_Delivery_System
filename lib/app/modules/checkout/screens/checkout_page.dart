@@ -1,4 +1,9 @@
+import 'package:appwrite_user_app/app/controllers/address_controller.dart';
+import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
+import 'package:appwrite_user_app/app/controllers/order_controller.dart';
+import 'package:appwrite_user_app/app/models/address_model.dart';
+import 'package:appwrite_user_app/app/modules/address/screens/add_edit_address_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -13,31 +18,25 @@ class CheckoutPage extends StatefulWidget {
 }
 
 class _CheckoutPageState extends State<CheckoutPage> {
-  final _formKey = GlobalKey<FormState>();
-  
-  // Form controllers
-  final _nameController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _addressLine1Controller = TextEditingController();
-  final _addressLine2Controller = TextEditingController();
-  final _cityController = TextEditingController();
-  final _postalCodeController = TextEditingController();
   final _instructionsController = TextEditingController();
-  
   String _selectedPaymentMethod = 'cod';
-  bool _isPlacingOrder = false;
   bool _showAllItems = false;
+  AddressModel? _selectedAddress;
   
   final double deliveryFee = 5.00;
   
   @override
+  void initState() {
+    super.initState();
+    // Auto-select default address
+    final addressController = Get.find<AddressController>();
+    if (addressController.defaultAddress != null) {
+      _selectedAddress = addressController.defaultAddress;
+    }
+  }
+  
+  @override
   void dispose() {
-    _nameController.dispose();
-    _phoneController.dispose();
-    _addressLine1Controller.dispose();
-    _addressLine2Controller.dispose();
-    _cityController.dispose();
-    _postalCodeController.dispose();
     _instructionsController.dispose();
     super.dispose();
   }
@@ -85,19 +84,18 @@ class _CheckoutPageState extends State<CheckoutPage> {
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildOrderSummary(controller),
-                        const SizedBox(height: 20),
-                        _buildDeliveryAddress(),
-                        const SizedBox(height: 20),
-                        _buildPaymentMethod(),
-                        const SizedBox(height: 100), // Space for bottom summary
-                      ],
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildOrderSummary(controller),
+                      const SizedBox(height: 20),
+                      _buildDeliveryAddress(),
+                      const SizedBox(height: 20),
+                      _buildPaymentMethod(),
+                      const SizedBox(height: 20),
+                      _buildDeliveryInstructions(),
+                      const SizedBox(height: 100), // Space for bottom summary
+                    ],
                   ),
                 ),
               ),
@@ -218,6 +216,173 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   Widget _buildDeliveryAddress() {
+    return GetBuilder<AddressController>(
+      builder: (addressController) {
+        return Container(
+          decoration: BoxDecoration(
+            color: ColorResource.cardBackground,
+            borderRadius: BorderRadius.circular(Constants.radiusLarge),
+            boxShadow: ColorResource.customShadow,
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Delivery Address',
+                    style: poppinsBold.copyWith(
+                      fontSize: Constants.fontSizeLarge,
+                      color: ColorResource.textPrimary,
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () {
+                      Get.to(() => const AddEditAddressPage());
+                    },
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Add New'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: ColorResource.primaryDark,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              if (addressController.addresses.isEmpty)
+                Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.location_off_outlined,
+                        size: 60,
+                        color: ColorResource.textLight,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No saved addresses',
+                        style: poppinsMedium.copyWith(
+                          fontSize: Constants.fontSizeDefault,
+                          color: ColorResource.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Get.to(() => const AddEditAddressPage());
+                        },
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text('Add Address'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: ColorResource.primaryDark,
+                          foregroundColor: ColorResource.textWhite,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                ...addressController.addresses.map((address) {
+                  final isSelected = _selectedAddress?.id == address.id;
+                  return GestureDetector(
+                    onTap: () => setState(() => _selectedAddress = address),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(Constants.radiusDefault),
+                        border: Border.all(
+                          color: isSelected
+                              ? ColorResource.primaryDark
+                              : Colors.grey.shade300,
+                          width: isSelected ? 2 : 1,
+                        ),
+                        color: isSelected
+                            ? ColorResource.primaryDark.withOpacity(0.05)
+                            : Colors.transparent,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isSelected
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_unchecked,
+                            color: isSelected
+                                ? ColorResource.primaryDark
+                                : Colors.grey.shade400,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      address.name,
+                                      style: poppinsBold.copyWith(
+                                        fontSize: Constants.fontSizeDefault,
+                                        color: ColorResource.textPrimary,
+                                      ),
+                                    ),
+                                    if (address.isDefault) ...[
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          gradient: ColorResource.primaryGradient,
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          'DEFAULT',
+                                          style: poppinsBold.copyWith(
+                                            fontSize: 9,
+                                            color: ColorResource.textWhite,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  address.phone,
+                                  style: poppinsRegular.copyWith(
+                                    fontSize: Constants.fontSizeSmall,
+                                    color: ColorResource.textSecondary,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  address.fullAddress,
+                                  style: poppinsRegular.copyWith(
+                                    fontSize: Constants.fontSizeSmall,
+                                    color: ColorResource.textSecondary,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDeliveryInstructions() {
     return Container(
       decoration: BoxDecoration(
         color: ColorResource.cardBackground,
@@ -229,126 +394,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Delivery Address',
+            'Delivery Instructions',
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeLarge,
               color: ColorResource.textPrimary,
             ),
           ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _nameController,
-            decoration: InputDecoration(
-              labelText: 'Full Name *',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(Constants.radiusDefault),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your name';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _phoneController,
-            decoration: InputDecoration(
-              labelText: 'Phone Number *',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(Constants.radiusDefault),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-            keyboardType: TextInputType.phone,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your phone number';
-              }
-              if (value.length < 10) {
-                return 'Please enter a valid phone number';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _addressLine1Controller,
-            decoration: InputDecoration(
-              labelText: 'Address Line 1 *',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(Constants.radiusDefault),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your address';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _addressLine2Controller,
-            decoration: InputDecoration(
-              labelText: 'Address Line 2',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(Constants.radiusDefault),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _cityController,
-                  decoration: InputDecoration(
-                    labelText: 'City *',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(Constants.radiusDefault),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Required';
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: TextFormField(
-                  controller: _postalCodeController,
-                  decoration: InputDecoration(
-                    labelText: 'Postal Code *',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(Constants.radiusDefault),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Required';
-                    }
-                    return null;
-                  },
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           TextFormField(
             controller: _instructionsController,
             decoration: InputDecoration(
-              labelText: 'Delivery Instructions (Optional)',
+              hintText: 'E.g., Ring the doorbell twice',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(Constants.radiusDefault),
               ),
@@ -477,34 +533,38 @@ class _CheckoutPageState extends State<CheckoutPage> {
             const Divider(height: 20),
             _buildSummaryRow('Total', total, isTotal: true),
             const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isPlacingOrder ? null : _placeOrder,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: ColorResource.primaryDark,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(Constants.radiusLarge),
-                  ),
-                ),
-                child: _isPlacingOrder
-                    ? SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: ColorResource.textWhite,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : Text(
-                        'Place Order - \$${total.toStringAsFixed(2)}',
-                        style: poppinsBold.copyWith(
-                          fontSize: Constants.fontSizeLarge,
-                          color: ColorResource.textWhite,
-                        ),
+            GetBuilder<OrderController>(
+              builder: (orderController) {
+                return SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: orderController.isPlacingOrder ? null : () => _placeOrder(controller, total),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: ColorResource.primaryDark,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(Constants.radiusLarge),
                       ),
-              ),
+                    ),
+                    child: orderController.isPlacingOrder
+                        ? SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: ColorResource.textWhite,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(
+                            'Place Order - \$${total.toStringAsFixed(2)}',
+                            style: poppinsBold.copyWith(
+                              fontSize: Constants.fontSizeLarge,
+                              color: ColorResource.textWhite,
+                            ),
+                          ),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -534,14 +594,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
-  Future<void> _placeOrder() async {
-    if (!_formKey.currentState!.validate()) {
+  Future<void> _placeOrder(CartController cartController, double total) async {
+    // Validate address selection
+    if (_selectedAddress == null) {
       Get.snackbar(
-        'Incomplete Form',
-        'Please fill all required fields',
+        'No Address Selected',
+        'Please select a delivery address',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: ColorResource.error,
         colorText: ColorResource.textWhite,
+        duration: const Duration(seconds: 2),
       );
       return;
     }
@@ -555,7 +617,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           style: poppinsBold.copyWith(fontSize: Constants.fontSizeLarge),
         ),
         content: Text(
-          'Are you sure you want to place this order?',
+          'Are you sure you want to place this order for \$${total.toStringAsFixed(2)}?',
           style: poppinsRegular.copyWith(fontSize: Constants.fontSizeDefault),
         ),
         actions: [
@@ -574,25 +636,45 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
     if (confirm != true) return;
 
-    setState(() => _isPlacingOrder = true);
-
     try {
-      // TODO: Save order to database
-      await Future.delayed(const Duration(seconds: 2)); // Simulating API call
+      final orderController = Get.find<OrderController>();
+      final authController = Get.find<AuthController>();
+      String? userId = await authController.getUserId();
 
-      // Clear cart
-      await Get.find<CartController>().clearCart();
+      if (userId == null) {
+        throw Exception('User not logged in');
+      }
 
-      // Show success and go back
-      Get.back(); // Close checkout
-      Get.snackbar(
-        'Order Placed!',
-        'Your order has been placed successfully',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: ColorResource.textWhite,
-        duration: const Duration(seconds: 3),
+      // Place order
+      final success = await orderController.placeOrder(
+        customerId: userId,
+        address: _selectedAddress!,
+        cartItems: cartController.cartItems,
+        totalAmount: total,
+        deliveryFee: deliveryFee,
+        paymentMethod: _selectedPaymentMethod,
+        deliveryInstructions: _instructionsController.text.trim(),
       );
+
+      if (success) {
+        // Clear cart
+        await cartController.clearCart();
+
+        // Show success and go back
+        if (mounted) {
+          Get.back(); // Close checkout
+          Get.snackbar(
+            'Order Placed!',
+            'Your order has been placed successfully',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.green,
+            colorText: ColorResource.textWhite,
+            duration: const Duration(seconds: 3),
+          );
+        }
+      } else {
+        throw Exception('Failed to place order');
+      }
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -601,10 +683,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
         backgroundColor: ColorResource.error,
         colorText: ColorResource.textWhite,
       );
-    } finally {
-      if (mounted) {
-        setState(() => _isPlacingOrder = false);
-      }
     }
   }
 }
