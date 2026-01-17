@@ -189,6 +189,7 @@ Future<void> _setupProducts(Databases db) async {
 Future<void> _setupOrders(Databases db) async {
   await _createCollection(db, AppwriteConfig.ordersCollection, 'Orders', [
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'customer_id', size: 64, xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'order_number', size: 100, xrequired: true),
         //make relation ship attribute between orders and users
         () => db.createRelationshipAttribute(
       databaseId: AppwriteConfig.dbId,

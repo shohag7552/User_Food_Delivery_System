@@ -2,6 +2,7 @@ import 'dart:convert';
 
 class OrderModel {
   final String id;
+  final String orderNumber; // Readable order number like "ORD-20260117-001"
   final String customerId;
   final String? driverId;
   final String status; // 'pending', 'cooking', etc.
@@ -13,6 +14,7 @@ class OrderModel {
 
   OrderModel({
     required this.id,
+    required this.orderNumber,
     required this.customerId,
     this.driverId,
     required this.status,
@@ -26,6 +28,7 @@ class OrderModel {
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     return OrderModel(
       id: json['\$id'],
+      orderNumber: json['order_number'] ?? 'N/A',
       customerId: json['customer_id'],
       driverId: json['driver_id'],
       status: json['status'],

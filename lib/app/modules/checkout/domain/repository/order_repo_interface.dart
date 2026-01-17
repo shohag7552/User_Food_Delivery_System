@@ -3,6 +3,7 @@ import 'package:appwrite_user_app/app/models/order_model.dart';
 abstract class OrderRepoInterface {
   Future<void> createOrder({
     required String customerId,
+    required String orderNumber,
     required String deliveryAddress,
     required String orderItems,
     required double totalAmount,
@@ -11,6 +12,6 @@ abstract class OrderRepoInterface {
     String? deliveryInstructions,
   });
   
-  Future<List<OrderModel>> getUserOrders(String userId);
+  Future<List<OrderModel>> getUserOrders();
   Future<OrderModel?> getOrderById(String orderId);
 }

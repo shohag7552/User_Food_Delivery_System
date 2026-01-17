@@ -57,8 +57,15 @@ class OrderController extends GetxController implements GetxService {
 
       final orderItemsJson = jsonEncode(orderItems);
 
+      // Generate readable order number: ORD-YYYYMMDD-XXX
+      final now = DateTime.now();
+      final dateStr = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+      final timeStr = '${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}';
+      final orderNumber = 'ORD-$dateStr-$timeStr';
+
       await orderRepoInterface.createOrder(
         customerId: customerId,
+        orderNumber: orderNumber,
         deliveryAddress: addressJson,
         orderItems: orderItemsJson,
         totalAmount: totalAmount,
@@ -79,12 +86,12 @@ class OrderController extends GetxController implements GetxService {
   }
 
   /// Fetch user's orders
-  Future<void> fetchUserOrders(String userId) async {
+  Future<void> fetchUserOrders() async {
     try {
       _isLoading = true;
       update();
 
-      _orders = await orderRepoInterface.getUserOrders(userId);
+      _orders = await orderRepoInterface.getUserOrders();
 
       _isLoading = false;
       update();

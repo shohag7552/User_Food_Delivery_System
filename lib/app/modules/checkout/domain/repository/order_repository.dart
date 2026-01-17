@@ -15,6 +15,7 @@ class OrderRepository implements OrderRepoInterface {
   @override
   Future<void> createOrder({
     required String customerId,
+    required String orderNumber,
     required String deliveryAddress,
     required String orderItems,
     required double totalAmount,
@@ -27,6 +28,7 @@ class OrderRepository implements OrderRepoInterface {
         collectionId: AppwriteConfig.ordersCollection,
         data: {
           'customer_id': customerId,
+          'order_number': orderNumber,
           'status': 'pending',
           'payment_method': paymentMethod,
           'payment_status': paymentMethod == 'cod' ? 'unpaid' : 'paid',
@@ -44,12 +46,19 @@ class OrderRepository implements OrderRepoInterface {
   }
 
   @override
-  Future<List<OrderModel>> getUserOrders(String userId) async {
+  Future<List<OrderModel>> getUserOrders() async {
     try {
+
+      User? user = await appwriteService.getCurrentUser();
+
+      if (user == null) {
+        throw Exception('User not logged in');
+      }
+
       final response = await appwriteService.listTable(
         tableId: AppwriteConfig.ordersCollection,
         queries: [
-          Query.equal('customer_id', userId),
+          Query.equal('customer_id', user.$id),
           Query.orderDesc('\$createdAt'),
         ],
       );
