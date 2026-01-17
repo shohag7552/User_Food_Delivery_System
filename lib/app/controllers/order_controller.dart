@@ -20,7 +20,7 @@ class OrderController extends GetxController implements GetxService {
   bool get isPlacingOrder => _isPlacingOrder;
 
   /// Place a new order
-  Future<bool> placeOrder({
+  Future<Map<String, dynamic>> placeOrder({
     required String customerId,
     required AddressModel address,
     required List<CartItemModel> cartItems,
@@ -76,12 +76,12 @@ class OrderController extends GetxController implements GetxService {
 
       _isPlacingOrder = false;
       update();
-      return true;
+      return {'success': true, 'orderNumber': orderNumber};
     } catch (e) {
       _isPlacingOrder = false;
       update();
       log('Error placing order: $e');
-      return false;
+      return {'success': false, 'error': e.toString()};
     }
   }
 

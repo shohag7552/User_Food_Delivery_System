@@ -39,6 +39,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
   final Map<String, dynamic> _selectedVariants = {};
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
+  bool _isAddingToCart = false;
 
   @override
   void initState() {
@@ -696,8 +697,12 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
       ),
       child: SafeArea(
         child: GestureDetector(
-          onTap: _canAddToCart
+          onTap: (_canAddToCart && !_isAddingToCart)
               ? () async {
+                  setState(() {
+                    _isAddingToCart = true;
+                  });
+                  
                   try {
                     String? userId = await Get.find<AuthController>().getUserId();
                     // Create cart item
@@ -718,8 +723,15 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
 
                     // Add to cart
                     await Get.find<CartController>().addToCart(cartItem);
-                    
-                    Navigator.pop(context);
+
+                    if (mounted) {
+                      setState(() {
+                        _isAddingToCart = false;
+                      });
+                    }
+
+                    Get.back();
+                    // Navigator.pop(context);
                     
                     // Show success with cart option
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -743,7 +755,13 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                       ),
                     );
                   } catch (e) {
-                    Navigator.pop(context);
+                    if (mounted) {
+                      setState(() {
+                        _isAddingToCart = false;
+                      });
+                    }
+                    Get.back();
+                    // Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
@@ -780,24 +798,35 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                     ]
                   : [],
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.shopping_cart,
-                  color: ColorResource.textWhite,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Add to Cart - \$${_totalPrice.toStringAsFixed(2)}',
-                  style: poppinsBold.copyWith(
-                    fontSize: Constants.fontSizeLarge,
-                    color: ColorResource.textWhite,
+            child: _isAddingToCart
+                ? Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        color: ColorResource.textWhite,
+                        strokeWidth: 3,
+                      ),
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.shopping_cart,
+                        color: ColorResource.textWhite,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Add to Cart - \$${_totalPrice.toStringAsFixed(2)}',
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeLarge,
+                          color: ColorResource.textWhite,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
           ),
         ),
       ),

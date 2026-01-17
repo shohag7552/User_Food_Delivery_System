@@ -4,6 +4,8 @@ import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
 import 'package:appwrite_user_app/app/modules/address/screens/add_edit_address_page.dart';
+import 'package:appwrite_user_app/app/modules/checkout/screens/order_failed_page.dart';
+import 'package:appwrite_user_app/app/modules/checkout/screens/order_success_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -646,7 +648,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       }
 
       // Place order
-      final success = await orderController.placeOrder(
+      final result = await orderController.placeOrder(
         customerId: userId,
         address: _selectedAddress!,
         cartItems: cartController.cartItems,
@@ -656,33 +658,28 @@ class _CheckoutPageState extends State<CheckoutPage> {
         deliveryInstructions: _instructionsController.text.trim(),
       );
 
-      if (success) {
+      if (result['success'] == true) {
         // Clear cart
         await cartController.clearCart();
 
-        // Show success and go back
+        // Navigate to success page
         if (mounted) {
-          Get.back(); // Close checkout
-          Get.snackbar(
-            'Order Placed!',
-            'Your order has been placed successfully',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green,
-            colorText: ColorResource.textWhite,
-            duration: const Duration(seconds: 3),
-          );
+          Get.off(() => OrderSuccessPage(
+            orderNumber: result['orderNumber'],
+            totalAmount: total,
+          ));
         }
       } else {
-        throw Exception('Failed to place order');
+        throw Exception(result['error'] ?? 'Failed to place order');
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to place order. Please try again.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: ColorResource.error,
-        colorText: ColorResource.textWhite,
-      );
+      // Navigate to failed page
+      if (mounted) {
+        Get.to(() => OrderFailedPage(
+          errorMessage: e.toString().replaceAll('Exception: ', ''),
+          onRetry: () => _placeOrder(cartController, total),
+        ));
+      }
     }
   }
 }
