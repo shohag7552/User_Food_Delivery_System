@@ -190,4 +190,15 @@ class ProductController extends GetxController implements GetxService {
       rethrow;
     }
   }
+
+  /// Search products from Appwrite
+  Future<List<ProductModel>> searchProducts(String query) async {
+    try {
+      log('====> Searching products for query: $query');
+      return await productRepoInterface.searchProducts(query);
+    } catch (e) {
+      log('====> Error searching products: $e');
+      rethrow;
+    }
+  }
 }

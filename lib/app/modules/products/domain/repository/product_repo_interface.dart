@@ -6,4 +6,5 @@ abstract class ProductRepoInterface {
   Future<List<ProductModel>> getPopularProducts();
   Future<List<ProductModel>> getNewProducts();
   Future<List<ProductModel>> getProductsByCategory(String categoryId);
+  Future<List<ProductModel>> searchProducts(String query);
 }

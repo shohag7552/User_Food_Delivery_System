@@ -3,6 +3,7 @@ import 'package:appwrite_user_app/app/modules/dashboard/section_widget/todays_sp
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/popular_dishes_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/new_items_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/all_products_widget.dart';
+import 'package:appwrite_user_app/app/modules/search/screens/search_page.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -235,37 +236,40 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildSearchBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: ColorResource.textWhite,
-        borderRadius: BorderRadius.circular(Constants.radiusLarge),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.search,
-            color: ColorResource.textSecondary,
-            size: 24,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'Search for dishes...',
-              style: poppinsRegular.copyWith(
-                fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textLight,
+    return GestureDetector(
+      onTap: () => Get.to(() => const SearchPage()),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: ColorResource.textWhite,
+          borderRadius: BorderRadius.circular(Constants.radiusLarge),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.search,
+              color: ColorResource.textSecondary,
+              size: 24,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Search for dishes...',
+                style: poppinsRegular.copyWith(
+                  fontSize: Constants.fontSizeDefault,
+                  color: ColorResource.textLight,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

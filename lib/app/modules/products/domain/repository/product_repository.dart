@@ -21,11 +21,11 @@ class ProductRepository implements ProductRepoInterface {
         ],
       );
       return response.rows.map((row) {
-        log('====> Product Data: ${row.data}');
+        log('====\u003e Product Data: ${row.data}');
         return ProductModel.fromJson(row.data);
       }).toList();
     } catch (e) {
-      log('====> Error fetching products: $e');
+      log('====\u003e Error fetching products: $e');
       rethrow;
     }
   }
@@ -43,11 +43,11 @@ class ProductRepository implements ProductRepoInterface {
         ],
       );
       return response.rows.map((row) {
-        log('====> Special Product Data: ${row.data}');
+        log('====\u003e Special Product Data: ${row.data}');
         return ProductModel.fromJson(row.data);
       }).toList();
     } catch (e) {
-      log('====> Error fetching special products: $e');
+      log('====\u003e Error fetching special products: $e');
       rethrow;
     }
   }
@@ -67,11 +67,11 @@ class ProductRepository implements ProductRepoInterface {
         ],
       );
       return response.rows.map((row) {
-        log('====> Popular Product Data: ${row.data}');
+        log('====\u003e Popular Product Data: ${row.data}');
         return ProductModel.fromJson(row.data);
       }).toList();
     } catch (e) {
-      log('====> Error fetching popular products: $e');
+      log('====\u003e Error fetching popular products: $e');
       rethrow;
     }
   }
@@ -89,11 +89,11 @@ class ProductRepository implements ProductRepoInterface {
         ],
       );
       return response.rows.map((row) {
-        log('====> New Product Data: ${row.data}');
+        log('====\u003e New Product Data: ${row.data}');
         return ProductModel.fromJson(row.data);
       }).toList();
     } catch (e) {
-      log('====> Error fetching new products: $e');
+      log('====\u003e Error fetching new products: $e');
       rethrow;
     }
   }
@@ -109,11 +109,41 @@ class ProductRepository implements ProductRepoInterface {
         ],
       );
       return response.rows.map((row) {
-        log('====> Product Data for category $categoryId: ${row.data}');
+        log('====\u003e Product Data for category $categoryId: ${row.data}');
         return ProductModel.fromJson(row.data);
       }).toList();
     } catch (e) {
-      log('====> Error fetching products by category: $e');
+      log('====\u003e Error fetching products by category: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<ProductModel>> searchProducts(String query) async {
+    try {
+      if (query.trim().isEmpty) {
+        return [];
+      }
+
+      // Search in both name and description fields
+      final response = await appwriteService.listTable(
+        tableId: AppwriteConfig.productsCollection,
+        queries: [
+          Query.or([
+            Query.search('name', query),
+            Query.search('description', query),
+          ]),
+          Query.equal('is_available', true),
+          Query.limit(50), // Limit search results
+        ],
+      );
+      
+      return response.rows.map((row) {
+        log('====\u003e Search Product Data: ${row.data}');
+        return ProductModel.fromJson(row.data);
+      }).toList();
+    } catch (e) {
+      log('====\u003e Error searching products: $e');
       rethrow;
     }
   }
