@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/modules/checkout/screens/checkout_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -193,7 +194,7 @@ class CartPage extends StatelessWidget {
                         ],
                       ),
                       Text(
-                        '\$${item.itemTotal.toStringAsFixed(2)}',
+                        CurrencyHelper.formatAmount(item.itemTotal),
                         style: poppinsBold.copyWith(
                           fontSize: Constants.fontSizeLarge,
                           color: ColorResource.primaryDark,
@@ -298,7 +299,7 @@ class CartPage extends StatelessWidget {
           ),
         ),
         Text(
-          '\$${amount.toStringAsFixed(2)}',
+          CurrencyHelper.formatAmount(amount),
           style: (isTotal ? poppinsBold : poppinsMedium).copyWith(
             fontSize:
                 isTotal ? Constants.fontSizeLarge : Constants.fontSizeDefault,

@@ -1,4 +1,5 @@
 import 'package:appwrite_user_app/app/modules/address/screens/addresses_page.dart';
+import 'package:appwrite_user_app/app/modules/coupons/screens/coupons_screen.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -99,7 +100,8 @@ class ProfilePage extends StatelessWidget {
                         subtitle: 'View and apply promo codes',
                         trailing: _buildBadge('3'),
                         onTap: () {
-                          Get.snackbar('Coupons', 'Feature coming soon');
+                          Get.to(()=> CouponsScreen());
+                          // Get.snackbar('Coupons', 'Feature coming soon');
                         },
                       ),
                       _ProfileOption(

@@ -1,5 +1,7 @@
 import 'dart:developer';
+import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
+import 'package:appwrite_user_app/app/models/coupon_model.dart';
 import 'package:appwrite_user_app/app/modules/cart/domain/repository/cart_repo_interface.dart';
 import 'package:get/get.dart';
 
@@ -17,6 +19,10 @@ class CartController extends GetxController implements GetxService {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  // Coupon management
+  CouponModel? _appliedCoupon;
+  CouponModel? get appliedCoupon => _appliedCoupon;
+
   // Cart totals
   int get itemCount => _cartItems.fold(0, (sum, item) => sum + item.quantity);
 
@@ -25,7 +31,13 @@ class CartController extends GetxController implements GetxService {
 
   double get tax => subtotal * 0.10; // 10% tax
 
-  double get total => subtotal + tax;
+  // Calculate discount from applied coupon
+  double get discountAmount {
+    if (_appliedCoupon == null) return 0.0;
+    return _appliedCoupon!.calculateDiscount(subtotal);
+  }
+
+  double get total => subtotal + tax - discountAmount;
 
   /// Fetch cart items for user
   Future<void> getCartItems() async {
@@ -133,4 +145,88 @@ class CartController extends GetxController implements GetxService {
       update();
     }
   }
+
+  /// Apply coupon
+  void applyCoupon(CouponModel coupon) {
+    log('Attempting to apply coupon: ${coupon.code}');
+    log('Current subtotal: $subtotal');
+    log('Coupon min order: ${coupon.minOrderAmount}');
+    log('Coupon is active: ${coupon.isActive}');
+    log('Coupon valid from: ${coupon.validFrom}');
+    log('Coupon valid until: ${coupon.validUntil}');
+    
+    // Check if coupon is active
+    if (!coupon.isActive) {
+      customToster('This coupon is not currently active');
+      return;
+    }
+
+    // Check validity period
+    final now = DateTime.now();
+    if (now.isBefore(coupon.validFrom)) {
+      customToster('This coupon is not yet valid, will be valid from ${_formatDate(coupon.validFrom)}');
+      return;
+    }
+
+    if (now.isAfter(coupon.validUntil)) {
+      customToster('This coupon expired on ${_formatDate(coupon.validUntil)}');
+      return;
+    }
+
+    // Check usage limit
+    if (coupon.usageLimit != null && coupon.usedCount >= coupon.usageLimit!) {
+      customToster('This coupon has reached its maximum usage limit');
+      return;
+    }
+
+    // Check minimum order amount
+    if (coupon.minOrderAmount != null && subtotal < coupon.minOrderAmount!) {
+      customToster('Minimum Order Not Met, add \$${(coupon.minOrderAmount! - subtotal).toStringAsFixed(2)} more to use this coupon');
+      return;
+    }
+
+    // Coupon is valid, apply it
+    _appliedCoupon = coupon;
+    _errorMessage = null;
+    update();
+    
+    final discount = coupon.calculateDiscount(subtotal);
+    log('Coupon applied successfully: ${coupon.code}, discount: $discount');
+
+    customToster('Coupon Applied! You saved \$${discount.toStringAsFixed(2)} with ${coupon.code}');
+  }
+
+  String _formatDate(DateTime date) {
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
+  /// Remove applied coupon
+  void removeCoupon() {
+    final removedCode = _appliedCoupon?.code;
+    _appliedCoupon = null;
+    update();
+    log('Coupon removed');
+    
+    if (removedCode != null) {
+      customToster('Coupon $removedCode has been removed');
+    }
+  }
+
+  /// Clear coupon when cart is cleared
+  // @override
+  // Future<void> clearCart() async {
+  //   try {
+  //     await cartRepoInterface.clearCart();
+  //     _cartItems.clear();
+  //     _appliedCoupon = null; // Clear coupon as well
+  //     update();
+  //
+  //     log('Cart cleared successfully');
+  //   } catch (e) {
+  //     _errorMessage = 'Failed to clear cart: $e';
+  //     log('Error clearing cart: $e');
+  //     update();
+  //   }
+  // }
 }

@@ -1,4 +1,5 @@
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
+import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
 import 'package:appwrite_user_app/app/modules/orders/screens/order_detail_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -230,7 +231,7 @@ class _OrdersPageState extends State<OrdersPage> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '\$${order.totalAmount.toStringAsFixed(2)}',
+                      CurrencyHelper.formatAmount(order.totalAmount),
                       style: poppinsBold.copyWith(
                         fontSize: Constants.fontSizeExtraLarge,
                         color: ColorResource.primaryDark,
