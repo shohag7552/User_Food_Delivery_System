@@ -216,6 +216,7 @@ Future<void> _setupOrders(Databases db) async {
     Permission.update(Role.users()), // Users can update their own addresses
     Permission.delete(Role.users()), // Users can delete their own addresses
     Permission.read(Role.team('admin_team')),  // Admins can see all orders
+    Permission.write(Role.team('admin_team')), // Admins can write status
     Permission.update(Role.team('admin_team')), // Admins can update status
   ]);
 }

@@ -10,6 +10,7 @@ import 'package:appwrite_user_app/app/controllers/localization_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/address_controller.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
+import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repository.dart';
 import 'package:appwrite_user_app/app/modules/categories/domain/repository/category_repo_interface.dart';
@@ -26,6 +27,11 @@ import 'package:appwrite_user_app/app/modules/address/domain/repository/address_
 import 'package:appwrite_user_app/app/modules/address/domain/repository/address_repository.dart';
 import 'package:appwrite_user_app/app/modules/checkout/domain/repository/order_repo_interface.dart';
 import 'package:appwrite_user_app/app/modules/checkout/domain/repository/order_repository.dart';
+import 'package:appwrite_user_app/app/modules/settings/domain/repository/settings_repo_interface.dart';
+import 'package:appwrite_user_app/app/modules/settings/domain/repository/settings_repository.dart';
+import 'package:appwrite_user_app/app/modules/splash/domain/repository/splash_repo_interface.dart';
+import 'package:appwrite_user_app/app/modules/splash/domain/repository/splash_repository.dart';
+import 'package:appwrite_user_app/app/controllers/splash_controller.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -62,6 +68,12 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   OrderRepoInterface orderRepoInterface = OrderRepository(appwriteService: Get.find());
   Get.lazyPut(() => orderRepoInterface);
 
+  SettingsRepoInterface settingsRepoInterface = SettingsRepository(appwriteService: Get.find());
+  Get.lazyPut(() => settingsRepoInterface);
+
+  SplashRepoInterface splashRepoInterface = SplashRepository(sharedPreferences: sharedPreferences);
+  Get.lazyPut(() => splashRepoInterface);
+
 
   /// Controller Initialization
   Get.lazyPut(() => AuthController(authRepoInterface: Get.find()));
@@ -72,6 +84,8 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   Get.lazyPut(() => CartController(cartRepoInterface: Get.find()));
   Get.lazyPut(() => AddressController(addressRepoInterface: Get.find()));
   Get.lazyPut(() => OrderController(orderRepoInterface: Get.find()));
+  Get.lazyPut(() => SettingsController(settingsRepoInterface: Get.find()));
+  Get.lazyPut(() => SplashController(splashRepositoryInterface: Get.find()));
 
 
   /// Retrieving localized data
