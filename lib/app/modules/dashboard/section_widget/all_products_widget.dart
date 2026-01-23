@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -199,6 +200,15 @@ class AllProductsWidget extends StatelessWidget {
                         ),
                       ),
                     ),
+                  // Favorite button (top-right corner)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: FavoriteButton(
+                      product: product,
+                      size: 18,
+                    ),
+                  ),
                 ],
               ),
             ),

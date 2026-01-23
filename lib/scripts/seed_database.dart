@@ -43,6 +43,7 @@ void main() async {
     await _setupStoreSetup(databases);
     await _setupBanners(databases);
     await _setupCart(databases);
+    await _setupFavorites(databases);
 
     print("\n🎉 SETUP COMPLETE! Your Appwrite backend is ready.");
   } catch (e) {
@@ -384,6 +385,39 @@ Future<void> _setupCart(Databases db) async {
     Permission.read(Role.users()),
     Permission.create(Role.users()),
     Permission.update(Role.users()),
+    Permission.delete(Role.users()),
+  ]);
+}
+
+Future<void> _setupFavorites(Databases db) async {
+  await _createCollection(db, AppwriteConfig.favoritesCollection, 'Favorites', [
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.favoritesCollection,
+      key: 'user_id',
+      size: 128,
+      xrequired: true,
+    ),
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.favoritesCollection,
+      key: 'product_id',
+      size: 128,
+      xrequired: true,
+    ),
+    () => db.createRelationshipAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.favoritesCollection,
+      relatedCollectionId: AppwriteConfig.productsCollection,
+      type: RelationshipType.manyToOne,
+      twoWay: true,
+      key: 'product',
+      twoWayKey: 'favorited_by',
+      onDelete: RelationMutate.cascade, // If product deleted, remove from favorites
+    ),
+  ], [
+    Permission.read(Role.users()),
+    Permission.create(Role.users()),
     Permission.delete(Role.users()),
   ]);
 }

@@ -1,6 +1,7 @@
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/modules/address/screens/addresses_page.dart';
 import 'package:appwrite_user_app/app/modules/coupons/screens/coupons_screen.dart';
+import 'package:appwrite_user_app/app/modules/favorites/screens/favorites_screen.dart';
 import 'package:appwrite_user_app/app/modules/profile/screens/edit_profile_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -81,7 +82,7 @@ class ProfilePage extends StatelessWidget {
                               title: 'Favorites',
                               subtitle: 'Your favorite items',
                               onTap: () {
-                                Get.snackbar('Favorites', 'Feature coming soon');
+                                Get.to(() => const FavoritesScreen());
                               },
                             ),
                             _ProfileOption(

@@ -12,6 +12,7 @@ import 'package:appwrite_user_app/app/controllers/address_controller.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
 import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
+import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repository.dart';
 import 'package:appwrite_user_app/app/modules/categories/domain/repository/category_repo_interface.dart';
@@ -32,6 +33,8 @@ import 'package:appwrite_user_app/app/modules/settings/domain/repository/setting
 import 'package:appwrite_user_app/app/modules/settings/domain/repository/settings_repository.dart';
 import 'package:appwrite_user_app/app/modules/profile/domain/repository/profile_repo_interface.dart';
 import 'package:appwrite_user_app/app/modules/profile/domain/repository/profile_repository.dart';
+import 'package:appwrite_user_app/app/modules/favorites/domain/repository/favorites_repo_interface.dart';
+import 'package:appwrite_user_app/app/modules/favorites/domain/repository/favorites_repository.dart';
 import 'package:appwrite_user_app/app/modules/splash/domain/repository/splash_repo_interface.dart';
 import 'package:appwrite_user_app/app/modules/splash/domain/repository/splash_repository.dart';
 import 'package:appwrite_user_app/app/controllers/splash_controller.dart';
@@ -77,6 +80,9 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   ProfileRepoInterface profileRepoInterface = ProfileRepository(appwriteService: Get.find());
   Get.lazyPut(() => profileRepoInterface);
 
+  FavoritesRepoInterface favoritesRepoInterface = FavoritesRepository(appwriteService: Get.find());
+  Get.lazyPut(() => favoritesRepoInterface);
+
   SplashRepoInterface splashRepoInterface = SplashRepository(sharedPreferences: sharedPreferences);
   Get.lazyPut(() => splashRepoInterface);
 
@@ -92,6 +98,7 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   Get.lazyPut(() => OrderController(orderRepoInterface: Get.find()));
   Get.lazyPut(() => SettingsController(settingsRepoInterface: Get.find()));
   Get.lazyPut(() => ProfileController(profileRepoInterface: Get.find()));
+  Get.lazyPut(() => FavoritesController(favoritesRepoInterface: Get.find()));
   Get.lazyPut(() => SplashController(splashRepositoryInterface: Get.find()));
 
 

@@ -132,6 +132,7 @@ class TodaysSpecialsWidget extends StatelessWidget {
                       description: product.description,
                       price: product.finalPrice,
                       oldPrice: product.hasDiscount ? product.price : null,
+                      product: product, // Pass product for favorite button
                       onTap: () {
                         ProductDetailBottomSheet.show(context, product);
                       },

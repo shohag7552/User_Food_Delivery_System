@@ -21,4 +21,5 @@ class AppwriteConfig {
   static const String cartCollection = 'cart_items';
   static const String addressesCollection = 'addresses';
   static const String ordersCollection = 'orders';
+  static const String favoritesCollection = 'favorites';
 }

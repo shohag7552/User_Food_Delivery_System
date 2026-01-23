@@ -1,5 +1,7 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
+import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -13,6 +15,7 @@ class FoodItemCard extends StatefulWidget {
   final double? oldPrice;
   final VoidCallback onTap;
   final VoidCallback onAddToCart;
+  final ProductModel? product; // Add product for favorite functionality
 
   const FoodItemCard({
     super.key,
@@ -23,6 +26,7 @@ class FoodItemCard extends StatefulWidget {
     this.oldPrice,
     required this.onTap,
     required this.onAddToCart,
+    this.product, // Optional for backward compatibility
   });
 
   @override
@@ -88,6 +92,16 @@ class _FoodItemCardState extends State<FoodItemCard> {
                             color: ColorResource.textWhite,
                           ),
                         ),
+                      ),
+                    ),
+                  // Favorite button (top-right corner)
+                  if (widget.product != null)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: FavoriteButton(
+                        product: widget.product!,
+                        size: 18,
                       ),
                     ),
                 ],
