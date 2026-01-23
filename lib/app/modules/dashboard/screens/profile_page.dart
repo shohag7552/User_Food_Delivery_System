@@ -1,4 +1,5 @@
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
+import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/modules/address/screens/addresses_page.dart';
 import 'package:appwrite_user_app/app/modules/coupons/screens/coupons_screen.dart';
 import 'package:appwrite_user_app/app/modules/favorites/screens/favorites_screen.dart';
@@ -307,10 +308,10 @@ class ProfilePage extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          user?.email ?? '',
+                          'Balance: ${CurrencyHelper.formatWithSeparators(user?.walletBalance ?? 0)}',
                           style: poppinsRegular.copyWith(
                             fontSize: Constants.fontSizeDefault,
-                            color: ColorResource.textWhite.withOpacity(0.9),
+                            color: ColorResource.textWhite.withValues(alpha: 0.9),
                           ),
                         ),
                       ],
