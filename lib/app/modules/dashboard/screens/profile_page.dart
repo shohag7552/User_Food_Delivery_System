@@ -1,10 +1,13 @@
+import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/modules/address/screens/addresses_page.dart';
 import 'package:appwrite_user_app/app/modules/coupons/screens/coupons_screen.dart';
+import 'package:appwrite_user_app/app/modules/profile/screens/edit_profile_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -13,222 +16,229 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
-      body: CustomScrollView(
-        slivers: [
-          // App Bar with User Info
-          _buildSliverAppBar(),
-          
-          // Profile Options
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSection(
-                    title: 'Account',
-                    items: [
-                      _ProfileOption(
-                        icon: Icons.person_outline,
-                        title: 'My Profile',
-                        subtitle: 'Edit your personal information',
-                        onTap: () {
-                          // TODO: Navigate to edit profile
-                          Get.snackbar('My Profile', 'Feature coming soon');
-                        },
-                      ),
-                      _ProfileOption(
-                        icon: Icons.location_on_outlined,
-                        title: 'Saved Addresses',
-                        subtitle: 'Manage your delivery addresses',
-                        onTap: () {
-                          Get.to(AddressesPage());
-                          // Get.snackbar('Addresses', 'Feature coming soon');
-                        },
-                      ),
-                      _ProfileOption(
-                        icon: Icons.payment_outlined,
-                        title: 'Payment Methods',
-                        subtitle: 'Manage your payment options',
-                        onTap: () {
-                          Get.snackbar('Payment Methods', 'Feature coming soon');
-                        },
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 20),
-                  
-                  _buildSection(
-                    title: 'Orders & Activity',
-                    items: [
-                      _ProfileOption(
-                        icon: Icons.history,
-                        title: 'Order History',
-                        subtitle: 'View your past orders',
-                        onTap: () {
-                          Get.snackbar('Order History', 'Feature coming soon');
-                        },
-                      ),
-                      _ProfileOption(
-                        icon: Icons.favorite_outline,
-                        title: 'Favorites',
-                        subtitle: 'Your favorite items',
-                        onTap: () {
-                          Get.snackbar('Favorites', 'Feature coming soon');
-                        },
-                      ),
-                      _ProfileOption(
-                        icon: Icons.star_outline,
-                        title: 'Reviews & Ratings',
-                        subtitle: 'Your reviews on items',
-                        onTap: () {
-                          Get.snackbar('Reviews', 'Feature coming soon');
-                        },
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 20),
-                  
-                  _buildSection(
-                    title: 'Offers & Rewards',
-                    items: [
-                      _ProfileOption(
-                        icon: Icons.local_offer_outlined,
-                        title: 'Coupons',
-                        subtitle: 'View and apply promo codes',
-                        trailing: _buildBadge('3'),
-                        onTap: () {
-                          Get.to(()=> CouponsScreen());
-                          // Get.snackbar('Coupons', 'Feature coming soon');
-                        },
-                      ),
-                      _ProfileOption(
-                        icon: Icons.card_giftcard_outlined,
-                        title: 'Loyalty Points',
-                        subtitle: 'Earn and redeem points',
-                        onTap: () {
-                          Get.snackbar('Loyalty Points', 'Feature coming soon');
-                        },
-                      ),
-                      _ProfileOption(
-                        icon: Icons.share_outlined,
-                        title: 'Refer & Earn',
-                        subtitle: 'Invite friends and get rewards',
-                        onTap: () {
-                          Get.snackbar('Refer & Earn', 'Feature coming soon');
-                        },
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 20),
-                  
-                  _buildSection(
-                    title: 'App Settings',
-                    items: [
-                      _ProfileOption(
-                        icon: Icons.notifications_outlined,
-                        title: 'Notifications',
-                        subtitle: 'Manage notification preferences',
-                        onTap: () {
-                          Get.snackbar('Notifications', 'Feature coming soon');
-                        },
-                      ),
-                      _ProfileOption(
-                        icon: Icons.language_outlined,
-                        title: 'Language',
-                        subtitle: 'English',
-                        onTap: () {
-                          Get.snackbar('Language', 'Feature coming soon');
-                        },
-                      ),
-                      _ProfileOption(
-                        icon: Icons.help_outline,
-                        title: 'Help & Support',
-                        subtitle: 'Get help or contact us',
-                        onTap: () {
-                          Get.snackbar('Help & Support', 'Feature coming soon');
-                        },
-                      ),
-                      _ProfileOption(
-                        icon: Icons.info_outline,
-                        title: 'About Us',
-                        subtitle: 'Learn more about us',
-                        onTap: () {
-                          Get.snackbar('About Us', 'Feature coming soon');
-                        },
-                      ),
-                      _ProfileOption(
-                        icon: Icons.description_outlined,
-                        title: 'Terms & Conditions',
-                        subtitle: 'Read our terms',
-                        onTap: () {
-                          Get.snackbar('Terms & Conditions', 'Feature coming soon');
-                        },
-                      ),
-                      _ProfileOption(
-                        icon: Icons.privacy_tip_outlined,
-                        title: 'Privacy Policy',
-                        subtitle: 'Read our privacy policy',
-                        onTap: () {
-                          Get.snackbar('Privacy Policy', 'Feature coming soon');
-                        },
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 20),
-                  
-                  _buildSection(
-                    title: 'Account Actions',
-                    items: [
-                      _ProfileOption(
-                        icon: Icons.logout,
-                        title: 'Logout',
-                        subtitle: 'Sign out of your account',
-                        iconColor: ColorResource.error,
-                        onTap: () {
-                          _showLogoutDialog(context);
-                        },
-                      ),
-                      _ProfileOption(
-                        icon: Icons.delete_outline,
-                        title: 'Delete Account',
-                        subtitle: 'Permanently delete your account',
-                        iconColor: ColorResource.error,
-                        onTap: () {
-                          _showDeleteAccountDialog(context);
-                        },
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 20),
-                  
-                  // App Version
-                  Center(
-                    child: Text(
-                      'Version 1.0.0',
-                      style: poppinsRegular.copyWith(
-                        fontSize: Constants.fontSizeSmall,
-                        color: ColorResource.textLight,
-                      ),
+      body: GetBuilder<ProfileController>(
+        builder: (controller) {
+          return RefreshIndicator(
+            onRefresh: controller.fetchUserProfile,
+            color: ColorResource.primaryDark,
+            child: CustomScrollView(
+              slivers: [
+                // App Bar with User Info
+                _buildSliverAppBar(controller),
+                
+                // Profile Options
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSection(
+                          title: 'Account',
+                          items: [
+                            _ProfileOption(
+                              icon: Icons.person_outline,
+                              title: 'My Profile',
+                              subtitle: 'Edit your personal information',
+                              onTap: () {
+                                Get.to(() => const EditProfilePage());
+                              },
+                            ),
+                            _ProfileOption(
+                              icon: Icons.location_on_outlined,
+                              title: 'Saved Addresses',
+                              subtitle: 'Manage your delivery addresses',
+                              onTap: () {
+                                Get.to(AddressesPage());
+                              },
+                            ),
+                            _ProfileOption(
+                              icon: Icons.payment_outlined,
+                              title: 'Payment Methods',
+                              subtitle: 'Manage your payment options',
+                              onTap: () {
+                                Get.snackbar('Payment Methods', 'Feature coming soon');
+                              },
+                            ),
+                          ],
+                        ),
+                        
+                        const SizedBox(height: 20),
+                        
+                        _buildSection(
+                          title: 'Orders & Activity',
+                          items: [
+                            _ProfileOption(
+                              icon: Icons.history,
+                              title: 'Order History',
+                              subtitle: 'View your past orders',
+                              onTap: () {
+                                Get.snackbar('Order History', 'Feature coming soon');
+                              },
+                            ),
+                            _ProfileOption(
+                              icon: Icons.favorite_outline,
+                              title: 'Favorites',
+                              subtitle: 'Your favorite items',
+                              onTap: () {
+                                Get.snackbar('Favorites', 'Feature coming soon');
+                              },
+                            ),
+                            _ProfileOption(
+                              icon: Icons.star_outline,
+                              title: 'Reviews & Ratings',
+                              subtitle: 'Your reviews on items',
+                              onTap: () {
+                                Get.snackbar('Reviews', 'Feature coming soon');
+                              },
+                            ),
+                          ],
+                        ),
+                        
+                        const SizedBox(height: 20),
+                        
+                        _buildSection(
+                          title: 'Offers & Rewards',
+                          items: [
+                            _ProfileOption(
+                              icon: Icons.local_offer_outlined,
+                              title: 'Coupons',
+                              subtitle: 'View and apply promo codes',
+                              trailing: _buildBadge('3'),
+                              onTap: () {
+                                Get.to(()=> CouponsScreen());
+                              },
+                            ),
+                            _ProfileOption(
+                              icon: Icons.card_giftcard_outlined,
+                              title: 'Loyalty Points',
+                              subtitle: 'Earn and redeem points',
+                              onTap: () {
+                                Get.snackbar('Loyalty Points', 'Feature coming soon');
+                              },
+                            ),
+                            _ProfileOption(
+                              icon: Icons.share_outlined,
+                              title: 'Refer & Earn',
+                              subtitle: 'Invite friends and get rewards',
+                              onTap: () {
+                                Get.snackbar('Refer & Earn', 'Feature coming soon');
+                              },
+                            ),
+                          ],
+                        ),
+                        
+                        const SizedBox(height: 20),
+                        
+                        _buildSection(
+                          title: 'App Settings',
+                          items: [
+                            _ProfileOption(
+                              icon: Icons.notifications_outlined,
+                              title: 'Notifications',
+                              subtitle: 'Manage notification preferences',
+                              onTap: () {
+                                Get.snackbar('Notifications', 'Feature coming soon');
+                              },
+                            ),
+                            _ProfileOption(
+                              icon: Icons.language_outlined,
+                              title: 'Language',
+                              subtitle: 'English',
+                              onTap: () {
+                                Get.snackbar('Language', 'Feature coming soon');
+                              },
+                            ),
+                            _ProfileOption(
+                              icon: Icons.help_outline,
+                              title: 'Help & Support',
+                              subtitle: 'Get help or contact us',
+                              onTap: () {
+                                Get.snackbar('Help & Support', 'Feature coming soon');
+                              },
+                            ),
+                            _ProfileOption(
+                              icon: Icons.info_outline,
+                              title: 'About Us',
+                              subtitle: 'Learn more about us',
+                              onTap: () {
+                                Get.snackbar('About Us', 'Feature coming soon');
+                              },
+                            ),
+                            _ProfileOption(
+                              icon: Icons.description_outlined,
+                              title: 'Terms & Conditions',
+                              subtitle: 'Read our terms',
+                              onTap: () {
+                                Get.snackbar('Terms & Conditions', 'Feature coming soon');
+                              },
+                            ),
+                            _ProfileOption(
+                              icon: Icons.privacy_tip_outlined,
+                              title: 'Privacy Policy',
+                              subtitle: 'Read our privacy policy',
+                              onTap: () {
+                                Get.snackbar('Privacy Policy', 'Feature coming soon');
+                              },
+                            ),
+                          ],
+                        ),
+                        
+                        const SizedBox(height: 20),
+                        
+                        _buildSection(
+                          title: 'Account Actions',
+                          items: [
+                            _ProfileOption(
+                              icon: Icons.logout,
+                              title: 'Logout',
+                              subtitle: 'Sign out of your account',
+                              iconColor: ColorResource.error,
+                              onTap: () {
+                                _showLogoutDialog(context);
+                              },
+                            ),
+                            _ProfileOption(
+                              icon: Icons.delete_outline,
+                              title: 'Delete Account',
+                              subtitle: 'Permanently delete your account',
+                              iconColor: ColorResource.error,
+                              onTap: () {
+                                _showDeleteAccountDialog(context);
+                              },
+                            ),
+                          ],
+                        ),
+                        
+                        const SizedBox(height: 20),
+                        
+                        // App Version
+                        Center(
+                          child: Text(
+                            'Version 1.0.0',
+                            style: poppinsRegular.copyWith(
+                              fontSize: Constants.fontSizeSmall,
+                              color: ColorResource.textLight,
+                            ),
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 20),
+                      ],
                     ),
                   ),
-                  
-                  const SizedBox(height: 20),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildSliverAppBar() {
+  Widget _buildSliverAppBar(ProfileController controller) {
+    final user = controller.userProfile;
+    
     return SliverAppBar(
       expandedHeight: 180,
       floating: false,
@@ -241,39 +251,88 @@ class ProfilePage extends StatelessWidget {
             gradient: ColorResource.primaryGradient,
           ),
           child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundColor: ColorResource.textWhite,
-                    child: Icon(
-                      Icons.person,
-                      size: 50,
-                      color: ColorResource.primaryDark,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'John Doe', // TODO: Get from auth
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeLarge,
+            child: controller.isLoading
+                ? Center(
+                    child: CircularProgressIndicator(
                       color: ColorResource.textWhite,
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'john.doe@example.com', // TODO: Get from auth
-                    style: poppinsRegular.copyWith(
-                      fontSize: Constants.fontSizeDefault,
-                      color: ColorResource.textWhite.withOpacity(0.9),
+                  )
+                : Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        // Profile Picture
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: ColorResource.textWhite,
+                              width: 3,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.2),
+                                blurRadius: 10,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: CircleAvatar(
+                            radius: 40,
+                            backgroundColor: ColorResource.textWhite,
+                            child: user?.profileImageUrl != null
+                                ? ClipOval(
+                                    child: Image.network(
+                                      user!.profileImageUrl!,
+                                      width: 80,
+                                      height: 80,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return _buildAvatarPlaceholder(user);
+                                      },
+                                    ),
+                                  )
+                                : _buildAvatarPlaceholder(user),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          user?.name ?? 'Loading...',
+                          style: poppinsBold.copyWith(
+                            fontSize: Constants.fontSizeLarge,
+                            color: ColorResource.textWhite,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          user?.email ?? '',
+                          style: poppinsRegular.copyWith(
+                            fontSize: Constants.fontSizeDefault,
+                            color: ColorResource.textWhite.withOpacity(0.9),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatarPlaceholder(user) {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: ColorResource.primaryGradient,
+      ),
+      child: Center(
+        child: Text(
+          user?.initials ?? '?',
+          style: poppinsBold.copyWith(
+            fontSize: 32,
+            color: ColorResource.textWhite,
           ),
         ),
       ),

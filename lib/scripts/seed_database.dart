@@ -86,6 +86,7 @@ Future<void> _createCollection(Databases db, String id, String name, List<Functi
 Future<void> _setupUsers(Databases db) async {
   await _createCollection(db, AppwriteConfig.usersCollection, 'Users', [
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.usersCollection, key: 'name', size: 128, xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.usersCollection, key: 'profile_image_url', size: 2000, xrequired: false),
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.usersCollection, key: 'email', size: 128, xrequired: true),
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.usersCollection, key: 'phone', size: 20, xrequired: true),
         () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.usersCollection, key: 'role', elements: ['customer', 'driver', 'manager', 'admin'], xrequired: true),
