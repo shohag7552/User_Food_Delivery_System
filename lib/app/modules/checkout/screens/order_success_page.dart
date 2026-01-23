@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/modules/orders/screens/orders_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -126,7 +127,7 @@ class OrderSuccessPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: ColorResource.primaryDark.withOpacity(0.1),
+              color: ColorResource.primaryDark.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -152,7 +153,7 @@ class OrderSuccessPage extends StatelessWidget {
                 ),
               ),
               Text(
-                '\$${totalAmount.toStringAsFixed(2)}',
+                CurrencyHelper.formatWithSeparators(totalAmount),
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeExtraLarge,
                   color: ColorResource.primaryDark,

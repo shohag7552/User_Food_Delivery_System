@@ -22,22 +22,41 @@ class OrderRepository implements OrderRepoInterface {
     required double deliveryFee,
     required String paymentMethod,
     String? deliveryInstructions,
+    String? deliveryType,
+    DateTime? scheduledDate,
+    String? scheduledTimeSlot,
   }) async {
     try {
+      final orderData = {
+        'customer_id': customerId,
+        'order_number': orderNumber,
+        'status': 'pending',
+        'payment_method': paymentMethod,
+        'payment_status': paymentMethod == 'cod' ? 'unpaid' : 'paid',
+        'total_amount': totalAmount,
+        'delivery_fee': deliveryFee,
+        'delivery_address': deliveryAddress,
+        'order_items': orderItems,
+        'created_at': DateTime.now().toIso8601String(),
+      };
+
+      // Add delivery schedule information if provided
+      if (deliveryType != null) {
+        orderData['delivery_type'] = deliveryType;
+      }
+      if (scheduledDate != null) {
+        orderData['scheduled_date'] = scheduledDate.toIso8601String();
+      }
+      if (scheduledTimeSlot != null) {
+        orderData['scheduled_time_slot'] = scheduledTimeSlot;
+      }
+      if (deliveryInstructions != null && deliveryInstructions.isNotEmpty) {
+        orderData['delivery_instructions'] = deliveryInstructions;
+      }
+
       await appwriteService.createRow(
         collectionId: AppwriteConfig.ordersCollection,
-        data: {
-          'customer_id': customerId,
-          'order_number': orderNumber,
-          'status': 'pending',
-          'payment_method': paymentMethod,
-          'payment_status': paymentMethod == 'cod' ? 'unpaid' : 'paid',
-          'total_amount': totalAmount,
-          'delivery_fee': deliveryFee,
-          'delivery_address': deliveryAddress,
-          'order_items': orderItems,
-          'created_at': DateTime.now().toIso8601String(),
-        },
+        data: orderData,
       );
     } catch (e) {
       log('Error creating order: $e');

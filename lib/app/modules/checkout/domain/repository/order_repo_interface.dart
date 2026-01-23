@@ -10,6 +10,9 @@ abstract class OrderRepoInterface {
     required double deliveryFee,
     required String paymentMethod,
     String? deliveryInstructions,
+    String? deliveryType, // 'now' or 'scheduled'
+    DateTime? scheduledDate,
+    String? scheduledTimeSlot,
   });
   
   Future<List<OrderModel>> getUserOrders();

@@ -202,6 +202,7 @@ Future<void> _setupOrders(Databases db) async {
       onDelete: RelationMutate.restrict, // Don't let someone delete a User if they have active orders (Safe)
     ),
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'driver_id', size: 64, xrequired: false),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'delivery_type', size: 64, xrequired: false),
         () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'status', elements: ['pending', 'cooking', 'ready', 'on_way', 'delivered', 'cancelled'], xrequired: true),
         () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'payment_method', elements: ['cod', 'online', 'wallet'], xrequired: true),
         () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'payment_status', elements: ['paid', 'unpaid'], xrequired: true),
