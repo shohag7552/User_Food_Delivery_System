@@ -21,12 +21,8 @@ class FavoritesController extends GetxController implements GetxService {
   bool get hasFavorites => _favorites.isNotEmpty;
 
   // Get products from favorites
-  List<ProductModel> get favoriteProducts {
-    return _favorites
-        .where((fav) => fav.product != null)
-        .map((fav) => fav.product!)
-        .toList();
-  }
+  List<ProductModel>? _favoriteProducts;
+  List<ProductModel>? get favoriteProducts => _favoriteProducts;
 
   @override
   void onInit() {
@@ -45,13 +41,17 @@ class FavoritesController extends GetxController implements GetxService {
   }
 
   /// Fetch all favorites
-  Future<void> fetchFavorites() async {
+  Future<void> fetchFavorites({bool canUpdate = true, bool loadWithProduct = false}) async {
     try {
       _isLoading = true;
-      update();
+      if(canUpdate) {
+        update();
+      }
 
-      _favorites = await favoritesRepoInterface.getFavorites();
+      _favorites = await favoritesRepoInterface.getFavorites(loadWithProduct: loadWithProduct);
       _favoriteProductIds = _favorites.map((fav) => fav.productId).toSet();
+
+      print('------Fetched ${_favorites.length} favorites : $_favorites');
 
       _isLoading = false;
       update();

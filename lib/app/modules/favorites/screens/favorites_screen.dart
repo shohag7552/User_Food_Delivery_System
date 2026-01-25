@@ -8,8 +8,21 @@ import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class FavoritesScreen extends StatelessWidget {
+class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
+
+  @override
+  State<FavoritesScreen> createState() => _FavoritesScreenState();
+}
+
+class _FavoritesScreenState extends State<FavoritesScreen> {
+
+  @override
+  void initState() {
+    super.initState();
+
+    Get.find<FavoritesController>().fetchFavorites(canUpdate: false, loadWithProduct: true);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +41,8 @@ class FavoritesScreen extends StatelessWidget {
       ),
       body: GetBuilder<FavoritesController>(
         builder: (controller) {
+          print('========ggg===> ${controller.favorites.length}');
+
           if (controller.isLoading) {
             return _buildLoadingState();
           }
@@ -37,7 +52,7 @@ class FavoritesScreen extends StatelessWidget {
           }
 
           return RefreshIndicator(
-            onRefresh: controller.fetchFavorites,
+            onRefresh: () => controller.fetchFavorites(),
             color: ColorResource.primaryDark,
             child: GridView.builder(
               padding: const EdgeInsets.all(16),
@@ -47,11 +62,11 @@ class FavoritesScreen extends StatelessWidget {
                 mainAxisSpacing: 16,
                 childAspectRatio: 0.75,
               ),
-              itemCount: controller.favoriteProducts.length,
+              itemCount: controller.favorites.length,
               itemBuilder: (context, index) {
-                final product = controller.favoriteProducts[index];
+                final product = controller.favorites[index].product;
                 final favorite = controller.favorites[index];
-                return _buildProductCard(context, product, favorite.id, controller);
+                return _buildProductCard(context, product!, favorite.id, controller);
               },
             ),
           );
@@ -191,8 +206,6 @@ class FavoritesScreen extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         ProductDetailBottomSheet.show(context, product);
-        // // TODO: Navigate to product details
-        // Get.snackbar('Product', 'Navigate to ${product.name} details');
       },
       child: Container(
         decoration: BoxDecoration(
@@ -232,7 +245,7 @@ class FavoritesScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                
+
                 // Veg/Non-veg badge
                 Positioned(
                   top: 8,
@@ -342,7 +355,7 @@ class FavoritesScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    
+
                     // Price
                     Row(
                       children: [

@@ -12,7 +12,7 @@ class FavoritesRepository implements FavoritesRepoInterface {
   FavoritesRepository({required this.appwriteService});
 
   @override
-  Future<List<FavoriteModel>> getFavorites() async {
+  Future<List<FavoriteModel>> getFavorites({bool loadWithProduct = false}) async {
     try {
       User? user = await appwriteService.getCurrentUser();
 
@@ -20,12 +20,22 @@ class FavoritesRepository implements FavoritesRepoInterface {
         throw Exception('User not logged in');
       }
 
+      List<String>? queries = [
+        Query.equal('user_id', user.$id),
+        Query.orderDesc('\$createdAt'),
+      ];
+
+      if(loadWithProduct) {
+        queries.add(Query.select([
+          '\$id',
+          'product.*',
+          '\$createdAt',
+        ]));
+      }
+
       final response = await appwriteService.listTable(
         tableId: AppwriteConfig.favoritesCollection,
-        queries: [
-          Query.equal('user_id', user.$id),
-          Query.orderDesc('\$createdAt'),
-        ],
+        queries: queries,
       );
 
       return response.rows
@@ -57,6 +67,7 @@ class FavoritesRepository implements FavoritesRepoInterface {
         data: {
           'user_id': user.$id,
           'product_id': productId,
+          'product': productId,
         },
       );
 

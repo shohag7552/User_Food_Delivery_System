@@ -2,6 +2,7 @@ import 'package:appwrite_user_app/app/modules/dashboard/screens/home_page.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/screens/menu_page.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/screens/profile_page.dart';
 import 'package:appwrite_user_app/app/modules/cart/screens/cart_page.dart';
+import 'package:appwrite_user_app/app/modules/favorites/screens/favorites_screen.dart';
 import 'package:appwrite_user_app/app/modules/orders/screens/orders_page.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +28,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // Pages
   final List<Widget> _pages = [
     const HomePage(),
-    const MenuPage(),
+    const FavoritesScreen(),
     const CartPage(),
     const OrdersPage(),
     const ProfilePage(),
@@ -103,7 +104,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(Icons.home, 'Home', 0),
-              _buildNavItem(Icons.restaurant_menu, 'Menu', 1),
+              _buildNavItem(Icons.favorite, 'Favorites', 1),
               _buildCartNavItem(),
               _buildNavItem(Icons.receipt_long, 'Orders', 3),
               _buildNavItem(Icons.person, 'Profile', 4),

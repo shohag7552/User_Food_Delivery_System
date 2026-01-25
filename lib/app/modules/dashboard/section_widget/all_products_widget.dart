@@ -184,7 +184,7 @@ class AllProductsWidget extends StatelessWidget {
                   if (hasDiscount)
                     Positioned(
                       top: 8,
-                      right: 8,
+                      left: 8,
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(

@@ -2,7 +2,7 @@ import 'package:appwrite_user_app/app/models/favorite_model.dart';
 
 abstract class FavoritesRepoInterface {
   /// Get all favorites for the current user
-  Future<List<FavoriteModel>> getFavorites();
+  Future<List<FavoriteModel>> getFavorites({bool loadWithProduct = false});
 
   /// Add a product to favorites
   Future<FavoriteModel> addFavorite(String productId);
