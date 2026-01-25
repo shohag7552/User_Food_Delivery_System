@@ -15,6 +15,7 @@ class CustomClickableWidget extends StatefulWidget {
 class _CustomClickableWidgetState extends State<CustomClickableWidget> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
+  bool _isPressed = false;
 
   @override
   void initState() {
@@ -37,16 +38,23 @@ class _CustomClickableWidgetState extends State<CustomClickableWidget> with Sing
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => _controller.forward(),
+      onTapDown: (_) {
+        setState(() => _isPressed = true);
+        _controller.forward();
+      },
       onTapUp: (_) {
+        setState(() => _isPressed = false);
         _controller.reverse();
         widget.onTap();
       },
-      onTapCancel: () => _controller.reverse(),
+      onTapCancel: () {
+        setState(() => _isPressed = false);
+        _controller.reverse();
+      },
       child: ScaleTransition(
         scale: _scaleAnimation,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 150),
           curve: Curves.easeInOut,
           padding: widget.padding,
           margin: widget.margin,
@@ -54,7 +62,7 @@ class _CustomClickableWidgetState extends State<CustomClickableWidget> with Sing
             decoration: BoxDecoration(
               color: ColorResource.cardBackground,
               borderRadius: BorderRadius.circular(Constants.radiusLarge),
-              boxShadow: ColorResource.customShadow,
+              boxShadow: _isPressed ? [] : ColorResource.customShadow,
             ),
             child: widget.child,
           ),
