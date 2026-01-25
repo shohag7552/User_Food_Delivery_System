@@ -1,3 +1,5 @@
+import 'package:appwrite_user_app/app/resources/colors.dart';
+import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:flutter/material.dart';
 class CustomClickableWidget extends StatefulWidget {
   final VoidCallback onTap;
@@ -48,7 +50,14 @@ class _CustomClickableWidgetState extends State<CustomClickableWidget> with Sing
           curve: Curves.easeInOut,
           padding: widget.padding,
           margin: widget.margin,
-          child: widget.child,
+          child: Container(
+            decoration: BoxDecoration(
+              color: ColorResource.cardBackground,
+              borderRadius: BorderRadius.circular(Constants.radiusLarge),
+              boxShadow: ColorResource.customShadow,
+            ),
+            child: widget.child,
+          ),
         ),
       ),
     );

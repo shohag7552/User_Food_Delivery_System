@@ -121,8 +121,7 @@ class _HomePageState extends State<HomePage>
           ),
         ),
 
-        AllProductsWidget(
-            isTablet: isTablet, scrollController: _scrollController),
+        AllProductsWidget(isTablet: isTablet, scrollController: _scrollController),
       ],
     );
   }

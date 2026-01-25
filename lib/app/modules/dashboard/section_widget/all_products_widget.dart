@@ -159,152 +159,145 @@ class AllProductsWidget extends StatelessWidget {
 
     return CustomClickableWidget(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: ColorResource.cardBackground,
-          borderRadius: BorderRadius.circular(Constants.radiusLarge),
-          boxShadow: ColorResource.customShadow,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image with badges
-            Expanded(
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(Constants.radiusLarge),
-                      topRight: Radius.circular(Constants.radiusLarge),
-                    ),
-                    child: CustomNetworkImage(image: product.imageId, height: 160, width: double.infinity),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Image with badges
+          Expanded(
+            child: Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(Constants.radiusLarge),
+                    topRight: Radius.circular(Constants.radiusLarge),
                   ),
+                  child: CustomNetworkImage(image: product.imageId, height: 160, width: double.infinity),
+                ),
 
-                  // Discount Badge
-                  if (hasDiscount)
-                    Positioned(
-                      top: 8,
-                      left: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: ColorResource.error,
-                          borderRadius: BorderRadius.circular(Constants.radiusSmall),
-                        ),
-                        child: Text(
-                          '$discountPercentage% OFF',
-                          style: poppinsBold.copyWith(
-                            fontSize: Constants.fontSizeExtraSmall,
-                            color: ColorResource.textWhite,
-                          ),
-                        ),
-                      ),
-                    ),
-                  // Favorite button (top-right corner)
+                // Discount Badge
+                if (hasDiscount)
                   Positioned(
                     top: 8,
-                    right: 8,
-                    child: FavoriteButton(
-                      product: product,
-                      size: 18,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: ColorResource.error,
+                        borderRadius: BorderRadius.circular(Constants.radiusSmall),
+                      ),
+                      child: Text(
+                        '$discountPercentage% OFF',
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeExtraSmall,
+                          color: ColorResource.textWhite,
+                        ),
+                      ),
                     ),
                   ),
-                ],
-              ),
+                // Favorite button (top-right corner)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: FavoriteButton(
+                    product: product,
+                    size: 18,
+                  ),
+                ),
+              ],
             ),
+          ),
 
-            // Product Details
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Name
-                  Text(
-                    product.name,
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeDefault,
-                      color: ColorResource.textPrimary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+          // Product Details
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Name
+                Text(
+                  product.name,
+                  style: poppinsBold.copyWith(
+                    fontSize: Constants.fontSizeDefault,
+                    color: ColorResource.textPrimary,
                   ),
-                  const SizedBox(height: 4),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
 
-                  // Description
-                  Text(
-                    product.description,
-                    style: poppinsRegular.copyWith(
-                      fontSize: Constants.fontSizeSmall,
-                      color: ColorResource.textSecondary,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                // Description
+                Text(
+                  product.description,
+                  style: poppinsRegular.copyWith(
+                    fontSize: Constants.fontSizeSmall,
+                    color: ColorResource.textSecondary,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
 
-                  const SizedBox(height: 8),
+                const SizedBox(height: 8),
 
-                  // Price and Add Button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Price
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                // Price and Add Button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Price
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '\$${product.finalPrice.toStringAsFixed(2)}',
+                            style: poppinsBold.copyWith(
+                              fontSize: Constants.fontSizeLarge,
+                              color: ColorResource.primaryDark,
+                            ),
+                          ),
+                          if (hasDiscount)
                             Text(
-                              '\$${product.finalPrice.toStringAsFixed(2)}',
-                              style: poppinsBold.copyWith(
-                                fontSize: Constants.fontSizeLarge,
-                                color: ColorResource.primaryDark,
+                              '\$${product.price.toStringAsFixed(2)}',
+                              style: poppinsRegular.copyWith(
+                                fontSize: Constants.fontSizeSmall,
+                                color: ColorResource.textLight,
+                                decoration: TextDecoration.lineThrough,
                               ),
                             ),
-                            if (hasDiscount)
-                              Text(
-                                '\$${product.price.toStringAsFixed(2)}',
-                                style: poppinsRegular.copyWith(
-                                  fontSize: Constants.fontSizeSmall,
-                                  color: ColorResource.textLight,
-                                  decoration: TextDecoration.lineThrough,
-                                ),
-                              ),
+                        ],
+                      ),
+                    ),
+                    // Add Button
+                    GestureDetector(
+                      onTap: onAddToCart,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          gradient: ColorResource.primaryGradient,
+                          borderRadius: BorderRadius.circular(
+                            Constants.radiusDefault,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: ColorResource.primaryMedium
+                                  .withOpacity(0.4),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
                           ],
                         ),
-                      ),
-                      // Add Button
-                      GestureDetector(
-                        onTap: onAddToCart,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            gradient: ColorResource.primaryGradient,
-                            borderRadius: BorderRadius.circular(
-                              Constants.radiusDefault,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: ColorResource.primaryMedium
-                                    .withOpacity(0.4),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Icon(
-                            Icons.add_shopping_cart,
-                            color: ColorResource.textWhite,
-                            size: 18,
-                          ),
+                        child: Icon(
+                          Icons.add_shopping_cart,
+                          color: ColorResource.textWhite,
+                          size: 18,
                         ),
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
