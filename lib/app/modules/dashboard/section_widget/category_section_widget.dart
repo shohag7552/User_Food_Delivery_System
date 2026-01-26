@@ -2,6 +2,7 @@ import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dar
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/modules/categories/screens/category_screen.dart';
+import 'package:appwrite_user_app/app/modules/categories/screens/category_products_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -89,7 +90,9 @@ class CategorySectionWidget extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final category = categoryController.categories[index];
                       return CustomClickableWidget(
-                        onTap: (){},
+                        onTap: () {
+                          Get.to(() => CategoryProductsPage(category: category));
+                        },
                         margin: const EdgeInsets.only(right: Constants.paddingSizeLarge),
                         child: Container(
                           width: 70,
