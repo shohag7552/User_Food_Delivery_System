@@ -3,6 +3,7 @@ import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/modules/address/screens/addresses_page.dart';
 import 'package:appwrite_user_app/app/modules/coupons/screens/coupons_screen.dart';
 import 'package:appwrite_user_app/app/modules/favorites/screens/favorites_screen.dart';
+import 'package:appwrite_user_app/app/modules/orders/screens/order_history_page.dart';
 import 'package:appwrite_user_app/app/modules/profile/screens/edit_profile_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -75,7 +76,7 @@ class ProfilePage extends StatelessWidget {
                               title: 'Order History',
                               subtitle: 'View your past orders',
                               onTap: () {
-                                Get.snackbar('Order History', 'Feature coming soon');
+                                Get.to(() => const OrderHistoryPage());
                               },
                             ),
                             _ProfileOption(
