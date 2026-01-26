@@ -15,6 +15,12 @@ abstract class OrderRepoInterface {
     String? scheduledTimeSlot,
   });
   
-  Future<List<OrderModel>> getUserOrders();
+  /// Get user's orders with optional filtering, search, and pagination
+  Future<List<OrderModel>> getUserOrders({
+    String? status,
+    String? searchQuery,
+    int limit = 10,
+    int offset = 0,
+  });
   Future<OrderModel?> getOrderById(String orderId);
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'package:appwrite_user_app/app/models/address_model.dart';
@@ -14,10 +15,31 @@ class OrderController extends GetxController implements GetxService {
   List<OrderModel> _orders = [];
   bool _isLoading = false;
   bool _isPlacingOrder = false;
+  bool _isLoadingMore = false;
+  
+  // Filter and search state
+  String _selectedStatus = 'all';
+  String _searchQuery = '';
+  Timer? _debounce;
+  
+  // Pagination state
+  int _currentPage = 0;
+  final int _pageSize = 10;
+  bool _hasMore = true;
 
   List<OrderModel> get orders => _orders;
   bool get isLoading => _isLoading;
   bool get isPlacingOrder => _isPlacingOrder;
+  bool get isLoadingMore => _isLoadingMore;
+  String get selectedStatus => _selectedStatus;
+  String get searchQuery => _searchQuery;
+  bool get hasMore => _hasMore;
+
+  @override
+  void onClose() {
+    _debounce?.cancel();
+    super.onClose();
+  }
 
   /// Place a new order
   Future<Map<String, dynamic>> placeOrder({
@@ -91,13 +113,32 @@ class OrderController extends GetxController implements GetxService {
     }
   }
 
-  /// Fetch user's orders
-  Future<void> fetchUserOrders() async {
+  /// Fetch user's orders with current filters
+  Future<void> fetchUserOrders({bool refresh = false}) async {
     try {
+      if (refresh) {
+        _currentPage = 0;
+        _hasMore = true;
+      }
+
       _isLoading = true;
       update();
 
-      _orders = await orderRepoInterface.getUserOrders();
+      final fetchedOrders = await orderRepoInterface.getUserOrders(
+        status: _selectedStatus == 'all' ? null : _selectedStatus,
+        searchQuery: _searchQuery.isEmpty ? null : _searchQuery,
+        limit: _pageSize,
+        offset: _currentPage * _pageSize,
+      );
+
+      if (refresh) {
+        _orders = fetchedOrders;
+      } else {
+        _orders.addAll(fetchedOrders);
+      }
+
+      // Check if there are more orders to load
+      _hasMore = fetchedOrders.length >= _pageSize;
 
       _isLoading = false;
       update();
@@ -106,5 +147,67 @@ class OrderController extends GetxController implements GetxService {
       update();
       log('Error fetching orders: $e');
     }
+  }
+
+  /// Load more orders (pagination)
+  Future<void> loadMoreOrders() async {
+    if (_isLoadingMore || !_hasMore) return;
+
+    try {
+      _isLoadingMore = true;
+      update();
+
+      _currentPage++;
+
+      final fetchedOrders = await orderRepoInterface.getUserOrders(
+        status: _selectedStatus == 'all' ? null : _selectedStatus,
+        searchQuery: _searchQuery.isEmpty ? null : _searchQuery,
+        limit: _pageSize,
+        offset: _currentPage * _pageSize,
+      );
+
+      _orders.addAll(fetchedOrders);
+      _hasMore = fetchedOrders.length >= _pageSize;
+
+      _isLoadingMore = false;
+      update();
+    } catch (e) {
+      _isLoadingMore = false;
+      _currentPage--; // Revert page increment on error
+      update();
+      log('Error loading more orders: $e');
+    }
+  }
+
+  /// Filter orders by status
+  void filterByStatus(String status) {
+    if (_selectedStatus == status) return;
+
+    _selectedStatus = status;
+    _currentPage = 0;
+    _hasMore = true;
+    fetchUserOrders(refresh: true);
+  }
+
+  /// Search orders with debounce
+  void searchOrders(String query) {
+    _searchQuery = query;
+    
+    // Cancel previous debounce timer
+    _debounce?.cancel();
+    
+    // Set new debounce timer
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      _currentPage = 0;
+      _hasMore = true;
+      fetchUserOrders(refresh: true);
+    });
+    
+    update(); // Update UI to show search query immediately
+  }
+
+  /// Refresh orders
+  Future<void> refreshOrders() async {
+    await fetchUserOrders(refresh: true);
   }
 }

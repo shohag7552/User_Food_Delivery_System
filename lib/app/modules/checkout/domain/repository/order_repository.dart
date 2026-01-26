@@ -65,21 +65,42 @@ class OrderRepository implements OrderRepoInterface {
   }
 
   @override
-  Future<List<OrderModel>> getUserOrders() async {
+  Future<List<OrderModel>> getUserOrders({
+    String? status,
+    String? searchQuery,
+    int limit = 10,
+    int offset = 0,
+  }) async {
     try {
-
       User? user = await appwriteService.getCurrentUser();
 
       if (user == null) {
         throw Exception('User not logged in');
       }
 
+      // Build queries dynamically
+      List<String> queries = [
+        Query.equal('customer_id', user.$id),
+        Query.orderDesc('\$createdAt'),
+      ];
+
+      // Add status filter if provided
+      if (status != null && status.isNotEmpty && status.toLowerCase() != 'all') {
+        queries.add(Query.equal('status', status.toLowerCase()));
+      }
+
+      // Add search query if provided
+      if (searchQuery != null && searchQuery.isNotEmpty) {
+        queries.add(Query.search('order_number', searchQuery));
+      }
+
+      // Add pagination
+      queries.add(Query.limit(limit));
+      queries.add(Query.offset(offset));
+
       final response = await appwriteService.listTable(
         tableId: AppwriteConfig.ordersCollection,
-        queries: [
-          Query.equal('customer_id', user.$id),
-          Query.orderDesc('\$createdAt'),
-        ],
+        queries: queries,
       );
 
       return response.rows
