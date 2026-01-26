@@ -133,103 +133,107 @@ class _HomePageState extends State<HomePage>
       pinned: true,
       elevation: 0,
       backgroundColor: ColorResource.primaryDark,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: ColorResource.primaryGradient,
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      flexibleSpace: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          // Calculate collapse ratio (0.0 = fully expanded, 1.0 = fully collapsed)
+          final double appBarHeight = constraints.maxHeight;
+          final double statusBarHeight = MediaQuery.of(context).padding.top;
+          final double minHeight = kToolbarHeight + statusBarHeight;
+          final double collapseRatio = ((appBarHeight - minHeight) / (180 - minHeight)).clamp(0.0, 1.0);
+          final bool isCollapsed = collapseRatio < 0.1; // Fully collapsed threshold
+
+          return FlexibleSpaceBar(
+            // Only show title (search bar) when collapsed
+            title: isCollapsed ? _buildSearchBar() : null,
+            titlePadding: isCollapsed ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8) : null,
+            background: Container(
+              decoration: BoxDecoration(
+                gradient: ColorResource.primaryGradient,
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      // Greeting
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Good Evening! 👋',
-                              style: poppinsRegular.copyWith(
-                                fontSize: Constants.fontSizeDefault,
-                                color:
-                                    ColorResource.textWhite.withOpacity(0.9),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'What would you like to eat?',
-                              style: poppinsBold.copyWith(
-                                fontSize: Constants.fontSizeExtraLarge,
-                                color: ColorResource.textWhite,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Notifications & Profile
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Stack(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: ColorResource.overlayMedium,
-                                  borderRadius: BorderRadius.circular(
-                                      Constants.radiusDefault),
-                                ),
-                                child: Icon(
-                                  Icons.notifications_outlined,
-                                  color: ColorResource.textWhite,
-                                  size: 24,
-                                ),
-                              ),
-                              Positioned(
-                                top: 6,
-                                right: 6,
-                                child: Container(
-                                  width: 10,
-                                  height: 10,
-                                  decoration: BoxDecoration(
-                                    color: ColorResource.error,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: ColorResource.primaryDark,
-                                      width: 2,
-                                    ),
+                          // Greeting
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Good Evening! 👋',
+                                  style: poppinsRegular.copyWith(
+                                    fontSize: Constants.fontSizeDefault,
+                                    color:
+                                        ColorResource.textWhite.withOpacity(0.9),
                                   ),
                                 ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'What would you like to eat?',
+                                  style: poppinsBold.copyWith(
+                                    fontSize: Constants.fontSizeExtraLarge,
+                                    color: ColorResource.textWhite,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Notifications & Profile
+                          Row(
+                            children: [
+                              Stack(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: ColorResource.overlayMedium,
+                                      borderRadius: BorderRadius.circular(
+                                          Constants.radiusDefault),
+                                    ),
+                                    child: Icon(
+                                      Icons.notifications_outlined,
+                                      color: ColorResource.textWhite,
+                                      size: 24,
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 6,
+                                    right: 6,
+                                    child: Container(
+                                      width: 10,
+                                      height: 10,
+                                      decoration: BoxDecoration(
+                                        color: ColorResource.error,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: ColorResource.primaryDark,
+                                          width: 2,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                          const SizedBox(width: 12),
-                          CircleAvatar(
-                            radius: 22,
-                            backgroundColor: ColorResource.textWhite,
-                            child: Icon(
-                              Icons.person,
-                              color: ColorResource.primaryDark,
-                              size: 26,
-                            ),
-                          ),
                         ],
                       ),
+                      const SizedBox(height: 20),
+                      // Search Bar (only in expanded state)
+                      _buildSearchBar(),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  // Search Bar
-                  _buildSearchBar(),
-                ],
+                ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
