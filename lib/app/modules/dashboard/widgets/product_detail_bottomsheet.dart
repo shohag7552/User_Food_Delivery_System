@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
+import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
 import 'package:appwrite_user_app/app/helper/auth_helper.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
@@ -727,6 +728,21 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                     if (mounted) {
                       setState(() {
                         _isAddingToCart = false;
+                      });
+                      
+                      // Trigger cart animation (delay slightly for smooth effect)
+                      Future.delayed(const Duration(milliseconds: 100), () {
+                        if (mounted) {
+                          // Use a simple center position since we're in a bottom sheet
+                          Get.find<CartAnimationController>().animateAddToCart(
+                            context: context,
+                            productImageUrl: widget.product.imageId,
+                            buttonPosition: Offset(
+                              MediaQuery.of(context).size.width / 2,
+                              MediaQuery.of(context).size.height - 150,
+                            ),
+                          );
+                        }
                       });
                     }
 

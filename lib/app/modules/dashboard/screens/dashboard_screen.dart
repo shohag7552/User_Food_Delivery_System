@@ -12,6 +12,8 @@ import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
+import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
+import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
 import 'package:get/get.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -46,6 +48,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Get.find<ProductController>().getPopularProducts();
     Get.find<ProductController>().getNewProducts();
     Get.find<ProductController>().getProducts();
+    
+    // Load favorites
+    Get.find<FavoritesController>().fetchFavorites(canUpdate: false);
     
     // Load cart items (using hardcoded user_id for now)
     Get.find<CartController>().getCartItems();
@@ -192,6 +197,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Stack(
+                  key: Get.find<CartAnimationController>().cartIconKey,
                   clipBehavior: Clip.none,
                   children: [
                     Icon(
