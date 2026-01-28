@@ -1,11 +1,14 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
+import 'package:appwrite_user_app/app/controllers/review_controller.dart';
 import 'package:appwrite_user_app/app/helper/auth_helper.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/modules/cart/screens/cart_page.dart';
+import 'package:appwrite_user_app/app/modules/reviews/widgets/review_list_section.dart';
+import 'package:appwrite_user_app/app/modules/reviews/widgets/submit_review_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -184,7 +187,18 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
 
                            // Quantity Selector
                            _buildQuantitySelector(),
-                           const SizedBox(height: 80), // Space for bottom button
+                            const SizedBox(height: 32),
+
+                            // Divider
+                            Divider(
+                              color: ColorResource.textLight.withOpacity(0.2),
+                              thickness: 1,
+                            ),
+                            const SizedBox(height: 24),
+
+                            // Reviews Section
+                            _buildReviewsSection(),
+                            const SizedBox(height: 100), // Space for bottom button
                          ],
                        ),
                      ),
@@ -846,6 +860,37 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildReviewsSection() {
+    final authController = Get.find<AuthController>();
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Reviews header
+        Text(
+          'Customer Reviews',
+          style: poppinsBold.copyWith(
+            fontSize: Constants.fontSizeLarge,
+            color: ColorResource.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 16),
+        
+        // Reviews list
+        FutureBuilder<String?>(
+          future: authController.getUserId(),
+          builder: (context, snapshot) {
+            final currentUserId = snapshot.data;
+            return ReviewListSection(
+              productId: widget.product.id,
+              currentUserId: currentUserId,
+            );
+          },
+        ),
+      ],
     );
   }
 }

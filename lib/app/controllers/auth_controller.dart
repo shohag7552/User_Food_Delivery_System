@@ -174,6 +174,11 @@ class AuthController extends GetxController implements GetxService {
     return user?.$id;
   }
 
+  Future<String?> getUserName() async {
+    User? user = await authRepoInterface.getCurrentUser();
+    return user?.name;
+  }
+
   //
   // Future<bool> registrationSubmit(RegistrationModel registrationModel) async {
   //   bool isSuccess = false;

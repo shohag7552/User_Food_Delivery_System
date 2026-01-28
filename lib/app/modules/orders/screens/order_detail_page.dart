@@ -1,4 +1,6 @@
+import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
+import 'package:appwrite_user_app/app/modules/reviews/widgets/submit_review_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -266,6 +268,35 @@ class OrderDetailPage extends StatelessWidget {
                     ),
                   ],
                 ),
+                // Add review button for delivered orders
+                if (_isOrderDelivered()) ...[
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _showReviewBottomSheet(item),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        side: BorderSide(color: ColorResource.primaryDark),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(Constants.radiusDefault),
+                        ),
+                      ),
+                      icon: Icon(
+                        Icons.rate_review,
+                        size: 18,
+                        color: ColorResource.primaryDark,
+                      ),
+                      label: Text(
+                        'Rate this product',
+                        style: poppinsMedium.copyWith(
+                          fontSize: Constants.fontSizeSmall,
+                          color: ColorResource.primaryDark,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -466,6 +497,38 @@ class OrderDetailPage extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  bool _isOrderDelivered() {
+    return order.status.toLowerCase() == 'delivered' || 
+           order.status.toLowerCase() == 'completed';
+  }
+
+  Future<void> _showReviewBottomSheet(OrderItem item) async {
+    final authController = Get.find<AuthController>();
+    String? userId = await authController.getUserId();
+    String? userName = await authController.getUserName();
+
+    if (userId == null) {
+      Get.snackbar(
+        'Login Required',
+        'Please login to write a review',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: ColorResource.error,
+        colorText: ColorResource.textWhite,
+      );
+      return;
+    }
+
+    // Show submit review bottom sheet with verified purchase
+    await SubmitReviewBottomSheet.show(
+      Get.context!,
+      productId: item.productId, // Use actual product ID from order item
+      userId: userId,
+      userName: userName ?? 'User',
+      productName: item.productName,
+      verifiedPurchase: true, // User purchased this product
     );
   }
 }

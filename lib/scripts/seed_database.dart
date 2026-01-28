@@ -44,6 +44,7 @@ void main() async {
     await _setupBanners(databases);
     await _setupCart(databases);
     await _setupFavorites(databases);
+    await _setupReviews(databases);
 
     print("\n🎉 SETUP COMPLETE! Your Appwrite backend is ready.");
   } catch (e) {
@@ -422,6 +423,80 @@ Future<void> _setupFavorites(Databases db) async {
     Permission.read(Role.users()),
     Permission.create(Role.users()),
     Permission.delete(Role.users()),
+  ]);
+}
+
+Future<void> _setupReviews(Databases db) async {
+  await _createCollection(db, AppwriteConfig.collectionId, 'Reviews', [
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.collectionId,
+      key: 'product_id',
+      size: 128,
+      xrequired: true,
+    ),
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.collectionId,
+      key: 'user_id',
+      size: 128,
+      xrequired: true,
+    ),
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.collectionId,
+      key: 'user_name',
+      size: 256,
+      xrequired: true,
+    ),
+    () => db.createIntegerAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.collectionId,
+      key: 'rating',
+      min: 1,
+      max: 5,
+      xrequired: true,
+    ),
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.collectionId,
+      key: 'title',
+      size: 256,
+      xrequired: false,
+    ),
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.collectionId,
+      key: 'comment',
+      size: 2000,
+      xrequired: true,
+    ),
+    () => db.createIntegerAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.collectionId,
+      key: 'helpful_count',
+      xrequired: false,
+      xdefault: 0,
+    ),
+    () => db.createBooleanAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.collectionId,
+      key: 'verified_purchase',
+      xrequired: false,
+      xdefault: false,
+    ),
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.collectionId,
+      key: 'created_at',
+      size: 64,
+      xrequired: true,
+    ),
+  ], [
+    Permission.read(Role.any()), // Everyone can read reviews
+    Permission.create(Role.users()), // Logged in users can create reviews
+    Permission.update(Role.users()), // Users can update their own reviews
+    Permission.delete(Role.users()), // Users can delete their own reviews
   ]);
 }
 

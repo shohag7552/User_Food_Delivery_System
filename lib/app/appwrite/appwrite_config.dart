@@ -22,4 +22,5 @@ class AppwriteConfig {
   static const String addressesCollection = 'addresses';
   static const String ordersCollection = 'orders';
   static const String favoritesCollection = 'favorites';
+  static const String collectionId = 'reviews';
 }

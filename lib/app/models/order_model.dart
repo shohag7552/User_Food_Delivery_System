@@ -48,15 +48,23 @@ class OrderModel {
 }
 
 class OrderItem {
+  final String productId;
   final String productName;
   final double price;
   final int quantity;
   final List<String> selectedVariants; // e.g. ["Large", "Extra Cheese"]
 
-  OrderItem({required this.productName, required this.price, required this.quantity, required this.selectedVariants});
+  OrderItem({
+    required this.productId,
+    required this.productName,
+    required this.price,
+    required this.quantity,
+    required this.selectedVariants,
+  });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     return OrderItem(
+      productId: json['product_id'] ?? '',
       productName: json['product_name'],
       price: (json['price'] as num).toDouble(),
       quantity: json['quantity'],

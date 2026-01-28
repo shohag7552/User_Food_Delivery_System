@@ -70,6 +70,7 @@ class OrderController extends GetxController implements GetxService {
       // Convert cart items to order items JSON
       final orderItems = cartItems.map((item) {
         return {
+          'product_id': item.productId, // ✨ Added for review linking
           'product_name': item.productName,
           'price': item.finalPrice,
           'quantity': item.quantity,
