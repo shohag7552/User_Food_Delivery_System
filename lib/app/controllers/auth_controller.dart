@@ -114,9 +114,28 @@ class AuthController extends GetxController implements GetxService {
     _isLoading = true;
     update();
 
-    await authRepoInterface.loginAdmin(phone, password).then((value) {
-      isSuccess = value;
-    });
+    try {
+      isSuccess = await authRepoInterface.loginAdmin(phone, password);
+      
+      if (isSuccess) {
+        customToster('Login successful! Welcome back.');
+      } else {
+        customToster('Login failed. Please check your credentials.');
+      }
+    } catch (e) {
+      isSuccess = false;
+      String errorMessage = 'Login failed. Please try again.';
+      
+      if (e.toString().contains('Invalid credentials') || 
+          e.toString().contains('401')) {
+        errorMessage = 'Invalid email or password.';
+      } else if (e.toString().contains('network') || e.toString().contains('connection')) {
+        errorMessage = 'Network error. Please check your connection.';
+      }
+      
+      customToster(errorMessage);
+      log('Login error: $e');
+    }
 
     _isLoading = false;
     update();

@@ -44,6 +44,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   }
 
   Future<void> _handleLogin() async {
+    print('------------Login button pressed');
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;

@@ -214,16 +214,19 @@ class AppwriteService {
     }
   }
 
-  Future<void> signIn({required String email, required String password}) async {
+  Future<bool> signIn({required String email, required String password}) async {
     log('====> signIn request- email:$email, password:$password');
 
     try {
       await account.createEmailPasswordSession(email: email, password: password);
-
+      log('====> Login successful for: $email');
+      return true;
     } on AppwriteException catch (e) {
+      return false;
       log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
     } catch (e) {
-      log('Upload error: $e');
+      log('Login error: $e');
+      throw Exception('Login failed: $e');
     }
   }
 
