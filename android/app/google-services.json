@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "660606682501",
+    "project_id": "food-app-c2fe8",
+    "storage_bucket": "food-app-c2fe8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:660606682501:android:855861a72ded35d827b0ec",
+        "android_client_info": {
+          "package_name": "com.example.kaj_kormo_bd"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6vjmdqwOy4Yz9SHQ-OLw5TgDTKTpNW-k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:660606682501:android:5bb210b0bcaefc5f27b0ec",
+        "android_client_info": {
+          "package_name": "com.mehedi.food"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6vjmdqwOy4Yz9SHQ-OLw5TgDTKTpNW-k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,4 +1,4 @@
-package com.example.appwrite_user_app
+package com.mehedi.food
 
 import io.flutter.embedding.android.FlutterActivity
 
