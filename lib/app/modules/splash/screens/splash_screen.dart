@@ -2,6 +2,8 @@ import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/splash_controller.dart';
 import 'package:appwrite_user_app/app/modules/auth/screens/login_screen.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/screens/dashboard_screen.dart';
+import 'package:appwrite_user_app/app/resources/constants.dart';
+import 'package:appwrite_user_app/app/resources/images.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 class SplashScreen extends StatefulWidget {
@@ -46,9 +48,18 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Text(
-          'Splash Screen',
-          style: TextStyle(fontSize: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+
+            Image.asset(Images.logo, width: 150, height: 150),
+            SizedBox(height: 20),
+
+            Text(
+              Constants.appName,
+              style: TextStyle(fontSize: 24),
+            ),
+          ],
         ),
       ),
     );

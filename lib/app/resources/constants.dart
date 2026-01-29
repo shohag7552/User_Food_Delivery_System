@@ -3,7 +3,7 @@ import 'package:appwrite_user_app/app/resources/images.dart';
 
 class Constants {
 
-  static const String appName = 'user';
+  static const String appName = 'Food User';
 
   static double fontSizeExtraSmall = 10;
   static double fontSizeSmall = 12;

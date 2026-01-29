@@ -25,13 +25,14 @@ class FavoritesRepository implements FavoritesRepoInterface {
         Query.orderDesc('\$createdAt'),
       ];
 
-      if(loadWithProduct) {
+      // if(loadWithProduct) {
         queries.add(Query.select([
           '\$id',
+          'product_id',
           'product.*',
           '\$createdAt',
         ]));
-      }
+      // }
 
       final response = await appwriteService.listTable(
         tableId: AppwriteConfig.favoritesCollection,

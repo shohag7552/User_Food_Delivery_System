@@ -24,12 +24,6 @@ class FavoritesController extends GetxController implements GetxService {
   List<ProductModel>? _favoriteProducts;
   List<ProductModel>? get favoriteProducts => _favoriteProducts;
 
-  @override
-  void onInit() {
-    super.onInit();
-    fetchFavorites();
-  }
-
   /// Check if a product is favorited
   bool isFavorite(String productId) {
     return _favoriteProductIds.contains(productId);
@@ -51,7 +45,7 @@ class FavoritesController extends GetxController implements GetxService {
       _favorites = await favoritesRepoInterface.getFavorites(loadWithProduct: loadWithProduct);
       _favoriteProductIds = _favorites.map((fav) => fav.productId).toSet();
 
-      print('------Fetched ${_favorites.length} favorites : $_favorites');
+      print('----controller--Fetched ${_favorites.length} favorites : $_favorites');
 
       _isLoading = false;
       update();

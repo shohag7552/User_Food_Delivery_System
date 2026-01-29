@@ -39,12 +39,23 @@ class FavoriteModel {
       userId: json['user_id'] ?? '',
       productId: json['product_id'] ?? '',
       product: json['product'] != null 
-          ? ProductModel.fromJson(json['product']) 
+          ? ProductModel.fromJson(json['product'])
           : null,
       createdAt: json['\$createdAt'] != null 
           ? DateTime.parse(json['\$createdAt']) 
           : null,
     );
+  }
+
+  ProductModel? _getProduct(Map<String, dynamic> jsonData) {
+    try{
+      if(jsonData?['product'] == null) {
+        return null;
+      }
+      return ProductModel.fromJson(jsonData?['product']);
+    } catch(e) {
+      return null;
+    }
   }
 
   // Convert to JSON for Appwrite
