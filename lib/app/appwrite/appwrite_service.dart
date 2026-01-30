@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
+import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AppwriteService {
@@ -222,8 +223,9 @@ class AppwriteService {
       log('====> Login successful for: $email');
       return true;
     } on AppwriteException catch (e) {
-      return false;
       log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
+      customToster('${e.message}');
+      return false;
     } catch (e) {
       log('Login error: $e');
       throw Exception('Login failed: $e');

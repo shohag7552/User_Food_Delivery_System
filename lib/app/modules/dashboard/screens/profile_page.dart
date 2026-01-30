@@ -1,9 +1,11 @@
+import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/modules/address/screens/addresses_page.dart';
 import 'package:appwrite_user_app/app/modules/coupons/screens/coupons_screen.dart';
 import 'package:appwrite_user_app/app/modules/favorites/screens/favorites_screen.dart';
 import 'package:appwrite_user_app/app/modules/orders/screens/order_history_page.dart';
+import 'package:appwrite_user_app/app/modules/auth/screens/login_screen.dart';
 import 'package:appwrite_user_app/app/modules/profile/screens/edit_profile_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -424,15 +426,14 @@ class ProfilePage extends StatelessWidget {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              // TODO: Implement logout
-              Get.snackbar(
-                'Logged Out',
-                'You have been logged out successfully',
-                backgroundColor: Colors.green,
-                colorText: ColorResource.textWhite,
-              );
+              // Get AuthController and call logout
+              final authController = Get.find<AuthController>();
+              await authController.logout();
+              
+              // Navigate to login screen and clear navigation stack
+              Get.offAll(() => const LoginScreen());
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: ColorResource.error,

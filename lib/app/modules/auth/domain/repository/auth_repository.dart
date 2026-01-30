@@ -24,13 +24,13 @@ class AuthRepository implements AuthRepoInterface {
   }
 
   @override
-  Future<bool> loginAdmin(String email, String password) async {
+  Future<bool> loginUser(String email, String password) async {
     try {
       // Attempt to sign in with Appwrite
       bool isSuccess = await appwriteService.signIn(email: email, password: password);
       
       // If successful, show success message
-      print('Login successful for: $email');
+      print('Login successful for: $isSuccess');
       return isSuccess;
     } catch (e) {
       // Handle login errors

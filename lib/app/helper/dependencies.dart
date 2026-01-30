@@ -96,12 +96,12 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
 
   /// Controller Initialization
   Get.lazyPut(() => AuthController(authRepoInterface: Get.find()));
+  Get.lazyPut(() => CartAnimationController());
   Get.lazyPut(() => CategoryController(categoryRepoInterface: Get.find()));
   Get.lazyPut(() => CouponController(couponRepoInterface: Get.find()));
   Get.lazyPut(() => ProductController(productRepoInterface: Get.find()));
   Get.lazyPut(() => BannerController(bannerRepoInterface: Get.find()));
   Get.lazyPut(() => CartController(cartRepoInterface: Get.find()));
-  Get.lazyPut(() => CartAnimationController());
   Get.lazyPut(() => AddressController(addressRepoInterface: Get.find()));
   Get.lazyPut(() => OrderController(orderRepoInterface: Get.find()));
   Get.lazyPut(() => SettingsController(settingsRepoInterface: Get.find()));

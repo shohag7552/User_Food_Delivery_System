@@ -115,15 +115,14 @@ class AuthController extends GetxController implements GetxService {
     update();
 
     try {
-      isSuccess = await authRepoInterface.loginAdmin(phone, password);
+      isSuccess = await authRepoInterface.loginUser(phone, password);
       
-      if (isSuccess) {
-        customToster('Login successful! Welcome back.');
-      } else {
-        customToster('Login failed. Please check your credentials.');
-      }
+      // if (isSuccess) {
+      //   customToster('Login successful! Welcome back.');
+      // } else {
+      //   customToster('Login failed. Please check your credentials.');
+      // }
     } catch (e) {
-      isSuccess = false;
       String errorMessage = 'Login failed. Please try again.';
       
       if (e.toString().contains('Invalid credentials') || 
@@ -407,7 +406,7 @@ class AuthController extends GetxController implements GetxService {
   //   customToast('Topic ${isSubscribe ? 'Subscribed' : 'Unsubscribed'} Successfully', isError: false);
   // }
 
-  void logout() async {
+  Future<void> logout() async {
     await authRepoInterface.logout();
   }
 }
