@@ -1,7 +1,9 @@
 import 'package:appwrite/models.dart';
+import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthRepository implements AuthRepoInterface {
@@ -27,11 +29,22 @@ class AuthRepository implements AuthRepoInterface {
   Future<bool> loginUser(String email, String password) async {
     try {
       // Attempt to sign in with Appwrite
-      bool isSuccess = await appwriteService.signIn(email: email, password: password);
-      
+      String? userId = await appwriteService.signIn(email: email, password: password);
+
+      if(userId != null) {
+        String? fcmToken = await _getDeviceToken();
+        await appwriteService.updateTable(
+          tableId: AppwriteConfig.usersCollection,
+          rowId: userId,
+          data: {
+            'fcm_token' : fcmToken,
+          },
+        );
+      }
+
       // If successful, show success message
-      print('Login successful for: $isSuccess');
-      return isSuccess;
+      print('Login successful for: $userId');
+      return userId != null;
     } catch (e) {
       // Handle login errors
       String errorMessage = 'Login failed. Please try again.';
@@ -78,12 +91,13 @@ class AuthRepository implements AuthRepoInterface {
       if(data.response.$id.isEmpty) {
         return false;
       }
+      String? fcmToken = await _getDeviceToken();
       await appwriteService.createUserDocument(
         userId: data.response.$id,
         name: name,
         email: email,
         phone: phone,
-        role: 'customer',
+        fcmToken: fcmToken,
       );
 
       return true;
@@ -92,5 +106,26 @@ class AuthRepository implements AuthRepoInterface {
   @override
   Future<User?> getCurrentUser() async {
     return await appwriteService.getCurrentUser();
+  }
+
+  Future<String?> _getDeviceToken() async {
+    // 1. Request Permission
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      // 2. Get the Token
+      String? token = await messaging.getToken();
+
+      if (token != null) {
+        print('==> FCM Token: $token');
+        return token;
+      }
+    }
+    return null;
   }
 }

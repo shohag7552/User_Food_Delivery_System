@@ -182,6 +182,7 @@ class AppwriteService {
     required String email,
     required String phone,
     String role = 'customer',
+    String? fcmToken,
   }) async {
     try {
       log('====> Creating user document for: $email');
@@ -196,7 +197,8 @@ class AppwriteService {
           'phone': phone,
           'role': role,
           'wallet_balance': 0.0,
-          'is_active': true,
+          'fcm_token': fcmToken,
+          // 'is_active': true,
         },
         // permissions: [
         //   Permission.read(Role.user(userId)),
@@ -215,17 +217,17 @@ class AppwriteService {
     }
   }
 
-  Future<bool> signIn({required String email, required String password}) async {
+  Future<String?> signIn({required String email, required String password}) async {
     log('====> signIn request- email:$email, password:$password');
 
     try {
-      await account.createEmailPasswordSession(email: email, password: password);
-      log('====> Login successful for: $email');
-      return true;
+     final response = await account.createEmailPasswordSession(email: email, password: password);
+      log('====> Login successful for: $email // response is: ${response.userId}');
+      return response.userId;
     } on AppwriteException catch (e) {
       log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
       customToster('${e.message}');
-      return false;
+      return null;
     } catch (e) {
       log('Login error: $e');
       throw Exception('Login failed: $e');
