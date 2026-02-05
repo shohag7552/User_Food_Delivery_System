@@ -20,7 +20,7 @@ class NotificationHelper {
     });
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint("onMessage: ${message.data}, type: ${message.data['type']}");
+      debugPrint("onMessage: ${message.data}, message: ${message.notification} , title: ${message.notification?.title}, body: ${message.notification?.body}, ");
 
       if(message.data['type'] == 'chatting' && message.data['user_id'] != null && Get.currentRoute == '/ChattingScreen') {
         print('===chatting screen open : ${message.data['user_id']}');
@@ -64,7 +64,7 @@ class NotificationHelper {
           await showBigTextNotification(title, body!, orderID, null, fln);
         }
       }else {
-        // print('==========message : $title ,  $body');
+        print('==========message 2: $title ,  $body');
         await showBigTextNotification(title, body!, orderID, null, fln);
       }
     }
@@ -87,7 +87,7 @@ class NotificationHelper {
     AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'loklagbe', 'loklagbe', importance: Importance.max,
       styleInformation: bigTextStyleInformation, priority: Priority.max, playSound: true,
-      sound: const RawResourceAndroidNotificationSound('notification'),
+      // sound: const RawResourceAndroidNotificationSound('notification'),
     );
     NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
     await fln.show(id: 0, title: title, body: body, notificationDetails: platformChannelSpecifics, payload: notificationBody != null ? null : null);

@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/models/banner_model.dart';
+import 'package:get/get.dart';
 
 class PromotionalBanner extends StatefulWidget {
   final List<BannerModel> banners;

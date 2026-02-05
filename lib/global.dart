@@ -17,7 +17,7 @@ class Global {
   /// core setup
   static Future<Map<String, Map<String, String>>> init() async {
     WidgetsFlutterBinding.ensureInitialized();
-    HttpOverrides.global = MyHttpOverrides();
+    // HttpOverrides.global = MyHttpOverrides();
 
     await Firebase.initializeApp(
       options: const FirebaseOptions(

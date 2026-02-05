@@ -29,4 +29,10 @@ class BannerRepository implements BannerRepoInterface {
       rethrow;
     }
   }
+
+  @override
+  Future<void> sendNotification() async{
+    await appwriteService.sendNotificationToUser(userId: '697bb924dad5b3032c0c', title: 'this is test', message: 'this is test message');
+  }
+  
 }

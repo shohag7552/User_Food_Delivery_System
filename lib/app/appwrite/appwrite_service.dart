@@ -5,6 +5,7 @@ import 'package:appwrite/models.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:dart_appwrite/dart_appwrite.dart' as dart_appwrite;
 
 class AppwriteService {
   late final Client client;
@@ -12,11 +13,15 @@ class AppwriteService {
   late final Account account;
   late final Storage storage;
   late final Teams teams;
+  late final dart_appwrite.Messaging messaging;
   static final AppwriteService _instance = AppwriteService._internal();
 
   factory AppwriteService() => _instance;
 
   AppwriteService._internal() {
+    final dartClient = dart_appwrite.Client()
+        .setEndpoint(AppwriteConfig.endpoint)
+        .setProject(AppwriteConfig.projectId);
     client = Client()
         .setEndpoint(AppwriteConfig.endpoint)
         .setProject(AppwriteConfig.projectId);
@@ -25,6 +30,7 @@ class AppwriteService {
     account = Account(client);
     storage = Storage(client);
     teams = Teams(client);
+    messaging = dart_appwrite.Messaging(dartClient);
   }
 
   // Database operations
@@ -234,6 +240,27 @@ class AppwriteService {
     }
   }
 
+  Future<void> setupMessaging({required String fcmToken}) async {
+    log('====> setupMessaging request- FcmToken:$fcmToken');
+
+    try {
+      // 2. Register this device as a "Target" in Appwrite
+      // This automatically saves the token securely in Appwrite's internal system.
+      await account.createPushTarget(
+          targetId: ID.unique(), // Generates a unique ID for this phone
+          identifier: fcmToken,  // The actual FCM token
+          providerId: AppwriteConfig.messagingProviderId, // Get this from Messaging > Providers
+      );
+
+      print("✅ Device registered for notifications!");
+    } on AppwriteException catch (e) {
+      print("❌ Failed to register device: ${e.message}");
+    } catch (e) {
+      log('Login error: $e');
+      throw Exception('Login failed: $e');
+    }
+  }
+
   Future<bool> isLoggedIn() async {
     try {
       // Step 1: Check if Session Exists
@@ -310,6 +337,39 @@ class AppwriteService {
       print("Delete error: $e");
     }
   }
+
+  Future<bool> sendNotificationToUser({required String userId, required String title, required String message}) async {
+    try {
+
+      print("====> Sending notification to userId: $userId with title: $title and message: $message");
+      // 🚀 THE NEW WAY: Use Appwrite Messaging API
+      // We don't need to look up tokens manually. We just say "Send to this User ID".
+      await messaging.createPush(
+        messageId: ID.unique(),
+        title: "Order Received! 🍳",
+        body: "Your order #123 is being prepared.",
+        topics: [], // Leave empty to target specific users
+        users: [userId], // Appwrite finds the tokens for this user automatically
+        draft: false,
+        targets: [
+          userId, // Target this specific user
+        ],
+        data: {
+          "title": title,
+          "body": message,
+          "order_id": "1223"
+        },
+      );
+
+      print("✅ Notification sent to user $userId!");
+      return true;
+
+    } catch (e) {
+      print("Notification error: $e");
+      return false;
+    }
+  }
+
   // String getImageUrl(String fileId) {
   //   return storage.getFileView(
   //     bucketId: "YOUR_BUCKET_ID",
