@@ -20,8 +20,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage>
-    with AutomaticKeepAliveClientMixin {
+class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin {
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -169,8 +168,7 @@ class _HomePageState extends State<HomePage>
                                   'Good Evening! 👋',
                                   style: poppinsRegular.copyWith(
                                     fontSize: Constants.fontSizeDefault,
-                                    color:
-                                        ColorResource.textWhite.withOpacity(0.9),
+                                    color: ColorResource.textWhite.withValues(alpha: 0.9),
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -193,8 +191,7 @@ class _HomePageState extends State<HomePage>
                                     padding: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
                                       color: ColorResource.overlayMedium,
-                                      borderRadius: BorderRadius.circular(
-                                          Constants.radiusDefault),
+                                      borderRadius: BorderRadius.circular(Constants.radiusDefault),
                                     ),
                                     child: Icon(
                                       Icons.notifications_outlined,
@@ -248,7 +245,7 @@ class _HomePageState extends State<HomePage>
           borderRadius: BorderRadius.circular(Constants.radiusLarge),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),

@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/modules/categories/screens/category_screen.dart';
 import 'package:appwrite_user_app/app/modules/categories/screens/category_products_page.dart';
@@ -33,13 +34,14 @@ class CategorySectionWidget extends StatelessWidget {
                   ),
                   TextButton(
                     onPressed: () {
-                      // Navigate to all categories
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CategoryScreen(),
-                        ),
-                      );
+                      Get.find<BannerController>().sendNotification();
+                      // // Navigate to all categories
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (context) => const CategoryScreen(),
+                      //   ),
+                      // );
                     },
                     child: Text(
                       'See All',

@@ -168,8 +168,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         return GestureDetector(
           onTap: () {
-            Get.to(() => const CartPage());
-            // _onNavItemTapped(2);
+            // Get.to(() => const CartPage());
+            _onNavItemTapped(2);
           },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
