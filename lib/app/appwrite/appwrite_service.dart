@@ -193,7 +193,7 @@ class AppwriteService {
   }) async {
     try {
       log('====> Creating user document for: $email');
-      
+
       return await databases.createRow(
         databaseId: AppwriteConfig.databaseId,
         tableId: AppwriteConfig.usersCollection,

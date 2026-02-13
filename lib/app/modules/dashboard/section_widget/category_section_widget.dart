@@ -83,11 +83,11 @@ class CategorySectionWidget extends StatelessWidget {
             // Categories List
             else if (categoryController.categories.isNotEmpty)
                 SizedBox(
-                  height: 120,
+                  height: 140,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.only(left: 20, bottom: 10),
                     itemCount: categoryController.categories.length,
                     itemBuilder: (context, index) {
                       final category = categoryController.categories[index];
@@ -102,7 +102,7 @@ class CategorySectionWidget extends StatelessWidget {
                             color: Theme.of(context).cardColor,
                             border: Border.all(color: Theme.of(context).disabledColor.withValues(alpha: 0.3)),
                             borderRadius: BorderRadius.circular(Constants.radiusLarge),
-                            boxShadow: [BoxShadow(color: Theme.of(context).disabledColor.withValues(alpha: 0.3), offset: const Offset(0, 5), blurRadius: 5)],
+                            // boxShadow: [BoxShadow(color: Theme.of(context).disabledColor.withValues(alpha: 0.3), offset: const Offset(0, 5), blurRadius: 5)],
                           ),
                           child: Column(children: [
                             Expanded(

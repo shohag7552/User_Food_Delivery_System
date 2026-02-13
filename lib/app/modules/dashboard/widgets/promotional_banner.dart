@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +6,7 @@ import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/models/banner_model.dart';
 import 'package:get/get.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 class PromotionalBanner extends StatefulWidget {
   final List<BannerModel> banners;
@@ -29,41 +29,12 @@ class PromotionalBanner extends StatefulWidget {
 }
 
 class _PromotionalBannerState extends State<PromotionalBanner> {
-  late PageController _pageController;
   int _currentPage = 0;
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController();
-    _startAutoScroll();
-  }
+  final CarouselSliderController _carouselController = CarouselSliderController();
 
   @override
   void dispose() {
-    _timer?.cancel();
-    _pageController.dispose();
     super.dispose();
-  }
-
-  void _startAutoScroll() {
-    if (widget.banners.length > 1) {
-      _timer = Timer.periodic(widget.autoScrollDuration, (timer) {
-        if (_currentPage < widget.banners.length - 1) {
-          _currentPage++;
-        } else {
-          _currentPage = 0;
-        }
-        if (_pageController.hasClients) {
-          _pageController.animateToPage(
-            _currentPage,
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-          );
-        }
-      });
-    }
   }
 
   @override
@@ -85,115 +56,112 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
 
     return Column(
       children: [
-        SizedBox(
-          height: 160,
-          child: PageView.builder(
-            controller: _pageController,
-            onPageChanged: (index) {
+        CarouselSlider.builder(
+          carouselController: _carouselController,
+          itemCount: widget.banners.length,
+          itemBuilder: (context, index, realIndex) {
+            final banner = widget.banners[index];
+            return GestureDetector(
+              onTap: () {
+                // Handle banner tap based on action type
+                if (banner.hasAction) {
+                  _handleBannerTap(banner);
+                }
+              },
+              child: Container(
+                width: MediaQuery.of(context).size.width,
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(Constants.radiusLarge),
+                  boxShadow: [
+                    BoxShadow(
+                      color: ColorResource.shadowMedium,
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(Constants.radiusLarge),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Banner image with custom network image
+                      CustomNetworkImage(
+                        image: banner.imageUrl,
+                        width: double.infinity,
+                        height: double.infinity,
+                      ),
+                      // Gradient overlay
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.5),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // Banner text
+                      if (banner.title != null || banner.subtitle != null)
+                        Positioned(
+                          bottom: 16,
+                          left: 16,
+                          right: 16,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (banner.title != null)
+                                Text(
+                                  banner.title!,
+                                  style: poppinsBold.copyWith(
+                                    fontSize: Constants.fontSizeExtraLarge,
+                                    color: ColorResource.textWhite,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              if (banner.subtitle != null) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  banner.subtitle!,
+                                  style: poppinsRegular.copyWith(
+                                    fontSize: Constants.fontSizeSmall,
+                                    color: ColorResource.textWhite,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+          options: CarouselOptions(
+            height: 160,
+            viewportFraction: 0.9,
+            initialPage: 0,
+            enableInfiniteScroll: widget.banners.length > 1,
+            reverse: false,
+            autoPlay: widget.banners.length > 1,
+            autoPlayInterval: widget.autoScrollDuration,
+            autoPlayAnimationDuration: const Duration(milliseconds: 1000),
+            autoPlayCurve: Curves.fastOutSlowIn,
+            enlargeCenterPage: true,
+            enlargeFactor: 0.15,
+            scrollDirection: Axis.horizontal,
+            onPageChanged: (index, reason) {
               setState(() {
                 _currentPage = index;
               });
-            },
-            itemCount: widget.banners.length,
-            itemBuilder: (context, index) {
-              final banner = widget.banners[index];
-              return GestureDetector(
-                onTap: () {
-                  // Handle banner tap based on action type
-                  if (banner.hasAction) {
-                    _handleBannerTap(banner);
-                  }
-                },
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(Constants.radiusLarge),
-                    boxShadow: [
-                      BoxShadow(
-                        color: ColorResource.shadowMedium,
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(Constants.radiusLarge),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        // Banner image
-                        Image.network(
-                          banner.imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              decoration: BoxDecoration(
-                                gradient: ColorResource.primaryGradient,
-                              ),
-                              child: Center(
-                                child: Icon(
-                                  Icons.local_offer,
-                                  size: 60,
-                                  color:
-                                      ColorResource.textWhite.withOpacity(0.5),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        CustomNetworkImage(image: banner.imageUrl, width: double.infinity, height: double.infinity),
-                        // Gradient overlay
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withOpacity(0.5),
-                              ],
-                            ),
-                          ),
-                        ),
-                        // Banner text
-                        if (banner.title != null || banner.subtitle != null)
-                          Positioned(
-                            bottom: 16,
-                            left: 16,
-                            right: 16,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (banner.title != null)
-                                  Text(
-                                    banner.title!,
-                                    style: poppinsBold.copyWith(
-                                      fontSize: Constants.fontSizeExtraLarge,
-                                      color: ColorResource.textWhite,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                if (banner.subtitle != null) ...[
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    banner.subtitle!,
-                                    style: poppinsRegular.copyWith(
-                                      fontSize: Constants.fontSizeSmall,
-                                      color: ColorResource.textWhite,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
             },
           ),
         ),

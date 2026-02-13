@@ -50,6 +50,8 @@ dependencies:
   firebase_core: ^4.4.0
   firebase_messaging: ^16.1.1
 
+  carousel_slider: ^5.1.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
