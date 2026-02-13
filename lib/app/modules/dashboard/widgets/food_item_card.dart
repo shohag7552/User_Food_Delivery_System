@@ -15,7 +15,9 @@ class FoodItemCard extends StatefulWidget {
   final double? oldPrice;
   final VoidCallback onTap;
   final VoidCallback onAddToCart;
-  final ProductModel? product; // Add product for favorite functionality
+  final ProductModel? product;
+  final int? cartQuantity; // Quantity in cart (null if not in cart)
+  final Function(bool isIncrement)? onQuantityChanged; // Callback for quantity changes
 
   const FoodItemCard({
     super.key,
@@ -26,7 +28,9 @@ class FoodItemCard extends StatefulWidget {
     this.oldPrice,
     required this.onTap,
     required this.onAddToCart,
-    this.product, // Optional for backward compatibility
+    this.product,
+    this.cartQuantity,
+    this.onQuantityChanged,
   });
 
   @override
@@ -158,31 +162,10 @@ class _FoodItemCardState extends State<FoodItemCard> {
                               ),
                           ],
                         ),
-                        // Add button
-                        GestureDetector(
-                          onTap: widget.onAddToCart,
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              gradient: ColorResource.primaryGradient,
-                              borderRadius: BorderRadius.circular(
-                                Constants.radiusDefault,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: ColorResource.primaryMedium.withOpacity(0.4),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Icon(
-                              Icons.add,
-                              color: ColorResource.textWhite,
-                              size: 20,
-                            ),
-                          ),
-                        ),
+                        // Quantity selector or Add button
+                        widget.cartQuantity != null
+                            ? _buildQuantitySelector()
+                            : _buildAddButton(),
                       ],
                     ),
                   ],
@@ -190,6 +173,99 @@ class _FoodItemCardState extends State<FoodItemCard> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// Build simple add button
+  Widget _buildAddButton() {
+    return GestureDetector(
+      onTap: widget.onAddToCart,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          gradient: ColorResource.primaryGradient,
+          borderRadius: BorderRadius.circular(Constants.radiusDefault),
+          boxShadow: [
+            BoxShadow(
+              color: ColorResource.primaryMedium.withOpacity(0.4),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Icon(
+          Icons.add,
+          color: ColorResource.textWhite,
+          size: 20,
+        ),
+      ),
+    );
+  }
+
+  /// Build quantity selector [- Qty +]
+  Widget _buildQuantitySelector() {
+    return Container(
+      height: 40,
+      decoration: BoxDecoration(
+        gradient: ColorResource.primaryGradient,
+        borderRadius: BorderRadius.circular(Constants.radiusDefault),
+        boxShadow: [
+          BoxShadow(
+            color: ColorResource.primaryMedium.withOpacity(0.4),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Decrement button
+          _buildQuantityButton(
+            icon: Icons.remove,
+            onTap: () => widget.onQuantityChanged?.call(false),
+          ),
+          
+          // Quantity display
+          Container(
+            constraints: const BoxConstraints(minWidth: 30),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Center(
+              child: Text(
+                '${widget.cartQuantity}',
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeDefault,
+                  color: ColorResource.textWhite,
+                ),
+              ),
+            ),
+          ),
+          
+          // Increment button
+          _buildQuantityButton(
+            icon: Icons.add,
+            onTap: () => widget.onQuantityChanged?.call(true),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build individual quantity button (+ or -)
+  Widget _buildQuantityButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        child: Icon(
+          icon,
+          color: ColorResource.textWhite,
+          size: 18,
         ),
       ),
     );

@@ -1,7 +1,9 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
+import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
+import 'package:appwrite_user_app/app/helper/cart_helper.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -109,13 +111,24 @@ class AllProductsWidget extends StatelessWidget {
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final product = controller.products[index];
-                    return _buildProductCard(
-                      product: product,
-                      onTap: () {
-                        ProductDetailBottomSheet.show(context, product);
-                      },
-                      onAddToCart: () {
-                        ProductDetailBottomSheet.show(context, product);
+                    return GetBuilder<CartController>(
+                      builder: (cartController) {
+                        final cartQuantity = CartHelper.getProductCartQuantity(product.id);
+                        return _buildProductCard(
+                          product: product,
+                          cartQuantity: cartQuantity,
+                          onTap: () {
+                            ProductDetailBottomSheet.show(context, product);
+                          },
+                          onAddToCart: () => CartHelper.handleAddToCart(product, context),
+                          onQuantityChanged: (isIncrement) {
+                            if (isIncrement) {
+                              CartHelper.incrementQuantity(product, context);
+                            } else {
+                              CartHelper.decrementQuantity(product, context);
+                            }
+                          },
+                        );
                       },
                     );
                   },
@@ -151,6 +164,8 @@ class AllProductsWidget extends StatelessWidget {
     required product,
     required VoidCallback onTap,
     required VoidCallback onAddToCart,
+    required int? cartQuantity,
+    required Function(bool isIncrement) onQuantityChanged,
   }) {
     final hasDiscount = product.hasDiscount;
     final discountPercentage = hasDiscount
@@ -266,35 +281,97 @@ class AllProductsWidget extends StatelessWidget {
                         ],
                       ),
                     ),
-                    // Add Button
-                    GestureDetector(
-                      onTap: onAddToCart,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          gradient: ColorResource.primaryGradient,
-                          borderRadius: BorderRadius.circular(
-                            Constants.radiusDefault,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: ColorResource.primaryMedium
-                                  .withOpacity(0.4),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Icon(
-                          Icons.add_shopping_cart,
-                          color: ColorResource.textWhite,
-                          size: 18,
-                        ),
-                      ),
-                    ),
+                    // Quantity selector or Add Button
+                    cartQuantity != null
+                        ? _buildQuantitySelector(cartQuantity, onQuantityChanged)
+                        : _buildAddButton(onAddToCart),
                   ],
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build simple add button for grid cards
+  Widget _buildAddButton(VoidCallback onAddToCart) {
+    return GestureDetector(
+      onTap: onAddToCart,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          gradient: ColorResource.primaryGradient,
+          borderRadius: BorderRadius.circular(Constants.radiusDefault),
+          boxShadow: [
+            BoxShadow(
+              color: ColorResource.primaryMedium.withOpacity(0.4),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Icon(
+          Icons.add_shopping_cart,
+          color: ColorResource.textWhite,
+          size: 18,
+        ),
+      ),
+    );
+  }
+
+  /// Build quantity selector for grid cards
+  Widget _buildQuantitySelector(int quantity, Function(bool isIncrement) onQuantityChanged) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        gradient: ColorResource.primaryGradient,
+        borderRadius: BorderRadius.circular(Constants.radiusDefault),
+        boxShadow: [
+          BoxShadow(
+            color: ColorResource.primaryMedium.withOpacity(0.4),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: () => onQuantityChanged(false),
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Icon(
+                Icons.remove,
+                color: ColorResource.textWhite,
+                size: 14,
+              ),
+            ),
+          ),
+          Container(
+            constraints: const BoxConstraints(minWidth: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Center(
+              child: Text(
+                '$quantity',
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeSmall,
+                  color: ColorResource.textWhite,
+                ),
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () => onQuantityChanged(true),
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Icon(
+                Icons.add,
+                color: ColorResource.textWhite,
+                size: 14,
+              ),
             ),
           ),
         ],

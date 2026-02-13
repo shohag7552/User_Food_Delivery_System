@@ -1,4 +1,6 @@
+import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
+import 'package:appwrite_user_app/app/helper/cart_helper.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/food_item_card.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -125,18 +127,30 @@ class PopularDishesWidget extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final product = controller.popularProducts[index];
 
-                    return FoodItemCard(
-                      name: product.name,
-                      imageUrl: product.imageId,
-                      description: product.description,
-                      price: product.finalPrice,
-                      oldPrice: product.hasDiscount ? product.price : null,
-                      product: product, // Pass product for favorite button
-                      onTap: () {
-                        ProductDetailBottomSheet.show(context, product);
-                      },
-                      onAddToCart: () {
-                        ProductDetailBottomSheet.show(context, product);
+                    return GetBuilder<CartController>(
+                      builder: (cartController) {
+                        final cartQuantity = CartHelper.getProductCartQuantity(product.id);
+                        
+                        return FoodItemCard(
+                          name: product.name,
+                          imageUrl: product.imageId,
+                          description: product.description,
+                          price: product.finalPrice,
+                          oldPrice: product.hasDiscount ? product.price : null,
+                          product: product,
+                          cartQuantity: cartQuantity,
+                          onTap: () {
+                            ProductDetailBottomSheet.show(context, product);
+                          },
+                          onAddToCart: () => CartHelper.handleAddToCart(product, context),
+                          onQuantityChanged: (isIncrement) {
+                            if (isIncrement) {
+                              CartHelper.incrementQuantity(product, context);
+                            } else {
+                              CartHelper.decrementQuantity(product, context);
+                            }
+                          },
+                        );
                       },
                     );
                   },
