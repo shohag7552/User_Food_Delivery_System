@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/category_section_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/todays_specials_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/popular_dishes_widget.dart';
@@ -30,7 +31,10 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   @override
   void initState() {
     super.initState();
+
     _scrollController.addListener(_onScroll);
+
+    _initApiDataCall();
   }
 
   void _onScroll() {
@@ -38,6 +42,16 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       // Load more when near bottom
       Get.find<ProductController>().loadMoreProducts();
     }
+  }
+
+  Future<void> _initApiDataCall({bool canReload = false}) async {
+    // Initialize controllers and fetch data
+    Get.find<CategoryController>().getCategories(reload: canReload);
+    Get.find<BannerController>().getBanners(reload: canReload);
+    Get.find<ProductController>().getSpecialProducts(reload: canReload);
+    Get.find<ProductController>().getPopularProducts(reload: canReload);
+    Get.find<ProductController>().getNewProducts(reload: canReload);
+    Get.find<ProductController>().getProducts(reload: canReload);
   }
 
   @override
@@ -53,76 +67,79 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     final size = MediaQuery.of(context).size;
     final isTablet = size.width > 600;
 
-    return CustomScrollView(
-      controller: _scrollController,
-      physics: const BouncingScrollPhysics(),
-      slivers: [
-        // Custom Sliver App Bar with gradient
-        _buildSliverAppBar(context),
+    return RefreshIndicator(
+      onRefresh: () async => _initApiDataCall(canReload: true),
+      child: CustomScrollView(
+        controller: _scrollController,
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          // Custom Sliver App Bar with gradient
+          _buildSliverAppBar(context),
 
-        // Main Content
-        SliverToBoxAdapter(
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _buildPromotionalBanners(),
-              ),
-
-              const SizedBox(height: 28),
-
-              // Categories
-              CategorySectionWidget(),
-
-              const SizedBox(height: 28),
-
-              // Today's Specials
-              const TodaysSpecialsWidget(),
-
-              const SizedBox(height: 28),
-
-              // Popular Dishes
-              const PopularDishesWidget(),
-
-              const SizedBox(height: 28),
-
-              // New Items
-              const NewItemsWidget(),
-
-              const SizedBox(height: 20),
-            ],
-          ),
-        ),
-
-        SliverAppBar(
-          automaticallyImplyLeading: false,
-          pinned: true,
-          backgroundColor: ColorResource.scaffoldBackground,
-          elevation: 0,
-          toolbarHeight: 0,
-          flexibleSpace: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Main Content
+          SliverToBoxAdapter(
+            child: Column(
               children: [
-                Text(
-                  'All Products',
-                  style: poppinsBold.copyWith(
-                    fontSize: Constants.fontSizeExtraLarge,
-                    color: ColorResource.textPrimary,
-                  ),
+                const SizedBox(height: 20),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: _buildPromotionalBanners(),
                 ),
-                IconButton(
-                    onPressed: () {}, icon: const Icon(Icons.filter_list))
+
+                const SizedBox(height: 28),
+
+                // Categories
+                CategorySectionWidget(),
+
+                const SizedBox(height: 28),
+
+                // Today's Specials
+                const TodaysSpecialsWidget(),
+
+                const SizedBox(height: 28),
+
+                // Popular Dishes
+                const PopularDishesWidget(),
+
+                const SizedBox(height: 28),
+
+                // New Items
+                const NewItemsWidget(),
+
+                const SizedBox(height: 20),
               ],
             ),
           ),
-        ),
 
-        AllProductsWidget(isTablet: isTablet, scrollController: _scrollController),
-      ],
+          SliverAppBar(
+            automaticallyImplyLeading: false,
+            pinned: true,
+            backgroundColor: ColorResource.scaffoldBackground,
+            elevation: 0,
+            toolbarHeight: 0,
+            flexibleSpace: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'All Products',
+                    style: poppinsBold.copyWith(
+                      fontSize: Constants.fontSizeExtraLarge,
+                      color: ColorResource.textPrimary,
+                    ),
+                  ),
+                  IconButton(
+                      onPressed: () {}, icon: const Icon(Icons.filter_list))
+                ],
+              ),
+            ),
+          ),
+
+          AllProductsWidget(isTablet: isTablet, scrollController: _scrollController),
+        ],
+      ),
     );
   }
 

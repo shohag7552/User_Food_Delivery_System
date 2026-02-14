@@ -1,5 +1,8 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/screens/home_page.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/screens/menu_page.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/screens/profile_page.dart';
 import 'package:appwrite_user_app/app/modules/cart/screens/cart_page.dart';
 import 'package:appwrite_user_app/app/modules/favorites/screens/favorites_screen.dart';
@@ -8,12 +11,10 @@ import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
-import 'package:appwrite_user_app/app/controllers/category_controller.dart';
-import 'package:appwrite_user_app/app/controllers/product_controller.dart';
-import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -26,6 +27,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   late PageController _pageController;
   int _selectedIndex = 0;
+  bool _canExit = false;
 
   // Pages
   final List<Widget> _pages = [
@@ -40,14 +42,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
-
-    // Initialize controllers and fetch data
-    Get.find<CategoryController>().getCategories();
-    Get.find<BannerController>().getBanners();
-    Get.find<ProductController>().getSpecialProducts();
-    Get.find<ProductController>().getPopularProducts();
-    Get.find<ProductController>().getNewProducts();
-    Get.find<ProductController>().getProducts();
     
     // Load favorites
     Get.find<FavoritesController>().fetchFavorites(canUpdate: false);
@@ -78,15 +72,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: ColorResource.scaffoldBackground,
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: _onPageChanged,
-        physics: const BouncingScrollPhysics(),
-        children: _pages,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (_selectedIndex != 0) {
+          _onNavItemTapped(0);
+        } else {
+          if(_canExit) {
+            if (GetPlatform.isAndroid) {
+              SystemNavigator.pop();
+            } else if (GetPlatform.isIOS) {
+              exit(0);
+            }
+          }else {
+            customToster('back_press_again_to_exit'.tr, isSuccess: true);
+            _canExit = true;
+            Timer(const Duration(seconds: 2), () {
+              _canExit = false;
+            });
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: ColorResource.scaffoldBackground,
+        body: PageView(
+          controller: _pageController,
+          onPageChanged: _onPageChanged,
+          physics: const BouncingScrollPhysics(),
+          children: _pages,
+        ),
+        bottomNavigationBar: _buildBottomNavBar(),
       ),
-      bottomNavigationBar: _buildBottomNavBar(),
     );
   }
 

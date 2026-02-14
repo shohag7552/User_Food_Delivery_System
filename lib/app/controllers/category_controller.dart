@@ -17,11 +17,13 @@ class CategoryController extends GetxController implements GetxService {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  Future<void> getCategories() async {
+  Future<void> getCategories({bool reload = false}) async {
     try {
       _isLoading = true;
       _errorMessage = null;
-      update();
+      if(!reload) {
+        update();
+      }
 
       _categories = await categoryRepoInterface.getCategories();
       log('====> Categories loaded: ${_categories.length}');

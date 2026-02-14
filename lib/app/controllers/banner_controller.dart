@@ -18,11 +18,13 @@ class BannerController extends GetxController implements GetxService {
   String? get errorMessage => _errorMessage;
 
   /// Fetch active banners
-  Future<void> getBanners() async {
+  Future<void> getBanners({bool reload = false}) async {
     try {
       _isLoading = true;
       _errorMessage = null;
-      update();
+      if(!reload) {
+        update();
+      }
 
       _banners = await bannerRepoInterface.getActiveBanners();
       log('====> Banners loaded: ${_banners.length}');

@@ -56,9 +56,9 @@ class ProductController extends GetxController implements GetxService {
   String? get newErrorMessage => _newErrorMessage;
 
   /// Fetch all products (initial load)
-  Future<void> getProducts({bool refresh = false}) async {
+  Future<void> getProducts({bool refresh = false, bool reload = false}) async {
     try {
-      if (refresh) {
+      if (refresh || reload) {
         _currentPage = 0;
         _products.clear();
         _hasMore = true;
@@ -66,7 +66,9 @@ class ProductController extends GetxController implements GetxService {
       
       _isLoading = true;
       _errorMessage = null;
-      update();
+      if(!reload) {
+        update();
+      }
 
       final newProducts = await productRepoInterface.getProducts(
         offset: _currentPage * _pageSize,
@@ -122,11 +124,13 @@ class ProductController extends GetxController implements GetxService {
   }
 
   /// Fetch special products (today's specials)
-  Future<void> getSpecialProducts() async {
+  Future<void> getSpecialProducts({bool reload = false}) async {
     try {
       _isLoadingSpecials = true;
       _specialsErrorMessage = null;
-      update();
+      if(!reload) {
+        update();
+      }
 
       _specialProducts = await productRepoInterface.getSpecialProducts();
       log('====> Special products loaded: ${_specialProducts.length}');
@@ -142,11 +146,13 @@ class ProductController extends GetxController implements GetxService {
   }
 
   /// Fetch popular products
-  Future<void> getPopularProducts() async {
+  Future<void> getPopularProducts({bool reload = false}) async {
     try {
       _isLoadingPopular = true;
       _popularErrorMessage = null;
-      update();
+      if(!reload) {
+        update();
+      }
 
       _popularProducts = await productRepoInterface.getPopularProducts();
       log('====> Popular products loaded: ${_popularProducts.length}');
@@ -162,11 +168,13 @@ class ProductController extends GetxController implements GetxService {
   }
 
   /// Fetch new products
-  Future<void> getNewProducts() async {
+  Future<void> getNewProducts({bool reload = false}) async {
     try {
       _isLoadingNew = true;
       _newErrorMessage = null;
-      update();
+      if(!reload) {
+        update();
+      }
 
       _newProducts = await productRepoInterface.getNewProducts();
       log('====> New products loaded: ${_newProducts.length}');
