@@ -189,7 +189,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
           borderRadius: BorderRadius.circular(Constants.radiusDefault),
           boxShadow: [
             BoxShadow(
-              color: ColorResource.primaryMedium.withOpacity(0.4),
+              color: ColorResource.primaryMedium.withValues(alpha: 0.4),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -213,7 +213,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
         borderRadius: BorderRadius.circular(Constants.radiusDefault),
         boxShadow: [
           BoxShadow(
-            color: ColorResource.primaryMedium.withOpacity(0.4),
+            color: ColorResource.primaryMedium.withValues(alpha: 0.4),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),

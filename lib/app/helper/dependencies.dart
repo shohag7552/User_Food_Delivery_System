@@ -15,6 +15,7 @@ import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
 import 'package:appwrite_user_app/app/controllers/review_controller.dart';
+import 'package:appwrite_user_app/app/controllers/notification_controller.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repository.dart';
 import 'package:appwrite_user_app/app/modules/categories/domain/repository/category_repo_interface.dart';
@@ -39,6 +40,8 @@ import 'package:appwrite_user_app/app/modules/favorites/domain/repository/favori
 import 'package:appwrite_user_app/app/modules/favorites/domain/repository/favorites_repository.dart';
 import 'package:appwrite_user_app/app/modules/reviews/domain/repository/review_repo_interface.dart';
 import 'package:appwrite_user_app/app/modules/reviews/domain/repository/review_repository.dart';
+import 'package:appwrite_user_app/app/modules/notification/domain/repository/notification_repo_interface.dart';
+import 'package:appwrite_user_app/app/modules/notification/domain/repository/notification_repository.dart';
 import 'package:appwrite_user_app/app/modules/splash/domain/repository/splash_repo_interface.dart';
 import 'package:appwrite_user_app/app/modules/splash/domain/repository/splash_repository.dart';
 import 'package:appwrite_user_app/app/controllers/splash_controller.dart';
@@ -93,6 +96,9 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   SplashRepoInterface splashRepoInterface = SplashRepository(sharedPreferences: sharedPreferences);
   Get.lazyPut(() => splashRepoInterface);
 
+  NotificationRepoInterface notificationRepoInterface = NotificationRepository(appwriteService: Get.find());
+  Get.lazyPut(() => notificationRepoInterface);
+
 
   /// Controller Initialization
   Get.lazyPut(() => AuthController(authRepoInterface: Get.find()));
@@ -108,6 +114,7 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   Get.lazyPut(() => ProfileController(profileRepoInterface: Get.find()));
   Get.lazyPut(() => FavoritesController(favoritesRepoInterface: Get.find()));
   Get.lazyPut(() => ReviewController(reviewRepoInterface: Get.find()));
+  Get.lazyPut(() => NotificationController(notificationRepoInterface: Get.find()));
   Get.lazyPut(() => SplashController(splashRepositoryInterface: Get.find()));
 
 

@@ -3,6 +3,7 @@ import 'package:appwrite_user_app/app/modules/dashboard/section_widget/todays_sp
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/popular_dishes_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/new_items_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/all_products_widget.dart';
+import 'package:appwrite_user_app/app/modules/notification/screens/notification_screen.dart';
 import 'package:appwrite_user_app/app/modules/search/screens/search_page.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:flutter/material.dart';
@@ -187,16 +188,19 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                             children: [
                               Stack(
                                 children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: ColorResource.overlayMedium,
-                                      borderRadius: BorderRadius.circular(Constants.radiusDefault),
-                                    ),
-                                    child: Icon(
-                                      Icons.notifications_outlined,
-                                      color: ColorResource.textWhite,
-                                      size: 24,
+                                  InkWell(
+                                    onTap: () => Get.to(() => const NotificationScreen()),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: ColorResource.overlayMedium,
+                                        borderRadius: BorderRadius.circular(Constants.radiusDefault),
+                                      ),
+                                      child: Icon(
+                                        Icons.notifications_outlined,
+                                        color: ColorResource.textWhite,
+                                        size: 24,
+                                      ),
                                     ),
                                   ),
                                   Positioned(

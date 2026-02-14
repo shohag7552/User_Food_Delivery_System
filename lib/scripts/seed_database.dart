@@ -45,6 +45,7 @@ void main() async {
     await _setupCart(databases);
     await _setupFavorites(databases);
     await _setupReviews(databases);
+    await _setupNotifications(databases);
 
     print("\n🎉 SETUP COMPLETE! Your Appwrite backend is ready.");
   } catch (e) {
@@ -498,6 +499,215 @@ Future<void> _setupReviews(Databases db) async {
     Permission.update(Role.users()), // Users can update their own reviews
     Permission.delete(Role.users()), // Users can delete their own reviews
   ]);
+}
+
+Future<void> _setupNotifications(Databases db) async {
+  await _createCollection(db, AppwriteConfig.notificationsCollection, 'Notifications', [
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.notificationsCollection,
+      key: 'user_id',
+      size: 128,
+      xrequired: true,
+    ),
+    () => db.createEnumAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.notificationsCollection,
+      key: 'type',
+      elements: ['order', 'promo', 'system'],
+      xrequired: true,
+    ),
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.notificationsCollection,
+      key: 'title',
+      size: 256,
+      xrequired: true,
+    ),
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.notificationsCollection,
+      key: 'message',
+      size: 1000,
+      xrequired: true,
+    ),
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.notificationsCollection,
+      key: 'image_url',
+      size: 2000,
+      xrequired: false,
+    ),
+    () => db.createEnumAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.notificationsCollection,
+      key: 'action_type',
+      elements: ['order', 'product', 'url', 'none'],
+      xrequired: false,
+    ),
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.notificationsCollection,
+      key: 'action_value',
+      size: 256,
+      xrequired: false,
+    ),
+    () => db.createBooleanAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.notificationsCollection,
+      key: 'is_read',
+      xrequired: false,
+      xdefault: false,
+    ),
+    () => db.createDatetimeAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.notificationsCollection,
+      key: 'created_at',
+      xrequired: true,
+    ),
+  ], [
+    Permission.read(Role.users()),
+    Permission.create(Role.users()),
+    Permission.update(Role.users()),
+    Permission.delete(Role.users()),
+    Permission.create(Role.team('admin_team')),
+    Permission.read(Role.team('admin_team')),
+    Permission.update(Role.team('admin_team')),
+    Permission.delete(Role.team('admin_team')),
+  ]);
+
+  // Seed sample notifications for admin user
+  /*print('🔹 Seeding sample notifications...');
+  try {
+    // Get admin user ID
+    final users = Users(Client()
+      ..setEndpoint(AppwriteConfig.endpoint)
+      ..setProject(AppwriteConfig.projectId)
+      ..setKey(AppwriteConfig.apiKey));
+    
+    final userList = await users.list(search: 'admin@admin.com');
+    if (userList.users.isEmpty) {
+      print('⚠️ Admin user not found, skipping notification seeding');
+      return;
+    }
+    
+    final adminUserId = userList.users.first.$id;
+    final now = DateTime.now();
+
+    final sampleNotifications = [
+      {
+        'user_id': adminUserId,
+        'type': 'system',
+        'title': 'Welcome! 🎉',
+        'message': 'Welcome to our food delivery app. Enjoy delicious meals delivered to your doorstep!',
+        'action_type': 'none',
+        'is_read': false,
+        'created_at': now.subtract(Duration(days: 7)).toIso8601String(),
+      },
+      {
+        'user_id': adminUserId,
+        'type': 'promo',
+        'title': 'Flash Sale! ⚡',
+        'message': '50% OFF on all pizzas today only. Don\'t miss out!',
+        'action_type': 'none',
+        'is_read': false,
+        'created_at': now.subtract(Duration(hours: 12)).toIso8601String(),
+      },
+      {
+        'user_id': adminUserId,
+        'type': 'order',
+        'title': 'Order Confirmed ✅',
+        'message': 'Your order #1234 has been confirmed and is being prepared.',
+        'action_type': 'order',
+        'action_value': 'ORD-123',
+        'is_read': true,
+        'created_at': now.subtract(Duration(hours: 10)).toIso8601String(),
+      },
+      {
+        'user_id': adminUserId,
+        'type': 'promo',
+        'title': 'New Coupon Available! 🎁',
+        'message': 'Use code SAVE20 to get 20% discount on your next order.',
+        'action_type': 'none',
+        'is_read': false,
+        'created_at': now.subtract(Duration(hours: 8)).toIso8601String(),
+      },
+      {
+        'user_id': adminUserId,
+        'type': 'order',
+        'title': 'Chef is Preparing 👨‍🍳',
+        'message': 'Your delicious meal is being prepared with love and care.',
+        'action_type': 'order',
+        'action_value': 'ORD-123',
+        'is_read': true,
+        'created_at': now.subtract(Duration(hours: 9)).toIso8601String(),
+      },
+      {
+        'user_id': adminUserId,
+        'type': 'promo',
+        'title': 'Cashback Offer 💰',
+        'message': 'Get ₹100 cashback on orders above ₹500. Limited time offer!',
+        'action_type': 'none',
+        'is_read': false,
+        'created_at': now.subtract(Duration(hours: 4)).toIso8601String(),
+      },
+      {
+        'user_id': adminUserId,
+        'type': 'order',
+        'title': 'Order Delivered 🎉',
+        'message': 'Your order has been delivered successfully. Enjoy your meal!',
+        'action_type': 'order',
+        'action_value': 'ORD-123',
+        'is_read': false,
+        'created_at': now.subtract(Duration(hours: 2)).toIso8601String(),
+      },
+      {
+        'user_id': adminUserId,
+        'type': 'system',
+        'title': 'App Update Available 📱',
+        'message': 'New features and improvements are available. Update now!',
+        'action_type': 'none',
+        'is_read': false,
+        'created_at': now.subtract(Duration(hours: 1)).toIso8601String(),
+      },
+      {
+        'user_id': adminUserId,
+        'type': 'system',
+        'title': 'Complete Your Profile 👤',
+        'message': 'Complete your profile to get personalized recommendations.',
+        'action_type': 'none',
+        'is_read': false,
+        'created_at': now.subtract(Duration(minutes: 30)).toIso8601String(),
+      },
+      {
+        'user_id': adminUserId,
+        'type': 'system',
+        'title': 'Rate Us! ⭐',
+        'message': 'Enjoying our service? Rate us 5 stars on the app store!',
+        'action_type': 'url',
+        'action_value': 'https://play.google.com',
+        'is_read': false,
+        'created_at': now.subtract(Duration(minutes: 10)).toIso8601String(),
+      },
+    ];
+
+    for (var notification in sampleNotifications) {
+      try {
+        await db.createDocument(
+          databaseId: AppwriteConfig.dbId,
+          collectionId: AppwriteConfig.notificationsCollection,
+          documentId: ID.unique(),
+          data: notification,
+        );
+      } catch (e) {
+        // Ignore if already exists
+      }
+    }
+    
+    print('✅ Seeded ${sampleNotifications.length} sample notifications');
+  } catch (e) {
+    print('⚠️ Error seeding notifications: $e');
+  }*/
 }
 
 // Import the additional services
