@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:flutter/material.dart';
@@ -144,7 +145,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '\$${widget.price.toStringAsFixed(2)}',
+                              PriceHelper.formatPrice(widget.price),
                               style: poppinsBold.copyWith(
                                 fontSize: Constants.fontSizeLarge,
                                 color: ColorResource.primaryDark,
@@ -153,7 +154,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
                             if (widget.oldPrice != null &&
                                 widget.oldPrice! > widget.price)
                               Text(
-                                '\$${widget.oldPrice!.toStringAsFixed(2)}',
+                                PriceHelper.formatPrice(widget.oldPrice!),
                                 style: poppinsRegular.copyWith(
                                   fontSize: Constants.fontSizeSmall,
                                   color: ColorResource.textLight,

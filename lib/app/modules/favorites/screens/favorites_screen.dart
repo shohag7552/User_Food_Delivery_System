@@ -3,6 +3,7 @@ import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
+import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
@@ -282,7 +283,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       child: Text(
                         product.discountType == 'percentage'
                             ? '${product.discountValue!.toInt()}% OFF'
-                            : '\$${product.discountValue!.toStringAsFixed(0)} OFF',
+                            : '${PriceHelper.formatPrice(product.discountValue!.toDouble())} OFF',
                         style: poppinsBold.copyWith(
                           fontSize: 10,
                           color: ColorResource.textWhite,
@@ -361,7 +362,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       children: [
                         if (hasDiscount) ...[
                           Text(
-                            '\$${product.price.toStringAsFixed(2)}',
+                            PriceHelper.formatPrice(product.price),
                             style: poppinsRegular.copyWith(
                               fontSize: Constants.fontSizeSmall,
                               color: ColorResource.textLight,
@@ -371,7 +372,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                           const SizedBox(width: 6),
                         ],
                         Text(
-                          '\$${product.finalPrice.toStringAsFixed(2)}',
+                          PriceHelper.formatPrice(product.finalPrice),
                           style: poppinsBold.copyWith(
                             fontSize: Constants.fontSizeDefault + 2,
                             color: ColorResource.primaryDark,

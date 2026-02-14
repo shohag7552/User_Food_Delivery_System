@@ -193,16 +193,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             decoration: BoxDecoration(
               gradient: isSelected
                   ? ColorResource.primaryGradient
-                  : (hasItems
-                      ? LinearGradient(
-                          colors: [
-                            ColorResource.primaryDark.withValues(alpha: 0.15),
-                            ColorResource.primaryDark.withValues(alpha: 0.08),
-                          ],
-                        )
-                      : null),
+                  : null,
               borderRadius: BorderRadius.circular(Constants.radiusLarge),
-              border: hasItems && !isSelected
+              border: isSelected
                   ? Border.all(
                       color: ColorResource.primaryDark.withValues(alpha: 0.3),
                       width: 1,

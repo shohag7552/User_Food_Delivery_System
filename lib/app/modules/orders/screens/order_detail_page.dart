@@ -2,6 +2,7 @@ import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/submit_review_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
+import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
@@ -253,14 +254,14 @@ class OrderDetailPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '\$${item.price.toStringAsFixed(2)} each',
+                      '${PriceHelper.formatPrice(item.price)} each',
                       style: poppinsRegular.copyWith(
                         fontSize: Constants.fontSizeSmall,
                         color: ColorResource.textSecondary,
                       ),
                     ),
                     Text(
-                      '\$${itemTotal.toStringAsFixed(2)}',
+                      PriceHelper.formatPrice(itemTotal),
                       style: poppinsBold.copyWith(
                         fontSize: Constants.fontSizeLarge,
                         color: ColorResource.primaryDark,
@@ -416,7 +417,7 @@ class OrderDetailPage extends StatelessWidget {
           ),
         ),
         Text(
-          '\$${amount.toStringAsFixed(2)}',
+          PriceHelper.formatPrice(amount),
           style: poppinsBold.copyWith(
             fontSize: isTotal
                 ? Constants.fontSizeExtraLarge

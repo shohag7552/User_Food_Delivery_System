@@ -22,12 +22,7 @@ class NotificationHelper {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint("onMessage: ${message.data}, message: ${message.notification} , title: ${message.notification?.title}, body: ${message.notification?.body}, ");
 
-      if(message.data['type'] == 'chatting' && message.data['user_id'] != null && Get.currentRoute == '/ChattingScreen') {
-        print('===chatting screen open : ${message.data['user_id']}');
-        // Get.find<ChatController>().getMessageList(offset: 1, id: message.data['user_id']);
-      } else {
-        NotificationHelper.showNotification(message, flutterLocalNotificationsPlugin);
-      }
+      NotificationHelper.showNotification(message, flutterLocalNotificationsPlugin);
 
     });
 
@@ -40,15 +35,15 @@ class NotificationHelper {
   }
 
   static Future<void> showNotification(RemoteMessage message, FlutterLocalNotificationsPlugin fln) async {
-    if(!GetPlatform.isIOS && message.data.isNotEmpty) {
+    if(!GetPlatform.isIOS && (message.notification != null || message.data.isNotEmpty)) {
       String? title;
       String? body;
       String? orderID;
       String? image;
       // NotificationBodyModel notificationBody = convertNotification(message.data);
 
-      title = message.data['title'];
-      body = message.data['body'];
+      title = message.notification?.title ?? message.data['title'];
+      body = message.notification?.body ?? message.data['body'];
       orderID = message.data['order_id'];
       image = '';
       // (message.data['image'] != null && message.data['image'].isNotEmpty)

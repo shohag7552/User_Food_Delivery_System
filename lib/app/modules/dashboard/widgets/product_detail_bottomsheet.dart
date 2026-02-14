@@ -3,6 +3,7 @@ import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
 import 'package:appwrite_user_app/app/controllers/review_controller.dart';
 import 'package:appwrite_user_app/app/helper/auth_helper.dart';
+import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
@@ -353,7 +354,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
         Row(
           children: [
             Text(
-              '\$${widget.product.finalPrice.toStringAsFixed(2)}',
+              PriceHelper.formatPrice(widget.product.finalPrice),
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeExtraLarge,
                 color: ColorResource.primaryDark,
@@ -362,7 +363,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
             if (widget.product.hasDiscount) ...[
               const SizedBox(width: 12),
               Text(
-                '\$${widget.product.price.toStringAsFixed(2)}',
+                PriceHelper.formatPrice(widget.product.price),
                 style: poppinsRegular.copyWith(
                   fontSize: Constants.fontSizeDefault,
                   color: ColorResource.textLight,
@@ -518,7 +519,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
             // Option price
             if (option.price > 0)
               Text(
-                '+\$${option.price.toStringAsFixed(2)}',
+                '+${PriceHelper.formatPrice(option.price)}',
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeDefault,
                   color: ColorResource.primaryDark,
@@ -604,7 +605,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
             // Option price
             if (option.price > 0)
               Text(
-                '+\$${option.price.toStringAsFixed(2)}',
+                '+${PriceHelper.formatPrice(option.price)}',
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeDefault,
                   color: ColorResource.primaryDark,
@@ -849,7 +850,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'Add to Cart - \$${_totalPrice.toStringAsFixed(2)}',
+                        'Add to Cart - ${PriceHelper.formatPrice(_totalPrice)}',
                         style: poppinsBold.copyWith(
                           fontSize: Constants.fontSizeLarge,
                           color: ColorResource.textWhite,

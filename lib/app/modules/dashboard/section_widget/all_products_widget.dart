@@ -4,6 +4,7 @@ import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/cart_helper.dart';
+import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -263,7 +264,7 @@ class AllProductsWidget extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '\$${product.finalPrice.toStringAsFixed(2)}',
+                            PriceHelper.formatPrice(product.finalPrice),
                             style: poppinsBold.copyWith(
                               fontSize: Constants.fontSizeLarge,
                               color: ColorResource.primaryDark,
@@ -271,7 +272,7 @@ class AllProductsWidget extends StatelessWidget {
                           ),
                           if (hasDiscount)
                             Text(
-                              '\$${product.price.toStringAsFixed(2)}',
+                              PriceHelper.formatPrice(product.price),
                               style: poppinsRegular.copyWith(
                                 fontSize: Constants.fontSizeSmall,
                                 color: ColorResource.textLight,
