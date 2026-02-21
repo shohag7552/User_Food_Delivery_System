@@ -14,6 +14,7 @@ class AppwriteService {
   late final Storage storage;
   late final Functions functions;
   late final Teams teams;
+  late final Messaging messaging;
   static final AppwriteService _instance = AppwriteService._internal();
 
   factory AppwriteService() => _instance;
@@ -28,6 +29,7 @@ class AppwriteService {
     storage = Storage(client);
     functions = Functions(client);
     teams = Teams(client);
+    messaging = Messaging(client);
     // messaging = dart_appwrite.Messaging(dartClient);
   }
 
@@ -244,13 +246,20 @@ class AppwriteService {
     try {
       // 2. Register this device as a "Target" in Appwrite
       // This automatically saves the token securely in Appwrite's internal system.
-      await account.createPushTarget(
+      final target = await account.createPushTarget(
           targetId: ID.unique(), // Generates a unique ID for this phone
           identifier: fcmToken,  // The actual FCM token
           providerId: AppwriteConfig.messagingProviderId, // Get this from Messaging > Providers
       );
-
       print("✅ Device registered for notifications!");
+
+      await messaging.createSubscriber(
+        topicId: 'all_users',
+        subscriberId: ID.unique(),
+        targetId: target.$id, // Link the device target we just created
+      );
+      print("✅ Subscriber created for topic 'all_users'!");
+
     } on AppwriteException catch (e) {
       print("❌ Failed to register device: ${e.message}");
     } catch (e) {

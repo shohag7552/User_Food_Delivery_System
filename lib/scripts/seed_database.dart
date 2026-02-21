@@ -559,12 +559,7 @@ Future<void> _setupNotifications(Databases db) async {
       xrequired: false,
       xdefault: false,
     ),
-    () => db.createDatetimeAttribute(
-      databaseId: AppwriteConfig.dbId,
-      collectionId: AppwriteConfig.notificationsCollection,
-      key: 'created_at',
-      xrequired: true,
-    ),
+
   ], [
     Permission.read(Role.users()),
     Permission.create(Role.users()),
