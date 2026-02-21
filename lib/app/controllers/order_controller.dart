@@ -74,6 +74,7 @@ class OrderController extends GetxController implements GetxService {
           'product_name': item.productName,
           'price': item.finalPrice,
           'quantity': item.quantity,
+          'product_image': item.productImage,
           'selected_variants': item.selectedVariants
               .expand((v) => v.selections)
               .map((s) => s.optionName)

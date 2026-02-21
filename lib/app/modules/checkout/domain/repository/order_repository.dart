@@ -58,6 +58,9 @@ class OrderRepository implements OrderRepoInterface {
         collectionId: AppwriteConfig.ordersCollection,
         data: orderData,
       );
+
+      await appwriteService.notifyOrderPlaced(customerId, orderNumber);
+
     } catch (e) {
       log('Error creating order: $e');
       rethrow;

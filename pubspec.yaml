@@ -51,6 +51,8 @@ dependencies:
   firebase_messaging: ^16.1.1
 
   carousel_slider: ^5.1.2
+  http: ^1.6.0
+  googleapis_auth: ^2.0.0
 
 dev_dependencies:
   flutter_test:

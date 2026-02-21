@@ -6,23 +6,19 @@ import 'package:appwrite/models.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:image_picker/image_picker.dart';
-// import 'package:dart_appwrite/dart_appwrite.dart' as dart_appwrite;
 
 class AppwriteService {
   late final Client client;
   late final TablesDB databases;
   late final Account account;
   late final Storage storage;
+  late final Functions functions;
   late final Teams teams;
-  // late final dart_appwrite.Messaging messaging;
   static final AppwriteService _instance = AppwriteService._internal();
 
   factory AppwriteService() => _instance;
 
   AppwriteService._internal() {
-    // final dartClient = dart_appwrite.Client()
-    //     .setEndpoint(AppwriteConfig.endpoint)
-    //     .setProject(AppwriteConfig.projectId);
     client = Client()
         .setEndpoint(AppwriteConfig.endpoint)
         .setProject(AppwriteConfig.projectId);
@@ -30,6 +26,7 @@ class AppwriteService {
     databases = TablesDB(client);
     account = Account(client);
     storage = Storage(client);
+    functions = Functions(client);
     teams = Teams(client);
     // messaging = dart_appwrite.Messaging(dartClient);
   }
@@ -339,37 +336,23 @@ class AppwriteService {
     }
   }
 
-  // Future<bool> sendNotificationToUser({required String userId, required String title, required String message}) async {
-  //   try {
-  //
-  //     print("====> Sending notification to userId: $userId with title: $title and message: $message");
-  //     // 🚀 THE NEW WAY: Use Appwrite Messaging API
-  //     // We don't need to look up tokens manually. We just say "Send to this User ID".
-  //     await messaging.createPush(
-  //       messageId: ID.unique(),
-  //       title: "Order Received! 🍳",
-  //       body: "Your order #123 is being prepared.",
-  //       topics: [], // Leave empty to target specific users
-  //       users: [userId], // Appwrite finds the tokens for this user automatically
-  //       draft: false,
-  //       targets: [
-  //         userId, // Target this specific user
-  //       ],
-  //       data: {
-  //         "title": title,
-  //         "body": message,
-  //         "order_id": "1223"
-  //       },
-  //     );
-  //
-  //     print("✅ Notification sent to user $userId!");
-  //     return true;
-  //
-  //   } catch (e) {
-  //     print("Notification error: $e");
-  //     return false;
-  //   }
-  // }
+  Future<void> notifyOrderPlaced(String currentUserId, String orderId) async {
+    try {
+      await functions.createExecution(
+        functionId: AppwriteConfig.notificationFunctionId,
+        body: jsonEncode({
+          "type": "order_update",
+          "userId": currentUserId,
+          "title": "Order Received! 🍔",
+          "message": "We are preparing your order #$orderId.",
+          "orderId": orderId,
+        }),
+      );
+      print("✅ Order placement notification sent");
+    } catch (e) {
+      print("❌ Failed to send notification: $e");
+    }
+  }
 
   Future<bool> sendNotificationToUser({required String userId, required String title, required String message}) async {
     // Ensure you have initialized 'client' somewhere globally or pass it in
