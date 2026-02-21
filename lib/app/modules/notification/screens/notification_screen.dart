@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/controllers/notification_controller.dart';
 import 'package:appwrite_user_app/app/models/notification_model.dart';
+import 'package:appwrite_user_app/app/modules/notification/widgets/notification_detail_bottom_sheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -106,12 +107,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
         controller.deleteNotification(notification.id);
       },
       child: GestureDetector(
-        onTap: () async {
+        onTap: () {
+          // Show detail bottom sheet immediately (sync, no async gap).
+          // Mark as read in the background so there's no BuildContext gap.
           if (!notification.isRead) {
-            await controller.markAsRead(notification.id);
+            controller.markAsRead(notification.id);
           }
-          // Handle navigation based on action type
-          _handleNotificationAction(notification);
+          NotificationDetailBottomSheet.show(context, notification);
         },
         child: Container(
           padding: const EdgeInsets.all(16),
@@ -338,22 +340,5 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 
-  void _handleNotificationAction(NotificationModel notification) {
-    if (notification.actionType == null || notification.actionType == 'none') {
-      return;
-    }
 
-    // TODO: Implement navigation based on action type
-    // switch (notification.actionType) {
-    //   case 'order':
-    //     Get.toNamed('/order-details', arguments: notification.actionValue);
-    //     break;
-    //   case 'product':
-    //     // Navigate to product details
-    //     break;
-    //   case 'url':
-    //     // Open URL
-    //     break;
-    // }
-  }
 }
