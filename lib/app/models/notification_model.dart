@@ -34,7 +34,7 @@ class NotificationModel {
       actionType: json['action_type'],
       actionValue: json['action_value'],
       isRead: json['is_read'] ?? false,
-      createdAt: DateTime.parse(json['created_at']),
+      createdAt: DateTime.parse(json['\$createdAt']),
     );
   }
 

@@ -23,9 +23,8 @@ class NotificationRepository implements NotificationRepoInterface {
       final response = await appwriteService.listTable(
         tableId: AppwriteConfig.notificationsCollection,
         queries: [
-          // Query.equal('user_id', '694d8375733853c66d75'),
           Query.equal('user_id', user.$id),
-          Query.orderDesc('created_at'),
+          Query.orderDesc('\$createdAt'),
           Query.limit(50),
         ],
       );
