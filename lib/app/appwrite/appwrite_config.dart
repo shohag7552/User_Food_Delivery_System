@@ -7,6 +7,7 @@ class AppwriteConfig {
   static const String postsBucketId = '694d812100305bf791d7'; //it's for storing post images
   static const String messagingProviderId = '6984d1ef0023c0b30df1'; //it's for fcm push notifications topic and fcm token management
   static const String notificationFunctionId = '699735670009f8d132b6'; //it's for sending notifications using cloud functions
+  static const String topicId = '6999d25e00167cf81dfe'; // it's for storing FCM topic subscriptions (e.g. for promo notifications)
 
   // Collection IDs
   static const String usersCollection = 'users';

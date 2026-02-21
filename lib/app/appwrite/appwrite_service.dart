@@ -254,7 +254,7 @@ class AppwriteService {
       print("✅ Device registered for notifications!");
 
       await messaging.createSubscriber(
-        topicId: 'all_users',
+        topicId: AppwriteConfig.topicId, // Use the topic you created in Appwrite console
         subscriberId: ID.unique(),
         targetId: target.$id, // Link the device target we just created
       );

@@ -41,6 +41,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+
+    Get.lazyPut(() => CartAnimationController());
     _pageController = PageController(initialPage: 0);
     
     // Load favorites

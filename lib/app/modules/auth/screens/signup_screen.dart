@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_button.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_text_field.dart';
+import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/screens/dashboard_screen.dart';
 import 'package:flutter/material.dart';
@@ -62,15 +63,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
   Future<void> _handleSignup() async {
     if (_formKey.currentState!.validate()) {
       if (!_agreeToTerms) {
-        Get.snackbar(
-          'Terms & Conditions',
-          'Please agree to the Terms & Conditions',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red.withOpacity(0.8),
-          colorText: Colors.white,
-          margin: const EdgeInsets.all(16),
-          borderRadius: 12,
-        );
+        customToster('Please agree to the Terms & Conditions', isSuccess: false);
         return;
       }
 
@@ -308,10 +301,10 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                                   if (value.length < 8) {
                                     return 'Password must be at least 8 characters';
                                   }
-                                  if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)')
-                                      .hasMatch(value)) {
-                                    return 'Password must contain uppercase, lowercase & number';
-                                  }
+                                  // if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)')
+                                  //     .hasMatch(value)) {
+                                  //   return 'Password must contain uppercase, lowercase & number';
+                                  // }
                                   return null;
                                 },
                               ),
