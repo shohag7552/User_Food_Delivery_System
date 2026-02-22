@@ -1,9 +1,9 @@
 import 'package:appwrite_user_app/app/models/order_model.dart';
 
 abstract class OrderRepoInterface {
-  Future<void> createOrder({
+  /// Creates a new order and returns the generated readable order number (e.g. "10001").
+  Future<String> createOrder({
     required String customerId,
-    required String orderNumber,
     required String deliveryAddress,
     required String orderItems,
     required double totalAmount,

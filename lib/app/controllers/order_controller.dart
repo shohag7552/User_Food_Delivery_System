@@ -84,15 +84,9 @@ class OrderController extends GetxController implements GetxService {
 
       final orderItemsJson = jsonEncode(orderItems);
 
-      // Generate readable order number: ORD-YYYYMMDD-XXX
-      final now = DateTime.now();
-      final dateStr = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
-      final timeStr = '${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}';
-      final orderNumber = 'ORD-$dateStr-$timeStr';
-
-      await orderRepoInterface.createOrder(
+      // Order number is now generated inside the repository (sequential: 10001, 10002, ...)
+      final orderNumber = await orderRepoInterface.createOrder(
         customerId: customerId,
-        orderNumber: orderNumber,
         deliveryAddress: addressJson,
         orderItems: orderItemsJson,
         totalAmount: totalAmount,

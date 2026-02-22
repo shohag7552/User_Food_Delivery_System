@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:developer';
 import 'package:appwrite/models.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
@@ -12,10 +11,26 @@ class OrderRepository implements OrderRepoInterface {
 
   OrderRepository({required this.appwriteService});
 
+  /// Generates the next sequential order number (e.g. 10001, 10002, …)
+  Future<String> _getNextOrderNumber() async {
+    try {
+      final response = await appwriteService.listTable(
+        tableId: AppwriteConfig.ordersCollection,
+        queries: [Query.limit(1)], // only need the total count
+      );
+      // response.total is the total number of documents in the collection
+      final nextNumber = 10001 + response.total;
+      return nextNumber.toString();
+    } catch (e) {
+      // Fallback: use timestamp-based if count query fails
+      final now = DateTime.now();
+      return '${now.millisecondsSinceEpoch}';
+    }
+  }
+
   @override
-  Future<void> createOrder({
+  Future<String> createOrder({
     required String customerId,
-    required String orderNumber,
     required String deliveryAddress,
     required String orderItems,
     required double totalAmount,
@@ -27,6 +42,9 @@ class OrderRepository implements OrderRepoInterface {
     String? scheduledTimeSlot,
   }) async {
     try {
+      // Generate sequential readable order number
+      final orderNumber = await _getNextOrderNumber();
+
       final orderData = {
         'customer_id': customerId,
         'order_number': orderNumber,
@@ -61,6 +79,7 @@ class OrderRepository implements OrderRepoInterface {
 
       await appwriteService.notifyOrderPlaced(customerId, orderNumber);
 
+      return orderNumber;
     } catch (e) {
       log('Error creating order: $e');
       rethrow;
