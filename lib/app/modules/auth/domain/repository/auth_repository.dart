@@ -104,6 +104,10 @@ class AuthRepository implements AuthRepoInterface {
         fcmToken: fcmToken,
       );
 
+      if(fcmToken != null) {
+        await appwriteService.setupMessaging(fcmToken: fcmToken);
+      }
+
       return true;
   }
 

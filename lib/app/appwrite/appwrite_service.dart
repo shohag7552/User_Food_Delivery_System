@@ -346,6 +346,7 @@ class AppwriteService {
   }
 
   Future<void> notifyOrderPlaced(String currentUserId, String orderId) async {
+    // 1. Notify the customer that their order was received
     try {
       await functions.createExecution(
         functionId: AppwriteConfig.notificationFunctionId,
@@ -357,9 +358,26 @@ class AppwriteService {
           "orderId": orderId,
         }),
       );
-      print("✅ Order placement notification sent");
+      print("✅ Customer order notification sent");
     } catch (e) {
-      print("❌ Failed to send notification: $e");
+      print("❌ Failed to send customer notification: $e");
+    }
+
+    // 2. Notify the store admin that a new order has been placed
+    try {
+      await functions.createExecution(
+        functionId: AppwriteConfig.notificationFunctionId,
+        body: jsonEncode({
+          "type": "broadcast",
+          "topic": AppwriteConfig.storeAdminTopicId,
+          "title": "New Order! 🛒",
+          "message": "Order #$orderId has been placed. Tap to view.",
+          "orderId": orderId,
+        }),
+      );
+      print("✅ Store admin order notification sent");
+    } catch (e) {
+      print("❌ Failed to send store admin notification: $e");
     }
   }
 

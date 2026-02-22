@@ -8,6 +8,7 @@ class AppwriteConfig {
   static const String messagingProviderId = '6984d1ef0023c0b30df1'; //it's for fcm push notifications topic and fcm token management
   static const String notificationFunctionId = '699735670009f8d132b6'; //it's for sending notifications using cloud functions
   static const String topicId = '6999d25e00167cf81dfe'; // it's for storing FCM topic subscriptions (e.g. for promo notifications)
+  static const String storeAdminTopicId = '699b52b8002068aad61e'; // topic for store admin devices — new order alerts
 
   // Collection IDs
   static const String usersCollection = 'users';
