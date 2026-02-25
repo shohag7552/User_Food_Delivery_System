@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
@@ -44,6 +43,9 @@ import 'package:appwrite_user_app/app/modules/notification/domain/repository/not
 import 'package:appwrite_user_app/app/modules/notification/domain/repository/notification_repository.dart';
 import 'package:appwrite_user_app/app/modules/splash/domain/repository/splash_repo_interface.dart';
 import 'package:appwrite_user_app/app/modules/splash/domain/repository/splash_repository.dart';
+import 'package:appwrite_user_app/app/modules/policies/domain/repository/policy_repo_interface.dart';
+import 'package:appwrite_user_app/app/modules/policies/domain/repository/policy_repository.dart';
+import 'package:appwrite_user_app/app/controllers/policy_controller.dart';
 import 'package:appwrite_user_app/app/controllers/splash_controller.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -99,6 +101,9 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   NotificationRepoInterface notificationRepoInterface = NotificationRepository(appwriteService: Get.find());
   Get.lazyPut(() => notificationRepoInterface);
 
+  PolicyRepoInterface policyRepoInterface = PolicyRepository(appwriteService: Get.find());
+  Get.lazyPut(() => policyRepoInterface);
+
 
   /// Controller Initialization
   Get.lazyPut(() => CartAnimationController());
@@ -116,6 +121,7 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   Get.lazyPut(() => ReviewController(reviewRepoInterface: Get.find()));
   Get.lazyPut(() => NotificationController(notificationRepoInterface: Get.find()));
   Get.lazyPut(() => SplashController(splashRepositoryInterface: Get.find()));
+  Get.lazyPut(() => PolicyController(policyRepoInterface: Get.find()));
 
 
   /// Retrieving localized data

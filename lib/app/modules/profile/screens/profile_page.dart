@@ -1,11 +1,14 @@
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
+import 'package:appwrite_user_app/app/controllers/policy_controller.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/modules/address/screens/addresses_page.dart';
 import 'package:appwrite_user_app/app/modules/coupons/screens/coupons_screen.dart';
 import 'package:appwrite_user_app/app/modules/favorites/screens/favorites_screen.dart';
+import 'package:appwrite_user_app/app/modules/notification/screens/notification_screen.dart';
 import 'package:appwrite_user_app/app/modules/orders/screens/order_history_page.dart';
 import 'package:appwrite_user_app/app/modules/auth/screens/login_screen.dart';
+import 'package:appwrite_user_app/app/modules/policies/screens/policy_content_screen.dart';
 import 'package:appwrite_user_app/app/modules/profile/screens/edit_profile_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -14,9 +17,21 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+
+  @override
+  void initState() {
+    super.initState();
+
+    Get.find<PolicyController>().fetchPolicies();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,7 +45,7 @@ class ProfilePage extends StatelessWidget {
               slivers: [
                 // App Bar with User Info
                 _buildSliverAppBar(controller),
-                
+
                 // Profile Options
                 SliverToBoxAdapter(
                   child: Padding(
@@ -67,9 +82,9 @@ class ProfilePage extends StatelessWidget {
                             ),
                           ],
                         ),
-                        
+
                         const SizedBox(height: 20),
-                        
+
                         _buildSection(
                           title: 'Orders & Activity',
                           items: [
@@ -99,9 +114,9 @@ class ProfilePage extends StatelessWidget {
                             ),
                           ],
                         ),
-                        
+
                         const SizedBox(height: 20),
-                        
+
                         _buildSection(
                           title: 'Offers & Rewards',
                           items: [
@@ -132,9 +147,9 @@ class ProfilePage extends StatelessWidget {
                             ),
                           ],
                         ),
-                        
+
                         const SizedBox(height: 20),
-                        
+
                         _buildSection(
                           title: 'App Settings',
                           items: [
@@ -143,7 +158,7 @@ class ProfilePage extends StatelessWidget {
                               title: 'Notifications',
                               subtitle: 'Manage notification preferences',
                               onTap: () {
-                                Get.snackbar('Notifications', 'Feature coming soon');
+                                Get.to(() => const NotificationScreen());
                               },
                             ),
                             _ProfileOption(
@@ -167,7 +182,13 @@ class ProfilePage extends StatelessWidget {
                               title: 'About Us',
                               subtitle: 'Learn more about us',
                               onTap: () {
-                                Get.snackbar('About Us', 'Feature coming soon');
+                                final policyController = Get.find<PolicyController>();
+                                Get.to(
+                                  () => PolicyContentScreen(
+                                    title: 'About Us',
+                                    htmlContent: policyController.policies?.aboutUsHtml ?? '',
+                                  ),
+                                );
                               },
                             ),
                             _ProfileOption(
@@ -175,7 +196,13 @@ class ProfilePage extends StatelessWidget {
                               title: 'Terms & Conditions',
                               subtitle: 'Read our terms',
                               onTap: () {
-                                Get.snackbar('Terms & Conditions', 'Feature coming soon');
+                                final policyController = Get.find<PolicyController>();
+                                Get.to(
+                                  () => PolicyContentScreen(
+                                    title: 'Terms & Conditions',
+                                    htmlContent: policyController.policies?.termsAndConditionsHtml ?? '',
+                                  ),
+                                );
                               },
                             ),
                             _ProfileOption(
@@ -183,14 +210,20 @@ class ProfilePage extends StatelessWidget {
                               title: 'Privacy Policy',
                               subtitle: 'Read our privacy policy',
                               onTap: () {
-                                Get.snackbar('Privacy Policy', 'Feature coming soon');
+                                final policyController = Get.find<PolicyController>();
+                                Get.to(
+                                  () => PolicyContentScreen(
+                                    title: 'Privacy Policy',
+                                    htmlContent: policyController.policies?.privacyPolicyHtml ?? '',
+                                  ),
+                                );
                               },
                             ),
                           ],
                         ),
-                        
+
                         const SizedBox(height: 20),
-                        
+
                         _buildSection(
                           title: 'Account Actions',
                           items: [
@@ -214,9 +247,9 @@ class ProfilePage extends StatelessWidget {
                             ),
                           ],
                         ),
-                        
+
                         const SizedBox(height: 20),
-                        
+
                         // App Version
                         Center(
                           child: Text(
@@ -227,7 +260,7 @@ class ProfilePage extends StatelessWidget {
                             ),
                           ),
                         ),
-                        
+
                         const SizedBox(height: 20),
                       ],
                     ),
@@ -243,7 +276,7 @@ class ProfilePage extends StatelessWidget {
 
   Widget _buildSliverAppBar(ProfileController controller) {
     final user = controller.userProfile;
-    
+
     return SliverAppBar(
       expandedHeight: 180,
       floating: false,
@@ -326,7 +359,7 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatarPlaceholder(user) {
+  Widget _buildAvatarPlaceholder(dynamic user) {
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
@@ -431,7 +464,7 @@ class ProfilePage extends StatelessWidget {
               // Get AuthController and call logout
               final authController = Get.find<AuthController>();
               await authController.logout();
-              
+
               // Navigate to login screen and clear navigation stack
               Get.offAll(() => const LoginScreen());
             },

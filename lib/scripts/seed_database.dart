@@ -46,6 +46,7 @@ void main() async {
     await _setupFavorites(databases);
     await _setupReviews(databases);
     await _setupNotifications(databases);
+    await _setupPrivacyPolicy(databases);
 
     print("\n🎉 SETUP COMPLETE! Your Appwrite backend is ready.");
   } catch (e) {
@@ -703,6 +704,47 @@ Future<void> _setupNotifications(Databases db) async {
   } catch (e) {
     print('⚠️ Error seeding notifications: $e');
   }*/
+}
+
+Future<void> _setupPrivacyPolicy(Databases db) async {
+  await _createCollection(
+    db,
+    AppwriteConfig.privacyPolicyCollection,
+    'Privacy Policy',
+    [
+          () => db.createStringAttribute(
+        databaseId: AppwriteConfig.dbId,
+        collectionId: AppwriteConfig.privacyPolicyCollection,
+        key: 'privacy_policy_html',
+        size: 65535,
+        xrequired: false,
+        xdefault: '',
+      ),
+          () => db.createStringAttribute(
+        databaseId: AppwriteConfig.dbId,
+        collectionId: AppwriteConfig.privacyPolicyCollection,
+        key: 'terms_and_conditions_html',
+        size: 65535,
+        xrequired: false,
+        xdefault: '',
+      ),
+          () => db.createStringAttribute(
+        databaseId: AppwriteConfig.dbId,
+        collectionId: AppwriteConfig.privacyPolicyCollection,
+        key: 'about_us_html',
+        size: 65535,
+        xrequired: false,
+        xdefault: '',
+      ),
+    ],
+    [
+      Permission.read(Role.any()),           // Everyone can read (e.g. customer app)
+      Permission.create(Role.team('admin_team')),
+      Permission.read(Role.team('admin_team')),
+      Permission.update(Role.team('admin_team')),
+      Permission.delete(Role.team('admin_team')),
+    ],
+  );
 }
 
 // Import the additional services

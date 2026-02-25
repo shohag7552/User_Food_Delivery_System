@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/screens/home_page.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/screens/profile_page.dart';
+import 'package:appwrite_user_app/app/modules/profile/screens/profile_page.dart';
 import 'package:appwrite_user_app/app/modules/cart/screens/cart_page.dart';
 import 'package:appwrite_user_app/app/modules/favorites/screens/favorites_screen.dart';
 import 'package:appwrite_user_app/app/modules/orders/screens/orders_page.dart';
