@@ -245,7 +245,8 @@ class CartPage extends StatelessWidget {
                               _buildQuantityButton(
                                 icon: Icons.add,
                                 onTap: () => controller.incrementQuantity(item.id),
-                                enabled: true,
+                                enabled: (controller.getProductStock(item.productId) == null) || 
+                                         (item.quantity < controller.getProductStock(item.productId)!),
                               ),
                             ],
                           ),

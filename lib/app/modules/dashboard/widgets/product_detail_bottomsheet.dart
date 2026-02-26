@@ -1,4 +1,5 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
 import 'package:appwrite_user_app/app/controllers/review_controller.dart';
@@ -890,31 +891,10 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
 
                     Get.back();
 
-                    // Show success
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          widget.cartItem != null 
-                              ? '${widget.product.name} updated!'
-                              : '${widget.product.name} added to cart!',
-                          style: poppinsMedium.copyWith(
-                            color: ColorResource.textWhite,
-                          ),
-                        ),
-                        backgroundColor: Colors.green,
-                        behavior: SnackBarBehavior.floating,
-                        duration: const Duration(seconds: 3),
-                        action: widget.cartItem == null 
-                            ? SnackBarAction(
-                                label: 'View Cart',
-                                textColor: ColorResource.textWhite,
-                                onPressed: () {
-                                  Get.to(() => const CartPage());
-                                },
-                              )
-                            : null,
-                      ),
-                    );
+                    customToster(widget.cartItem != null
+                        ? '${widget.product.name} updated!'
+                        : '${widget.product.name} added to cart!');
+
                   } catch (e) {
                     if (mounted) {
                       setState(() {
@@ -922,17 +902,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                       });
                     }
                     Get.back();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Failed to add to cart',
-                          style: poppinsMedium.copyWith(
-                            color: ColorResource.textWhite,
-                          ),
-                        ),
-                        backgroundColor: ColorResource.error,
-                      ),
-                    );
+                    customToster('Failed to add to cart');
                   }
                 }
               : null,

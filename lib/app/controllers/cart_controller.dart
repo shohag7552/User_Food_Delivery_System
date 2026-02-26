@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
+import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/models/coupon_model.dart';
 import 'package:appwrite_user_app/app/modules/cart/domain/repository/cart_repo_interface.dart';
@@ -18,6 +19,10 @@ class CartController extends GetxController implements GetxService {
 
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
+
+  // Cache for product stock levels
+  final Map<String, int> _productStocks = {};
+  int? getProductStock(String productId) => _productStocks[productId];
 
   // Coupon management
   CouponModel? _appliedCoupon;
@@ -48,6 +53,19 @@ class CartController extends GetxController implements GetxService {
 
       _cartItems = await cartRepoInterface.getCartItems();
       
+      // Fetch and cache product stocks sequentially to avoid overwhelming the server
+      if (Get.isRegistered<ProductController>()) {
+        final productController = Get.find<ProductController>();
+        for (var item in _cartItems) {
+          if (!_productStocks.containsKey(item.productId)) {
+            final product = await productController.getProductById(item.productId);
+            if (product != null) {
+              _productStocks[item.productId] = product.stock;
+            }
+          }
+        }
+      }
+      
       _isLoading = false;
       update();
     } catch (e) {
@@ -61,6 +79,28 @@ class CartController extends GetxController implements GetxService {
   /// Add item to cart
   Future<void> addToCart(CartItemModel item) async {
     try {
+      // Check if an identical item already exists
+      final existingItemIndex = _cartItems.indexWhere((existing) => 
+        existing.productId == item.productId && 
+        _areVariantsIdentical(existing.selectedVariants, item.selectedVariants)
+      );
+
+      if (existingItemIndex != -1) {
+        final existingItem = _cartItems[existingItemIndex];
+        final newTotalQuantity = existingItem.quantity + item.quantity;
+        
+        // Ensure stock limit before updating
+        final stock = _productStocks[item.productId];
+        if (stock != null && newTotalQuantity > stock) {
+          customToster('Cannot add more. You already have ${existingItem.quantity} in cart and only $stock are available in stock.');
+          throw Exception('Stock limit exceeded');
+        }
+
+        customToster('Updated quantity of identical item in cart.');
+        await updateQuantity(existingItem.id, newTotalQuantity);
+        return;
+      }
+
       await cartRepoInterface.addCartItem(item);
       
       // Refresh cart
@@ -68,11 +108,29 @@ class CartController extends GetxController implements GetxService {
       
       log('Item added to cart successfully');
     } catch (e) {
-      _errorMessage = 'Failed to add item: $e';
-      log('Error adding to cart: $e');
-      update();
+      if (e.toString() != 'Exception: Stock limit exceeded') {
+        _errorMessage = 'Failed to add item: $e';
+        log('Error adding to cart: $e');
+        update();
+      }
       rethrow;
     }
+  }
+
+  bool _areVariantsIdentical(List<SelectedVariant> variants1, List<SelectedVariant> variants2) {
+    if (variants1.length != variants2.length) return false;
+    
+    for (var v1 in variants1) {
+      final v2 = variants2.firstWhereOrNull((v) => v.groupTitle == v1.groupTitle);
+      if (v2 == null) return false;
+      if (v1.selections.length != v2.selections.length) return false;
+      
+      for (var s1 in v1.selections) {
+        final hasMatch = v2.selections.any((s2) => s2.optionName == s1.optionName);
+        if (!hasMatch) return false;
+      }
+    }
+    return true;
   }
 
   /// Update item quantity
@@ -123,6 +181,14 @@ class CartController extends GetxController implements GetxService {
   /// Increment quantity
   void incrementQuantity(String itemId) {
     final item = _cartItems.firstWhere((item) => item.id == itemId);
+    
+    // Check stock if available
+    final stock = _productStocks[item.productId];
+    if (stock != null && item.quantity >= stock) {
+      customToster('Maximum stock limit reached.');
+      return;
+    }
+    
     updateQuantity(itemId, item.quantity + 1);
   }
 
