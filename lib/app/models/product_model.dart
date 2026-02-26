@@ -11,6 +11,7 @@ class ProductModel {
   final String imageId;
   final bool isVeg;
   final bool isAvailable;
+  final int stock;
   final List<VariantGroup> variants;
 
   ProductModel({
@@ -24,8 +25,12 @@ class ProductModel {
     required this.imageId,
     required this.isVeg,
     required this.isAvailable,
+    required this.stock,
     required this.variants,
   });
+
+  // Check if out of stock
+  bool get isOutOfStock => stock <= 0;
 
   // Calculate final price after discount
   double get finalPrice {
@@ -60,6 +65,7 @@ class ProductModel {
       imageId: json['image_id'],
       isVeg: json['is_veg'] ?? false,
       isAvailable: json['is_available'] ?? true,
+      stock: (json['stock'] as num?)?.toInt() ?? 0,
       // PARSING THE JSON STRING "VARIANTS"
       variants: json['variants'] != null && json['variants'].isNotEmpty
           ? (jsonDecode(json['variants']) as List)
@@ -81,6 +87,7 @@ class ProductModel {
       'image_id': imageId,
       'is_veg': isVeg,
       'is_available': isAvailable,
+      'stock': stock,
       'variants': jsonEncode(variants.map((e) => e.toJson()).toList()),
     };
   }

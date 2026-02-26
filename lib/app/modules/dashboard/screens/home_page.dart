@@ -82,10 +82,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
               children: [
                 const SizedBox(height: 20),
 
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: _buildPromotionalBanners(),
-                ),
+                _buildPromotionalBanners(),
 
                 const SizedBox(height: 28),
 

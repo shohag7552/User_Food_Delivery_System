@@ -93,6 +93,8 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
   }
 
   bool get _canAddToCart {
+    // Block if out of stock
+    if (widget.product.isOutOfStock) return false;
     // Check if all required variants are selected
     for (var variant in widget.product.variants) {
       if (variant.required && !_selectedVariants.containsKey(variant.title)) {
@@ -272,6 +274,36 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
             ),
           ),
         ),
+
+        // Out of stock overlay
+        if (widget.product.isOutOfStock)
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(Constants.radiusExtraLarge),
+                topRight: Radius.circular(Constants.radiusExtraLarge),
+              ),
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.55),
+                alignment: Alignment.center,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: ColorResource.error,
+                    borderRadius: BorderRadius.circular(Constants.radiusDefault),
+                  ),
+                  child: Text(
+                    'OUT OF STOCK',
+                    style: poppinsBold.copyWith(
+                      fontSize: Constants.fontSizeLarge,
+                      color: ColorResource.textWhite,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
 
         Positioned(
           top: 16,
@@ -618,15 +650,55 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
   }
 
   Widget _buildQuantitySelector() {
+    final int maxQty = widget.product.stock;
+    final bool outOfStock = widget.product.isOutOfStock;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Quantity',
-          style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeLarge,
-            color: ColorResource.textPrimary,
-          ),
+        Row(
+          children: [
+            Text(
+              'Quantity',
+              style: poppinsBold.copyWith(
+                fontSize: Constants.fontSizeLarge,
+                color: ColorResource.textPrimary,
+              ),
+            ),
+            const Spacer(),
+            // Stock badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: outOfStock
+                    ? ColorResource.error.withValues(alpha: 0.1)
+                    : _quantity >= maxQty
+                        ? ColorResource.warning.withValues(alpha: 0.1)
+                        : ColorResource.success.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(Constants.radiusSmall),
+                border: Border.all(
+                  color: outOfStock
+                      ? ColorResource.error.withValues(alpha: 0.4)
+                      : _quantity >= maxQty
+                          ? ColorResource.warning.withValues(alpha: 0.4)
+                          : ColorResource.success.withValues(alpha: 0.4),
+                ),
+              ),
+              child: Text(
+                outOfStock
+                    ? 'Out of Stock'
+                    : '$maxQty in stock',
+                style: poppinsMedium.copyWith(
+                  fontSize: Constants.fontSizeSmall,
+                  color: outOfStock
+                      ? ColorResource.error
+                      : _quantity >= maxQty
+                          ? ColorResource.warning
+                          : ColorResource.success,
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         Container(
@@ -645,7 +717,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                     setState(() => _quantity--);
                   }
                 },
-                enabled: _quantity > 1,
+                enabled: !outOfStock && _quantity > 1,
               ),
 
               // Quantity display
@@ -653,19 +725,25 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                 width: 60,
                 alignment: Alignment.center,
                 child: Text(
-                  '$_quantity',
+                  outOfStock ? '0' : '$_quantity',
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeExtraLarge,
-                    color: ColorResource.textPrimary,
+                    color: outOfStock
+                        ? ColorResource.textLight
+                        : ColorResource.textPrimary,
                   ),
                 ),
               ),
 
-              // Increment button
+              // Increment button (capped at stock)
               _buildQuantityButton(
                 icon: Icons.add,
-                onTap: () => setState(() => _quantity++),
-                enabled: true,
+                onTap: () {
+                  if (_quantity < maxQty) {
+                    setState(() => _quantity++);
+                  }
+                },
+                enabled: !outOfStock && _quantity < maxQty,
               ),
             ],
           ),
@@ -699,6 +777,8 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
   }
 
   Widget _buildAddToCartButton(BuildContext context) {
+    final bool outOfStock = widget.product.isOutOfStock;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -718,7 +798,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                   setState(() {
                     _isAddingToCart = true;
                   });
-                  
+
                   try {
                     String? userId = await Get.find<AuthController>().getUserId();
                     // Create cart item
@@ -744,11 +824,10 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                       setState(() {
                         _isAddingToCart = false;
                       });
-                      
+
                       // Trigger cart animation (delay slightly for smooth effect)
                       Future.delayed(const Duration(milliseconds: 100), () {
                         if (mounted) {
-                          // Use a simple center position since we're in a bottom sheet
                           Get.find<CartAnimationController>().animateAddToCart(
                             context: context,
                             productImageUrl: widget.product.imageId,
@@ -762,8 +841,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                     }
 
                     Get.back();
-                    // Navigator.pop(context);
-                    
+
                     // Show success with cart option
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -792,7 +870,6 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                       });
                     }
                     Get.back();
-                    // Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
@@ -810,16 +887,23 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
-              gradient: _canAddToCart
-                  ? ColorResource.primaryGradient
-                  : LinearGradient(
+              gradient: outOfStock
+                  ? LinearGradient(
                       colors: [
-                        ColorResource.textLight.withOpacity(0.5),
-                        ColorResource.textLight.withOpacity(0.5),
+                        ColorResource.error.withValues(alpha: 0.7),
+                        ColorResource.error.withValues(alpha: 0.7),
                       ],
-                    ),
+                    )
+                  : _canAddToCart
+                      ? ColorResource.primaryGradient
+                      : LinearGradient(
+                          colors: [
+                            ColorResource.textLight.withOpacity(0.5),
+                            ColorResource.textLight.withOpacity(0.5),
+                          ],
+                        ),
               borderRadius: BorderRadius.circular(Constants.radiusLarge),
-              boxShadow: _canAddToCart
+              boxShadow: (!outOfStock && _canAddToCart)
                   ? [
                       BoxShadow(
                         color: ColorResource.primaryMedium.withOpacity(0.4),
@@ -844,13 +928,17 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        Icons.shopping_cart,
+                        outOfStock
+                            ? Icons.remove_shopping_cart_outlined
+                            : Icons.shopping_cart,
                         color: ColorResource.textWhite,
                         size: 24,
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'Add to Cart - ${PriceHelper.formatPrice(_totalPrice)}',
+                        outOfStock
+                            ? 'Out of Stock'
+                            : 'Add to Cart - ${PriceHelper.formatPrice(_totalPrice)}',
                         style: poppinsBold.copyWith(
                           fontSize: Constants.fontSizeLarge,
                           color: ColorResource.textWhite,
