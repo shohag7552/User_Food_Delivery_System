@@ -50,6 +50,7 @@ class OrderModel {
 class OrderItem {
   final String productId;
   final String productName;
+  final String productImage;
   final double price;
   final int quantity;
   final List<String> selectedVariants; // e.g. ["Large", "Extra Cheese"]
@@ -57,6 +58,7 @@ class OrderItem {
   OrderItem({
     required this.productId,
     required this.productName,
+    required this.productImage,
     required this.price,
     required this.quantity,
     required this.selectedVariants,
@@ -66,6 +68,7 @@ class OrderItem {
     return OrderItem(
       productId: json['product_id'] ?? '',
       productName: json['product_name'],
+      productImage: json['product_image']??'',
       price: (json['price'] as num).toDouble(),
       quantity: json['quantity'],
       selectedVariants: List<String>.from(json['selected_variants'] ?? []),

@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/submit_review_bottomsheet.dart';
@@ -59,7 +60,7 @@ class OrderDetailPage extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            order.orderNumber,
+            '#${order.orderNumber}',
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeExtraLarge,
               color: ColorResource.textWhite,
@@ -95,7 +96,7 @@ class OrderDetailPage extends StatelessWidget {
             child: _buildInfoItem(
               icon: Icons.receipt_long,
               label: 'Order ID',
-              value: order.id.substring(0, 8).toUpperCase(),
+              value: order.orderNumber,
             ),
           ),
           Container(
@@ -201,14 +202,9 @@ class OrderDetailPage extends StatelessWidget {
               gradient: ColorResource.primaryGradient,
               borderRadius: BorderRadius.circular(Constants.radiusDefault),
             ),
-            child: Center(
-              child: Text(
-                'x${item.quantity}',
-                style: poppinsBold.copyWith(
-                  fontSize: Constants.fontSizeLarge,
-                  color: ColorResource.textWhite,
-                ),
-              ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(Constants.radiusDefault),
+              child: CustomNetworkImage(image: item.productImage),
             ),
           ),
           const SizedBox(width: 12),
