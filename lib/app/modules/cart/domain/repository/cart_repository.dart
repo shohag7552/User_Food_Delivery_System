@@ -84,6 +84,22 @@ class CartRepository implements CartRepoInterface {
   }
 
   @override
+  Future<CartItemModel> updateCartItemDetails(CartItemModel item) async {
+    try {
+      final updatedDoc = await appwriteService.updateTable(
+        tableId: AppwriteConfig.cartCollection,
+        rowId: item.id,
+        data: item.toJson(),
+      );
+
+      return CartItemModel.fromJson(updatedDoc.data);
+    } catch (e) {
+      log('Error updating cart item details: $e');
+      throw Exception('Failed to update cart item details');
+    }
+  }
+
+  @override
   Future<void> removeCartItem(String itemId) async {
     try {
       await appwriteService.deleteRow(

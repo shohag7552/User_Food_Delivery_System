@@ -18,22 +18,27 @@ import 'package:get/get.dart';
 
 class ProductDetailBottomSheet extends StatefulWidget {
   final ProductModel product;
+  final CartItemModel? cartItem; // Add cartItem to constructor
 
   const ProductDetailBottomSheet({
     super.key,
     required this.product,
+    this.cartItem,
   });
 
   @override
   State<ProductDetailBottomSheet> createState() =>
       _ProductDetailBottomSheetState();
 
-  static void show(BuildContext context, ProductModel product) {
+  static void show(BuildContext context, ProductModel product, {CartItemModel? cartItem}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => ProductDetailBottomSheet(product: product),
+      builder: (context) => ProductDetailBottomSheet(
+        product: product, 
+        cartItem: cartItem,
+      ),
     );
   }
 }
@@ -58,6 +63,37 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
       curve: Curves.easeOutBack,
     );
     _animationController.forward();
+    
+    // Initialize with existing cart item data if available
+    if (widget.cartItem != null) {
+      _quantity = widget.cartItem!.quantity;
+      for (var variant in widget.cartItem!.selectedVariants) {
+        // Find matching variant group in product
+        var productVariant = widget.product.variants.firstWhereOrNull((v) => v.title == variant.groupTitle);
+        if (productVariant != null) {
+          if (productVariant.type == 'radio') {
+            if (variant.selections.isNotEmpty) {
+              var sel = variant.selections.first;
+              var matchingOption = productVariant.options.firstWhereOrNull((opt) => opt.name == sel.optionName);
+              if (matchingOption != null) {
+                _selectedVariants[variant.groupTitle] = matchingOption;
+              }
+            }
+          } else {
+            List<VariantOption> options = [];
+            for (var sel in variant.selections) {
+              var matchingOption = productVariant.options.firstWhereOrNull((opt) => opt.name == sel.optionName);
+              if (matchingOption != null) {
+                options.add(matchingOption);
+              }
+            }
+            if (options.isNotEmpty) {
+              _selectedVariants[variant.groupTitle] = options;
+            }
+          }
+        }
+      }
+    }
   }
 
   @override
@@ -801,52 +837,66 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
 
                   try {
                     String? userId = await Get.find<AuthController>().getUserId();
-                    // Create cart item
-                    final cartItem = CartItemModel(
-                      id: '', // Will be set by database
-                      userId: userId ?? '',
-                      productId: widget.product.id,
-                      productName: widget.product.name,
-                      productImage: widget.product.imageId,
-                      basePrice: widget.product.price,
-                      discountType: widget.product.discountType,
-                      discountValue: widget.product.discountValue,
-                      finalPrice: widget.product.finalPrice,
-                      selectedVariants: _buildSelectedVariants(),
-                      quantity: _quantity,
-                      itemTotal: _totalPrice,
-                    );
+                    if (widget.cartItem != null) {
+                      // Update existing cart item
+                      final updatedCartItem = widget.cartItem!.copyWith(
+                        selectedVariants: _buildSelectedVariants(),
+                        quantity: _quantity,
+                        itemTotal: _totalPrice,
+                      );
+                      await Get.find<CartController>().updateCartItemDetails(updatedCartItem);
+                    } else {
+                      // Create generic cart item
+                      final cartItem = CartItemModel(
+                        id: '', // Will be set by database
+                        userId: userId ?? '',
+                        productId: widget.product.id,
+                        productName: widget.product.name,
+                        productImage: widget.product.imageId,
+                        basePrice: widget.product.price,
+                        discountType: widget.product.discountType,
+                        discountValue: widget.product.discountValue,
+                        finalPrice: widget.product.finalPrice,
+                        selectedVariants: _buildSelectedVariants(),
+                        quantity: _quantity,
+                        itemTotal: _totalPrice,
+                      );
 
-                    // Add to cart
-                    await Get.find<CartController>().addToCart(cartItem);
+                      // Add to cart
+                      await Get.find<CartController>().addToCart(cartItem);
+                    }
 
                     if (mounted) {
                       setState(() {
                         _isAddingToCart = false;
                       });
 
-                      // Trigger cart animation (delay slightly for smooth effect)
-                      Future.delayed(const Duration(milliseconds: 100), () {
-                        if (mounted) {
-                          Get.find<CartAnimationController>().animateAddToCart(
-                            context: context,
-                            productImageUrl: widget.product.imageId,
-                            buttonPosition: Offset(
-                              MediaQuery.of(context).size.width / 2,
-                              MediaQuery.of(context).size.height - 150,
-                            ),
-                          );
-                        }
-                      });
+                      if (widget.cartItem == null) {
+                        // Trigger cart animation (delay slightly for smooth effect) only on new adds
+                        Future.delayed(const Duration(milliseconds: 100), () {
+                          if (mounted) {
+                            Get.find<CartAnimationController>().animateAddToCart(
+                              context: context,
+                              productImageUrl: widget.product.imageId,
+                              buttonPosition: Offset(
+                                MediaQuery.of(context).size.width / 2,
+                                MediaQuery.of(context).size.height - 150,
+                              ),
+                            );
+                          }
+                        });
+                      }
                     }
 
                     Get.back();
 
-                    // Show success with cart option
+                    // Show success
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          '${widget.product.name} added to cart!',
+                          widget.cartItem != null 
+                              ? '${widget.product.name} updated!'
+                              : '${widget.product.name} added to cart!',
                           style: poppinsMedium.copyWith(
                             color: ColorResource.textWhite,
                           ),
@@ -854,13 +904,15 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                         backgroundColor: Colors.green,
                         behavior: SnackBarBehavior.floating,
                         duration: const Duration(seconds: 3),
-                        action: SnackBarAction(
-                          label: 'View Cart',
-                          textColor: ColorResource.textWhite,
-                          onPressed: () {
-                            Get.to(() => const CartPage());
-                          },
-                        ),
+                        action: widget.cartItem == null 
+                            ? SnackBarAction(
+                                label: 'View Cart',
+                                textColor: ColorResource.textWhite,
+                                onPressed: () {
+                                  Get.to(() => const CartPage());
+                                },
+                              )
+                            : null,
                       ),
                     );
                   } catch (e) {
@@ -938,7 +990,9 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                       Text(
                         outOfStock
                             ? 'Out of Stock'
-                            : 'Add to Cart - ${PriceHelper.formatPrice(_totalPrice)}',
+                            : widget.cartItem != null
+                                ? 'Update Cart - ${PriceHelper.formatPrice(_totalPrice)}'
+                                : 'Add to Cart - ${PriceHelper.formatPrice(_totalPrice)}',
                         style: poppinsBold.copyWith(
                           fontSize: Constants.fontSizeLarge,
                           color: ColorResource.textWhite,

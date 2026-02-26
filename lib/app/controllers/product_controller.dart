@@ -209,4 +209,14 @@ class ProductController extends GetxController implements GetxService {
       rethrow;
     }
   }
+
+  /// Fetch product by ID
+  Future<ProductModel?> getProductById(String id) async {
+    try {
+      return await productRepoInterface.getProductById(id);
+    } catch (e) {
+      log('====> Error fetching product by ID: $e');
+      return null;
+    }
+  }
 }

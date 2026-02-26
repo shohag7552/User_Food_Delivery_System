@@ -143,8 +143,22 @@ class ProductRepository implements ProductRepoInterface {
         return ProductModel.fromJson(row.data);
       }).toList();
     } catch (e) {
-      log('====\u003e Error searching products: $e');
+      log('====\\u003e Error searching products: $e');
       rethrow;
+    }
+  }
+
+  @override
+  Future<ProductModel?> getProductById(String id) async {
+    try {
+      final response = await appwriteService.getDocument(
+        collectionId: AppwriteConfig.productsCollection,
+        documentId: id,
+      );
+      return ProductModel.fromJson(response.data);
+    } catch (e) {
+      log('====\\u003e Error fetching product by ID: $e');
+      return null;
     }
   }
 }

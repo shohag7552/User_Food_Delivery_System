@@ -100,6 +100,26 @@ class CartController extends GetxController implements GetxService {
     }
   }
 
+  /// Update cart item details (variants and quantity)
+  Future<void> updateCartItemDetails(CartItemModel updatedItem) async {
+    try {
+      await cartRepoInterface.updateCartItemDetails(updatedItem);
+      
+      // Update local state
+      final index = _cartItems.indexWhere((item) => item.id == updatedItem.id);
+      if (index != -1) {
+        _cartItems[index] = updatedItem;
+        update();
+      }
+      log('Item details updated successfully');
+    } catch (e) {
+      _errorMessage = 'Failed to update item details: $e';
+      log('Error updating item details: $e');
+      update();
+      rethrow;
+    }
+  }
+
   /// Increment quantity
   void incrementQuantity(String itemId) {
     final item = _cartItems.firstWhere((item) => item.id == itemId);
