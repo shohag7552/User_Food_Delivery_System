@@ -353,8 +353,8 @@ class AppwriteService {
         body: jsonEncode({
           "type": "order_update",
           "userId": currentUserId,
-          "title": "Order Received! 🍔",
-          "message": "We are preparing your order #$orderId.",
+          "title": "Order Placed Successfully! 🍔",
+          "message": "We will deliver your order #$orderId soon.",
           "orderId": orderId,
         }),
       );

@@ -51,6 +51,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   bool _isAddingToCart = false;
+  CartItemModel? _matchingCartItem; // ADDED THIS LINE
 
   @override
   void initState() {
@@ -95,6 +96,38 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
         }
       }
     }
+
+    // Call check to see if we match an item in cart
+    _checkExistingCartItem();
+  }
+
+  void _checkExistingCartItem() {
+    final cartController = Get.find<CartController>();
+    final currentSelectedVariants = _buildSelectedVariants();
+
+    // Check if what we currently have configured matches anything in the cart
+    final index = cartController.cartItems.indexWhere((existing) =>
+        existing.productId == widget.product.id &&
+        cartController.areVariantsIdentical(
+            existing.selectedVariants, currentSelectedVariants));
+
+    setState(() {
+      if (index != -1) {
+        _matchingCartItem = cartController.cartItems[index];
+        // If it's a new match (user manually changed options to match an existing item), 
+        // we might want to sync the quantity, but to avoid confusing jumps, 
+        // we'll only sync quantity if we just opened the bottomsheet, 
+        // or let the user increase exactly what they want to add.
+        // Actually, for UPDATE we want to show the current total quantity.
+        _quantity = _matchingCartItem!.quantity; 
+      } else {
+        _matchingCartItem = null;
+        // If we unmatched, we might want to reset quantity to 1 for a "new" item.
+        if (widget.cartItem == null) {
+          _quantity = 1;
+        }
+      }
+    });
   }
 
   @override
@@ -293,7 +326,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
               end: Alignment.bottomCenter,
               colors: [
                 Colors.transparent,
-                Colors.black.withValues(alpha: 0.3),
+                Colors.black.withOpacity(0.3),
               ],
             ),
           ),
@@ -321,7 +354,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                 topRight: Radius.circular(Constants.radiusExtraLarge),
               ),
               child: Container(
-                color: Colors.black.withValues(alpha: 0.55),
+                color: Colors.black.withOpacity(0.55),
                 alignment: Alignment.center,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
@@ -528,19 +561,20 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
         setState(() {
           _selectedVariants[variant.title] = option;
         });
+        _checkExistingCartItem(); // Add check here
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected
-              ? ColorResource.primaryDark.withValues(alpha: 0.1)
+              ? ColorResource.primaryDark.withOpacity(0.1)
               : ColorResource.scaffoldBackground,
           borderRadius: BorderRadius.circular(Constants.radiusDefault),
           border: Border.all(
             color: isSelected
                 ? ColorResource.primaryDark
-                : ColorResource.textLight.withValues(alpha: 0.2),
+                : ColorResource.textLight.withOpacity(0.2),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -614,10 +648,14 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
               _selectedVariants.remove(variant.title);
             }
           } else {
-            selectedOptions.add(option);
-            _selectedVariants[variant.title] = selectedOptions;
+            // For checkbox, add to list
+            if (!_selectedVariants.containsKey(variant.title)) {
+              _selectedVariants[variant.title] = <VariantOption>[];
+            }
+            (_selectedVariants[variant.title] as List<VariantOption>).add(option);
           }
         });
+        _checkExistingCartItem(); // Add check here
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -708,17 +746,17 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: outOfStock
-                    ? ColorResource.error.withValues(alpha: 0.1)
+                    ? ColorResource.error.withOpacity(0.1)
                     : _quantity >= maxQty
-                        ? ColorResource.warning.withValues(alpha: 0.1)
-                        : ColorResource.success.withValues(alpha: 0.1),
+                        ? ColorResource.warning.withOpacity(0.1)
+                        : ColorResource.success.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(Constants.radiusSmall),
                 border: Border.all(
                   color: outOfStock
-                      ? ColorResource.error.withValues(alpha: 0.4)
+                      ? ColorResource.error.withOpacity(0.4)
                       : _quantity >= maxQty
-                          ? ColorResource.warning.withValues(alpha: 0.4)
-                          : ColorResource.success.withValues(alpha: 0.4),
+                          ? ColorResource.warning.withOpacity(0.4)
+                          : ColorResource.success.withOpacity(0.4),
                 ),
               ),
               child: Text(
@@ -838,9 +876,12 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
 
                   try {
                     String? userId = await Get.find<AuthController>().getUserId();
-                    if (widget.cartItem != null) {
+                    if (_matchingCartItem != null || widget.cartItem != null) {
+                      // Determines the actual item we are updating (matched vs passed-in)
+                      final itemToUpdate = _matchingCartItem ?? widget.cartItem!;
+                      
                       // Update existing cart item
-                      final updatedCartItem = widget.cartItem!.copyWith(
+                      final updatedCartItem = itemToUpdate.copyWith(
                         selectedVariants: _buildSelectedVariants(),
                         quantity: _quantity,
                         itemTotal: _totalPrice,
@@ -872,7 +913,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                         _isAddingToCart = false;
                       });
 
-                      if (widget.cartItem == null) {
+                      if (_matchingCartItem == null && widget.cartItem == null) {
                         // Trigger cart animation (delay slightly for smooth effect) only on new adds
                         Future.delayed(const Duration(milliseconds: 100), () {
                           if (mounted) {
@@ -891,9 +932,31 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
 
                     Get.back();
 
-                    customToster(widget.cartItem != null
-                        ? '${widget.product.name} updated!'
-                        : '${widget.product.name} added to cart!');
+                    if (_matchingCartItem == null && widget.cartItem == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              '${widget.product.name} added to cart!',
+                              style: poppinsMedium.copyWith(
+                                color: ColorResource.textWhite,
+                                fontSize: Constants.fontSizeDefault,
+                              ),
+                            ),
+                            backgroundColor: Colors.green,
+                            behavior: SnackBarBehavior.floating,
+                            duration: const Duration(seconds: 3),
+                            action: SnackBarAction(
+                                    label: 'View Cart',
+                                    textColor: ColorResource.textWhite,
+                                    onPressed: () {
+                                      Get.to(() => const CartPage());
+                                    },
+                                  )
+                          ),
+                        );
+                    } else {
+                        customToster('${widget.product.name} updated!');
+                    }
 
                   } catch (e) {
                     if (mounted) {
@@ -912,8 +975,8 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
               gradient: outOfStock
                   ? LinearGradient(
                       colors: [
-                        ColorResource.error.withValues(alpha: 0.7),
-                        ColorResource.error.withValues(alpha: 0.7),
+                        ColorResource.error.withOpacity(0.7),
+                        ColorResource.error.withOpacity(0.7),
                       ],
                     )
                   : _canAddToCart
@@ -960,7 +1023,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                       Text(
                         outOfStock
                             ? 'Out of Stock'
-                            : widget.cartItem != null
+                            : (_matchingCartItem != null || widget.cartItem != null)
                                 ? 'Update Cart - ${PriceHelper.formatPrice(_totalPrice)}'
                                 : 'Add to Cart - ${PriceHelper.formatPrice(_totalPrice)}',
                         style: poppinsBold.copyWith(

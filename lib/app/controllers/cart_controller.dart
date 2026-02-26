@@ -82,7 +82,7 @@ class CartController extends GetxController implements GetxService {
       // Check if an identical item already exists
       final existingItemIndex = _cartItems.indexWhere((existing) => 
         existing.productId == item.productId && 
-        _areVariantsIdentical(existing.selectedVariants, item.selectedVariants)
+        areVariantsIdentical(existing.selectedVariants, item.selectedVariants)
       );
 
       if (existingItemIndex != -1) {
@@ -117,7 +117,7 @@ class CartController extends GetxController implements GetxService {
     }
   }
 
-  bool _areVariantsIdentical(List<SelectedVariant> variants1, List<SelectedVariant> variants2) {
+  bool areVariantsIdentical(List<SelectedVariant> variants1, List<SelectedVariant> variants2) {
     if (variants1.length != variants2.length) return false;
     
     for (var v1 in variants1) {
