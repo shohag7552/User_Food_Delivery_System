@@ -4,8 +4,13 @@ import 'package:appwrite_user_app/app/models/address_model.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:appwrite_user_app/app/modules/address/screens/full_screen_map_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:location/location.dart' as loc;
 
 class AddEditAddressPage extends StatefulWidget {
   final AddressModel? address; // Null for add, non-null for edit
@@ -28,6 +33,14 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
   
   bool _isDefault = false;
   bool _isSaving = false;
+  bool _isFetchingAddress = false;
+
+  late MapController _mapController;
+  LatLng? _selectedLocation;
+  final LatLng _defaultLocation = const LatLng(23.8103, 90.4125); // Dhaka, Bangladesh
+  
+  final loc.Location _locationService = loc.Location();
+  bool _isLoadingLocation = false;
 
   @override
   void initState() {
@@ -41,6 +54,13 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
     _cityController = TextEditingController(text: widget.address?.city ?? '');
     _postalCodeController = TextEditingController(text: widget.address?.postalCode ?? '');
     _isDefault = widget.address?.isDefault ?? false;
+
+    _mapController = MapController();
+    if (widget.address?.latitude != null && widget.address?.longitude != null) {
+      _selectedLocation = LatLng(widget.address!.latitude!, widget.address!.longitude!);
+    } else {
+      _selectedLocation = _defaultLocation;
+    }
   }
 
   @override
@@ -52,6 +72,58 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
     _cityController.dispose();
     _postalCodeController.dispose();
     super.dispose();
+  }
+
+  Future<void> _getAddressFromLatLng(LatLng position) async {
+    setState(() => _isFetchingAddress = true);
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks.first;
+        setState(() {
+          String streetInfo = '';
+          if (place.street != null && place.street!.isNotEmpty && !place.street!.contains('+')) {
+            streetInfo += place.street!;
+          }
+          if (place.subLocality != null && place.subLocality!.isNotEmpty) {
+            if (streetInfo.isNotEmpty) streetInfo += ', ';
+            streetInfo += place.subLocality!;
+          }
+          if (streetInfo.isEmpty) {
+            streetInfo = place.name ?? '';
+          }
+          
+          if (_nameController.text.isEmpty) {
+            _nameController.text = place.name ?? '';
+          }
+          _addressLine1Controller.text = streetInfo;
+          
+          String cityInfo = place.locality ?? place.subAdministrativeArea ?? place.administrativeArea ?? '';
+          _cityController.text = cityInfo;
+          _postalCodeController.text = place.postalCode ?? '';
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching address: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isFetchingAddress = false);
+      }
+    }
+  }
+
+  Future<void> _openFullScreenMap() async {
+    final selectedLocation = await Get.to<LatLng?>(() => FullScreenMapPage(
+          initialLocation: _selectedLocation ?? _defaultLocation,
+        ));
+
+    if (selectedLocation != null) {
+      setState(() {
+        _selectedLocation = selectedLocation;
+      });
+      _mapController.move(selectedLocation, 16.0);
+      _getAddressFromLatLng(selectedLocation);
+    }
   }
 
   @override
@@ -76,6 +148,129 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            Text(
+              'Location Map',
+              style: poppinsMedium.copyWith(
+                fontSize: Constants.fontSizeDefault,
+                color: ColorResource.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              height: 250,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(Constants.radiusDefault),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(Constants.radiusDefault),
+                child: Stack(
+                  children: [
+                    FlutterMap(
+                      mapController: _mapController,
+                      options: MapOptions(
+                        initialCenter: _selectedLocation ?? _defaultLocation,
+                        initialZoom: 15.0,
+                        onMapEvent: (MapEvent event) {
+                          if (event is MapEventMoveEnd) {
+                            setState(() {
+                              _selectedLocation = _mapController.camera.center;
+                            });
+                            _getAddressFromLatLng(_selectedLocation!);
+                          }
+                        },
+                      ),
+                      children: [
+                        TileLayer(
+                          urlTemplate: Constants.streetMapTheme,
+                          userAgentPackageName: Constants.packageName,
+                        ),
+                      ],
+                    ),
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.only(bottom: 40.0), // Offset pin so tip points to center
+                        child: Icon(
+                          Icons.location_on,
+                          color: Colors.red,
+                          size: 40,
+                        ),
+                      ),
+                    ),
+                    if (_isFetchingAddress)
+                      Center(
+                        child: Card(
+                          child: Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                        ),
+                      ),
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(Constants.radiusSmall),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.fullscreen, color: ColorResource.primaryDark),
+                          onPressed: _openFullScreenMap,
+                          tooltip: 'Full Screen Map',
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 10,
+                      right: 10,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildMapControlButton(
+                            icon: Icons.add,
+                            onPressed: () {
+                              final currentZoom = _mapController.camera.zoom;
+                              _mapController.move(_selectedLocation ?? _defaultLocation, currentZoom + 1);
+                            },
+                            tooltip: 'Zoom In',
+                          ),
+                          const SizedBox(height: 8),
+                          _buildMapControlButton(
+                            icon: Icons.remove,
+                            onPressed: () {
+                              final currentZoom = _mapController.camera.zoom;
+                              _mapController.move(_selectedLocation ?? _defaultLocation, currentZoom - 1);
+                            },
+                            tooltip: 'Zoom Out',
+                          ),
+                          const SizedBox(height: 8),
+                          _buildMapControlButton(
+                            icon: Icons.my_location,
+                            onPressed: _isLoadingLocation ? null : _getCurrentLocation,
+                            tooltip: 'My Location',
+                            isLoading: _isLoadingLocation,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            
             _buildTextField(
               controller: _nameController,
               label: 'Full Name *',
@@ -158,6 +353,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
                 ),
               ],
             ),
+
             const SizedBox(height: 20),
             
             SwitchListTile(
@@ -232,6 +428,78 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
     );
   }
 
+  Widget _buildMapControlButton({
+    required IconData icon,
+    required VoidCallback? onPressed,
+    required String tooltip,
+    bool isLoading = false,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(Constants.radiusSmall),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: IconButton(
+        icon: isLoading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(icon, color: ColorResource.primaryDark),
+        onPressed: onPressed,
+        tooltip: tooltip,
+        constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+        padding: EdgeInsets.zero,
+      ),
+    );
+  }
+
+  Future<void> _getCurrentLocation() async {
+    setState(() => _isLoadingLocation = true);
+    try {
+      bool serviceEnabled = await _locationService.serviceEnabled();
+      if (!serviceEnabled) {
+        serviceEnabled = await _locationService.requestService();
+        if (!serviceEnabled) {
+          return;
+        }
+      }
+
+      loc.PermissionStatus permissionGranted = await _locationService.hasPermission();
+      if (permissionGranted == loc.PermissionStatus.denied) {
+        permissionGranted = await _locationService.requestPermission();
+        if (permissionGranted != loc.PermissionStatus.granted) {
+          return;
+        }
+      }
+
+      final locationData = await _locationService.getLocation();
+      if (locationData.latitude != null && locationData.longitude != null) {
+        final newLocation = LatLng(locationData.latitude!, locationData.longitude!);
+        _mapController.move(newLocation, 16.0);
+        setState(() {
+          _selectedLocation = newLocation;
+        });
+        _getAddressFromLatLng(newLocation);
+      }
+    } catch (e) {
+      debugPrint('Error getting location: $e');
+      Get.snackbar('Error', 'Could not fetch current location');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingLocation = false);
+      }
+    }
+  }
+
   Future<void> _saveAddress() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -257,6 +525,8 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
         city: _cityController.text.trim(),
         postalCode: _postalCodeController.text.trim(),
         isDefault: _isDefault,
+        latitude: _selectedLocation?.latitude,
+        longitude: _selectedLocation?.longitude,
       );
 
       if (widget.address == null) {

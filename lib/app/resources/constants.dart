@@ -4,6 +4,13 @@ import 'package:appwrite_user_app/app/resources/images.dart';
 class Constants {
 
   static const String appName = 'Food User';
+  static const String packageName = 'com.example.appwrite_user_app';
+
+  static const String defaultMapTheme = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+  static const String lightMapTheme = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
+  static const String streetMapTheme = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
+  static const String satelliteMapTheme = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+  // static const String darkMapTheme = 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png';
 
   static double fontSizeExtraSmall = 10;
   static double fontSizeSmall = 12;

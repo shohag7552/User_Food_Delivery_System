@@ -288,6 +288,18 @@ Future<void> _setupAddresses(Databases db) async {
       xrequired: false,
       xdefault: false,
     ),
+    () => db.createFloatAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.addressesCollection,
+      key: 'latitude',
+      xrequired: false,
+    ),
+    () => db.createFloatAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.addressesCollection,
+      key: 'longitude',
+      xrequired: false,
+    ),
   ], [
     Permission.read(Role.users()),
     Permission.create(Role.users()),

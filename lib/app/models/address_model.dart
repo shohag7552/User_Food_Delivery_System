@@ -8,6 +8,8 @@ class AddressModel {
   final String city;
   final String postalCode;
   final bool isDefault;
+  final double? latitude;
+  final double? longitude;
 
   AddressModel({
     required this.id,
@@ -19,6 +21,8 @@ class AddressModel {
     required this.city,
     required this.postalCode,
     this.isDefault = false,
+    this.latitude,
+    this.longitude,
   });
 
   // Get full address as single string
@@ -41,6 +45,8 @@ class AddressModel {
     String? city,
     String? postalCode,
     bool? isDefault,
+    double? latitude,
+    double? longitude,
   }) {
     return AddressModel(
       id: id ?? this.id,
@@ -52,6 +58,8 @@ class AddressModel {
       city: city ?? this.city,
       postalCode: postalCode ?? this.postalCode,
       isDefault: isDefault ?? this.isDefault,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
     );
   }
 
@@ -66,6 +74,8 @@ class AddressModel {
       city: json['city'] ?? '',
       postalCode: json['postal_code'] ?? '',
       isDefault: json['is_default'] ?? false,
+      latitude: json['latitude'] != null ? (json['latitude'] as num).toDouble() : null,
+      longitude: json['longitude'] != null ? (json['longitude'] as num).toDouble() : null,
     );
   }
 
@@ -79,6 +89,8 @@ class AddressModel {
       'city': city,
       'postal_code': postalCode,
       'is_default': isDefault,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
     };
   }
 }
