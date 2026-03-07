@@ -6,6 +6,10 @@ class Constants {
   static const String appName = 'Food User';
   static const String packageName = 'com.example.appwrite_user_app';
 
+  // Stripe Keys (To be replaced with actual keys by user)
+  static const String stripePublishableKey = 'pk_test_YOUR_STRIPE_PUBLISHABLE_KEY';
+  static const String stripeBackendUrl = 'YOUR_BACKEND_ENDPOINT/create-payment-intent';
+
   static const String defaultMapTheme = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
   static const String lightMapTheme = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
   static const String streetMapTheme = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';

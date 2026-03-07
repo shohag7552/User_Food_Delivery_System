@@ -4,12 +4,17 @@ import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/messages.dart';
 import 'package:appwrite_user_app/global.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:get/get.dart';
 
 import 'app/resources/theme.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Stripe
+  Stripe.publishableKey = Constants.stripePublishableKey;
+  
   Global.init().then((languages) => runApp(MyApp(languages: languages)));
 }
 

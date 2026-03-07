@@ -59,6 +59,8 @@ dependencies:
   geocoding: ^4.0.0
   location: ^8.0.1
 
+  flutter_stripe: ^12.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

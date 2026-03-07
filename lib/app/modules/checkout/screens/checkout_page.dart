@@ -16,6 +16,7 @@ import 'package:appwrite_user_app/app/modules/coupons/widgets/coupon_selection_b
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:appwrite_user_app/app/services/stripe_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -689,31 +690,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
           RadioListTile<String>(
             value: 'card',
             groupValue: _selectedPaymentMethod,
-            onChanged: null, // Disabled
+            onChanged: (value) => setState(() => _selectedPaymentMethod = value!),
             title: Row(
               children: [
-                Icon(Icons.credit_card, color: ColorResource.textLight),
+                Icon(Icons.credit_card, color: _selectedPaymentMethod == 'card' ? ColorResource.primaryDark : ColorResource.textLight),
                 const SizedBox(width: 12),
                 Text(
                   'Credit/Debit Card',
                   style: poppinsMedium.copyWith(
                     fontSize: Constants.fontSizeDefault,
-                    color: ColorResource.textLight,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: ColorResource.textLight.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'Soon',
-                    style: poppinsRegular.copyWith(
-                      fontSize: 10,
-                      color: ColorResource.textSecondary,
-                    ),
+                    color: _selectedPaymentMethod == 'card' ? ColorResource.textPrimary : ColorResource.textLight,
                   ),
                 ),
               ],
@@ -722,9 +708,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
               'Pay online securely',
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeSmall,
-                color: ColorResource.textLight,
+                color: _selectedPaymentMethod == 'card' ? ColorResource.textSecondary : ColorResource.textLight,
               ),
             ),
+            activeColor: ColorResource.primaryDark,
           ),
         ],
       ),
@@ -935,7 +922,22 @@ class _CheckoutPageState extends State<CheckoutPage> {
         throw Exception('User not logged in');
       }
 
-      // Place order
+      // Handle Stripe payment if card is selected
+      if (_selectedPaymentMethod == 'card') {
+        final email = await authController.getUserEmail();
+        // Ensure amount is cast/formatted to support your backend (e.g., handles decimals)
+        final paymentSuccess = await StripeService.instance.makePayment(
+          total,
+          'usd', // Change this to your desired currency code, e.g., 'bdt', 'inr', 'eur'
+          email,
+        );
+
+        if (!paymentSuccess) {
+           throw Exception('Payment failed or was canceled by the user.');
+        }
+      }
+
+      // Proceed to Appwrite database order placement
       final result = await orderController.placeOrder(
         customerId: userId,
         address: _selectedAddress!,
