@@ -19,6 +19,7 @@ import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:appwrite_user_app/app/services/stripe_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:appwrite_user_app/app/enums/payment_method_enum.dart';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -29,7 +30,7 @@ class CheckoutPage extends StatefulWidget {
 
 class _CheckoutPageState extends State<CheckoutPage> {
   final _instructionsController = TextEditingController();
-  String _selectedPaymentMethod = 'cod';
+  PaymentMethod _selectedPaymentMethod = PaymentMethod.cod;
   bool _showAllItems = false;
   bool _isPriceExpanded = false;
   AddressModel? _selectedAddress;
@@ -664,8 +665,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ),
           ),
           const Divider(height: 1),
-          RadioListTile<String>(
-            value: 'cod',
+          RadioListTile<PaymentMethod>(
+            value: PaymentMethod.cod,
             groupValue: _selectedPaymentMethod,
             onChanged: (value) => setState(() => _selectedPaymentMethod = value!),
             title: Row(
@@ -687,28 +688,54 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ),
             activeColor: ColorResource.primaryDark,
           ),
-          RadioListTile<String>(
-            value: 'card',
+          RadioListTile<PaymentMethod>(
+            value: PaymentMethod.online,
             groupValue: _selectedPaymentMethod,
             onChanged: (value) => setState(() => _selectedPaymentMethod = value!),
             title: Row(
               children: [
-                Icon(Icons.credit_card, color: _selectedPaymentMethod == 'card' ? ColorResource.primaryDark : ColorResource.textLight),
+                Icon(Icons.credit_card, color: _selectedPaymentMethod == PaymentMethod.online ? ColorResource.primaryDark : ColorResource.textLight),
                 const SizedBox(width: 12),
                 Text(
-                  'Credit/Debit Card',
+                  'Online Payment',
                   style: poppinsMedium.copyWith(
                     fontSize: Constants.fontSizeDefault,
-                    color: _selectedPaymentMethod == 'card' ? ColorResource.textPrimary : ColorResource.textLight,
+                    color: _selectedPaymentMethod == PaymentMethod.online ? ColorResource.textPrimary : ColorResource.textLight,
                   ),
                 ),
               ],
             ),
             subtitle: Text(
-              'Pay online securely',
+              'Pay securely online via Stripe',
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeSmall,
-                color: _selectedPaymentMethod == 'card' ? ColorResource.textSecondary : ColorResource.textLight,
+                color: _selectedPaymentMethod == PaymentMethod.online ? ColorResource.textSecondary : ColorResource.textLight,
+              ),
+            ),
+            activeColor: ColorResource.primaryDark,
+          ),
+          RadioListTile<PaymentMethod>(
+            value: PaymentMethod.wallet,
+            groupValue: _selectedPaymentMethod,
+            onChanged: (value) => setState(() => _selectedPaymentMethod = value!),
+            title: Row(
+              children: [
+                Icon(Icons.account_balance_wallet, color: _selectedPaymentMethod == PaymentMethod.wallet ? ColorResource.primaryDark : ColorResource.textLight),
+                const SizedBox(width: 12),
+                Text(
+                  'Wallet',
+                  style: poppinsMedium.copyWith(
+                    fontSize: Constants.fontSizeDefault,
+                    color: _selectedPaymentMethod == PaymentMethod.wallet ? ColorResource.textPrimary : ColorResource.textLight,
+                  ),
+                ),
+              ],
+            ),
+            subtitle: Text(
+              'Pay from your wallet balance',
+              style: poppinsRegular.copyWith(
+                fontSize: Constants.fontSizeSmall,
+                color: _selectedPaymentMethod == PaymentMethod.wallet ? ColorResource.textSecondary : ColorResource.textLight,
               ),
             ),
             activeColor: ColorResource.primaryDark,
@@ -922,8 +949,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
         throw Exception('User not logged in');
       }
 
-      // Handle Stripe payment if card is selected
-      if (_selectedPaymentMethod == 'card') {
+      // Handle Stripe payment if online is selected
+      if (_selectedPaymentMethod == PaymentMethod.online) {
         final email = await authController.getUserEmail();
         // Ensure amount is cast/formatted to support your backend (e.g., handles decimals)
         final paymentSuccess = await StripeService.instance.makePayment(
@@ -944,7 +971,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         cartItems: cartController.cartItems,
         totalAmount: total,
         deliveryFee: deliveryFee,
-        paymentMethod: _selectedPaymentMethod,
+        paymentMethod: _selectedPaymentMethod.name,
         deliveryInstructions: _instructionsController.text.trim(),
         deliveryType: _deliveryType,
         scheduledDate: _selectedDate,
