@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:appwrite/appwrite.dart';
+import 'package:appwrite/enums.dart';
 import 'package:appwrite/models.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
@@ -381,36 +382,35 @@ class AppwriteService {
     }
   }
 
-  Future<bool> sendNotificationToUser({required String userId, required String title, required String message}) async {
+  Future<Map<String, dynamic>?> requestStripPayment({required int amount, required String currency, required String userEmail}) async {
     // Ensure you have initialized 'client' somewhere globally or pass it in
-    Functions functions = Functions(client);
+    // Functions functions = Functions(client);
 
     try {
-      print("====> Requesting Server to send notification...");
+      print("====> Requesting Server to send Stripe payment...");
 
-      // 🚀 CORRECT WAY: Trigger the Appwrite Function
-      // The function has the API Key with permission to send messages.
+      /// Executing the serverless function directly via the Appwrite SDK
       final execution = await functions.createExecution(
-        functionId: 'place_order', // Use your deployed Function ID here
+        functionId: AppwriteConfig.stripePaymentFunctionId,
         body: jsonEncode({
-          "userId": userId,
-          "title": title,
-          "message": message,
-          "orderId": "1223" // Example order ID
+          'amount': amount,
+          'currency': currency,
+          'email': userEmail,
         }),
+        // body: jsonEncode({'amount': 1500}), // $15.00
       );
 
-      if (execution.status == 'completed') {
-        print("✅ Notification request sent to server!");
-        return true;
+      if (execution.status == ExecutionStatus.completed) {
+        print("✅ Stripe payment request sent to server!");
+        return jsonDecode(execution.responseBody);
       } else {
         print("⚠️ Function failed: ${execution.responseBody}");
-        return false;
+        return null;
       }
 
     } catch (e) {
-      print("❌ Failed to trigger notification: $e");
-      return false;
+      print("❌ Failed to trigger Stripe payment function: $e");
+      return null;
     }
   }
 

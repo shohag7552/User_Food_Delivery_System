@@ -39,7 +39,7 @@ class BannerController extends GetxController implements GetxService {
     }
   }
 
-  Future<void> sendNotification() async {
-    await bannerRepoInterface.sendNotification();
-  }
+  // Future<void> sendNotification() async {
+  //   await bannerRepoInterface.sendNotification();
+  // }
 }
