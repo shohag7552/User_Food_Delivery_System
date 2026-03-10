@@ -19,14 +19,18 @@ class Global {
     WidgetsFlutterBinding.ensureInitialized();
     // HttpOverrides.global = MyHttpOverrides();
 
-    await Firebase.initializeApp(
-      options: const FirebaseOptions(
-        apiKey: 'AIzaSyC6vjmdqwOy4Yz9SHQ-OLw5TgDTKTpNW-k',
-        appId: '1:660606682501:android:5bb210b0bcaefc5f27b0ec',
-        messagingSenderId: '660606682501',
-        projectId: 'food-app-c2fe8',
-      ),
-    );
+    if(Platform.isAndroid) {
+      await Firebase.initializeApp(
+        options: const FirebaseOptions(
+          apiKey: 'AIzaSyC6vjmdqwOy4Yz9SHQ-OLw5TgDTKTpNW-k',
+          appId: '1:660606682501:android:5bb210b0bcaefc5f27b0ec',
+          messagingSenderId: '660606682501',
+          projectId: 'food-app-c2fe8',
+        ),
+      );
+    } else {
+      await Firebase.initializeApp();
+    }
     try{
       final RemoteMessage? remoteMessage = await FirebaseMessaging.instance.getInitialMessage();
       if (remoteMessage != null) {

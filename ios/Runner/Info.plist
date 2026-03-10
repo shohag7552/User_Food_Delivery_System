@@ -45,5 +45,15 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access to scan your card and capture profile photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs photo library access to select profile and product images.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs location access to find nearby restaurants and deliver to your address.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs location access to find nearby restaurants and deliver to your address.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs location access to find nearby restaurants and deliver to your address.</string>
 </dict>
 </plist>

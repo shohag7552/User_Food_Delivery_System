@@ -9,13 +9,13 @@ import 'package:get/get.dart';
 
 import 'app/resources/theme.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize Stripe
   Stripe.publishableKey = Constants.stripePublishableKey;
   
-  Global.init().then((languages) => runApp(MyApp(languages: languages)));
+  await Global.init().then((languages) => runApp(MyApp(languages: languages)));
 }
 
 class MyApp extends StatelessWidget {
