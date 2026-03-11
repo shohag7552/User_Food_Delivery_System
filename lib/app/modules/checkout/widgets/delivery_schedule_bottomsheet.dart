@@ -61,17 +61,17 @@ class _DeliveryScheduleBottomSheetState
         'type': 'now',
         'date': null,
         'timeSlot': null,
-        'displayText': 'ASAP (30-45 mins)',
+        'displayText': 'asap_mins'.tr,
       });
     } else {
       if (_selectedDate == null || _selectedTimeSlot == null) {
-        customToster('Please select both date and time slot', isSuccess: false);
+        customToster('please_select_date_time'.tr, isSuccess: false);
         return;
       }
 
       final dateStr = _selectedDate!.day == DateTime.now().day
-          ? 'Today'
-          : 'Tomorrow';
+          ? 'today'.tr
+          : 'tomorrow'.tr;
 
       Navigator.pop(context, {
         'type': 'schedule',
@@ -116,7 +116,7 @@ class _DeliveryScheduleBottomSheetState
                     children: [
                       // Delivery type selection
                       Text(
-                        'Select Delivery Time',
+                        'select_delivery_time'.tr,
                         style: poppinsBold.copyWith(
                           fontSize: Constants.fontSizeLarge,
                           color: ColorResource.textPrimary,
@@ -127,10 +127,10 @@ class _DeliveryScheduleBottomSheetState
                       // Now option
                       _buildDeliveryOption(
                         type: 'now',
-                        title: 'Deliver Now',
+                        title: 'deliver_now'.tr,
                         subtitle: isStoreOpen
-                            ? 'ASAP (30-45 mins)'
-                            : 'Store Closed',
+                            ? 'asap_mins'.tr
+                            : 'store_closed'.tr,
                         icon: Icons.flash_on_rounded,
                         isAvailable: isStoreOpen,
                       ),
@@ -139,8 +139,8 @@ class _DeliveryScheduleBottomSheetState
                       // Schedule option
                       _buildDeliveryOption(
                         type: 'schedule',
-                        title: 'Schedule Delivery',
-                        subtitle: 'Pick a specific time',
+                        title: 'schedule_delivery'.tr,
+                        subtitle: 'pick_specific_time'.tr,
                         icon: Icons.calendar_today_rounded,
                         isAvailable: true,
                       ),
@@ -211,7 +211,7 @@ class _DeliveryScheduleBottomSheetState
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Delivery Schedule',
+                  'delivery_schedule'.tr,
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeExtraLarge,
                     color: ColorResource.textPrimary,
@@ -332,7 +332,7 @@ class _DeliveryScheduleBottomSheetState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Select Day',
+          'select_day'.tr,
           style: poppinsBold.copyWith(
             fontSize: Constants.fontSizeDefault,
             color: ColorResource.textPrimary,
@@ -343,7 +343,7 @@ class _DeliveryScheduleBottomSheetState
         if (_selectedDate != null) ...[
           const SizedBox(height: 24),
           Text(
-            'Select Time Slot',
+            'select_time_slot'.tr,
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeDefault,
               color: ColorResource.textPrimary,
@@ -362,9 +362,9 @@ class _DeliveryScheduleBottomSheetState
 
     return Column(
       children: [
-        _buildDayCard(today, 'Today', businessSetup),
+        _buildDayCard(today, 'today'.tr, businessSetup),
         const SizedBox(height: 12),
-        _buildDayCard(tomorrow, 'Tomorrow', businessSetup),
+        _buildDayCard(tomorrow, 'tomorrow'.tr, businessSetup),
       ],
     );
   }
@@ -470,21 +470,21 @@ class _DeliveryScheduleBottomSheetState
   }
 
   String _getAvailabilityText(DateTime date, dynamic businessSetup) {
-    if (businessSetup == null) return 'Check store hours';
+    if (businessSetup == null) return 'check_store_hours'.tr;
 
     final dayOfWeek = date.weekday % 7;
     final daySchedule = businessSetup.businessHours.getDay(dayOfWeek);
 
     if (!daySchedule.isOpen || daySchedule.timeSlots.isEmpty) {
-      return 'Store closed';
+      return 'store_closed'.tr;
     }
 
     final slots = _generateTimeSlots(date, businessSetup);
     if (slots.isEmpty) {
-      return 'No slots available';
+      return 'no_slots_available'.tr;
     }
 
-    return '${slots.length} slots available';
+    return '${slots.length} ${'slots_available'.tr}';
   }
 
   Widget _buildTimeSlots(dynamic businessSetup) {
@@ -505,7 +505,7 @@ class _DeliveryScheduleBottomSheetState
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'No time slots available for this day',
+                'no_time_slots_today'.tr,
                 style: poppinsRegular.copyWith(
                   fontSize: Constants.fontSizeSmall,
                   color: Colors.orange[900],
@@ -580,7 +580,7 @@ class _DeliveryScheduleBottomSheetState
               ),
             ),
             child: Text(
-              'Confirm Schedule',
+              'confirm_schedule'.tr,
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeLarge,
                 color: Colors.white,

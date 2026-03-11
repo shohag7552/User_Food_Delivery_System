@@ -39,21 +39,21 @@ class _CouponsScreenState extends State<CouponsScreen> {
           borderRadius: BorderRadius.circular(16),
         ),
         title: Text(
-          'Delete Coupon',
+          'delete_coupon'.tr,
           style: poppinsBold.copyWith(
             fontSize: 18,
             color: Theme.of(context).primaryColor,
           ),
         ),
         content: Text(
-          'Are you sure you want to delete coupon "$code"?',
+          '${'are_you_sure_delete_coupon'.tr} "$code"?',
           style: poppinsRegular.copyWith(fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Cancel',
+              'cancel'.tr,
               style: poppinsMedium.copyWith(
                 color: Colors.grey[600],
               ),
@@ -65,7 +65,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
               Navigator.pop(context);
             },
             child: Text(
-              'Delete',
+              'delete'.tr,
               style: poppinsMedium.copyWith(
                 color: Colors.red,
               ),
@@ -81,7 +81,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: CustomAppbar(
-        title: widget.isSelectionMode ? 'Select Coupon' : 'Coupons',
+        title: widget.isSelectionMode ? 'select_coupon'.tr : 'coupons'.tr,
       ),
       body: GetBuilder<CouponController>(
         builder: (controller) {
@@ -103,7 +103,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No Coupons Yet',
+                    'no_coupons_yet'.tr,
                     style: poppinsBold.copyWith(
                       fontSize: 20,
                       color: Colors.grey[600],
@@ -111,7 +111,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Tap the + button to add your first coupon',
+                    'tap_to_add_coupon'.tr,
                     style: poppinsRegular.copyWith(
                       fontSize: 14,
                       color: Colors.grey[500],
@@ -159,7 +159,7 @@ class _CouponCard extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Coupon code copied to clipboard',
+          'coupon_code_copied'.tr,
           style: poppinsMedium.copyWith(color: Colors.white),
         ),
         backgroundColor: Theme.of(context).primaryColor,

@@ -177,8 +177,8 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
                           Expanded(
                             child: Text(
                               widget.coupon == null
-                                  ? 'Add Coupon'
-                                  : 'Edit Coupon',
+                                  ? 'add_coupon'.tr
+                                  : 'edit_coupon'.tr,
                               style: poppinsBold.copyWith(
                                 fontSize: 20,
                                 color: Theme.of(context).primaryColor,
@@ -197,7 +197,7 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
                       // Coupon Code
                       CustomTextField(
                         controller: _codeController,
-                        label: 'Coupon Code *',
+                        label: '${'coupon_code'.tr} *',
                         hintText: 'eg_save20'.tr,
                         icon: Icons.confirmation_number_rounded,
                         validator: couponController.validateCode,
@@ -208,7 +208,7 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
                       // Description
                       CustomTextField(
                         controller: _descriptionController,
-                        label: 'Description *',
+                        label: '${'description'.tr} *',
                         hintText: 'eg_20_percent_off'.tr,
                         icon: Icons.description_rounded,
                         validator: couponController.validateDescription,
@@ -218,7 +218,7 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
 
                       // Discount Type Selector
                       Text(
-                        'Discount Type *',
+                        '${'discount_type'.tr} *',
                         style: poppinsMedium.copyWith(
                           fontSize: Constants.fontSizeDefault,
                           color: Theme.of(context).primaryColor,
@@ -229,7 +229,7 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
                         children: [
                           Expanded(
                             child: _DiscountTypeButton(
-                              label: 'Percentage',
+                              label: 'percentage'.tr,
                               isSelected: couponController.discountType == 'percentage',
                               icon: Icons.percent_rounded,
                               onTap: () => couponController.setDiscountType('percentage'),
@@ -238,7 +238,7 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: _DiscountTypeButton(
-                              label: 'Fixed Amount',
+                              label: 'fixed_amount'.tr,
                               isSelected: couponController.discountType == 'fixed',
                               icon: Icons.attach_money_rounded,
                               onTap: () => couponController.setDiscountType('fixed'),
@@ -252,11 +252,11 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
                       CustomTextField(
                         controller: _discountValueController,
                         label: couponController.discountType == 'percentage'
-                            ? 'Discount Percentage *'
-                            : 'Discount Amount *',
+                            ? '${'discount_percentage'.tr} *'
+                            : '${'discount_amount'.tr} *',
                         hintText: couponController.discountType == 'percentage'
-                            ? 'e.g., 20'
-                            : 'e.g., 10.00',
+                            ? 'eg_20'.tr
+                            : 'eg_10'.tr,
                         icon: couponController.discountType == 'percentage'
                             ? Icons.percent_rounded
                             : Icons.attach_money_rounded,
@@ -268,7 +268,7 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
                       // Min Order Amount (Optional)
                       CustomTextField(
                         controller: _minOrderController,
-                        label: 'Minimum Order Amount',
+                        label: 'min_order_amount'.tr,
                         hintText: 'eg_50_optional'.tr,
                         icon: Icons.shopping_cart_rounded,
                         keyboardType: TextInputType.number,
@@ -282,7 +282,7 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
                           children: [
                             CustomTextField(
                               controller: _maxDiscountController,
-                              label: 'Maximum Discount Cap',
+                              label: 'max_discount_cap'.tr,
                               hintText: 'eg_100_optional'.tr,
                               icon: Icons.discount_rounded,
                               keyboardType: TextInputType.number,
@@ -295,7 +295,7 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
                       // Usage Limit
                       CustomTextField(
                         controller: _usageLimitController,
-                        label: 'Usage Limit',
+                        label: 'usage_limit'.tr,
                         hintText: 'eg_100_unlimited'.tr,
                         icon: Icons.people_rounded,
                         keyboardType: TextInputType.number,
@@ -305,7 +305,7 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
 
                       // Validity Period
                       Text(
-                        'Validity Period *',
+                        '${'validity_period'.tr} *',
                         style: poppinsMedium.copyWith(
                           fontSize: Constants.fontSizeDefault,
                           color: Theme.of(context).primaryColor,
@@ -316,7 +316,7 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
                         children: [
                           Expanded(
                             child: _DateSelector(
-                              label: 'Valid From',
+                              label: 'valid_from'.tr,
                               date: _validFrom,
                               onTap: () => _selectDate(context, true),
                             ),
@@ -324,7 +324,7 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: _DateSelector(
-                              label: 'Valid Until',
+                              label: 'valid_until'.tr,
                               date: _validUntil,
                               onTap: () => _selectDate(context, false),
                             ),
@@ -349,7 +349,7 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'Active Status',
+                                'active_status'.tr,
                                 style: poppinsMedium.copyWith(
                                   fontSize: Constants.fontSizeDefault,
                                   color: Theme.of(context).primaryColor,
@@ -383,7 +383,7 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
                                 ),
                               ),
                               child: Text(
-                                'Cancel',
+                                'cancel'.tr,
                                 style: poppinsMedium.copyWith(
                                   fontSize: Constants.fontSizeDefault,
                                   color: Colors.grey[700],
@@ -398,7 +398,7 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
                               elevation: 0,
                               onPressed: couponController.isLoading ? null : _saveCoupon,
                               isLoading: couponController.isLoading,
-                              buttonText: widget.coupon == null ? 'Add' : 'Update',
+                              buttonText: widget.coupon == null ? 'add'.tr : 'update'.tr,
                             ),
                           ),
                         ],
@@ -520,7 +520,7 @@ class _DateSelector extends StatelessWidget {
                 Text(
                   date != null
                       ? '${date!.day}/${date!.month}/${date!.year}'
-                      : 'Select Date',
+                      : 'select_date'.tr,
                   style: poppinsMedium.copyWith(
                     fontSize: 14,
                     color: Theme.of(context).primaryColor,

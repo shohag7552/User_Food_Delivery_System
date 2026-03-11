@@ -23,7 +23,7 @@ class CouponDetailsScreen extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Coupon code copied to clipboard',
+          'coupon_code_copied'.tr,
           style: poppinsMedium.copyWith(color: Colors.white),
         ),
         backgroundColor: Theme.of(context).primaryColor,
@@ -54,7 +54,7 @@ class CouponDetailsScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: const CustomAppbar(title: 'Coupon Details'),
+      appBar: CustomAppbar(title: 'coupon_details'.tr),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -103,7 +103,7 @@ class CouponDetailsScreen extends StatelessWidget {
                     onPressed: () => _copyCouponCode(context),
                     icon: const Icon(Icons.copy_rounded, size: 18),
                     label: Text(
-                      'Copy Code',
+                      'copy_code'.tr,
                       style: poppinsMedium.copyWith(fontSize: 14),
                     ),
                     style: ElevatedButton.styleFrom(
@@ -137,31 +137,31 @@ class CouponDetailsScreen extends StatelessWidget {
                 children: [
                   if (!coupon.isActive)
                     _StatusBadge(
-                      label: 'Inactive',
+                      label: 'inactive'.tr,
                       color: Colors.grey,
                       icon: Icons.pause_circle_rounded,
                     ),
                   if (isExpired)
                     _StatusBadge(
-                      label: 'Expired',
+                      label: 'expired'.tr,
                       color: Colors.red,
                       icon: Icons.error_rounded,
                     ),
                   if (isNotYetValid)
                     _StatusBadge(
-                      label: 'Not Yet Valid',
+                      label: 'not_yet_valid'.tr,
                       color: Colors.orange,
                       icon: Icons.schedule_rounded,
                     ),
                   if (isUsageLimitReached)
                     _StatusBadge(
-                      label: 'Limit Reached',
+                      label: 'limit_reached'.tr,
                       color: Colors.red,
                       icon: Icons.block_rounded,
                     ),
                   if (isValid)
                     _StatusBadge(
-                      label: 'Active',
+                      label: 'active_status'.tr,
                       color: Colors.green,
                       icon: Icons.check_circle_rounded,
                     ),
@@ -172,7 +172,7 @@ class CouponDetailsScreen extends StatelessWidget {
             // Description
             _buildSection(
               context,
-              title: 'Description',
+              title: 'description'.tr,
               icon: Icons.description_rounded,
               child: Text(
                 coupon.description,
@@ -187,26 +187,26 @@ class CouponDetailsScreen extends StatelessWidget {
             // Discount Information
             _buildSection(
               context,
-              title: 'Discount Information',
+              title: 'discount_information'.tr,
               icon: Icons.discount_rounded,
               child: Column(
                 children: [
                   _buildInfoRow(
                     context,
-                    'Discount Type',
-                    coupon.discountType == 'percentage' ? 'Percentage' : 'Fixed Amount',
+                    'discount_type'.tr,
+                    coupon.discountType == 'percentage' ? 'percentage'.tr : 'fixed_amount'.tr,
                   ),
                   const SizedBox(height: 12),
                   _buildInfoRow(
                     context,
-                    'Discount Value',
+                    'discount_value'.tr,
                     coupon.discountDisplay,
                   ),
                   if (coupon.maxDiscount != null) ...[
                     const SizedBox(height: 12),
                     _buildInfoRow(
                       context,
-                      'Maximum Discount Cap',
+                      'max_discount_cap'.tr,
                       CurrencyHelper.formatAmount(coupon.maxDiscount!),
                     ),
                   ],
@@ -217,21 +217,21 @@ class CouponDetailsScreen extends StatelessWidget {
             // Conditions
             _buildSection(
               context,
-              title: 'Conditions',
+              title: 'conditions'.tr,
               icon: Icons.rule_rounded,
               child: Column(
                 children: [
                   if (coupon.minOrderAmount != null)
                     _buildInfoRow(
                       context,
-                      'Minimum Order Amount',
+                      'min_order_amount'.tr,
                       CurrencyHelper.formatAmount(coupon.minOrderAmount!),
                     )
                   else
                     _buildInfoRow(
                       context,
-                      'Minimum Order Amount',
-                      'No minimum required',
+                      'min_order_amount'.tr,
+                      'no_minimum_required'.tr,
                     ),
                 ],
               ),
@@ -241,7 +241,7 @@ class CouponDetailsScreen extends StatelessWidget {
             if (coupon.usageLimit != null)
               _buildSection(
                 context,
-                title: 'Usage Statistics',
+                title: 'usage_statistics'.tr,
                 icon: Icons.people_rounded,
                 child: Column(
                   children: [
@@ -249,7 +249,7 @@ class CouponDetailsScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Times Used',
+                          'times_used'.tr,
                           style: poppinsRegular.copyWith(
                             fontSize: 14,
                             color: Colors.grey[700],
@@ -284,7 +284,7 @@ class CouponDetailsScreen extends StatelessWidget {
             else
               _buildSection(
                 context,
-                title: 'Usage Statistics',
+                title: 'usage_statistics'.tr,
                 icon: Icons.people_rounded,
                 child: Column(
                   children: [
@@ -292,7 +292,7 @@ class CouponDetailsScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Times Used',
+                          'times_used'.tr,
                           style: poppinsRegular.copyWith(
                             fontSize: 14,
                             color: Colors.grey[700],
@@ -309,7 +309,7 @@ class CouponDetailsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'No usage limit',
+                      'no_usage_limit'.tr,
                       style: poppinsRegular.copyWith(
                         fontSize: 12,
                         color: Colors.grey[500],
@@ -322,19 +322,19 @@ class CouponDetailsScreen extends StatelessWidget {
             // Validity Period
             _buildSection(
               context,
-              title: 'Validity Period',
+              title: 'validity_period'.tr,
               icon: Icons.calendar_today_rounded,
               child: Column(
                 children: [
                   _buildInfoRow(
                     context,
-                    'Valid From',
+                    'valid_from'.tr,
                     _formatDate(coupon.validFrom),
                   ),
                   const SizedBox(height: 12),
                   _buildInfoRow(
                     context,
-                    'Valid Until',
+                    'valid_until'.tr,
                     _formatDate(coupon.validUntil),
                   ),
                   const SizedBox(height: 12),
@@ -342,7 +342,7 @@ class CouponDetailsScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Days Remaining',
+                        'days_remaining'.tr,
                         style: poppinsRegular.copyWith(
                           fontSize: 14,
                           color: Colors.grey[700],
@@ -350,10 +350,10 @@ class CouponDetailsScreen extends StatelessWidget {
                       ),
                       Text(
                         isExpired
-                            ? 'Expired'
+                            ? 'expired'.tr
                             : isNotYetValid
-                                ? 'Not yet active'
-                                : '${coupon.validUntil.difference(now).inDays} days',
+                                ? 'not_yet_active'.tr
+                                : '${coupon.validUntil.difference(now).inDays} ${'days'.tr}',
                         style: poppinsBold.copyWith(
                           fontSize: 14,
                           color: isExpired
@@ -397,7 +397,7 @@ class CouponDetailsScreen extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    'Apply This Coupon',
+                    'apply_this_coupon'.tr,
                     style: poppinsBold.copyWith(
                       fontSize: 16,
                       color: Colors.white,

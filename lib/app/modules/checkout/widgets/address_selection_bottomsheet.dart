@@ -47,7 +47,7 @@ class _AddressSelectionBottomSheetState
 
   void _confirm() {
     if (_selectedAddress == null) {
-      customToster('Please select a delivery address', isSuccess: false);
+      customToster('please_select_delivery_address'.tr, isSuccess: false);
       return;
     }
     Navigator.pop(context, _selectedAddress);
@@ -92,7 +92,7 @@ class _AddressSelectionBottomSheetState
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Select Delivery Address',
+                            'select_delivery_address'.tr,
                             style: poppinsBold.copyWith(
                               fontSize: Constants.fontSizeLarge,
                               color: ColorResource.textPrimary,
@@ -167,7 +167,7 @@ class _AddressSelectionBottomSheetState
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Delivery Address',
+                  'delivery_address'.tr,
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeExtraLarge,
                     color: ColorResource.textPrimary,
@@ -252,7 +252,7 @@ class _AddressSelectionBottomSheetState
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            'DEFAULT',
+                            'default_address'.tr.toUpperCase(),
                             style: poppinsBold.copyWith(
                               fontSize: 9,
                               color: ColorResource.textWhite,
@@ -332,7 +332,7 @@ class _AddressSelectionBottomSheetState
             ),
             const SizedBox(width: 12),
             Text(
-              'Add New Address',
+              'add_new_address'.tr,
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeDefault,
                 color: ColorResource.primaryDark,
@@ -358,7 +358,7 @@ class _AddressSelectionBottomSheetState
             ),
             const SizedBox(height: 16),
             Text(
-              'No Saved Addresses',
+              'no_saved_addresses'.tr,
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeLarge,
                 color: ColorResource.textPrimary,
@@ -366,7 +366,7 @@ class _AddressSelectionBottomSheetState
             ),
             const SizedBox(height: 8),
             Text(
-              'Add your delivery address to continue',
+              'add_delivery_address_to_continue'.tr,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,
                 color: ColorResource.textSecondary,
@@ -424,7 +424,7 @@ class _AddressSelectionBottomSheetState
               ),
             ),
             child: Text(
-              'Confirm Address',
+              'confirm_address'.tr,
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeLarge,
                 color: Colors.white,

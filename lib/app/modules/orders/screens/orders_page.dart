@@ -306,7 +306,7 @@ class _OrdersPageState extends State<OrdersPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          order.orderNumber,
+                          '#${order.orderNumber}',
                           style: poppinsBold.copyWith(
                             fontSize: Constants.fontSizeDefault,
                             color: ColorResource.textPrimary,
@@ -350,7 +350,7 @@ class _OrdersPageState extends State<OrdersPage> {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    '${order.items.length} ${order.items.length == 1 ? 'Item' : 'Items'}',
+                    '${order.items.length} ${order.items.length == 1 ? 'item'.tr : 'items'.tr}',
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeLarge,
                       color: ColorResource.textPrimary,
@@ -439,43 +439,43 @@ class _OrdersPageState extends State<OrdersPage> {
         backgroundColor = Colors.orange.shade100;
         textColor = Colors.orange.shade700;
         icon = Icons.schedule;
-        label = 'Pending';
+        label = 'pending'.tr;
         break;
       case 'cooking':
         backgroundColor = Colors.blue.shade100;
         textColor = Colors.blue.shade700;
         icon = Icons.restaurant;
-        label = 'Cooking';
+        label = 'cooking'.tr;
         break;
       case 'ready':
         backgroundColor = Colors.cyan.shade100;
         textColor = Colors.cyan.shade700;
         icon = Icons.done_all;
-        label = 'Ready';
+        label = 'ready'.tr;
         break;
       case 'handover':
         backgroundColor = Colors.indigo.shade100;
         textColor = Colors.indigo.shade700;
         icon = Icons.handshake;
-        label = 'Handover';
+        label = 'handover'.tr;
         break;
       case 'on_way':
         backgroundColor = Colors.purple.shade100;
         textColor = Colors.purple.shade700;
         icon = Icons.delivery_dining;
-        label = 'On the Way';
+        label = 'on_the_way'.tr;
         break;
       case 'delivered':
         backgroundColor = Colors.green.shade100;
         textColor = Colors.green.shade700;
         icon = Icons.check_circle;
-        label = 'Delivered';
+        label = 'delivered'.tr;
         break;
       case 'cancelled':
         backgroundColor = Colors.red.shade100;
         textColor = Colors.red.shade700;
         icon = Icons.cancel;
-        label = 'Cancelled';
+        label = 'cancelled'.tr;
         break;
       default:
         backgroundColor = Colors.grey.shade100;

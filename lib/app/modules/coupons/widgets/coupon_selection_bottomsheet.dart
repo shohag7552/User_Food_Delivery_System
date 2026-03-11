@@ -40,7 +40,7 @@ class _CouponSelectionBottomSheetState
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Coupon code copied to clipboard',
+          'coupon_code_copied'.tr,
           style: poppinsMedium.copyWith(color: Colors.white),
         ),
         backgroundColor: Theme.of(context).primaryColor,
@@ -135,7 +135,7 @@ class _CouponSelectionBottomSheetState
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            'Select Coupon',
+                            'select_coupon'.tr,
                             style: poppinsBold.copyWith(
                               fontSize: Constants.fontSizeExtraLarge,
                               color: ColorResource.textPrimary,
@@ -178,7 +178,7 @@ class _CouponSelectionBottomSheetState
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'No Coupons Available',
+                              'no_coupons_available'.tr,
                               style: poppinsBold.copyWith(
                                 fontSize: Constants.fontSizeLarge,
                                 color: ColorResource.textSecondary,
@@ -186,7 +186,7 @@ class _CouponSelectionBottomSheetState
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Check back later for deals!',
+                              'check_back_later_deals'.tr,
                               style: poppinsRegular.copyWith(
                                 fontSize: Constants.fontSizeDefault,
                                 color: ColorResource.textLight,
@@ -350,7 +350,7 @@ class _CouponCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          'Valid till ${_formatDate(coupon.validUntil)}',
+                          '${'valid_till'.tr} ${_formatDate(coupon.validUntil)}',
                           style: poppinsRegular.copyWith(
                             fontSize: Constants.fontSizeExtraSmall,
                             color: ColorResource.textLight,
@@ -380,7 +380,7 @@ class _CouponCard extends StatelessWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                'Valid',
+                                'valid'.tr,
                                 style: poppinsBold.copyWith(
                                   fontSize: 10,
                                   color: Colors.green,
@@ -404,10 +404,10 @@ class _CouponCard extends StatelessWidget {
                           ),
                           child: Text(
                             isExpired
-                                ? 'Expired'
+                                ? 'expired'.tr
                                 : isNotYetValid
-                                    ? 'Not Yet Valid'
-                                    : 'Inactive',
+                                    ? 'not_yet_valid'.tr
+                                    : 'inactive'.tr,
                             style: poppinsBold.copyWith(
                               fontSize: 10,
                               color: ColorResource.error,

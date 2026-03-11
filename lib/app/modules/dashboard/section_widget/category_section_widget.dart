@@ -25,7 +25,7 @@ class CategorySectionWidget extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Menu Categories',
+                    'menu_categories'.tr,
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeExtraLarge,
                       color: ColorResource.textPrimary,
@@ -42,7 +42,7 @@ class CategorySectionWidget extends StatelessWidget {
                       );
                     },
                     child: Text(
-                      'See All',
+                      'see_all'.tr,
                       style: poppinsMedium.copyWith(
                         fontSize: Constants.fontSizeDefault,
                         color: ColorResource.primaryDark,
