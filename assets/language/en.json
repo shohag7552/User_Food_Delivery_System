@@ -392,5 +392,22 @@
   "pay_securely_online": "Pay securely online via Stripe",
   "pay_from_wallet_balance": "Pay from your wallet balance",
   "please_select_delivery_address": "Please select a delivery address",
-  "go_back_subtitle": "Return to previous screen"
+  "go_back_subtitle": "Return to previous screen",
+  "cart_with_count": "Cart",
+  "error": "Error",
+  "failed_to_load_addresses": "Failed to load addresses",
+  "failed_to_update_address": "Failed to update address",
+  "failed_to_delete_address": "Failed to delete address",
+  "failed_to_set_default_address": "Failed to set default address",
+  "please_login_to_submit_review": "Please login to submit a review",
+  "could_not_fetch_location": "Could not fetch current location",
+  "summarize_your_experience": "Summarize your experience",
+  "share_your_thoughts": "Share your thoughts about this product...",
+  "eg_save20": "e.g., SAVE20",
+  "eg_20_percent_off": "e.g., 20% off on orders above $50",
+  "eg_50_optional": "e.g., 50.00 (optional)",
+  "eg_100_optional": "e.g., 100.00 (optional)",
+  "eg_100_unlimited": "e.g., 100 (leave empty for unlimited)",
+  "completed_status": "Completed",
+  "cancelled_status": "Cancelled"
 }

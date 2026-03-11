@@ -53,7 +53,7 @@ class AddressController extends GetxController implements GetxService {
       _isLoading = false;
       update();
       log('Error fetching addresses: $e');
-      Get.snackbar('Error', 'Failed to load addresses');
+      Get.snackbar('error'.tr, 'failed_to_load_addresses'.tr);
     }
   }
 
@@ -83,7 +83,7 @@ class AddressController extends GetxController implements GetxService {
       );
     } catch (e) {
       log('Error updating address: $e');
-      Get.snackbar('Error', 'Failed to update address');
+      Get.snackbar('error'.tr, 'failed_to_update_address'.tr);
     }
   }
 
@@ -99,7 +99,7 @@ class AddressController extends GetxController implements GetxService {
       );
     } catch (e) {
       log('Error deleting address: $e');
-      Get.snackbar('Error', 'Failed to delete address');
+      Get.snackbar('error'.tr, 'failed_to_delete_address'.tr);
     }
   }
 
@@ -115,7 +115,7 @@ class AddressController extends GetxController implements GetxService {
       );
     } catch (e) {
       log('Error setting default address: $e');
-      Get.snackbar('Error', 'Failed to set default address');
+      Get.snackbar('error'.tr, 'failed_to_set_default_address'.tr);
     }
   }
 

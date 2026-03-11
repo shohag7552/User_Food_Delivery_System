@@ -392,5 +392,22 @@
   "pay_securely_online": "স্ট্রাইপের মাধ্যমে নিরাপদে অনলাইনে পেমেন্ট করুন",
   "pay_from_wallet_balance": "ওয়ালেট ব্যালেন্স থেকে পেমেন্ট করুন",
   "please_select_delivery_address": "অনুগ্রহ করে ডেলিভারি ঠিকানা নির্বাচন করুন",
-  "go_back_subtitle": "আগের স্ক্রিনে ফিরে যান"
+  "go_back_subtitle": "আগের স্ক্রিনে ফিরে যান",
+  "cart_with_count": "কার্ট",
+  "error": "ত্রুটি",
+  "failed_to_load_addresses": "ঠিকানা লোড করতে ব্যর্থ হয়েছে",
+  "failed_to_update_address": "ঠিকানা আপডেট করতে ব্যর্থ হয়েছে",
+  "failed_to_delete_address": "ঠিকানা মুছতে ব্যর্থ হয়েছে",
+  "failed_to_set_default_address": "ডিফল্ট ঠিকানা সেট করতে ব্যর্থ হয়েছে",
+  "please_login_to_submit_review": "রিভিউ জমা দিতে অনুগ্রহ করে লগইন করুন",
+  "could_not_fetch_location": "বর্তমান অবস্থান আনতে পারেনি",
+  "summarize_your_experience": "আপনার অভিজ্ঞতার সারসংক্ষেপ লিখুন",
+  "share_your_thoughts": "এই পণ্য সম্পর্কে আপনার মতামত শেয়ার করুন...",
+  "eg_save20": "যেমন, SAVE20",
+  "eg_20_percent_off": "যেমন, $50 এর বেশি অর্ডারে 20% ছাড়",
+  "eg_50_optional": "যেমন, 50.00 (ঐচ্ছিক)",
+  "eg_100_optional": "যেমন, 100.00 (ঐচ্ছিক)",
+  "eg_100_unlimited": "যেমন, 100 (আনলিমিটেডের জন্য খালি রাখুন)",
+  "completed_status": "সম্পন্ন হয়েছে",
+  "cancelled_status": "বাতিল হয়েছে"
 }

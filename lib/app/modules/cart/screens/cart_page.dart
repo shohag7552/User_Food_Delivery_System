@@ -21,7 +21,7 @@ class CartPage extends StatelessWidget {
       appBar: AppBar(
         title: GetBuilder<CartController>(
           builder: (controller) => Text(
-            'Cart (${controller.itemCount})',
+            '${'cart'.tr} (${controller.itemCount})',
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeLarge,
               color: ColorResource.textWhite,
@@ -126,7 +126,7 @@ class CartPage extends StatelessWidget {
           );
         } else if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to load product details')),
+            SnackBar(content: Text('failed_to_load_product_details'.tr)),
           );
         }
       },
@@ -329,7 +329,7 @@ class CartPage extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          'Promocode applied',
+                          'promocode_applied'.tr,
                           style: poppinsMedium.copyWith(
                             color: ColorResource.success,
                             fontSize: 13,

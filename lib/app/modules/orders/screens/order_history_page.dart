@@ -272,7 +272,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             ElevatedButton.icon(
               onPressed: () => Get.back(),
               icon: const Icon(Icons.restaurant_menu),
-              label: const Text('Browse Menu'),
+              label: Text('browse_menu'.tr),
               style: ElevatedButton.styleFrom(
                 backgroundColor: ColorResource.primaryDark,
                 foregroundColor: ColorResource.textWhite,

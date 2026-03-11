@@ -71,7 +71,7 @@ class _SubmitReviewBottomSheetState extends State<SubmitReviewBottomSheet> {
       final userName = await Get.find<AuthController>().getUserName() ?? 'User';
 
       if (userId == null) {
-        Get.snackbar('Error', 'Please login to submit a review');
+        Get.snackbar('error'.tr, 'please_login_to_submit_review'.tr);
         return;
       }
 
@@ -200,7 +200,7 @@ class _SubmitReviewBottomSheetState extends State<SubmitReviewBottomSheet> {
               TextField(
                 controller: _titleController,
                 decoration: InputDecoration(
-                  hintText: 'Summarize your experience',
+                  hintText: 'summarize_your_experience'.tr,
                   hintStyle: poppinsRegular.copyWith(
                     color: ColorResource.textLight,
                   ),
@@ -229,7 +229,7 @@ class _SubmitReviewBottomSheetState extends State<SubmitReviewBottomSheet> {
               TextField(
                 controller: _commentController,
                 decoration: InputDecoration(
-                  hintText: 'Share your thoughts about this product...',
+                  hintText: 'share_your_thoughts'.tr,
                   hintStyle: poppinsRegular.copyWith(
                     color: ColorResource.textLight,
                   ),

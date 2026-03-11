@@ -438,34 +438,34 @@ class OrderDetailPage extends StatelessWidget {
         backgroundColor = Colors.orange.shade100;
         textColor = Colors.orange.shade700;
         icon = Icons.schedule;
-        label = 'Pending';
+        label = 'pending'.tr;
         break;
       case 'cooking':
       case 'preparing':
         backgroundColor = Colors.blue.shade100;
         textColor = Colors.blue.shade700;
         icon = Icons.restaurant;
-        label = 'Preparing';
+        label = 'preparing'.tr;
         break;
       case 'delivering':
       case 'on_the_way':
         backgroundColor = Colors.purple.shade100;
         textColor = Colors.purple.shade700;
         icon = Icons.delivery_dining;
-        label = 'On the Way';
+        label = 'on_the_way'.tr;
         break;
       case 'completed':
       case 'delivered':
         backgroundColor = Colors.green.shade100;
         textColor = Colors.green.shade700;
         icon = Icons.check_circle;
-        label = 'Completed';
+        label = 'completed_status'.tr;
         break;
       case 'cancelled':
         backgroundColor = Colors.red.shade100;
         textColor = Colors.red.shade700;
         icon = Icons.cancel;
-        label = 'Cancelled';
+        label = 'cancelled_status'.tr;
         break;
       default:
         backgroundColor = Colors.grey.shade100;

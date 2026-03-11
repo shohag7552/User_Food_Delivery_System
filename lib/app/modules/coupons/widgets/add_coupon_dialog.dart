@@ -198,7 +198,7 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
                       CustomTextField(
                         controller: _codeController,
                         label: 'Coupon Code *',
-                        hintText: 'e.g., SAVE20',
+                        hintText: 'eg_save20'.tr,
                         icon: Icons.confirmation_number_rounded,
                         validator: couponController.validateCode,
                         textCapitalization: TextCapitalization.characters,
@@ -209,7 +209,7 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
                       CustomTextField(
                         controller: _descriptionController,
                         label: 'Description *',
-                        hintText: 'e.g., 20% off on orders above \$50',
+                        hintText: 'eg_20_percent_off'.tr,
                         icon: Icons.description_rounded,
                         validator: couponController.validateDescription,
                         maxLines: 2,
@@ -269,7 +269,7 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
                       CustomTextField(
                         controller: _minOrderController,
                         label: 'Minimum Order Amount',
-                        hintText: 'e.g., 50.00 (optional)',
+                        hintText: 'eg_50_optional'.tr,
                         icon: Icons.shopping_cart_rounded,
                         keyboardType: TextInputType.number,
                         validator: couponController.validateMinOrder,
@@ -283,7 +283,7 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
                             CustomTextField(
                               controller: _maxDiscountController,
                               label: 'Maximum Discount Cap',
-                              hintText: 'e.g., 100.00 (optional)',
+                              hintText: 'eg_100_optional'.tr,
                               icon: Icons.discount_rounded,
                               keyboardType: TextInputType.number,
                               validator: couponController.validateMinOrder,
@@ -296,7 +296,7 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
                       CustomTextField(
                         controller: _usageLimitController,
                         label: 'Usage Limit',
-                        hintText: 'e.g., 100 (leave empty for unlimited)',
+                        hintText: 'eg_100_unlimited'.tr,
                         icon: Icons.people_rounded,
                         keyboardType: TextInputType.number,
                         validator: couponController.validateUsageLimit,

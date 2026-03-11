@@ -200,7 +200,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
             ElevatedButton.icon(
               onPressed: _loadProducts,
               icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
+              label: Text('try_again'.tr),
               style: ElevatedButton.styleFrom(
                 backgroundColor: ColorResource.primaryDark,
                 foregroundColor: ColorResource.textWhite,
@@ -258,7 +258,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
             ElevatedButton.icon(
               onPressed: () => Get.back(),
               icon: const Icon(Icons.arrow_back),
-              label: const Text('Go Back'),
+              label: Text('go_back'.tr),
               style: ElevatedButton.styleFrom(
                 backgroundColor: ColorResource.primaryDark,
                 foregroundColor: ColorResource.textWhite,

@@ -382,7 +382,7 @@ class _AddressSelectionBottomSheetState
                 }
               },
               icon: const Icon(Icons.add, size: 20),
-              label: const Text('Add Address'),
+              label: Text('add_address'.tr),
               style: ElevatedButton.styleFrom(
                 backgroundColor: ColorResource.primaryDark,
                 foregroundColor: ColorResource.textWhite,

@@ -182,7 +182,7 @@ class _FullScreenMapPageState extends State<FullScreenMapPage> {
       }
     } catch (e) {
       debugPrint('Error getting location: $e');
-      Get.snackbar('Error', 'Could not fetch current location');
+      Get.snackbar('error'.tr, 'could_not_fetch_location'.tr);
     } finally {
       if (mounted) {
         setState(() => _isLoadingLocation = false);
