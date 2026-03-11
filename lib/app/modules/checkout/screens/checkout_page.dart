@@ -67,7 +67,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       backgroundColor: ColorResource.scaffoldBackground,
       appBar: AppBar(
         title: Text(
-          'Checkout',
+          'checkout'.tr,
           style: poppinsBold.copyWith(
             fontSize: Constants.fontSizeLarge,
             color: ColorResource.textWhite,
@@ -86,13 +86,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   Icon(Icons.shopping_cart_outlined, size: 80, color: ColorResource.textLight),
                   const SizedBox(height: 16),
                   Text(
-                    'Your cart is empty',
+                    'your_cart_is_empty'.tr,
                     style: poppinsBold.copyWith(fontSize: Constants.fontSizeLarge),
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () => Get.back(),
-                    child: const Text('Go Back'),
+                    child: Text('go_back'.tr),
                   ),
                 ],
               ),
@@ -149,7 +149,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Order Summary',
+                  'order_summary'.tr,
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeLarge,
                     color: ColorResource.textPrimary,
@@ -158,7 +158,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 TextButton(
                   onPressed: () => Get.back(),
                   child: Text(
-                    'Edit Cart',
+                    'edit_cart'.tr,
                     style: poppinsMedium.copyWith(
                       fontSize: Constants.fontSizeSmall,
                       color: ColorResource.primaryDark,
@@ -226,8 +226,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
               onPressed: () => setState(() => _showAllItems = !_showAllItems),
               child: Text(
                 _showAllItems
-                    ? 'Show less'
-                    : '+${controller.cartItems.length - 3} more items',
+                    ? 'show_less_checkout'.tr
+                    : '+${controller.cartItems.length - 3} ${'more_items'.tr}',
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeSmall,
                   color: ColorResource.primaryDark,
@@ -284,7 +284,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'Delivery Address',
+                          'delivery_address'.tr,
                           style: poppinsBold.copyWith(
                             fontSize: Constants.fontSizeLarge,
                             color: ColorResource.textPrimary,
@@ -306,7 +306,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         }
                       },
                       child: Text(
-                        'Change',
+                        'change'.tr,
                         style: poppinsMedium.copyWith(
                           fontSize: Constants.fontSizeSmall,
                           color: ColorResource.primaryDark,
@@ -336,7 +336,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            'No address selected',
+                            'no_address_selected'.tr,
                             style: poppinsRegular.copyWith(
                               fontSize: Constants.fontSizeDefault,
                               color: ColorResource.textSecondary,
@@ -465,7 +465,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Apply Coupon',
+                'apply_coupon'.tr,
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeLarge,
                   color: ColorResource.textPrimary,
@@ -481,7 +481,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     }
                   },
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Choose'),
+                   label: Text('choose'.tr),
                   style: TextButton.styleFrom(
                     foregroundColor: ColorResource.primaryDark,
                   ),
@@ -510,7 +510,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'No coupon applied',
+                      'no_coupon_applied'.tr,
                       style: poppinsRegular.copyWith(
                         fontSize: Constants.fontSizeDefault,
                         color: ColorResource.textSecondary,
@@ -582,7 +582,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  'You saved ${CurrencyHelper.formatAmount(controller.discountAmount)}!',
+                                  '${'you_saved_amount'.tr} ${CurrencyHelper.formatAmount(controller.discountAmount)}!',
                                   style: poppinsBold.copyWith(
                                     fontSize: Constants.fontSizeSmall,
                                     color: Colors.green,
@@ -597,7 +597,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         onPressed: () => controller.removeCoupon(),
                         icon: const Icon(Icons.close_rounded),
                         color: Colors.red,
-                        tooltip: 'Remove coupon',
+                        tooltip: 'remove_coupon_tooltip'.tr,
                       ),
                     ],
                   ),
@@ -621,7 +621,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Delivery Instructions',
+            'delivery_instructions'.tr,
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeLarge,
               color: ColorResource.textPrimary,
@@ -631,7 +631,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           TextFormField(
             controller: _instructionsController,
             decoration: InputDecoration(
-              hintText: 'E.g., Ring the doorbell twice',
+              hintText: 'delivery_instructions_hint'.tr,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(Constants.radiusDefault),
               ),
@@ -657,7 +657,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              'Payment Method',
+              'payment_method'.tr,
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeLarge,
                 color: ColorResource.textPrimary,
@@ -674,13 +674,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 Icon(Icons.money, color: Colors.green),
                 const SizedBox(width: 12),
                 Text(
-                  'Cash on Delivery',
+                  'cash_on_delivery'.tr,
                   style: poppinsMedium.copyWith(fontSize: Constants.fontSizeDefault),
                 ),
               ],
             ),
             subtitle: Text(
-              'Pay when you receive',
+              'pay_when_you_receive'.tr,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeSmall,
                 color: ColorResource.textSecondary,
@@ -697,7 +697,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 Icon(Icons.credit_card, color: _selectedPaymentMethod == PaymentMethod.online ? ColorResource.primaryDark : ColorResource.textLight),
                 const SizedBox(width: 12),
                 Text(
-                  'Online Payment',
+                  'online_payment'.tr,
                   style: poppinsMedium.copyWith(
                     fontSize: Constants.fontSizeDefault,
                     color: _selectedPaymentMethod == PaymentMethod.online ? ColorResource.textPrimary : ColorResource.textLight,
@@ -706,7 +706,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
               ],
             ),
             subtitle: Text(
-              'Pay securely online via Stripe',
+              'pay_securely_online'.tr,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeSmall,
                 color: _selectedPaymentMethod == PaymentMethod.online ? ColorResource.textSecondary : ColorResource.textLight,
@@ -723,7 +723,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 Icon(Icons.account_balance_wallet, color: _selectedPaymentMethod == PaymentMethod.wallet ? ColorResource.primaryDark : ColorResource.textLight),
                 const SizedBox(width: 12),
                 Text(
-                  'Wallet',
+                  'wallet'.tr,
                   style: poppinsMedium.copyWith(
                     fontSize: Constants.fontSizeDefault,
                     color: _selectedPaymentMethod == PaymentMethod.wallet ? ColorResource.textPrimary : ColorResource.textLight,
@@ -732,7 +732,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
               ],
             ),
             subtitle: Text(
-              'Pay from your wallet balance',
+              'pay_from_wallet_balance'.tr,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeSmall,
                 color: _selectedPaymentMethod == PaymentMethod.wallet ? ColorResource.textSecondary : ColorResource.textLight,
@@ -771,14 +771,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
               child: _isPriceExpanded
                   ? Column(
                       children: [
-                        _buildSummaryRow('Cart Items (${controller.itemCount})', controller.subtotal),
+                        _buildSummaryRow('${'cart_items_count'.tr} (${controller.itemCount})', controller.subtotal),
                         const SizedBox(height: 8),
-                        _buildSummaryRow('Delivery Fee', deliveryFee),
+                        _buildSummaryRow('delivery_fee'.tr, deliveryFee),
                         const SizedBox(height: 8),
-                        _buildSummaryRow('Tax (10%)', controller.tax),
+                        _buildSummaryRow('tax_10'.tr, controller.tax),
                         if (controller.appliedCoupon != null) ...[ 
                           const SizedBox(height: 8),
-                          _buildSummaryRow('Discount', -controller.discountAmount, isDiscount: true),
+                          _buildSummaryRow('discount'.tr, -controller.discountAmount, isDiscount: true),
                         ],
                         const Divider(height: 20),
                       ],
@@ -807,7 +807,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       child: Row(
                         children: [
                           Text(
-                            'Total',
+                            'total'.tr,
                             style: poppinsBold.copyWith(
                               fontSize: Constants.fontSizeLarge,
                               color: ColorResource.textPrimary,
@@ -867,7 +867,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             ),
                           )
                         : Text(
-                            'Place Order - ${CurrencyHelper.formatAmount(total)}',
+                            '${'place_order_with_total'.tr} - ${CurrencyHelper.formatAmount(total)}',
                             style: poppinsBold.copyWith(
                               fontSize: Constants.fontSizeLarge,
                               color: ColorResource.textWhite,
@@ -908,7 +908,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Future<void> _placeOrder(CartController cartController, double total) async {
     // Validate address selection
     if (_selectedAddress == null) {
-      customToster('Please select a delivery address', isSuccess: false);
+      customToster('please_select_delivery_address'.tr, isSuccess: false);
       return;
     }
 
@@ -917,7 +917,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
-          'Confirm Order',
+          'confirm_order'.tr,
           style: poppinsBold.copyWith(fontSize: Constants.fontSizeLarge),
         ),
         content: Text(
@@ -927,12 +927,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel', style: poppinsMedium.copyWith(color: ColorResource.textSecondary)),
+            child: Text('cancel'.tr, style: poppinsMedium.copyWith(color: ColorResource.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: ColorResource.primaryDark),
-            child: Text('Confirm', style: poppinsBold.copyWith(color: ColorResource.textWhite)),
+            child: Text('confirm'.tr, style: poppinsBold.copyWith(color: ColorResource.textWhite)),
           ),
         ],
       ),
@@ -1054,7 +1054,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      'Delivery Schedule',
+                      'delivery_schedule'.tr,
                       style: poppinsBold.copyWith(
                         fontSize: Constants.fontSizeLarge,
                         color: ColorResource.textPrimary,
@@ -1081,7 +1081,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     }
                   },
                   child: Text(
-                    'Change',
+                    'change'.tr,
                     style: poppinsMedium.copyWith(
                       fontSize: Constants.fontSizeSmall,
                       color: ColorResource.primaryDark,
@@ -1131,7 +1131,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _deliveryType == 'now' ? 'Deliver Now' : 'Scheduled Delivery',
+                          _deliveryType == 'now' ? 'deliver_now'.tr : 'scheduled_delivery'.tr,
                           style: poppinsBold.copyWith(
                             fontSize: Constants.fontSizeDefault,
                             color: _deliveryType == 'now'
@@ -1141,7 +1141,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _scheduleDisplayText ?? 'ASAP (30-45 mins)',
+                          _scheduleDisplayText ?? 'asap_30_45_mins'.tr,
                           style: poppinsRegular.copyWith(
                             fontSize: Constants.fontSizeSmall,
                             color: ColorResource.textLight,
@@ -1173,7 +1173,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Store is currently closed. Please schedule for later.',
+                        'store_is_currently_closed'.tr,
                         style: poppinsRegular.copyWith(
                           fontSize: Constants.fontSizeSmall,
                           color: Colors.orange[900],

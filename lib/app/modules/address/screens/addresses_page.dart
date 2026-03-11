@@ -15,7 +15,7 @@ class AddressesPage extends StatelessWidget {
       backgroundColor: ColorResource.scaffoldBackground,
       appBar: AppBar(
         title: Text(
-          'Saved Addresses',
+          'saved_addresses'.tr,
           style: poppinsBold.copyWith(
             fontSize: Constants.fontSizeLarge,
             color: ColorResource.textWhite,
@@ -54,7 +54,7 @@ class AddressesPage extends StatelessWidget {
         },
         backgroundColor: ColorResource.primaryDark,
         label: Text(
-          'Add Address',
+          'add_address'.tr,
           style: poppinsBold.copyWith(color: ColorResource.textWhite),
         ),
         icon: Icon(Icons.add, color: ColorResource.textWhite),
@@ -74,7 +74,7 @@ class AddressesPage extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            'No addresses saved',
+            'no_addresses_saved'.tr,
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeLarge,
               color: ColorResource.textPrimary,
@@ -82,7 +82,7 @@ class AddressesPage extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Add an address to get started',
+            'add_an_address_to_get_started'.tr,
             style: poppinsRegular.copyWith(
               fontSize: Constants.fontSizeDefault,
               color: ColorResource.textSecondary,
@@ -154,7 +154,7 @@ class AddressesPage extends StatelessWidget {
                             ),
                             if (address.isDefault)
                               Text(
-                                'Default Address',
+                                'default_address'.tr,
                                 style: poppinsMedium.copyWith(
                                   fontSize: 11,
                                   color: ColorResource.primaryDark,
@@ -248,7 +248,7 @@ class AddressesPage extends StatelessWidget {
                           Get.to(() => AddEditAddressPage(address: address));
                         },
                         icon: const Icon(Icons.edit_outlined, size: 18),
-                        label: const Text('Edit'),
+                        label: Text('edit'.tr),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: ColorResource.primaryDark,
                           side: BorderSide(color: ColorResource.primaryDark),
@@ -264,7 +264,7 @@ class AddressesPage extends StatelessWidget {
                       child: OutlinedButton.icon(
                         onPressed: () => _showDeleteConfirmation(context, address, controller),
                         icon: const Icon(Icons.delete_outline, size: 18),
-                        label: const Text('Delete'),
+                        label: Text('delete'.tr),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: ColorResource.error,
                           side: BorderSide(color: ColorResource.error),
@@ -290,18 +290,18 @@ class AddressesPage extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
-          'Delete Address',
+          'delete_address'.tr,
           style: poppinsBold.copyWith(fontSize: Constants.fontSizeLarge),
         ),
         content: Text(
-          'Are you sure you want to delete this address?',
+          'are_you_sure_delete_address'.tr,
           style: poppinsRegular.copyWith(fontSize: Constants.fontSizeDefault),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Cancel',
+              'cancel'.tr,
               style: poppinsMedium.copyWith(color: ColorResource.textSecondary),
             ),
           ),
@@ -314,7 +314,7 @@ class AddressesPage extends StatelessWidget {
               backgroundColor: ColorResource.error,
             ),
             child: Text(
-              'Delete',
+              'delete'.tr,
               style: poppinsBold.copyWith(color: ColorResource.textWhite),
             ),
           ),

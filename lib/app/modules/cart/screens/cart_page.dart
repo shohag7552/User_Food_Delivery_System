@@ -53,16 +53,16 @@ class CartPage extends StatelessWidget {
                     color: ColorResource.textLight,
                   ),
                   const SizedBox(height: 20),
-                  Text(
-                    'Your cart is empty',
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeExtraLarge,
-                      color: ColorResource.textPrimary,
+                    Text(
+                      'your_cart_is_empty'.tr,
+                      style: poppinsBold.copyWith(
+                        fontSize: 24,
+                        color: ColorResource.textPrimary,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Add items to get started',
+                    const SizedBox(height: 12),
+                    Text(
+                      'add_items_to_get_started'.tr,
                     style: poppinsRegular.copyWith(
                       fontSize: Constants.fontSizeDefault,
                       color: ColorResource.textSecondary,
@@ -349,16 +349,16 @@ class CartPage extends StatelessWidget {
               const SizedBox(height: 24),
             ],
             
-            _buildSummaryRow('Subtotal', controller.subtotal),
+            _buildSummaryRow('subtotal'.tr, controller.subtotal),
             const SizedBox(height: 8),
-            _buildSummaryRow('Tax (10%)', controller.tax),
+            _buildSummaryRow('tax_10'.tr, controller.tax),
             if (controller.discountAmount > 0) ...[
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Discount',
+                    'discount'.tr,
                     style: poppinsRegular.copyWith(
                       fontSize: Constants.fontSizeDefault,
                       color: ColorResource.textSecondary,
@@ -375,7 +375,7 @@ class CartPage extends StatelessWidget {
               ),
             ],
             const Divider(height: 20),
-            _buildSummaryRow('Total', controller.total, isTotal: true),
+            _buildSummaryRow('total'.tr, controller.total, isTotal: true),
             const SizedBox(height: 20),
             
             SizedBox(
@@ -392,7 +392,7 @@ class CartPage extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  'Proceed to Checkout',
+                 'proceed_to_checkout'.tr,
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeLarge,
                     color: ColorResource.textWhite,

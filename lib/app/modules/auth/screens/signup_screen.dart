@@ -172,7 +172,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                             
                             // Welcome Text
                             Text(
-                              'Create Account',
+                              'create_account'.tr,
                               style: poppinsBold.copyWith(
                                 fontSize: 32,
                                 color: Colors.white,
@@ -181,7 +181,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Sign up to get started',
+                              'sign_up_to_get_started'.tr,
                               style: poppinsRegular.copyWith(
                                 fontSize: 16,
                                 color: Colors.white.withOpacity(0.8),
@@ -215,17 +215,17 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                               // Name Field
                               CustomTextField(
                                 controller: _nameController,
-                                label: 'Full Name',
-                                hintText: 'Enter your full name',
+                                label: 'full_name'.tr,
+                                hintText: 'enter_your_full_name'.tr,
                                 icon: Icons.person_outline,
                                 keyboardType: TextInputType.name,
                                 textCapitalization: TextCapitalization.words,
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return 'Please enter your name';
+                                    return 'please_enter_your_name'.tr;
                                   }
                                   if (value.length < 3) {
-                                    return 'Name must be at least 3 characters';
+                                    return 'name_min_3_chars'.tr;
                                   }
                                   return null;
                                 },
@@ -236,16 +236,16 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                               // Phone Field
                               CustomTextField(
                                 controller: _phoneController,
-                                label: 'Phone Number',
-                                hintText: 'Enter your phone number',
+                                label: 'phone_number'.tr,
+                                hintText: 'enter_your_phone_number'.tr,
                                 icon: Icons.phone_outlined,
                                 keyboardType: TextInputType.phone,
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return 'Please enter your phone number';
+                                    return 'please_enter_your_phone_number'.tr;
                                   }
                                   if (!RegExp(r'^[0-9+\-\s()]{10,}$').hasMatch(value)) {
-                                    return 'Please enter a valid phone number';
+                                    return 'please_enter_valid_phone_number'.tr;
                                   }
                                   return null;
                                 },
@@ -256,17 +256,17 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                               // Email Field
                               CustomTextField(
                                 controller: _emailController,
-                                label: 'Email',
-                                hintText: 'Enter your email',
+                                label: 'email'.tr,
+                                hintText: 'enter_your_email'.tr,
                                 icon: Icons.email_outlined,
                                 keyboardType: TextInputType.emailAddress,
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return 'Please enter your email';
+                                    return 'please_enter_your_email'.tr;
                                   }
                                   if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
                                       .hasMatch(value)) {
-                                    return 'Please enter a valid email';
+                                    return 'please_enter_a_valid_email'.tr;
                                   }
                                   return null;
                                 },
@@ -277,8 +277,8 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                               // Password Field
                               CustomTextField(
                                 controller: _passwordController,
-                                label: 'Password',
-                                hintText: 'Create a password',
+                                label: 'password'.tr,
+                                hintText: 'create_a_password'.tr,
                                 icon: Icons.lock_outline,
                                 obscureText: _obscurePassword,
                                 suffixIcon: IconButton(
@@ -296,10 +296,10 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                                 ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return 'Please enter a password';
+                                    return 'please_enter_a_password'.tr;
                                   }
                                   if (value.length < 8) {
-                                    return 'Password must be at least 8 characters';
+                                    return 'password_min_8_chars'.tr;
                                   }
                                   // if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)')
                                   //     .hasMatch(value)) {
@@ -314,8 +314,8 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                               // Confirm Password Field
                               CustomTextField(
                                 controller: _confirmPasswordController,
-                                label: 'Confirm Password',
-                                hintText: 'Confirm your password',
+                                label: 'confirm_password'.tr,
+                                hintText: 'confirm_your_password_hint'.tr,
                                 icon: Icons.lock_outline,
                                 obscureText: _obscureConfirmPassword,
                                 suffixIcon: IconButton(
@@ -333,10 +333,10 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                                 ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return 'Please confirm your password';
+                                    return 'please_confirm_your_password'.tr;
                                   }
                                   if (value != _passwordController.text) {
-                                    return 'Passwords do not match';
+                                    return 'passwords_do_not_match'.tr;
                                   }
                                   return null;
                                 },
@@ -401,7 +401,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                               
                               // Signup Button
                               CustomButton(
-                                buttonText: 'Create Account',
+                                buttonText: 'create_account'.tr,
                                 onPressed: _handleSignup,
                                 isLoading: _isLoading,
                               ),
@@ -424,7 +424,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Text(
-                              'OR',
+                              'or'.tr,
                               style: poppinsMedium.copyWith(
                                 fontSize: 14,
                                 color: Colors.white.withOpacity(0.8),
@@ -481,7 +481,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'Already have an account? ',
+                              'already_have_an_account'.tr,
                               style: poppinsRegular.copyWith(
                                 fontSize: 14,
                                 color: Colors.white.withOpacity(0.9),
@@ -492,7 +492,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                                 Navigator.pop(context);
                               },
                               child: Text(
-                                'Sign In',
+                                'sign_in'.tr,
                                 style: poppinsBold.copyWith(
                                   fontSize: 14,
                                   color: Colors.white,

@@ -121,7 +121,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'All Products',
+                    'all_products'.tr,
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeExtraLarge,
                       color: ColorResource.textPrimary,
@@ -180,7 +180,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Good Evening! 👋',
+                                  'good_evening'.tr,
                                   style: poppinsRegular.copyWith(
                                     fontSize: Constants.fontSizeDefault,
                                     color: ColorResource.textWhite.withValues(alpha: 0.9),
@@ -188,7 +188,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'What would you like to eat?',
+                                  'what_would_you_like_to_eat'.tr,
                                   style: poppinsBold.copyWith(
                                     fontSize: Constants.fontSizeExtraLarge,
                                     color: ColorResource.textWhite,
@@ -279,7 +279,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Search for dishes...',
+                'search_for_dishes'.tr,
                 style: poppinsRegular.copyWith(
                   fontSize: Constants.fontSizeDefault,
                   color: ColorResource.textLight,

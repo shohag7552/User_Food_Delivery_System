@@ -39,7 +39,7 @@ class OrderSuccessPage extends StatelessWidget {
 
                     // Success Message
                     Text(
-                      'Order Placed Successfully!',
+                      'order_placed_successfully'.tr,
                       style: poppinsBold.copyWith(
                         fontSize: Constants.fontSizeExtraLarge + 4,
                         color: ColorResource.textPrimary,
@@ -49,7 +49,7 @@ class OrderSuccessPage extends StatelessWidget {
                     const SizedBox(height: 16),
 
                     Text(
-                      'Thank you for your order. We\'ve received it and will start preparing soon.',
+                      'thank_you_for_your_order'.tr,
                       style: poppinsRegular.copyWith(
                         fontSize: Constants.fontSizeDefault,
                         color: ColorResource.textSecondary,
@@ -117,7 +117,7 @@ class OrderSuccessPage extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            'Order Number',
+            'order_number'.tr,
             style: poppinsRegular.copyWith(
               fontSize: Constants.fontSizeSmall,
               color: ColorResource.textSecondary,
@@ -146,7 +146,7 @@ class OrderSuccessPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Total Amount',
+                'total_amount'.tr,
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeDefault,
                   color: ColorResource.textSecondary,
@@ -179,7 +179,7 @@ class OrderSuccessPage extends StatelessWidget {
             },
             icon: const Icon(Icons.receipt_long),
             label: Text(
-              'View My Orders',
+              'view_my_orders'.tr,
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeLarge,
               ),
@@ -206,7 +206,7 @@ class OrderSuccessPage extends StatelessWidget {
             },
             icon: const Icon(Icons.shopping_bag_outlined),
             label: Text(
-              'Continue Shopping',
+              'continue_shopping'.tr,
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeLarge,
               ),

@@ -43,13 +43,13 @@ class EditProfilePage extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildSectionTitle('Personal Information'),
+                              _buildSectionTitle('personal_information'.tr),
                               const SizedBox(height: 20),
 
                               // Name Field
                               _buildCustomTextField(
                                 controller: controller.nameController,
-                                label: 'Full Name',
+                                label: 'full_name_label'.tr,
                                 icon: Icons.person_outline,
                                 validator: controller.validateName,
                               ),
@@ -58,7 +58,7 @@ class EditProfilePage extends StatelessWidget {
                               // Email Field
                               _buildCustomTextField(
                                 controller: controller.emailController,
-                                label: 'Email Address',
+                                label: 'email_address_label'.tr,
                                 icon: Icons.email_outlined,
                                 validator: controller.validateEmail,
                                 keyboardType: TextInputType.emailAddress,
@@ -68,7 +68,7 @@ class EditProfilePage extends StatelessWidget {
                               // Phone Field
                               _buildCustomTextField(
                                 controller: controller.phoneController,
-                                label: 'Phone Number',
+                                label: 'phone_number_label'.tr,
                                 icon: Icons.phone_outlined,
                                 validator: controller.validatePhone,
                                 keyboardType: TextInputType.phone,
@@ -131,7 +131,7 @@ class EditProfilePage extends StatelessWidget {
                 const SizedBox(height: 16),
                 
                 Text(
-                  'Edit Profile',
+                  'edit_profile'.tr,
                   style: poppinsBold.copyWith(
                     fontSize: 24,
                     color: ColorResource.textWhite,
@@ -141,7 +141,7 @@ class EditProfilePage extends StatelessWidget {
                 const SizedBox(height: 4),
                 
                 Text(
-                  'Update your personal information',
+                  'update_your_personal_info'.tr,
                   style: poppinsRegular.copyWith(
                     fontSize: Constants.fontSizeDefault,
                     color: ColorResource.textWhite.withOpacity(0.8),
@@ -293,7 +293,7 @@ class EditProfilePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Choose Profile Picture',
+                  'choose_profile_picture'.tr,
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeLarge,
                     color: ColorResource.textPrimary,
@@ -305,7 +305,7 @@ class EditProfilePage extends StatelessWidget {
                     Expanded(
                       child: _buildImageSourceOption(
                         icon: Icons.photo_library_outlined,
-                        label: 'Gallery',
+                        label: 'gallery'.tr,
                         onTap: () {
                           Get.back();
                           controller.uploadProfileImage();
@@ -316,7 +316,7 @@ class EditProfilePage extends StatelessWidget {
                     Expanded(
                       child: _buildImageSourceOption(
                         icon: Icons.camera_alt_outlined,
-                        label: 'Camera',
+                        label: 'camera'.tr,
                         onTap: () {
                           Get.back();
                           controller.takePhoto();
@@ -546,7 +546,7 @@ class EditProfilePage extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'Save Changes',
+                        'save_changes'.tr,
                         style: poppinsBold.copyWith(
                           fontSize: 16,
                           color: ColorResource.textWhite,

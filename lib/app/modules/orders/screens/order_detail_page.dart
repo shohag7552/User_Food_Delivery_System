@@ -21,7 +21,7 @@ class OrderDetailPage extends StatelessWidget {
       backgroundColor: ColorResource.scaffoldBackground,
       appBar: AppBar(
         title: Text(
-          'Order Details',
+          'order_details'.tr,
           style: poppinsBold.copyWith(
             fontSize: Constants.fontSizeLarge,
             color: ColorResource.textWhite,
@@ -95,7 +95,7 @@ class OrderDetailPage extends StatelessWidget {
           Expanded(
             child: _buildInfoItem(
               icon: Icons.receipt_long,
-              label: 'Order ID',
+              label: 'order_id'.tr,
               value: order.orderNumber,
             ),
           ),
@@ -107,7 +107,7 @@ class OrderDetailPage extends StatelessWidget {
           Expanded(
             child: _buildInfoItem(
               icon: Icons.shopping_bag_outlined,
-              label: 'Items',
+              label: 'items'.tr,
               value: '${order.items.length}',
             ),
           ),
@@ -158,7 +158,7 @@ class OrderDetailPage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              'Order Items',
+              'order_items'.tr,
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeLarge,
                 color: ColorResource.textPrimary,
@@ -250,7 +250,7 @@ class OrderDetailPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${PriceHelper.formatPrice(item.price)} each',
+                      '${PriceHelper.formatPrice(item.price)} ${'each'.tr}',
                       style: poppinsRegular.copyWith(
                         fontSize: Constants.fontSizeSmall,
                         color: ColorResource.textSecondary,
@@ -284,8 +284,8 @@ class OrderDetailPage extends StatelessWidget {
                         size: 18,
                         color: ColorResource.primaryDark,
                       ),
-                      label: Text(
-                        'Rate this product',
+                       label: Text(
+                        'rate_this_product'.tr,
                         style: poppinsMedium.copyWith(
                           fontSize: Constants.fontSizeSmall,
                           color: ColorResource.primaryDark,
@@ -323,7 +323,7 @@ class OrderDetailPage extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Delivery Address',
+                'delivery_address'.tr,
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeLarge,
                   color: ColorResource.textPrimary,
@@ -380,20 +380,20 @@ class OrderDetailPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Payment Summary',
+            'payment_summary'.tr,
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeLarge,
               color: ColorResource.textPrimary,
             ),
           ),
           const SizedBox(height: 16),
-          _buildPriceRow('Subtotal', subtotal, false),
+          _buildPriceRow('subtotal'.tr, subtotal, false),
           const SizedBox(height: 12),
-          _buildPriceRow('Delivery Fee', order.deliveryFee, false),
+          _buildPriceRow('delivery_fee'.tr, order.deliveryFee, false),
           const SizedBox(height: 12),
           const Divider(),
           const SizedBox(height: 12),
-          _buildPriceRow('Total Amount', order.totalAmount, true),
+          _buildPriceRow('total_amount'.tr, order.totalAmount, true),
         ],
       ),
     );
@@ -509,8 +509,8 @@ class OrderDetailPage extends StatelessWidget {
 
     if (userId == null) {
       Get.snackbar(
-        'Login Required',
-        'Please login to write a review',
+        'login_required'.tr,
+        'please_login_to_write_a_review'.tr,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: ColorResource.error,
         colorText: ColorResource.textWhite,

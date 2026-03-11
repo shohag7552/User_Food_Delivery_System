@@ -31,7 +31,7 @@ class TodaysSpecialsWidget extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Today\'s Specials',
+                    'todays_specials'.tr,
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeExtraLarge,
                       color: ColorResource.textPrimary,
@@ -68,7 +68,7 @@ class TodaysSpecialsWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Failed to load specials',
+                        'failed_to_load_specials'.tr,
                         style: poppinsMedium.copyWith(
                           fontSize: Constants.fontSizeDefault,
                           color: ColorResource.textSecondary,
@@ -78,7 +78,7 @@ class TodaysSpecialsWidget extends StatelessWidget {
                       TextButton(
                         onPressed: () => controller.getSpecialProducts(),
                         child: Text(
-                          'Retry',
+                          'retry'.tr,
                           style: poppinsBold.copyWith(
                             fontSize: Constants.fontSizeDefault,
                             color: ColorResource.primaryDark,
@@ -105,7 +105,7 @@ class TodaysSpecialsWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'No specials available today',
+                        'no_specials_available_today'.tr,
                         style: poppinsMedium.copyWith(
                           fontSize: Constants.fontSizeDefault,
                           color: ColorResource.textSecondary,

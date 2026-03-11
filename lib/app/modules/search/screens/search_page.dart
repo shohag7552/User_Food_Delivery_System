@@ -172,7 +172,7 @@ class _SearchPageState extends State<SearchPage> {
                         color: ColorResource.textPrimary,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Search for dishes...',
+                        hintText: 'search_for_dishes'.tr,
                         hintStyle: poppinsRegular.copyWith(
                           fontSize: Constants.fontSizeDefault,
                           color: ColorResource.textLight,
@@ -227,7 +227,7 @@ class _SearchPageState extends State<SearchPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Searching...',
+            'searching'.tr,
             style: poppinsMedium.copyWith(
               fontSize: Constants.fontSizeDefault,
               color: ColorResource.textSecondary,
@@ -254,7 +254,7 @@ class _SearchPageState extends State<SearchPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Search for Your Favorite Dishes',
+            'search_for_your_favorite_dishes'.tr,
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeExtraLarge,
               color: ColorResource.textPrimary,
@@ -262,7 +262,7 @@ class _SearchPageState extends State<SearchPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Try searching for "burger", "pizza", or "pasta"',
+            'try_searching_hint'.tr,
             style: poppinsRegular.copyWith(
               fontSize: Constants.fontSizeDefault,
               color: ColorResource.textSecondary,
@@ -271,7 +271,7 @@ class _SearchPageState extends State<SearchPage> {
           if (recentProducts.isNotEmpty) ...[
             const SizedBox(height: 32),
             Text(
-              'Popular Items',
+              'popular_items'.tr,
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeLarge,
                 color: ColorResource.textPrimary,
@@ -315,7 +315,7 @@ class _SearchPageState extends State<SearchPage> {
             ),
             const SizedBox(height: 24),
             Text(
-              'No Results Found',
+              'no_results_found'.tr,
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeExtraLarge,
                 color: ColorResource.textPrimary,
@@ -342,7 +342,7 @@ class _SearchPageState extends State<SearchPage> {
                 ),
               ),
               child: Text(
-                'Try Another Search',
+                  'try_another_search'.tr,
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeDefault,
                 ),

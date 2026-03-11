@@ -133,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           
                           // Welcome Text
                           Text(
-                            'Welcome Back',
+                            'welcome_back'.tr,
                             style: poppinsBold.copyWith(
                               fontSize: 32,
                               color: Colors.white,
@@ -142,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Sign in to continue',
+                            'sign_in_to_continue'.tr,
                             style: poppinsRegular.copyWith(
                               fontSize: 16,
                               color: Colors.white.withOpacity(0.8),
@@ -175,7 +175,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           children: [
                             // Email Field
                             Text(
-                              'Email',
+                              'email'.tr,
                               style: poppinsMedium.copyWith(
                                 fontSize: 14,
                                 color: const Color(0xFF003B55),
@@ -187,7 +187,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               keyboardType: TextInputType.emailAddress,
                               style: poppinsRegular.copyWith(fontSize: 16),
                               decoration: InputDecoration(
-                                hintText: 'Enter your email',
+                                hintText: 'enter_your_email'.tr,
                                 hintStyle: poppinsRegular.copyWith(
                                   fontSize: 14,
                                   color: Colors.grey[400],
@@ -227,11 +227,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Please enter your email';
+                                  return 'please_enter_your_email'.tr;
                                 }
                                 if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
                                     .hasMatch(value)) {
-                                  return 'Please enter a valid email';
+                                  return 'please_enter_a_valid_email'.tr;
                                 }
                                 return null;
                               },
@@ -241,7 +241,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             
                             // Password Field
                             Text(
-                              'Password',
+                              'password'.tr,
                               style: poppinsMedium.copyWith(
                                 fontSize: 14,
                                 color: const Color(0xFF003B55),
@@ -253,7 +253,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               obscureText: _obscurePassword,
                               style: poppinsRegular.copyWith(fontSize: 16),
                               decoration: InputDecoration(
-                                hintText: 'Enter your password',
+                                hintText: 'enter_your_password'.tr,
                                 hintStyle: poppinsRegular.copyWith(
                                   fontSize: 14,
                                   color: Colors.grey[400],
@@ -306,10 +306,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Please enter your password';
+                                  return 'please_enter_your_password'.tr;
                                 }
                                 if (value.length < 6) {
-                                  return 'Password must be at least 6 characters';
+                                  return 'password_min_6_chars'.tr;
                                 }
                                 return null;
                               },
@@ -325,7 +325,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                   // TODO: Navigate to forgot password
                                 },
                                 child: Text(
-                                  'Forgot Password?',
+                                  'forgot_password_q'.tr,
                                   style: poppinsMedium.copyWith(
                                     fontSize: 14,
                                     color: const Color(0xFF003B55),
@@ -338,7 +338,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             
                             // Login Button
                             CustomButton(
-                              buttonText: 'Sign In',
+                              buttonText: 'sign_in'.tr,
                               onPressed: _handleLogin,
                               isLoading: _isLoading,
                             )
@@ -361,7 +361,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Text(
-                            'OR',
+                             'or'.tr,
                             style: poppinsMedium.copyWith(
                               fontSize: 14,
                               color: Colors.white.withOpacity(0.8),
@@ -414,7 +414,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            "Don't have an account? ",
+                            "don_t_have_an_account".tr,
                             style: poppinsRegular.copyWith(
                               fontSize: 14,
                               color: Colors.white.withOpacity(0.9),
@@ -425,7 +425,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               Get.to(()=> SignupScreen());
                             },
                             child: Text(
-                              'Sign Up',
+                              'sign_up'.tr,
                               style: poppinsBold.copyWith(
                                 fontSize: 14,
                                 color: Colors.white,

@@ -126,11 +126,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(Icons.home, 'Home', 0),
-              _buildNavItem(Icons.favorite, 'Favorites', 1),
+              _buildNavItem(Icons.home, 'home'.tr, 0),
+              _buildNavItem(Icons.favorite, 'favorites'.tr, 1),
               _buildCartNavItem(),
-              _buildNavItem(Icons.receipt_long, 'Orders', 3),
-              _buildNavItem(Icons.person, 'Profile', 4),
+              _buildNavItem(Icons.receipt_long, 'orders'.tr, 3),
+              _buildNavItem(Icons.person, 'profile'.tr, 4),
             ],
           ),
         ),
@@ -272,7 +272,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 if (isSelected) ...[
                   const SizedBox(width: 8),
                   Text(
-                    'Cart',
+                    'cart'.tr,
                     style: poppinsMedium.copyWith(
                       fontSize: Constants.fontSizeSmall,
                       color: ColorResource.textWhite,

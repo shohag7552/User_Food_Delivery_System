@@ -39,7 +39,7 @@ class NewItemsWidget extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    'New Items',
+                    'new_items'.tr,
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeExtraLarge,
                       color: ColorResource.textPrimary,
@@ -76,7 +76,7 @@ class NewItemsWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Failed to load new items',
+                        'failed_to_load_new_items'.tr,
                         style: poppinsMedium.copyWith(
                           fontSize: Constants.fontSizeDefault,
                           color: ColorResource.textSecondary,
@@ -86,7 +86,7 @@ class NewItemsWidget extends StatelessWidget {
                       TextButton(
                         onPressed: () => controller.getNewProducts(),
                         child: Text(
-                          'Retry',
+                          'retry'.tr,
                           style: poppinsBold.copyWith(
                             fontSize: Constants.fontSizeDefault,
                             color: ColorResource.primaryDark,
@@ -113,7 +113,7 @@ class NewItemsWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'No new items available',
+                        'no_new_items_available'.tr,
                         style: poppinsMedium.copyWith(
                           fontSize: Constants.fontSizeDefault,
                           color: ColorResource.textSecondary,

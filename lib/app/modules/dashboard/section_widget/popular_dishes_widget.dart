@@ -30,7 +30,7 @@ class PopularDishesWidget extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Popular Dishes',
+                    'popular_dishes'.tr,
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeExtraLarge,
                       color: ColorResource.textPrimary,
@@ -67,7 +67,7 @@ class PopularDishesWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Failed to load popular dishes',
+                        'failed_to_load_popular_dishes'.tr,
                         style: poppinsMedium.copyWith(
                           fontSize: Constants.fontSizeDefault,
                           color: ColorResource.textSecondary,
@@ -77,7 +77,7 @@ class PopularDishesWidget extends StatelessWidget {
                       TextButton(
                         onPressed: () => controller.getPopularProducts(),
                         child: Text(
-                          'Retry',
+                          'retry'.tr,
                           style: poppinsBold.copyWith(
                             fontSize: Constants.fontSizeDefault,
                             color: ColorResource.primaryDark,
@@ -104,7 +104,7 @@ class PopularDishesWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'No popular dishes available',
+                        'no_popular_dishes_available'.tr,
                         style: poppinsMedium.copyWith(
                           fontSize: Constants.fontSizeDefault,
                           color: ColorResource.textSecondary,

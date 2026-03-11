@@ -51,7 +51,7 @@ class _OrdersPageState extends State<OrdersPage> {
       backgroundColor: ColorResource.scaffoldBackground,
       appBar: AppBar(
         title: Text(
-          'My Orders',
+          'my_orders'.tr,
           style: poppinsBold.copyWith(
             fontSize: Constants.fontSizeLarge,
             color: ColorResource.textWhite,
@@ -105,14 +105,14 @@ class _OrdersPageState extends State<OrdersPage> {
 
   Widget _buildFilterChips() {
     final filters = [
-      {'label': 'All', 'value': 'all'},
-      {'label': 'Pending', 'value': 'pending'},
-      {'label': 'Cooking', 'value': 'cooking'},
-      {'label': 'Ready', 'value': 'ready'},
-      {'label': 'Handover', 'value': 'handover'},
-      {'label': 'On the Way', 'value': 'on_way'},
-      {'label': 'Delivered', 'value': 'delivered'},
-      {'label': 'Cancelled', 'value': 'cancelled'},
+      {'label': 'all'.tr, 'value': 'all'},
+      {'label': 'pending'.tr, 'value': 'pending'},
+      {'label': 'cooking'.tr, 'value': 'cooking'},
+      {'label': 'ready'.tr, 'value': 'ready'},
+      {'label': 'handover'.tr, 'value': 'handover'},
+      {'label': 'on_the_way'.tr, 'value': 'on_way'},
+      {'label': 'delivered'.tr, 'value': 'delivered'},
+      {'label': 'cancelled'.tr, 'value': 'cancelled'},
     ];
 
     return GetBuilder<OrderController>(
@@ -184,7 +184,7 @@ class _OrdersPageState extends State<OrdersPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Loading your orders...',
+            'loading_your_orders'.tr,
             style: poppinsMedium.copyWith(
               fontSize: Constants.fontSizeDefault,
               color: ColorResource.textSecondary,
@@ -235,7 +235,7 @@ class _OrdersPageState extends State<OrdersPage> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  isFiltered ? 'No Orders Found' : 'No Orders Yet',
+                  isFiltered ? 'no_orders_found'.tr : 'no_orders_yet'.tr,
                   style: poppinsBold.copyWith(
                     fontSize: 24,
                     color: ColorResource.textPrimary,
@@ -244,8 +244,8 @@ class _OrdersPageState extends State<OrdersPage> {
                 const SizedBox(height: 12),
                 Text(
                   isFiltered
-                      ? 'Try adjusting your filters or search query'
-                      : 'Start ordering delicious food and\nyour orders will appear here',
+                      ? 'try_adjusting_filters'.tr
+                      : 'start_ordering_food'.tr,
                   textAlign: TextAlign.center,
                   style: poppinsRegular.copyWith(
                     fontSize: Constants.fontSizeDefault,
@@ -258,7 +258,7 @@ class _OrdersPageState extends State<OrdersPage> {
                   ElevatedButton.icon(
                     onPressed: () => Get.back(),
                     icon: const Icon(Icons.restaurant_menu),
-                    label: const Text('Browse Menu'),
+                    label: Text('browse_menu'.tr),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: ColorResource.primaryDark,
                       foregroundColor: ColorResource.textWhite,
@@ -361,7 +361,7 @@ class _OrdersPageState extends State<OrdersPage> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        'Total Payable',
+                        'total_payable'.tr,
                         style: poppinsRegular.copyWith(
                           fontSize: Constants.fontSizeSmall,
                           color: ColorResource.textSecondary,
@@ -400,7 +400,7 @@ class _OrdersPageState extends State<OrdersPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Delivery Address',
+                          'delivery_address'.tr,
                           style: poppinsBold.copyWith(
                             fontSize: Constants.fontSizeDefault,
                             color: ColorResource.textPrimary,

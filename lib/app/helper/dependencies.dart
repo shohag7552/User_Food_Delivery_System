@@ -1,4 +1,6 @@
 
+import 'dart:convert';
+
 import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
@@ -47,6 +49,8 @@ import 'package:appwrite_user_app/app/modules/policies/domain/repository/policy_
 import 'package:appwrite_user_app/app/modules/policies/domain/repository/policy_repository.dart';
 import 'package:appwrite_user_app/app/controllers/policy_controller.dart';
 import 'package:appwrite_user_app/app/controllers/splash_controller.dart';
+import 'package:appwrite_user_app/app/resources/constants.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -126,14 +130,14 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
 
   /// Retrieving localized data
   Map<String, Map<String, String>> languages = {};
-  // for(LanguageModel languageModel in Constants.languages) {
-  //   String jsonStringValues =  await rootBundle.loadString('assets/language/${languageModel.languageCode}.json');
-  //   Map<String, dynamic> mappedJson = jsonDecode(jsonStringValues);
-  //   Map<String, String> json = {};
-  //   mappedJson.forEach((key, value) {
-  //     json[key] = value.toString();
-  //   });
-  //   languages['${languageModel.languageCode}_${languageModel.countryCode}'] = json;
-  // }
+  for(LanguageModel languageModel in Constants.languages) {
+    String jsonStringValues =  await rootBundle.loadString('assets/language/${languageModel.languageCode}.json');
+    Map<String, dynamic> mappedJson = jsonDecode(jsonStringValues);
+    Map<String, String> json = {};
+    mappedJson.forEach((key, value) {
+      json[key] = value.toString();
+    });
+    languages['${languageModel.languageCode}_${languageModel.countryCode}'] = json;
+  }
   return languages;
 }

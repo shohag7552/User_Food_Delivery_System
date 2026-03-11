@@ -37,7 +37,7 @@ class OrderFailedPage extends StatelessWidget {
 
                     // Error Message
                     Text(
-                      'Order Failed',
+                      'order_failed'.tr,
                       style: poppinsBold.copyWith(
                         fontSize: Constants.fontSizeExtraLarge + 4,
                         color: ColorResource.textPrimary,
@@ -47,7 +47,7 @@ class OrderFailedPage extends StatelessWidget {
                     const SizedBox(height: 16),
 
                     Text(
-                      'Unfortunately, we couldn\'t process your order.',
+                      'could_not_process_order'.tr,
                       style: poppinsRegular.copyWith(
                         fontSize: Constants.fontSizeDefault,
                         color: ColorResource.textSecondary,
@@ -125,7 +125,7 @@ class OrderFailedPage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Error Details',
+            'error_details'.tr,
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeLarge,
               color: ColorResource.textPrimary,
@@ -160,7 +160,7 @@ class OrderFailedPage extends StatelessWidget {
               },
               icon: const Icon(Icons.refresh),
               label: Text(
-                'Try Again',
+                'try_again'.tr,
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeLarge,
                 ),
@@ -186,7 +186,7 @@ class OrderFailedPage extends StatelessWidget {
             },
             icon: const Icon(Icons.arrow_back),
             label: Text(
-              'Go Back to Checkout',
+              'go_back_to_checkout'.tr,
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeLarge,
               ),
@@ -213,7 +213,7 @@ class OrderFailedPage extends StatelessWidget {
           },
           icon: const Icon(Icons.home_outlined),
           label: Text(
-            'Go to Home',
+            'go_to_home'.tr,
             style: poppinsMedium.copyWith(
               fontSize: Constants.fontSizeDefault,
             ),

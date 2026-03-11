@@ -31,7 +31,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       backgroundColor: ColorResource.scaffoldBackground,
       appBar: AppBar(
         title: Text(
-          'My Favorites',
+          'my_favorites'.tr,
           style: poppinsBold.copyWith(
             fontSize: Constants.fontSizeLarge,
             color: ColorResource.textWhite,
@@ -162,7 +162,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'No Favorites Yet',
+              'no_favorites_yet'.tr,
               style: poppinsBold.copyWith(
                 fontSize: 24,
                 color: ColorResource.textPrimary,
@@ -170,7 +170,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Start adding your favorite products\nto see them here',
+              'start_adding_favorites'.tr,
               textAlign: TextAlign.center,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,
@@ -183,7 +183,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               onPressed: () => Get.back(),
               icon: Icon(Icons.arrow_back, color: ColorResource.textWhite),
               label: Text(
-                'Browse Products',
+                'browse_products'.tr,
                 style: poppinsMedium.copyWith(color: ColorResource.textWhite),
               ),
               style: ElevatedButton.styleFrom(

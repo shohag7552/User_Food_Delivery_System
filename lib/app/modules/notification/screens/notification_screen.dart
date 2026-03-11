@@ -30,7 +30,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       backgroundColor: ColorResource.scaffoldBackground,
       appBar: AppBar(
         title: Text(
-          'Notifications',
+          'notifications_title'.tr,
           style: poppinsBold.copyWith(
             fontSize: Constants.fontSizeLarge,
             color: ColorResource.textWhite,
@@ -45,7 +45,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 return TextButton(
                   onPressed: () => controller.markAllAsRead(),
                   child: Text(
-                    'Mark all read',
+                    'mark_all_read'.tr,
                     style: poppinsMedium.copyWith(
                       fontSize: Constants.fontSizeSmall,
                       color: ColorResource.textWhite,
@@ -318,7 +318,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'No Notifications',
+              'notifications_empty'.tr,
               style: poppinsBold.copyWith(
                 fontSize: 24,
                 color: ColorResource.textPrimary,
@@ -326,7 +326,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'You\'re all caught up!\\nNo new notifications at the moment.',
+              'youre_all_caught_up'.tr,
               textAlign: TextAlign.center,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,

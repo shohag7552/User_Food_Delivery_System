@@ -56,30 +56,30 @@ class _ProfilePageState extends State<ProfilePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildSection(
-                          title: 'Account',
+                          title: 'account'.tr,
                           items: [
                             _ProfileOption(
                               icon: Icons.person_outline,
-                              title: 'My Profile',
-                              subtitle: 'Edit your personal information',
+                              title: 'my_profile'.tr,
+                              subtitle: 'my_profile_subtitle'.tr,
                               onTap: () {
                                 Get.to(() => const EditProfilePage());
                               },
                             ),
                             _ProfileOption(
                               icon: Icons.location_on_outlined,
-                              title: 'Saved Addresses',
-                              subtitle: 'Manage your delivery addresses',
+                              title: 'saved_addresses'.tr,
+                              subtitle: 'manage_delivery_addresses'.tr,
                               onTap: () {
                                 Get.to(AddressesPage());
                               },
                             ),
                             _ProfileOption(
                               icon: Icons.payment_outlined,
-                              title: 'Payment Methods',
-                              subtitle: 'Manage your payment options',
+                              title: 'payment_methods'.tr,
+                              subtitle: 'manage_payment_options'.tr,
                               onTap: () {
-                                Get.snackbar('Payment Methods', 'Feature coming soon');
+                                Get.snackbar('payment_methods'.tr, 'feature_coming_soon'.tr);
                               },
                             ),
                           ],
@@ -88,30 +88,30 @@ class _ProfilePageState extends State<ProfilePage> {
                         const SizedBox(height: 20),
 
                         _buildSection(
-                          title: 'Orders & Activity',
+                          title: 'orders_and_activity'.tr,
                           items: [
                             _ProfileOption(
                               icon: Icons.history,
-                              title: 'Order History',
-                              subtitle: 'View your past orders',
+                              title: 'order_history'.tr,
+                              subtitle: 'order_history_subtitle'.tr,
                               onTap: () {
                                 Get.to(() => const OrderHistoryPage());
                               },
                             ),
                             _ProfileOption(
                               icon: Icons.favorite_outline,
-                              title: 'Favorites',
-                              subtitle: 'Your favorite items',
+                              title: 'favorites'.tr,
+                              subtitle: 'favorites_subtitle'.tr,
                               onTap: () {
                                 Get.to(() => const FavoritesScreen());
                               },
                             ),
                             _ProfileOption(
                               icon: Icons.star_outline,
-                              title: 'Reviews & Ratings',
-                              subtitle: 'Your reviews on items',
+                              title: 'reviews_and_ratings'.tr,
+                              subtitle: 'your_reviews_on_items'.tr,
                               onTap: () {
-                                Get.snackbar('Reviews', 'Feature coming soon');
+                                Get.snackbar('reviews_and_ratings'.tr, 'feature_coming_soon'.tr);
                               },
                             ),
                           ],
@@ -120,12 +120,12 @@ class _ProfilePageState extends State<ProfilePage> {
                         const SizedBox(height: 20),
 
                         _buildSection(
-                          title: 'Offers & Rewards',
+                          title: 'offers_and_rewards'.tr,
                           items: [
                             _ProfileOption(
                               icon: Icons.local_offer_outlined,
-                              title: 'Coupons',
-                              subtitle: 'View and apply promo codes',
+                              title: 'coupons'.tr,
+                              subtitle: 'view_and_apply_promo_codes'.tr,
                               trailing: _buildBadge('3'),
                               onTap: () {
                                 Get.to(()=> CouponsScreen());
@@ -133,18 +133,18 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                             _ProfileOption(
                               icon: Icons.card_giftcard_outlined,
-                              title: 'Loyalty Points',
-                              subtitle: 'Earn and redeem points',
+                              title: 'loyalty_points'.tr,
+                              subtitle: 'earn_and_redeem_points'.tr,
                               onTap: () {
-                                Get.snackbar('Loyalty Points', 'Feature coming soon');
+                                Get.snackbar('loyalty_points'.tr, 'feature_coming_soon'.tr);
                               },
                             ),
                             _ProfileOption(
                               icon: Icons.share_outlined,
-                              title: 'Refer & Earn',
-                              subtitle: 'Invite friends and get rewards',
+                              title: 'refer_and_earn'.tr,
+                              subtitle: 'invite_friends_and_get_rewards'.tr,
                               onTap: () {
-                                Get.snackbar('Refer & Earn', 'Feature coming soon');
+                                Get.snackbar('refer_and_earn'.tr, 'feature_coming_soon'.tr);
                               },
                             ),
                           ],
@@ -153,12 +153,12 @@ class _ProfilePageState extends State<ProfilePage> {
                         const SizedBox(height: 20),
 
                         _buildSection(
-                          title: 'App Settings',
+                          title: 'app_settings'.tr,
                           items: [
                             _ProfileOption(
                               icon: Icons.notifications_outlined,
-                              title: 'Notifications',
-                              subtitle: 'Manage notification preferences',
+                              title: 'notifications_title'.tr,
+                              subtitle: 'manage_notification_preferences'.tr,
                               onTap: () {
                                 Get.to(() => const NotificationScreen());
                               },
@@ -170,7 +170,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     : null;
                                 return _ProfileOption(
                                   icon: Icons.language_outlined,
-                                  title: 'Language',
+                                   title: 'language'.tr,
                                   subtitle: selectedLang?.languageName ?? 'English',
                                   onTap: () {
                                     Get.to(() => const LanguageScreen());
@@ -180,21 +180,21 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                             _ProfileOption(
                               icon: Icons.help_outline,
-                              title: 'Help & Support',
-                              subtitle: 'Get help or contact us',
+                              title: 'help_and_support'.tr,
+                              subtitle: 'get_help_or_contact_us'.tr,
                               onTap: () {
-                                Get.snackbar('Help & Support', 'Feature coming soon');
+                                Get.snackbar('help_and_support'.tr, 'feature_coming_soon'.tr);
                               },
                             ),
                             _ProfileOption(
                               icon: Icons.info_outline,
-                              title: 'About Us',
-                              subtitle: 'Learn more about us',
+                              title: 'about_us'.tr,
+                              subtitle: 'learn_more_about_us'.tr,
                               onTap: () {
                                 final policyController = Get.find<PolicyController>();
                                 Get.to(
                                   () => PolicyContentScreen(
-                                    title: 'About Us',
+                                    title: 'about_us'.tr,
                                     htmlContent: policyController.policies?.aboutUsHtml ?? '',
                                   ),
                                 );
@@ -202,13 +202,13 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                             _ProfileOption(
                               icon: Icons.description_outlined,
-                              title: 'Terms & Conditions',
-                              subtitle: 'Read our terms',
+                              title: 'terms_and_conditions_title'.tr,
+                              subtitle: 'read_our_terms'.tr,
                               onTap: () {
                                 final policyController = Get.find<PolicyController>();
                                 Get.to(
                                   () => PolicyContentScreen(
-                                    title: 'Terms & Conditions',
+                                    title: 'terms_and_conditions_title'.tr,
                                     htmlContent: policyController.policies?.termsAndConditionsHtml ?? '',
                                   ),
                                 );
@@ -216,13 +216,13 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                             _ProfileOption(
                               icon: Icons.privacy_tip_outlined,
-                              title: 'Privacy Policy',
-                              subtitle: 'Read our privacy policy',
+                              title: 'privacy_policy_title'.tr,
+                              subtitle: 'read_our_privacy_policy'.tr,
                               onTap: () {
                                 final policyController = Get.find<PolicyController>();
                                 Get.to(
                                   () => PolicyContentScreen(
-                                    title: 'Privacy Policy',
+                                    title: 'privacy_policy_title'.tr,
                                     htmlContent: policyController.policies?.privacyPolicyHtml ?? '',
                                   ),
                                 );
@@ -234,12 +234,12 @@ class _ProfilePageState extends State<ProfilePage> {
                         const SizedBox(height: 20),
 
                         _buildSection(
-                          title: 'Account Actions',
+                          title: 'account_actions'.tr,
                           items: [
                             _ProfileOption(
                               icon: Icons.logout,
-                              title: 'Logout',
-                              subtitle: 'Sign out of your account',
+                              title: 'logout'.tr,
+                              subtitle: 'sign_out_of_your_account'.tr,
                               iconColor: ColorResource.error,
                               onTap: () {
                                 _showLogoutDialog(context);
@@ -247,8 +247,8 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                             _ProfileOption(
                               icon: Icons.delete_outline,
-                              title: 'Delete Account',
-                              subtitle: 'Permanently delete your account',
+                              title: 'delete_account'.tr,
+                              subtitle: 'permanently_delete_your_account'.tr,
                               iconColor: ColorResource.error,
                               onTap: () {
                                 _showDeleteAccountDialog(context);
@@ -262,7 +262,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         // App Version
                         Center(
                           child: Text(
-                            'Version 1.0.0',
+                            'version'.tr,
                             style: poppinsRegular.copyWith(
                               fontSize: Constants.fontSizeSmall,
                               color: ColorResource.textLight,
@@ -353,7 +353,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Balance: ${CurrencyHelper.formatWithSeparators(user?.walletBalance ?? 0)}',
+                            '${'balance'.tr}: ${CurrencyHelper.formatWithSeparators(user?.walletBalance ?? 0)}',
                           style: poppinsRegular.copyWith(
                             fontSize: Constants.fontSizeDefault,
                             color: ColorResource.textWhite.withValues(alpha: 0.9),
@@ -452,18 +452,18 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
-          'Logout',
+          'logout'.tr,
           style: poppinsBold.copyWith(fontSize: Constants.fontSizeLarge),
         ),
         content: Text(
-          'Are you sure you want to logout?',
+          'are_you_sure_want_to_logout_msg'.tr,
           style: poppinsRegular.copyWith(fontSize: Constants.fontSizeDefault),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Cancel',
+              'cancel'.tr,
               style: poppinsMedium.copyWith(color: ColorResource.textSecondary),
             ),
           ),
@@ -481,7 +481,7 @@ class _ProfilePageState extends State<ProfilePage> {
               backgroundColor: ColorResource.error,
             ),
             child: Text(
-              'Logout',
+              'logout'.tr,
               style: poppinsBold.copyWith(color: ColorResource.textWhite),
             ),
           ),
@@ -495,18 +495,18 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
-          'Delete Account',
+          'delete_account'.tr,
           style: poppinsBold.copyWith(fontSize: Constants.fontSizeLarge),
         ),
         content: Text(
-          'Are you sure you want to permanently delete your account? This action cannot be undone.',
+          'are_you_sure_want_to_delete_account'.tr,
           style: poppinsRegular.copyWith(fontSize: Constants.fontSizeDefault),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Cancel',
+              'cancel'.tr,
               style: poppinsMedium.copyWith(color: ColorResource.textSecondary),
             ),
           ),
@@ -515,8 +515,8 @@ class _ProfilePageState extends State<ProfilePage> {
               Navigator.pop(context);
               // TODO: Implement account deletion
               Get.snackbar(
-                'Account Deletion',
-                'Feature coming soon',
+                'account_deletion'.tr,
+                'feature_coming_soon'.tr,
                 backgroundColor: ColorResource.error,
                 colorText: ColorResource.textWhite,
               );
@@ -525,7 +525,7 @@ class _ProfilePageState extends State<ProfilePage> {
               backgroundColor: ColorResource.error,
             ),
             child: Text(
-              'Delete',
+              'delete'.tr,
               style: poppinsBold.copyWith(color: ColorResource.textWhite),
             ),
           ),
