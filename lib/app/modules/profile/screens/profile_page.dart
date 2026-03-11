@@ -1,10 +1,12 @@
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
+import 'package:appwrite_user_app/app/controllers/localization_controller.dart';
 import 'package:appwrite_user_app/app/controllers/policy_controller.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/modules/address/screens/addresses_page.dart';
 import 'package:appwrite_user_app/app/modules/coupons/screens/coupons_screen.dart';
 import 'package:appwrite_user_app/app/modules/favorites/screens/favorites_screen.dart';
+import 'package:appwrite_user_app/app/modules/language/screens/language_screen.dart';
 import 'package:appwrite_user_app/app/modules/notification/screens/notification_screen.dart';
 import 'package:appwrite_user_app/app/modules/orders/screens/order_history_page.dart';
 import 'package:appwrite_user_app/app/modules/auth/screens/login_screen.dart';
@@ -161,12 +163,19 @@ class _ProfilePageState extends State<ProfilePage> {
                                 Get.to(() => const NotificationScreen());
                               },
                             ),
-                            _ProfileOption(
-                              icon: Icons.language_outlined,
-                              title: 'Language',
-                              subtitle: 'English',
-                              onTap: () {
-                                Get.snackbar('Language', 'Feature coming soon');
+                            GetBuilder<LocalizationController>(
+                              builder: (localeController) {
+                                final selectedLang = localeController.languages.isNotEmpty
+                                    ? localeController.languages[localeController.selectedLanguageIndex]
+                                    : null;
+                                return _ProfileOption(
+                                  icon: Icons.language_outlined,
+                                  title: 'Language',
+                                  subtitle: selectedLang?.languageName ?? 'English',
+                                  onTap: () {
+                                    Get.to(() => const LanguageScreen());
+                                  },
+                                );
                               },
                             ),
                             _ProfileOption(
@@ -379,7 +388,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildSection({
     required String title,
-    required List<_ProfileOption> items,
+    required List<Widget> items,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -401,11 +410,11 @@ class _ProfilePageState extends State<ProfilePage> {
             boxShadow: ColorResource.customShadow,
           ),
           child: Column(
-            children: items.map((item) {
-              final isLast = items.indexOf(item) == items.length - 1;
+            children: List.generate(items.length, (index) {
+              final isLast = index == items.length - 1;
               return Column(
                 children: [
-                  item,
+                  items[index],
                   if (!isLast)
                     Divider(
                       height: 1,
@@ -414,7 +423,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                 ],
               );
-            }).toList(),
+            }),
           ),
         ),
       ],
