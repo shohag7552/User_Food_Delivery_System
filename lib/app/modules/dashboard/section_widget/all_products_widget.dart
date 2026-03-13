@@ -4,7 +4,9 @@ import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/cart_helper.dart';
+import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
+import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -111,7 +113,7 @@ class AllProductsWidget extends StatelessWidget {
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    final product = controller.products[index];
+                    final ProductModel product = controller.products[index];
                     return GetBuilder<CartController>(
                       builder: (cartController) {
                         final cartQuantity = CartHelper.getProductCartQuantity(product.id);
@@ -162,7 +164,7 @@ class AllProductsWidget extends StatelessWidget {
   }
 
   Widget _buildProductCard({
-    required product,
+    required ProductModel product,
     required VoidCallback onTap,
     required VoidCallback onAddToCart,
     required int? cartQuantity,
@@ -231,7 +233,7 @@ class AllProductsWidget extends StatelessWidget {
               children: [
                 // Name
                 Text(
-                  product.name,
+                  product.nameMap.trLanguage,
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeDefault,
                     color: ColorResource.textPrimary,
@@ -243,7 +245,7 @@ class AllProductsWidget extends StatelessWidget {
 
                 // Description
                 Text(
-                  product.description,
+                  product.descriptionMap.trLanguage,
                   style: poppinsRegular.copyWith(
                     fontSize: Constants.fontSizeSmall,
                     color: ColorResource.textSecondary,
@@ -307,7 +309,7 @@ class AllProductsWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(Constants.radiusDefault),
           boxShadow: [
             BoxShadow(
-              color: ColorResource.primaryMedium.withOpacity(0.4),
+              color: ColorResource.primaryMedium.withValues(alpha: 0.4),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -331,7 +333,7 @@ class AllProductsWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(Constants.radiusDefault),
         boxShadow: [
           BoxShadow(
-            color: ColorResource.primaryMedium.withOpacity(0.4),
+            color: ColorResource.primaryMedium.withValues(alpha: 0.4),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),

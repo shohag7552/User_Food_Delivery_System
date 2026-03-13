@@ -1,14 +1,16 @@
+import 'package:appwrite_user_app/app/helper/model_json_converter.dart';
+
 class CategoryModel {
   final String id;
-  final String name;
-  final String description;
+  final Map<String, dynamic> nameMap;
+  final Map<String, dynamic> descriptionMap;
   final String? imagePath;
   final DateTime createdAt;
 
   CategoryModel({
     required this.id,
-    required this.name,
-    required this.description,
+    required this.nameMap,
+    required this.descriptionMap,
     this.imagePath,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
@@ -17,8 +19,8 @@ class CategoryModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name,
-      'description': description,
+      'name': nameMap,
+      'description': descriptionMap,
       'image_path': imagePath,
       'createdAt': createdAt.toIso8601String(),
     };
@@ -28,8 +30,8 @@ class CategoryModel {
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
     return CategoryModel(
       id: json['\$id'] as String? ?? json['id']??'',
-      name: json['name'] as String? ?? '',
-      description: json['description'] as String? ?? '',
+      nameMap: ModelJsonConverter.parseData(json['name'] ?? ''),
+      descriptionMap: ModelJsonConverter.parseData(json['description'] ?? ''),
       imagePath: json['image_path'] as String?,
       createdAt: json['\$createdAt'] != null
           ? DateTime.parse(json['\$createdAt'] as String)
@@ -40,15 +42,15 @@ class CategoryModel {
   // Copy with method for updating
   CategoryModel copyWith({
     String? id,
-    String? name,
-    String? description,
+    Map<String, dynamic>? name,
+    Map<String, dynamic>? description,
     String? imagePath,
     DateTime? createdAt,
   }) {
     return CategoryModel(
       id: id ?? this.id,
-      name: name ?? this.name,
-      description: description ?? this.description,
+      nameMap: name ?? nameMap,
+      descriptionMap: description ?? descriptionMap,
       imagePath: imagePath ?? this.imagePath,
       createdAt: createdAt ?? this.createdAt,
     );

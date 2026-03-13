@@ -1,6 +1,7 @@
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
+import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/cart/screens/cart_page.dart';
@@ -38,7 +39,7 @@ class CartHelper {
         id: '',
         userId: userId ?? '',
         productId: product.id,
-        productName: product.name,
+        productName: product.nameMap.trLanguage,
         productImage: product.imageId,
         basePrice: product.price,
         discountType: product.discountType,
@@ -81,7 +82,7 @@ class CartHelper {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          '${product.name} added to cart!',
+          '${product.nameMap.trLanguage} added to cart!',
           style: poppinsMedium.copyWith(
             color: ColorResource.textWhite,
           ),

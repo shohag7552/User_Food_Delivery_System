@@ -4,6 +4,7 @@ import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
 import 'package:appwrite_user_app/app/controllers/review_controller.dart';
 import 'package:appwrite_user_app/app/helper/auth_helper.dart';
+import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
@@ -444,7 +445,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
       children: [
         // Product Name
         Text(
-          widget.product.name,
+          widget.product.nameMap.trLanguage,
           style: poppinsBold.copyWith(
             fontSize: Constants.fontSizeExtraLarge + 4,
             color: ColorResource.textPrimary,
@@ -480,7 +481,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
 
         // Description
         Text(
-          widget.product.description,
+          widget.product.descriptionMap.trLanguage,
           style: poppinsRegular.copyWith(
             fontSize: Constants.fontSizeDefault,
             color: ColorResource.textSecondary,
@@ -893,7 +894,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                         id: '', // Will be set by database
                         userId: userId ?? '',
                         productId: widget.product.id,
-                        productName: widget.product.name,
+                        productName: widget.product.nameMap.trLanguage,
                         productImage: widget.product.imageId,
                         basePrice: widget.product.price,
                         discountType: widget.product.discountType,
@@ -936,7 +937,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              '${widget.product.name} added to cart!',
+                              '${widget.product.nameMap.trLanguage} added to cart!',
                               style: poppinsMedium.copyWith(
                                 color: ColorResource.textWhite,
                                 fontSize: Constants.fontSizeDefault,
@@ -955,7 +956,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                           ),
                         );
                     } else {
-                        customToster('${widget.product.name} updated!');
+                        customToster('${widget.product.nameMap.trLanguage} updated!');
                     }
 
                   } catch (e) {

@@ -1,6 +1,7 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
+import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/modules/categories/screens/category_screen.dart';
 import 'package:appwrite_user_app/app/modules/categories/screens/category_products_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -113,7 +114,7 @@ class CategorySectionWidget extends StatelessWidget {
 
                             Expanded(
                               flex: 3,
-                              child: Center(child: Text(category.name, style: poppinsMedium, maxLines: 2, overflow: TextOverflow.ellipsis)),
+                              child: Center(child: Text(category.nameMap.trLanguage, style: poppinsMedium, maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center)),
                             ),
                           ]),
                         ),

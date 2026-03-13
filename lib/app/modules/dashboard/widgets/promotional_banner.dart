@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
+import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -106,7 +107,7 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
                         ),
                       ),
                       // Banner text
-                      if (banner.title != null || banner.subtitle != null)
+                      if (banner.titleMap != null || banner.subTitleMap != null)
                         Positioned(
                           bottom: 16,
                           left: 16,
@@ -114,9 +115,9 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (banner.title != null)
+                              if (banner.titleMap != null)
                                 Text(
-                                  banner.title!,
+                                  banner.titleMap!.trLanguage,
                                   style: poppinsBold.copyWith(
                                     fontSize: Constants.fontSizeExtraLarge,
                                     color: ColorResource.textWhite,
@@ -124,10 +125,10 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                              if (banner.subtitle != null) ...[
+                              if (banner.subTitleMap != null) ...[
                                 const SizedBox(height: 4),
                                 Text(
-                                  banner.subtitle!,
+                                  banner.subTitleMap!.trLanguage,
                                   style: poppinsRegular.copyWith(
                                     fontSize: Constants.fontSizeSmall,
                                     color: ColorResource.textWhite,

@@ -1,7 +1,7 @@
 import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
-import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
+import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/models/category_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
@@ -108,7 +108,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
       ),
       flexibleSpace: FlexibleSpaceBar(
         title: Text(
-          widget.category.name,
+          widget.category.nameMap.trLanguage,
           style: poppinsBold.copyWith(
             fontSize: Constants.fontSizeLarge,
             color: ColorResource.textWhite,
@@ -349,7 +349,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                 children: [
                   // Name
                   Text(
-                    product.name,
+                    product.nameMap.trLanguage,
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeDefault,
                       color: ColorResource.textPrimary,
@@ -361,7 +361,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
 
                   // Description
                   Text(
-                    product.description,
+                    product.descriptionMap.trLanguage,
                     style: poppinsRegular.copyWith(
                       fontSize: Constants.fontSizeSmall,
                       color: ColorResource.textSecondary,
@@ -406,7 +406,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                           // Get.find<CartController>().addItemToCart(product);
                           Get.snackbar(
                             'Added to Cart',
-                            '${product.name} has been added to your cart',
+                            '${product.nameMap.trLanguage} has been added to your cart',
                             snackPosition: SnackPosition.BOTTOM,
                             duration: const Duration(seconds: 2),
                             backgroundColor: ColorResource.success.withValues(alpha: 0.9),
@@ -422,7 +422,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: ColorResource.primaryMedium.withOpacity(0.4),
+                                color: ColorResource.primaryMedium.withValues(alpha: 0.4),
                                 blurRadius: 8,
                                 offset: const Offset(0, 4),
                               ),

@@ -1,6 +1,7 @@
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/cart_helper.dart';
+import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/food_item_card.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -141,9 +142,9 @@ class NewItemsWidget extends StatelessWidget {
                         final cartQuantity = CartHelper.getProductCartQuantity(product.id);
                         
                         return FoodItemCard(
-                          name: product.name,
+                          name: product.nameMap.trLanguage,
                           imageUrl: product.imageId,
-                          description: product.description,
+                          description: product.descriptionMap.trLanguage,
                           price: product.finalPrice,
                           oldPrice: product.hasDiscount ? product.price : null,
                           product: product,

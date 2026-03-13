@@ -1,10 +1,12 @@
 import 'dart:convert';
 
+import 'package:appwrite_user_app/app/helper/model_json_converter.dart';
+
 class ProductModel {
   final String id;
   final String categoryId;
-  final String name;
-  final String description;
+  final Map<String, dynamic> nameMap;
+  final Map<String, dynamic> descriptionMap;
   final double price; // Original price (before discount)
   final String? discountType; // 'percentage' or 'fixed' or null
   final double? discountValue; // The discount amount or percentage
@@ -17,8 +19,8 @@ class ProductModel {
   ProductModel({
     required this.id,
     required this.categoryId,
-    required this.name,
-    required this.description,
+    required this.nameMap,
+    required this.descriptionMap,
     required this.price,
     this.discountType,
     this.discountValue,
@@ -55,8 +57,8 @@ class ProductModel {
     return ProductModel(
       id: json['\$id'], // Appwrite uses $id
       categoryId: json['category_id'],
-      name: json['name'],
-      description: json['description'] ?? '',
+      nameMap: ModelJsonConverter.parseData(json['name'] ?? ''),
+      descriptionMap: ModelJsonConverter.parseData(json['description'] ?? ''),
       price: (json['price'] as num).toDouble(),
       discountType: json['discount_type'],
       discountValue: json['discount_value'] != null
@@ -79,8 +81,8 @@ class ProductModel {
   Map<String, dynamic> toJson() {
     return {
       'category_id': categoryId,
-      'name': name,
-      'description': description,
+      'name': jsonEncode(nameMap),
+      'description': jsonEncode(descriptionMap),
       'price': price,
       'discount_type': discountType,
       'discount_value': discountValue,

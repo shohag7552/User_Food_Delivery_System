@@ -1,8 +1,12 @@
+import 'dart:convert';
+
+import 'package:appwrite_user_app/app/helper/model_json_converter.dart';
+
 class BannerModel {
   final String id;
   final String imageUrl;
-  final String? title;
-  final String? subtitle;
+  final Map<String, dynamic>? titleMap;
+  final Map<String, dynamic>? subTitleMap;
   final String actionType; // 'none', 'product', 'category', 'url'
   final String? actionValue;
   final bool isActive;
@@ -11,8 +15,8 @@ class BannerModel {
   BannerModel({
     required this.id,
     required this.imageUrl,
-    this.title,
-    this.subtitle,
+    this.titleMap,
+    this.subTitleMap,
     required this.actionType,
     this.actionValue,
     required this.isActive,
@@ -24,8 +28,8 @@ class BannerModel {
     return BannerModel(
       id: json['\$id'], // Appwrite uses $id
       imageUrl: json['image_url'],
-      title: json['title'],
-      subtitle: json['subtitle'],
+      titleMap: ModelJsonConverter.parseData(json['title'] ?? ''),
+      subTitleMap: ModelJsonConverter.parseData(json['subtitle'] ?? ''),
       actionType: json['action_type'],
       actionValue: json['action_value'],
       isActive: json['is_active'] ?? true,
@@ -37,8 +41,8 @@ class BannerModel {
   Map<String, dynamic> toJson() {
     return {
       'image_url': imageUrl,
-      'title': title,
-      'subtitle': subtitle,
+      'title': jsonEncode(titleMap??'{}'),
+      'subtitle': jsonEncode(subTitleMap??'{}'),
       'action_type': actionType,
       'action_value': actionValue,
       'is_active': isActive,

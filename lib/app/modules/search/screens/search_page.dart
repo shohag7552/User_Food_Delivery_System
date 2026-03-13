@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
+import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -150,7 +151,7 @@ class _SearchPageState extends State<SearchPage> {
                 color: ColorResource.scaffoldBackground,
                 borderRadius: BorderRadius.circular(Constants.radiusLarge),
                 border: Border.all(
-                  color: ColorResource.primaryDark.withOpacity(0.2),
+                  color: ColorResource.primaryDark.withValues(alpha: 0.2),
                   width: 1,
                 ),
               ),
@@ -250,7 +251,7 @@ class _SearchPageState extends State<SearchPage> {
           Icon(
             Icons.search,
             size: 80,
-            color: ColorResource.textLight.withOpacity(0.3),
+            color: ColorResource.textLight.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 16),
           Text(
@@ -455,7 +456,7 @@ class _SearchPageState extends State<SearchPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    product.name,
+                    product.nameMap.trLanguage,
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeDefault,
                       color: ColorResource.textPrimary,
@@ -465,7 +466,7 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    product.description,
+                    product.descriptionMap.trLanguage,
                     style: poppinsRegular.copyWith(
                       fontSize: Constants.fontSizeSmall,
                       color: ColorResource.textSecondary,
@@ -505,7 +506,7 @@ class _SearchPageState extends State<SearchPage> {
                           borderRadius: BorderRadius.circular(Constants.radiusDefault),
                           boxShadow: [
                             BoxShadow(
-                              color: ColorResource.primaryMedium.withOpacity(0.4),
+                              color: ColorResource.primaryMedium.withValues(alpha: 0.4),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),

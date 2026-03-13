@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
+import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -345,7 +346,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          product.name,
+                          product.nameMap.trLanguage,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: poppinsMedium.copyWith(
