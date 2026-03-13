@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
@@ -30,20 +31,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
-      appBar: AppBar(
-        title: Text(
-          'my_favorites'.tr,
-          style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeLarge,
-            color: ColorResource.textWhite,
-          ),
-        ),
-        backgroundColor: ColorResource.primaryDark,
-        elevation: 0,
+      appBar: CustomAppbar(
+        title: 'my_favorites'.tr,
       ),
       body: GetBuilder<FavoritesController>(
         builder: (controller) {
-          print('========ggg===> ${controller.favorites.length}');
 
           if (controller.isLoading) {
             return _buildLoadingState();

@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/controllers/address_controller.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
@@ -132,16 +133,8 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
 
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
-      appBar: AppBar(
-        title: Text(
-          isEditing ? 'Edit Address' : 'Add Address',
-          style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeLarge,
-            color: ColorResource.textWhite,
-          ),
-        ),
-        backgroundColor: ColorResource.primaryDark,
-        elevation: 0,
+      appBar: CustomAppbar(
+        title: isEditing ? 'Edit Address' : 'Add Address',
       ),
       body: Form(
         key: _formKey,

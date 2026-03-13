@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/controllers/notification_controller.dart';
 import 'package:appwrite_user_app/app/models/notification_model.dart';
 import 'package:appwrite_user_app/app/modules/notification/widgets/notification_detail_bottom_sheet.dart';
@@ -28,16 +29,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
-      appBar: AppBar(
-        title: Text(
-          'notifications_title'.tr,
-          style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeLarge,
-            color: ColorResource.textWhite,
-          ),
-        ),
-        backgroundColor: ColorResource.primaryDark,
-        elevation: 0,
+      appBar: CustomAppbar(
+        title: 'notifications_title'.tr,
         actions: [
           GetBuilder<NotificationController>(
             builder: (controller) {

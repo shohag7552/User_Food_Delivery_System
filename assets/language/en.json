@@ -477,5 +477,6 @@
   "days_remaining": "Days Remaining",
   "not_yet_active": "Not yet active",
   "days": "days",
-  "apply_this_coupon": "Apply This Coupon"
+  "apply_this_coupon": "Apply This Coupon",
+  "no_categories_available": "No Categories Available"
 }

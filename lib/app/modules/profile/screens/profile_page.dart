@@ -292,78 +292,97 @@ class _ProfilePageState extends State<ProfilePage> {
       pinned: true,
       elevation: 0,
       backgroundColor: ColorResource.primaryDark,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: ColorResource.primaryGradient,
-          ),
-          child: SafeArea(
-            child: controller.isLoading
-                ? Center(
-                    child: CircularProgressIndicator(
-                      color: ColorResource.textWhite,
-                    ),
-                  )
-                : Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        // Profile Picture
-                        Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: ColorResource.textWhite,
-                              width: 3,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.2),
-                                blurRadius: 10,
-                                offset: const Offset(0, 5),
-                              ),
-                            ],
-                          ),
-                          child: CircleAvatar(
-                            radius: 40,
-                            backgroundColor: ColorResource.textWhite,
-                            child: user?.profileImageUrl != null
-                                ? ClipOval(
-                                    child: Image.network(
-                                      user!.profileImageUrl!,
-                                      width: 80,
-                                      height: 80,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return _buildAvatarPlaceholder(user);
-                                      },
-                                    ),
-                                  )
-                                : _buildAvatarPlaceholder(user),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          user?.name ?? 'Loading...',
-                          style: poppinsBold.copyWith(
-                            fontSize: Constants.fontSizeLarge,
-                            color: ColorResource.textWhite,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                            '${'balance'.tr}: ${CurrencyHelper.formatWithSeparators(user?.walletBalance ?? 0)}',
-                          style: poppinsRegular.copyWith(
-                            fontSize: Constants.fontSizeDefault,
-                            color: ColorResource.textWhite.withValues(alpha: 0.9),
-                          ),
-                        ),
-                      ],
-                    ),
+      flexibleSpace: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          // Calculate collapse ratio (0.0 = fully expanded, 1.0 = fully collapsed)
+          final double appBarHeight = constraints.maxHeight;
+          final double statusBarHeight = MediaQuery.of(context).padding.top;
+          final double minHeight = kToolbarHeight + statusBarHeight;
+          final double collapseRatio = ((appBarHeight - minHeight) / (180 - minHeight)).clamp(0.0, 1.0);
+          final bool isCollapsed = collapseRatio < 0.1; // Fully collapsed threshold
+
+          return FlexibleSpaceBar(
+            title: isCollapsed ? Padding(
+              padding: const EdgeInsets.only(bottom: Constants.paddingSizeSmall),
+              child: Text(
+                'profile'.tr,
+                style: poppinsBold.copyWith(color: Colors.white, fontSize: Constants.fontSizeExtraLarge),
+              ),
+            ) : null,
+            titlePadding: isCollapsed ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8) : null,
+            background: Container(
+              decoration: BoxDecoration(
+                gradient: ColorResource.primaryGradient,
+              ),
+              child: SafeArea(
+                child: controller.isLoading
+                    ? Center(
+                  child: CircularProgressIndicator(
+                    color: ColorResource.textWhite,
                   ),
-          ),
-        ),
+                )
+                    : Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      // Profile Picture
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: ColorResource.textWhite,
+                            width: 3,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: CircleAvatar(
+                          radius: 40,
+                          backgroundColor: ColorResource.textWhite,
+                          child: user?.profileImageUrl != null
+                              ? ClipOval(
+                            child: Image.network(
+                              user!.profileImageUrl!,
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return _buildAvatarPlaceholder(user);
+                              },
+                            ),
+                          )
+                              : _buildAvatarPlaceholder(user),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        user?.name ?? 'Loading...',
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeLarge,
+                          color: ColorResource.textWhite,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${'balance'.tr}: ${CurrencyHelper.formatWithSeparators(user?.walletBalance ?? 0)}',
+                        style: poppinsRegular.copyWith(
+                          fontSize: Constants.fontSizeDefault,
+                          color: ColorResource.textWhite.withValues(alpha: 0.9),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

@@ -129,7 +129,7 @@ class CategorySectionWidget extends StatelessWidget {
                   height: 50,
                   child: Center(
                     child: Text(
-                      'No categories available',
+                      'no_categories_available'.tr,
                       style: poppinsRegular.copyWith(
                         fontSize: Constants.fontSizeDefault,
                         color: ColorResource.textLight,
