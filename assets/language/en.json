@@ -478,5 +478,14 @@
   "not_yet_active": "Not yet active",
   "days": "days",
   "apply_this_coupon": "Apply This Coupon",
-  "no_categories_available": "No Categories Available"
+  "no_categories_available": "No Categories Available",
+  "edit_address": "Edit Address",
+  "location_map": "Location Map",
+  "full_screen_map": "Full Screen Map",
+  "my_location": "My Location",
+  "confirm_location": "Confirm Location",
+  "select_location": "Select Location",
+  "set_as_default_address": "Set as Default Address",
+  "update_address": "Update Address",
+  "save_address":"Save Address"
 }

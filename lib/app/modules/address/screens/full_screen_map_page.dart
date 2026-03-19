@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -33,20 +34,8 @@ class _FullScreenMapPageState extends State<FullScreenMapPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
-      appBar: AppBar(
-        title: Text(
-          'Select Location',
-          style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeLarge,
-            color: ColorResource.textWhite,
-          ),
-        ),
-        backgroundColor: ColorResource.primaryDark,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: ColorResource.textWhite),
-          onPressed: () => Get.back(),
-        ),
+      appBar: CustomAppbar(
+        title: 'select_location'.tr,
       ),
       body: Stack(
         children: [
@@ -98,7 +87,7 @@ class _FullScreenMapPageState extends State<FullScreenMapPage> {
                 elevation: 5,
               ),
               child: Text(
-                'Confirm Location',
+                'confirm_location'.tr,
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeLarge,
                   color: ColorResource.textWhite,

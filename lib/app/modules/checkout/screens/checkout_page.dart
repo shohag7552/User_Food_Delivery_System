@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/address_controller.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
@@ -6,8 +7,6 @@ import 'package:appwrite_user_app/app/controllers/order_controller.dart';
 import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
-import 'package:appwrite_user_app/app/models/coupon_model.dart';
-import 'package:appwrite_user_app/app/modules/address/screens/add_edit_address_page.dart';
 import 'package:appwrite_user_app/app/modules/checkout/screens/order_failed_page.dart';
 import 'package:appwrite_user_app/app/modules/checkout/screens/order_success_page.dart';
 import 'package:appwrite_user_app/app/modules/checkout/widgets/address_selection_bottomsheet.dart';
@@ -65,17 +64,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
-      appBar: AppBar(
-        title: Text(
-          'checkout'.tr,
-          style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeLarge,
-            color: ColorResource.textWhite,
-          ),
-        ),
-        backgroundColor: ColorResource.primaryDark,
-        elevation: 0,
-      ),
+      appBar: CustomAppbar(title: 'checkout'.tr),
       body: GetBuilder<CartController>(
         builder: (controller) {
           if (controller.cartItems.isEmpty) {

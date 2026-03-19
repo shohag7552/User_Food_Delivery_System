@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
@@ -19,17 +20,7 @@ class OrderDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
-      appBar: AppBar(
-        title: Text(
-          'order_details'.tr,
-          style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeLarge,
-            color: ColorResource.textWhite,
-          ),
-        ),
-        backgroundColor: ColorResource.primaryDark,
-        elevation: 0,
-      ),
+      appBar: CustomAppbar(title: 'order_details'.tr),
       body: SingleChildScrollView(
         child: Column(
           children: [

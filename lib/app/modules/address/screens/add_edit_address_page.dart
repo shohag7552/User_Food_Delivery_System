@@ -134,7 +134,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
       appBar: CustomAppbar(
-        title: isEditing ? 'Edit Address' : 'Add Address',
+        title: isEditing ? 'edit_address'.tr : 'add_address'.tr,
       ),
       body: Form(
         key: _formKey,
@@ -142,7 +142,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
           padding: const EdgeInsets.all(16),
           children: [
             Text(
-              'Location Map',
+              'location_map'.tr,
               style: poppinsMedium.copyWith(
                 fontSize: Constants.fontSizeDefault,
                 color: ColorResource.textPrimary,
@@ -221,7 +221,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
                         child: IconButton(
                           icon: const Icon(Icons.fullscreen, color: ColorResource.primaryDark),
                           onPressed: _openFullScreenMap,
-                          tooltip: 'Full Screen Map',
+                          tooltip: 'full_screen_map'.tr,
                         ),
                       ),
                     ),
@@ -231,28 +231,28 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _buildMapControlButton(
-                            icon: Icons.add,
-                            onPressed: () {
-                              final currentZoom = _mapController.camera.zoom;
-                              _mapController.move(_selectedLocation ?? _defaultLocation, currentZoom + 1);
-                            },
-                            tooltip: 'Zoom In',
-                          ),
-                          const SizedBox(height: 8),
-                          _buildMapControlButton(
-                            icon: Icons.remove,
-                            onPressed: () {
-                              final currentZoom = _mapController.camera.zoom;
-                              _mapController.move(_selectedLocation ?? _defaultLocation, currentZoom - 1);
-                            },
-                            tooltip: 'Zoom Out',
-                          ),
-                          const SizedBox(height: 8),
+                          // _buildMapControlButton(
+                          //   icon: Icons.add,
+                          //   onPressed: () {
+                          //     final currentZoom = _mapController.camera.zoom;
+                          //     _mapController.move(_selectedLocation ?? _defaultLocation, currentZoom + 1);
+                          //   },
+                          //   tooltip: 'Zoom In',
+                          // ),
+                          // const SizedBox(height: 8),
+                          // _buildMapControlButton(
+                          //   icon: Icons.remove,
+                          //   onPressed: () {
+                          //     final currentZoom = _mapController.camera.zoom;
+                          //     _mapController.move(_selectedLocation ?? _defaultLocation, currentZoom - 1);
+                          //   },
+                          //   tooltip: 'Zoom Out',
+                          // ),
+                          // const SizedBox(height: 8),
                           _buildMapControlButton(
                             icon: Icons.my_location,
                             onPressed: _isLoadingLocation ? null : _getCurrentLocation,
-                            tooltip: 'My Location',
+                            tooltip: 'my_location'.tr,
                             isLoading: _isLoadingLocation,
                           ),
                         ],
@@ -266,7 +266,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
             
             _buildTextField(
               controller: _nameController,
-              label: 'Full Name *',
+              label: 'full_name'.tr,
               icon: Icons.person_outline,
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -279,7 +279,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
             
             _buildTextField(
               controller: _phoneController,
-              label: 'Phone Number *',
+              label: 'phone_number'.tr,
               icon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
               validator: (value) {
@@ -296,7 +296,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
             
             _buildTextField(
               controller: _addressLine1Controller,
-              label: 'Address Line 1 *',
+              label: 'address'.tr,
               icon: Icons.home_outlined,
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -307,12 +307,12 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
             ),
             const SizedBox(height: 16),
             
-            _buildTextField(
-              controller: _addressLine2Controller,
-              label: 'Address Line 2 (Optional)',
-              icon: Icons.location_on_outlined,
-            ),
-            const SizedBox(height: 16),
+            // _buildTextField(
+            //   controller: _addressLine2Controller,
+            //   label: 'Address Line 2 (Optional)',
+            //   icon: Icons.location_on_outlined,
+            // ),
+            // const SizedBox(height: 16),
             
             Row(
               children: [
@@ -353,7 +353,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
               value: _isDefault,
               onChanged: (value) => setState(() => _isDefault = value),
               title: Text(
-                'Set as default address',
+                'set_as_default_address'.tr,
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeDefault,
                   color: ColorResource.textPrimary,
@@ -385,7 +385,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
                         ),
                       )
                     : Text(
-                        isEditing ? 'Update Address' : 'Save Address',
+                        isEditing ? 'update_address'.tr : 'save_address'.tr,
                         style: poppinsBold.copyWith(
                           fontSize: Constants.fontSizeLarge,
                           color: ColorResource.textWhite,
