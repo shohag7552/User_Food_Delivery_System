@@ -486,6 +486,5 @@
   "confirm_location": "Confirm Location",
   "select_location": "Select Location",
   "set_as_default_address": "Set as Default Address",
-  "update_address": "Update Address",
-  "save_address":"Save Address"
+  "update_address": "Update Address"
 }
