@@ -60,8 +60,8 @@ class _CustomClickableWidgetState extends State<CustomClickableWidget> with Sing
           margin: widget.margin,
           child: Container(
             decoration: BoxDecoration(
-              color: ColorResource.cardBackground,
-              borderRadius: BorderRadius.circular(Constants.radiusLarge),
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(Constants.radiusLarge + 4),
               boxShadow: _isPressed ? [] : ColorResource.customShadow,
             ),
             child: widget.child,

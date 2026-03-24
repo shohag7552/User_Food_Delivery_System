@@ -18,7 +18,9 @@ class FoodItemCard extends StatefulWidget {
   final VoidCallback onAddToCart;
   final ProductModel? product;
   final int? cartQuantity; // Quantity in cart (null if not in cart)
-  final Function(bool isIncrement)? onQuantityChanged; // Callback for quantity changes
+  final Function(bool isIncrement)?
+  onQuantityChanged; // Callback for quantity changes
+  final bool? isPopular;
 
   const FoodItemCard({
     super.key,
@@ -32,6 +34,7 @@ class FoodItemCard extends StatefulWidget {
     this.product,
     this.cartQuantity,
     this.onQuantityChanged,
+    this.isPopular = false,
   });
 
   @override
@@ -39,8 +42,6 @@ class FoodItemCard extends StatefulWidget {
 }
 
 class _FoodItemCardState extends State<FoodItemCard> {
-
-
   double get discountPercentage {
     if (widget.oldPrice != null && widget.oldPrice! > widget.price) {
       return ((widget.oldPrice! - widget.price) / widget.oldPrice!) * 100;
@@ -50,8 +51,98 @@ class _FoodItemCardState extends State<FoodItemCard> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.isPopular!) {
+      return Padding(
+        padding: const EdgeInsets.only(
+          // right: 12,
+          top: 8,
+          bottom: Constants.paddingSizeSmall,
+        ),
+        child: CustomClickableWidget(
+          onTap: widget.onTap,
+          child: Container(
+            width: 208,
+            decoration: BoxDecoration(
+              color: ColorResource.cardBackground,
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildPopularImageSection(),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.name,
+                          style: poppinsBold.copyWith(
+                            fontSize: 17,
+                            color: ColorResource.textPrimary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: Constants.paddingSizeSmall),
+                        
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    PriceHelper.formatPrice(widget.price),
+                                    style: poppinsBold.copyWith(
+                                      fontSize: 16,
+                                      color: const Color(0xFFE45C45),
+                                    ),
+                                  ),
+                                  if (widget.oldPrice != null &&
+                                      widget.oldPrice! > widget.price)
+                                    Text(
+                                      PriceHelper.formatPrice(widget.oldPrice!),
+                                      style: poppinsRegular.copyWith(
+                                        fontSize: Constants.fontSizeSmall,
+                                        color: ColorResource.textLight,
+                                        decoration: TextDecoration.lineThrough,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            widget.cartQuantity != null
+                                ? _buildPopularQuantitySelector()
+                                : _buildPopularAddButton(),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Padding(
-      padding: const EdgeInsets.only(right: 16, bottom: Constants.paddingSizeSmall),
+      padding: const EdgeInsets.only(
+        right: 16,
+        bottom: Constants.paddingSizeSmall,
+      ),
       child: CustomClickableWidget(
         onTap: widget.onTap,
         child: SizedBox(
@@ -68,7 +159,11 @@ class _FoodItemCardState extends State<FoodItemCard> {
                         topLeft: Radius.circular(Constants.radiusLarge),
                         topRight: Radius.circular(Constants.radiusLarge),
                       ),
-                      child: CustomNetworkImage(image: widget.imageUrl, height: 160, width: double.infinity),
+                      child: CustomNetworkImage(
+                        image: widget.imageUrl,
+                        height: 160,
+                        width: double.infinity,
+                      ),
                     ),
                     // Discount badge
                     if (discountPercentage > 0)
@@ -196,11 +291,150 @@ class _FoodItemCardState extends State<FoodItemCard> {
             ),
           ],
         ),
-        child: Icon(
-          Icons.add,
-          color: ColorResource.textWhite,
-          size: 20,
+        child: Icon(Icons.add, color: ColorResource.textWhite, size: 20),
+      ),
+    );
+  }
+
+  Widget _buildPopularImageSection() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+      child: SizedBox(
+        height: 112,
+        child: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: CustomNetworkImage(
+                image: widget.imageUrl,
+                height: 112,
+                width: double.infinity,
+              ),
+            ),
+            if (discountPercentage > 0)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF04D23),
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(24),
+                      bottomLeft: Radius.circular(18),
+                    ),
+                  ),
+                  child: Text(
+                    'Off ${discountPercentage.toStringAsFixed(0)}%',
+                    style: poppinsMedium.copyWith(
+                      fontSize: 12,
+                      color: ColorResource.textWhite,
+                    ),
+                  ),
+                ),
+              ),
+            if (widget.product != null)
+              Positioned(
+                right: 12,
+                bottom: 10,
+                child: Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: ColorResource.textWhite,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.12),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: FavoriteButton(product: widget.product!, size: 17),
+                ),
+              ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPopularAddButton() {
+    return GestureDetector(
+      onTap: widget.onAddToCart,
+      child: Container(
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: const Color(0xFFFF4A1C),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFFF4A1C).withValues(alpha: 0.28),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: const Icon(Icons.add, color: ColorResource.textWhite, size: 28),
+      ),
+    );
+  }
+
+  Widget _buildPopularQuantitySelector() {
+    return Container(
+      height: 44,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFF4A1C),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFF4A1C).withValues(alpha: 0.24),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildPopularQuantityButton(
+            icon: Icons.remove,
+            onTap: () => widget.onQuantityChanged?.call(false),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              '${widget.cartQuantity}',
+              style: poppinsBold.copyWith(
+                fontSize: Constants.fontSizeDefault,
+                color: ColorResource.textWhite,
+              ),
+            ),
+          ),
+          _buildPopularQuantityButton(
+            icon: Icons.add,
+            onTap: () => widget.onQuantityChanged?.call(true),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPopularQuantityButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 34,
+        height: 44,
+        child: Icon(icon, color: ColorResource.textWhite, size: 18),
       ),
     );
   }
@@ -228,7 +462,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
             icon: Icons.remove,
             onTap: () => widget.onQuantityChanged?.call(false),
           ),
-          
+
           // Quantity display
           Container(
             constraints: const BoxConstraints(minWidth: 30),
@@ -243,7 +477,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
               ),
             ),
           ),
-          
+
           // Increment button
           _buildQuantityButton(
             icon: Icons.add,
@@ -263,11 +497,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(8),
-        child: Icon(
-          icon,
-          color: ColorResource.textWhite,
-          size: 18,
-        ),
+        child: Icon(icon, color: ColorResource.textWhite, size: 18),
       ),
     );
   }

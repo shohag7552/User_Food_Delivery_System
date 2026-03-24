@@ -8,11 +8,17 @@ import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:get/get.dart';
 
-class PopularDishesWidget extends StatelessWidget {
+class PopularDishesWidget extends StatefulWidget {
   const PopularDishesWidget({super.key});
 
+  @override
+  State<PopularDishesWidget> createState() => _PopularDishesWidgetState();
+}
+
+class _PopularDishesWidgetState extends State<PopularDishesWidget> {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ProductController>(
@@ -41,22 +47,21 @@ class PopularDishesWidget extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Loading State
             if (controller.isLoadingPopular)
               SizedBox(
-                height: 220,
+                height: 290,
                 child: Center(
                   child: CircularProgressIndicator(
                     color: ColorResource.primaryDark,
                   ),
                 ),
               )
-            
             // Error State
             else if (controller.popularErrorMessage != null)
               SizedBox(
-                height: 220,
+                height: 290,
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -89,11 +94,10 @@ class PopularDishesWidget extends StatelessWidget {
                   ),
                 ),
               )
-            
             // Empty State
             else if (controller.popularProducts.isEmpty)
               SizedBox(
-                height: 220,
+                height: 290,
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -115,47 +119,74 @@ class PopularDishesWidget extends StatelessWidget {
                   ),
                 ),
               )
-            
             // Products List
             else
-              SizedBox(
-                height: 220,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: controller.popularProducts.length,
-                  itemBuilder: (context, index) {
-                    final product = controller.popularProducts[index];
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final products = controller.popularProducts;
+                  final width = constraints.maxWidth;
+                  final viewportFraction = width >= 900
+                      ? 0.28
+                      : width >= 600
+                      ? 0.38
+                      : 0.58;
 
-                    return GetBuilder<CartController>(
-                      builder: (cartController) {
-                        final cartQuantity = CartHelper.getProductCartQuantity(product.id);
-                        
-                        return FoodItemCard(
-                          name: product.nameMap.trLanguage,
-                          imageUrl: product.imageId,
-                          description: product.descriptionMap.trLanguage,
-                          price: product.finalPrice,
-                          oldPrice: product.hasDiscount ? product.price : null,
-                          product: product,
-                          cartQuantity: cartQuantity,
-                          onTap: () {
-                            ProductDetailBottomSheet.show(context, product);
-                          },
-                          onAddToCart: () => CartHelper.handleAddToCart(product, context),
-                          onQuantityChanged: (isIncrement) {
-                            if (isIncrement) {
-                              CartHelper.incrementQuantity(product, context);
-                            } else {
-                              CartHelper.decrementQuantity(product, context);
-                            }
-                          },
-                        );
-                      },
-                    );
-                  },
-                ),
+                  return CarouselSlider.builder(
+                    itemCount: products.length,
+                    itemBuilder: (context, index, realIndex) {
+                      final product = products[index];
+
+                      return GetBuilder<CartController>(
+                        builder: (cartController) {
+                          final cartQuantity = CartHelper.getProductCartQuantity(product.id);
+
+                          return FoodItemCard(
+                            name: product.nameMap.trLanguage,
+                            isPopular: true,
+                            imageUrl: product.imageId,
+                            description: product.descriptionMap.trLanguage,
+                            price: product.finalPrice,
+                            oldPrice: product.hasDiscount
+                                ? product.price
+                                : null,
+                            product: product,
+                            cartQuantity: cartQuantity,
+                            onTap: () {
+                              ProductDetailBottomSheet.show(context, product);
+                            },
+                            onAddToCart: () =>
+                                CartHelper.handleAddToCart(product, context),
+                            onQuantityChanged: (isIncrement) {
+                              if (isIncrement) {
+                                CartHelper.incrementQuantity(product, context);
+                              } else {
+                                CartHelper.decrementQuantity(product, context);
+                              }
+                            },
+                          );
+                        },
+                      );
+                    },
+                    options: CarouselOptions(
+                      height: 266,
+                      viewportFraction: viewportFraction,
+                      padEnds: true,
+                      enlargeCenterPage: true,
+                      enlargeFactor: 0.25,
+                      enlargeStrategy: CenterPageEnlargeStrategy.zoom,
+                      enableInfiniteScroll: products.length > 1,
+                      autoPlay: products.length > 1,
+                      autoPlayInterval: const Duration(seconds: 25),
+                      autoPlayAnimationDuration: const Duration(
+                        milliseconds: 1000,
+                      ),
+                      autoPlayCurve: Curves.linear,
+                      pauseAutoPlayOnTouch: true,
+                      pauseAutoPlayOnManualNavigate: true,
+                      pauseAutoPlayInFiniteScroll: false,
+                    ),
+                  );
+                },
               ),
           ],
         );
