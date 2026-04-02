@@ -3,6 +3,7 @@ import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/cart_helper.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/food_item_card.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/dashboard_shimmer.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -41,18 +42,10 @@ class TodaysSpecialsWidget extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Loading State
             if (controller.isLoadingSpecials)
-              SizedBox(
-                height: 220,
-                child: Center(
-                  child: CircularProgressIndicator(
-                    color: ColorResource.primaryDark,
-                  ),
-                ),
-              )
-            
+              const HorizontalFoodListShimmer()
             // Error State
             else if (controller.specialsErrorMessage != null)
               SizedBox(
@@ -89,7 +82,6 @@ class TodaysSpecialsWidget extends StatelessWidget {
                   ),
                 ),
               )
-            
             // Empty State
             else if (controller.specialProducts.isEmpty)
               SizedBox(
@@ -115,7 +107,6 @@ class TodaysSpecialsWidget extends StatelessWidget {
                   ),
                 ),
               )
-            
             // Products List
             else
               SizedBox(
@@ -130,8 +121,10 @@ class TodaysSpecialsWidget extends StatelessWidget {
 
                     return GetBuilder<CartController>(
                       builder: (cartController) {
-                        final cartQuantity = CartHelper.getProductCartQuantity(product.id);
-                        
+                        final cartQuantity = CartHelper.getProductCartQuantity(
+                          product.id,
+                        );
+
                         return FoodItemCard(
                           name: product.nameMap.trLanguage,
                           imageUrl: product.imageId,
@@ -143,7 +136,8 @@ class TodaysSpecialsWidget extends StatelessWidget {
                           onTap: () {
                             ProductDetailBottomSheet.show(context, product);
                           },
-                          onAddToCart: () => CartHelper.handleAddToCart(product, context),
+                          onAddToCart: () =>
+                              CartHelper.handleAddToCart(product, context),
                           onQuantityChanged: (isIncrement) {
                             if (isIncrement) {
                               CartHelper.incrementQuantity(product, context);

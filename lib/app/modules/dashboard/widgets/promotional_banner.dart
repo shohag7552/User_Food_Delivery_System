@@ -1,12 +1,11 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
-import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/dashboard_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/models/banner_model.dart';
-import 'package:get/get.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
 class PromotionalBanner extends StatefulWidget {
@@ -31,7 +30,8 @@ class PromotionalBanner extends StatefulWidget {
 
 class _PromotionalBannerState extends State<PromotionalBanner> {
   int _currentPage = 0;
-  final CarouselSliderController _carouselController = CarouselSliderController();
+  final CarouselSliderController _carouselController =
+      CarouselSliderController();
 
   @override
   void dispose() {
@@ -101,7 +101,7 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
                             end: Alignment.bottomCenter,
                             colors: [
                               Colors.transparent,
-                              Colors.black.withOpacity(0.5),
+                              Colors.black.withValues(alpha: 0.5),
                             ],
                           ),
                         ),
@@ -181,7 +181,7 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
                 decoration: BoxDecoration(
                   color: _currentPage == index
                       ? ColorResource.primaryDark
-                      : ColorResource.textLight.withOpacity(0.3),
+                      : ColorResource.textLight.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -193,26 +193,7 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
   }
 
   Widget _buildLoadingState() {
-    return Container(
-      height: 160,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
-        borderRadius: BorderRadius.circular(Constants.radiusLarge),
-        boxShadow: [
-          BoxShadow(
-            color: ColorResource.shadowMedium,
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(ColorResource.primaryDark),
-        ),
-      ),
-    );
+    return const BannerShimmer();
   }
 
   Widget _buildErrorState() {
@@ -223,7 +204,7 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
         color: ColorResource.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
         border: Border.all(
-          color: ColorResource.error.withOpacity(0.3),
+          color: ColorResource.error.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -233,11 +214,7 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.error_outline,
-                color: ColorResource.error,
-                size: 40,
-              ),
+              Icon(Icons.error_outline, color: ColorResource.error, size: 40),
               const SizedBox(height: 12),
               Text(
                 'Failed to load banners',
@@ -269,6 +246,6 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
   void _handleBannerTap(BannerModel banner) {
     // TODO: Implement navigation based on action type
     // This can be implemented when needed
-    print('Banner tapped: ${banner.actionType} - ${banner.actionValue}');
+    debugPrint('Banner tapped: ${banner.actionType} - ${banner.actionValue}');
   }
 }

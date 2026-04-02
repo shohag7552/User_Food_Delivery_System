@@ -3,6 +3,7 @@ import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/cart_helper.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/food_item_card.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/dashboard_shimmer.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -50,14 +51,7 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
 
             // Loading State
             if (controller.isLoadingPopular)
-              SizedBox(
-                height: 290,
-                child: Center(
-                  child: CircularProgressIndicator(
-                    color: ColorResource.primaryDark,
-                  ),
-                ),
-              )
+              const HorizontalFoodListShimmer(isPopular: true)
             // Error State
             else if (controller.popularErrorMessage != null)
               SizedBox(
@@ -138,7 +132,8 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
 
                       return GetBuilder<CartController>(
                         builder: (cartController) {
-                          final cartQuantity = CartHelper.getProductCartQuantity(product.id);
+                          final cartQuantity =
+                              CartHelper.getProductCartQuantity(product.id);
 
                           return FoodItemCard(
                             name: product.nameMap.trLanguage,
@@ -176,7 +171,7 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
                       enlargeStrategy: CenterPageEnlargeStrategy.zoom,
                       enableInfiniteScroll: products.length > 1,
                       autoPlay: products.length > 1,
-                      autoPlayInterval: const Duration(seconds: 25),
+                      autoPlayInterval: const Duration(seconds: 5),
                       autoPlayAnimationDuration: const Duration(
                         milliseconds: 1000,
                       ),

@@ -4,6 +4,7 @@ import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/modules/categories/screens/category_screen.dart';
 import 'package:appwrite_user_app/app/modules/categories/screens/category_products_page.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/dashboard_shimmer.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -57,13 +58,7 @@ class CategorySectionWidget extends StatelessWidget {
 
             // Loading State
             if (categoryController.isLoading)
-              const SizedBox(
-                height: 50,
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
-              )
-
+              const CategorySectionShimmer()
             // Error State
             else if (categoryController.errorMessage != null)
               SizedBox(
@@ -78,65 +73,87 @@ class CategorySectionWidget extends StatelessWidget {
                   ),
                 ),
               )
-
             // Categories List
             else if (categoryController.categories.isNotEmpty)
-                SizedBox(
-                  height: 140,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.only(left: 20, bottom: 10),
-                    itemCount: categoryController.categories.length,
-                    itemBuilder: (context, index) {
-                      final category = categoryController.categories[index];
-                      return CustomClickableWidget(
-                        onTap: () {
-                          Get.to(() => CategoryProductsPage(category: category));
-                        },
-                        margin: const EdgeInsets.only(right: Constants.paddingSizeLarge),
-                        child: Container(
-                          width: 70,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            border: Border.all(color: Theme.of(context).disabledColor.withValues(alpha: 0.3)),
-                            borderRadius: BorderRadius.circular(Constants.radiusLarge),
-                            // boxShadow: [BoxShadow(color: Theme.of(context).disabledColor.withValues(alpha: 0.3), offset: const Offset(0, 5), blurRadius: 5)],
+              SizedBox(
+                height: 140,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.only(left: 20, bottom: 10),
+                  itemCount: categoryController.categories.length,
+                  itemBuilder: (context, index) {
+                    final category = categoryController.categories[index];
+                    return CustomClickableWidget(
+                      onTap: () {
+                        Get.to(() => CategoryProductsPage(category: category));
+                      },
+                      margin: const EdgeInsets.only(
+                        right: Constants.paddingSizeLarge,
+                      ),
+                      child: Container(
+                        width: 70,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          border: Border.all(
+                            color: Theme.of(
+                              context,
+                            ).disabledColor.withValues(alpha: 0.3),
                           ),
-                          child: Column(children: [
+                          borderRadius: BorderRadius.circular(
+                            Constants.radiusLarge,
+                          ),
+                          // boxShadow: [BoxShadow(color: Theme.of(context).disabledColor.withValues(alpha: 0.3), offset: const Offset(0, 5), blurRadius: 5)],
+                        ),
+                        child: Column(
+                          children: [
                             Expanded(
                               flex: 7,
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(Constants.radiusLarge),
-                                child: CustomNetworkImage(image: category.imagePath??'', width: 70, height: double.infinity,),
+                                borderRadius: BorderRadius.circular(
+                                  Constants.radiusLarge,
+                                ),
+                                child: CustomNetworkImage(
+                                  image: category.imagePath ?? '',
+                                  width: 70,
+                                  height: double.infinity,
+                                ),
                               ),
                             ),
 
                             Expanded(
                               flex: 3,
-                              child: Center(child: Text(category.nameMap.trLanguage, style: poppinsMedium, maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center)),
+                              child: Center(
+                                child: Text(
+                                  category.nameMap.trLanguage,
+                                  style: poppinsMedium,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
                             ),
-                          ]),
+                          ],
                         ),
-                      );
-                    },
-                  ),
-                )
-
-              // Empty State
-              else
-                SizedBox(
-                  height: 50,
-                  child: Center(
-                    child: Text(
-                      'no_categories_available'.tr,
-                      style: poppinsRegular.copyWith(
-                        fontSize: Constants.fontSizeDefault,
-                        color: ColorResource.textLight,
                       ),
+                    );
+                  },
+                ),
+              )
+            // Empty State
+            else
+              SizedBox(
+                height: 50,
+                child: Center(
+                  child: Text(
+                    'no_categories_available'.tr,
+                    style: poppinsRegular.copyWith(
+                      fontSize: Constants.fontSizeDefault,
+                      color: ColorResource.textLight,
                     ),
                   ),
                 ),
+              ),
           ],
         );
       },

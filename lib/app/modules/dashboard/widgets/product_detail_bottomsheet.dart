@@ -2,8 +2,6 @@ import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
-import 'package:appwrite_user_app/app/controllers/review_controller.dart';
-import 'package:appwrite_user_app/app/helper/auth_helper.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
@@ -11,7 +9,6 @@ import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/modules/cart/screens/cart_page.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/review_list_section.dart';
-import 'package:appwrite_user_app/app/modules/reviews/widgets/submit_review_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -49,24 +46,33 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
     with SingleTickerProviderStateMixin {
   int _quantity = 1;
   final Map<String, dynamic> _selectedVariants = {};
-  late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
   bool _isAddingToCart = false;
   CartItemModel? _matchingCartItem; // ADDED THIS LINE
+
+  String get _productDescription =>
+      widget.product.descriptionMap.trLanguage.trim();
+
+  int get _selectedVariantCount {
+    int count = 0;
+    for (final variant in widget.product.variants) {
+      if (!_selectedVariants.containsKey(variant.title)) continue;
+
+      if (variant.type == 'radio') {
+        if (_selectedVariants[variant.title] != null) {
+          count++;
+        }
+      } else {
+        final options = _selectedVariants[variant.title] as List<VariantOption>?;
+        count += options?.length ?? 0;
+      }
+    }
+    return count;
+  }
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 200),
-      vsync: this,
-    );
-    _scaleAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutBack,
-    );
-    _animationController.forward();
-    
+
     // Initialize with existing cart item data if available
     if (widget.cartItem != null) {
       _quantity = widget.cartItem!.quantity;
@@ -129,12 +135,6 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
         }
       }
     });
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
   }
 
   double get _totalPrice {
@@ -246,33 +246,29 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
 
                      // Product Details
                      Padding(
-                       padding: const EdgeInsets.all(20),
+                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                        child: Column(
                          crossAxisAlignment: CrossAxisAlignment.start,
                          children: [
                            _buildProductInfo(),
-                           const SizedBox(height: 24),
+                           const SizedBox(height: 18),
 
                            // Variants
                            if (widget.product.variants.isNotEmpty) ...[
                              _buildVariantsSection(),
-                             const SizedBox(height: 24),
+                             const SizedBox(height: 18),
                            ],
-
-                           // Quantity Selector
-                           _buildQuantitySelector(),
-                            const SizedBox(height: 32),
 
                             // Divider
                             Divider(
-                              color: ColorResource.textLight.withOpacity(0.2),
+                              color: ColorResource.textLight.withValues(alpha: 0.2),
                               thickness: 1,
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 18),
 
                             // Reviews Section
                             _buildReviewsSection(),
-                            const SizedBox(height: 100), // Space for bottom button
+                            const SizedBox(height: 90), // Space for bottom button
                          ],
                        ),
                      ),
@@ -301,7 +297,6 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
 
     return Stack(
       children: [
-        // Image
         ClipRRect(
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(Constants.radiusExtraLarge),
@@ -327,26 +322,24 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
               end: Alignment.bottomCenter,
               colors: [
                 Colors.transparent,
-                Colors.black.withOpacity(0.3),
+                Colors.black.withValues(alpha: 0.3),
               ],
             ),
           ),
         ),
 
-        // Drag handle
         Center(
           child: Container(
             margin: const EdgeInsets.only(top: 12),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: ColorResource.textLight.withOpacity(0.3),
+              color: ColorResource.textWhite.withValues(alpha: 0.8),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
         ),
 
-        // Out of stock overlay
         if (widget.product.isOutOfStock)
           Positioned.fill(
             child: ClipRRect(
@@ -355,7 +348,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                 topRight: Radius.circular(Constants.radiusExtraLarge),
               ),
               child: Container(
-                color: Colors.black.withOpacity(0.55),
+                color: Colors.black.withValues(alpha: 0.55),
                 alignment: Alignment.center,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
@@ -379,41 +372,61 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
         Positioned(
           top: 16,
           left: 16,
+          right: 16,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Veg/Non-veg badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: widget.product.isVeg
-                      ? Colors.green
-                      : ColorResource.error,
-                  borderRadius: BorderRadius.circular(Constants.radiusSmall),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      widget.product.isVeg
-                          ? Icons.circle
-                          : Icons.change_history,
-                      color: ColorResource.textWhite,
-                      size: 12,
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: widget.product.isVeg ? Colors.green : ColorResource.error,
+                      borderRadius: BorderRadius.circular(Constants.radiusSmall),
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      widget.product.isVeg ? 'VEG' : 'NON-VEG',
-                      style: poppinsBold.copyWith(
-                        fontSize: Constants.fontSizeExtraSmall,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          widget.product.isVeg
+                              ? Icons.circle
+                              : Icons.change_history,
+                          color: ColorResource.textWhite,
+                          size: 12,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          widget.product.isVeg ? 'VEG' : 'NON-VEG',
+                          style: poppinsBold.copyWith(
+                            fontSize: Constants.fontSizeExtraSmall,
+                            color: ColorResource.textWhite,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: ColorResource.textWhite.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: ColorResource.textWhite.withValues(alpha: 0.24),
+                      ),
+                    ),
+                    child: Text(
+                      widget.product.isOutOfStock
+                          ? 'Unavailable'
+                          : '${widget.product.stock} in stock',
+                      style: poppinsMedium.copyWith(
+                        fontSize: Constants.fontSizeSmall,
                         color: ColorResource.textWhite,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-
-              // Discount badge
               if (hasDiscount) ...[
                 const SizedBox(height: 8),
                 Container(
@@ -440,109 +453,216 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
   }
 
   Widget _buildProductInfo() {
-    return Column(
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: ColorResource.scaffoldBackground,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: ColorResource.textLight.withValues(alpha: 0.12),
+        ),
+      ),
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Product Name
         Text(
           widget.product.nameMap.trLanguage,
           style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeExtraLarge + 4,
+            fontSize: Constants.fontSizeOverLarge,
+            height: 1.2,
             color: ColorResource.textPrimary,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
 
-        // Price
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _buildInfoChip(
+              icon: Icons.restaurant_menu_rounded,
+              label: widget.product.variants.isEmpty
+                  ? 'Ready to order'
+                  : '${widget.product.variants.length} custom groups',
+            ),
+            _buildInfoChip(
+              icon: Icons.tune_rounded,
+              label: _selectedVariantCount == 0
+                  ? 'No add-ons selected'
+                  : '$_selectedVariantCount options selected',
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+
         Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
               PriceHelper.formatPrice(widget.product.finalPrice),
               style: poppinsBold.copyWith(
-                fontSize: Constants.fontSizeExtraLarge,
+                fontSize: Constants.fontSizeOverLarge,
                 color: ColorResource.primaryDark,
               ),
             ),
             if (widget.product.hasDiscount) ...[
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Text(
                 PriceHelper.formatPrice(widget.product.price),
                 style: poppinsRegular.copyWith(
-                  fontSize: Constants.fontSizeDefault,
+                  fontSize: Constants.fontSizeSmall,
                   color: ColorResource.textLight,
                   decoration: TextDecoration.lineThrough,
                 ),
               ),
             ],
+            const Spacer(),
+            if (widget.product.hasDiscount)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                decoration: BoxDecoration(
+                  color: ColorResource.discountBadge.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  'Save ${PriceHelper.formatPrice(widget.product.price - widget.product.finalPrice)}',
+                  style: poppinsBold.copyWith(
+                    fontSize: Constants.fontSizeExtraSmall,
+                    color: ColorResource.discountBadge,
+                  ),
+                ),
+              ),
           ],
         ),
-
-        const SizedBox(height: 16),
-
-        // Description
-        Text(
-          widget.product.descriptionMap.trLanguage,
-          style: poppinsRegular.copyWith(
-            fontSize: Constants.fontSizeDefault,
-            color: ColorResource.textSecondary,
-            height: 1.5,
+        if (_productDescription.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(
+            _productDescription,
+            style: poppinsRegular.copyWith(
+              fontSize: Constants.fontSizeSmall,
+              color: ColorResource.textSecondary,
+              height: 1.55,
+            ),
           ),
-        ),
+        ],
       ],
+    ),
     );
   }
 
   Widget _buildVariantsSection() {
-    return Column(
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: ColorResource.cardBackground,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: ColorResource.textLight.withValues(alpha: 0.12),
+        ),
+      ),
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Customize your order',
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeLarge,
+                  color: ColorResource.textPrimary,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: ColorResource.primaryDark.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                '${widget.product.variants.length} groups',
+                style: poppinsMedium.copyWith(
+                  fontSize: Constants.fontSizeExtraSmall,
+                  color: ColorResource.primaryDark,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
         Text(
-          'Customize Your Order',
-          style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeLarge,
-            color: ColorResource.textPrimary,
+          'Choose your preferred options to build the perfect order.',
+          style: poppinsRegular.copyWith(
+            fontSize: Constants.fontSizeSmall,
+            color: ColorResource.textSecondary,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         ...widget.product.variants.map((variant) {
           return Padding(
-            padding: const EdgeInsets.only(bottom: 20),
+            padding: const EdgeInsets.only(bottom: 14),
             child: _buildVariantGroup(variant),
           );
         }),
       ],
+    ),
     );
   }
 
   Widget _buildVariantGroup(VariantGroup variant) {
-    return Column(
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: ColorResource.scaffoldBackground,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Variant title
         Row(
           children: [
-            Text(
-              variant.title,
-              style: poppinsMedium.copyWith(
-                fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textPrimary,
-              ),
-            ),
-            if (variant.required) ...[
-              const SizedBox(width: 4),
-              Text(
-                '*',
+            Expanded(
+              child: Text(
+                variant.title,
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeDefault,
-                  color: ColorResource.error,
+                  color: ColorResource.textPrimary,
                 ),
               ),
-            ],
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: variant.required
+                    ? ColorResource.error.withValues(alpha: 0.08)
+                    : ColorResource.primaryDark.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                variant.required ? 'Required' : 'Optional',
+                style: poppinsMedium.copyWith(
+                  fontSize: Constants.fontSizeExtraSmall,
+                  color: variant.required
+                      ? ColorResource.error
+                      : ColorResource.primaryDark,
+                ),
+              ),
+            ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 4),
+        Text(
+          variant.type == 'radio'
+              ? 'Select one option'
+              : 'Select one or more options',
+          style: poppinsRegular.copyWith(
+            fontSize: Constants.fontSizeExtraSmall,
+            color: ColorResource.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 10),
 
-        // Variant options
         ...variant.options.map((option) {
           if (variant.type == 'radio') {
             return _buildRadioOption(variant, option);
@@ -551,6 +671,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
           }
         }),
       ],
+    ),
     );
   }
 
@@ -565,17 +686,17 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
         _checkExistingCartItem(); // Add check here
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: isSelected
-              ? ColorResource.primaryDark.withOpacity(0.1)
+              ? ColorResource.primaryDark.withValues(alpha: 0.08)
               : ColorResource.scaffoldBackground,
-          borderRadius: BorderRadius.circular(Constants.radiusDefault),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
                 ? ColorResource.primaryDark
-                : ColorResource.textLight.withOpacity(0.2),
+                : ColorResource.textLight.withValues(alpha: 0.2),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -609,23 +730,37 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
             ),
             const SizedBox(width: 12),
 
-            // Option name
             Expanded(
-              child: Text(
-                option.name,
-                style: poppinsMedium.copyWith(
-                  fontSize: Constants.fontSizeDefault,
-                  color: ColorResource.textPrimary,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    option.name,
+                    style: poppinsMedium.copyWith(
+                      fontSize: Constants.fontSizeDefault,
+                      color: ColorResource.textPrimary,
+                    ),
+                  ),
+                  if (option.price <= 0)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        'Included at no extra cost',
+                        style: poppinsRegular.copyWith(
+                          fontSize: Constants.fontSizeExtraSmall,
+                          color: ColorResource.textSecondary,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
 
-            // Option price
             if (option.price > 0)
               Text(
                 '+${PriceHelper.formatPrice(option.price)}',
                 style: poppinsMedium.copyWith(
-                  fontSize: Constants.fontSizeDefault,
+                  fontSize: Constants.fontSizeSmall,
                   color: ColorResource.primaryDark,
                 ),
               ),
@@ -659,17 +794,17 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
         _checkExistingCartItem(); // Add check here
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: isSelected
-              ? ColorResource.primaryDark.withOpacity(0.1)
+              ? ColorResource.primaryDark.withValues(alpha: 0.08)
               : ColorResource.scaffoldBackground,
-          borderRadius: BorderRadius.circular(Constants.radiusDefault),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
                 ? ColorResource.primaryDark
-                : ColorResource.textLight.withOpacity(0.2),
+                : ColorResource.textLight.withValues(alpha: 0.2),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -699,132 +834,43 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
             ),
             const SizedBox(width: 12),
 
-            // Option name
             Expanded(
-              child: Text(
-                option.name,
-                style: poppinsMedium.copyWith(
-                  fontSize: Constants.fontSizeDefault,
-                  color: ColorResource.textPrimary,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    option.name,
+                    style: poppinsMedium.copyWith(
+                      fontSize: Constants.fontSizeDefault,
+                      color: ColorResource.textPrimary,
+                    ),
+                  ),
+                  if (option.price <= 0)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        'Included at no extra cost',
+                        style: poppinsRegular.copyWith(
+                          fontSize: Constants.fontSizeExtraSmall,
+                          color: ColorResource.textSecondary,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
 
-            // Option price
             if (option.price > 0)
               Text(
                 '+${PriceHelper.formatPrice(option.price)}',
                 style: poppinsMedium.copyWith(
-                  fontSize: Constants.fontSizeDefault,
+                  fontSize: Constants.fontSizeSmall,
                   color: ColorResource.primaryDark,
                 ),
               ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildQuantitySelector() {
-    final int maxQty = widget.product.stock;
-    final bool outOfStock = widget.product.isOutOfStock;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              'Quantity',
-              style: poppinsBold.copyWith(
-                fontSize: Constants.fontSizeLarge,
-                color: ColorResource.textPrimary,
-              ),
-            ),
-            const Spacer(),
-            // Stock badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: outOfStock
-                    ? ColorResource.error.withOpacity(0.1)
-                    : _quantity >= maxQty
-                        ? ColorResource.warning.withOpacity(0.1)
-                        : ColorResource.success.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(Constants.radiusSmall),
-                border: Border.all(
-                  color: outOfStock
-                      ? ColorResource.error.withOpacity(0.4)
-                      : _quantity >= maxQty
-                          ? ColorResource.warning.withOpacity(0.4)
-                          : ColorResource.success.withOpacity(0.4),
-                ),
-              ),
-              child: Text(
-                outOfStock
-                    ? 'Out of Stock'
-                    : '$maxQty in stock',
-                style: poppinsMedium.copyWith(
-                  fontSize: Constants.fontSizeSmall,
-                  color: outOfStock
-                      ? ColorResource.error
-                      : _quantity >= maxQty
-                          ? ColorResource.warning
-                          : ColorResource.success,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Container(
-          decoration: BoxDecoration(
-            color: ColorResource.scaffoldBackground,
-            borderRadius: BorderRadius.circular(Constants.radiusDefault),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Decrement button
-              _buildQuantityButton(
-                icon: Icons.remove,
-                onTap: () {
-                  if (_quantity > 1) {
-                    setState(() => _quantity--);
-                  }
-                },
-                enabled: !outOfStock && _quantity > 1,
-              ),
-
-              // Quantity display
-              Container(
-                width: 60,
-                alignment: Alignment.center,
-                child: Text(
-                  outOfStock ? '0' : '$_quantity',
-                  style: poppinsBold.copyWith(
-                    fontSize: Constants.fontSizeExtraLarge,
-                    color: outOfStock
-                        ? ColorResource.textLight
-                        : ColorResource.textPrimary,
-                  ),
-                ),
-              ),
-
-              // Increment button (capped at stock)
-              _buildQuantityButton(
-                icon: Icons.add,
-                onTap: () {
-                  if (_quantity < maxQty) {
-                    setState(() => _quantity++);
-                  }
-                },
-                enabled: !outOfStock && _quantity < maxQty,
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -836,17 +882,18 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
     return GestureDetector(
       onTap: enabled ? onTap : null,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        width: 34,
+        height: 34,
         decoration: BoxDecoration(
           color: enabled
               ? ColorResource.primaryDark
-              : ColorResource.textLight.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(Constants.radiusDefault),
+              : ColorResource.textLight.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(
           icon,
           color: enabled ? ColorResource.textWhite : ColorResource.textLight,
-          size: 24,
+          size: 18,
         ),
       ),
     );
@@ -854,9 +901,12 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
 
   Widget _buildAddToCartButton(BuildContext context) {
     final bool outOfStock = widget.product.isOutOfStock;
+    final bool isUpdate = _matchingCartItem != null || widget.cartItem != null;
+    final screenSize = MediaQuery.of(context).size;
+    final int maxQty = widget.product.stock;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
       decoration: BoxDecoration(
         color: ColorResource.cardBackground,
         boxShadow: [
@@ -868,195 +918,289 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
         ],
       ),
       child: SafeArea(
-        child: GestureDetector(
-          onTap: (_canAddToCart && !_isAddingToCart)
-              ? () async {
-                  setState(() {
-                    _isAddingToCart = true;
-                  });
-
-                  try {
-                    String? userId = await Get.find<AuthController>().getUserId();
-                    if (_matchingCartItem != null || widget.cartItem != null) {
-                      // Determines the actual item we are updating (matched vs passed-in)
-                      final itemToUpdate = _matchingCartItem ?? widget.cartItem!;
-                      
-                      // Update existing cart item
-                      final updatedCartItem = itemToUpdate.copyWith(
-                        selectedVariants: _buildSelectedVariants(),
-                        quantity: _quantity,
-                        itemTotal: _totalPrice,
-                      );
-                      await Get.find<CartController>().updateCartItemDetails(updatedCartItem);
-                    } else {
-                      // Create generic cart item
-                      final cartItem = CartItemModel(
-                        id: '', // Will be set by database
-                        userId: userId ?? '',
-                        productId: widget.product.id,
-                        productName: widget.product.nameMap.trLanguage,
-                        productImage: widget.product.imageId,
-                        basePrice: widget.product.price,
-                        discountType: widget.product.discountType,
-                        discountValue: widget.product.discountValue,
-                        finalPrice: widget.product.finalPrice,
-                        selectedVariants: _buildSelectedVariants(),
-                        quantity: _quantity,
-                        itemTotal: _totalPrice,
-                      );
-
-                      // Add to cart
-                      await Get.find<CartController>().addToCart(cartItem);
-                    }
-
-                    if (mounted) {
-                      setState(() {
-                        _isAddingToCart = false;
-                      });
-
-                      if (_matchingCartItem == null && widget.cartItem == null) {
-                        // Trigger cart animation (delay slightly for smooth effect) only on new adds
-                        Future.delayed(const Duration(milliseconds: 100), () {
-                          if (mounted) {
-                            Get.find<CartAnimationController>().animateAddToCart(
-                              context: context,
-                              productImageUrl: widget.product.imageId,
-                              buttonPosition: Offset(
-                                MediaQuery.of(context).size.width / 2,
-                                MediaQuery.of(context).size.height - 150,
-                              ),
-                            );
-                          }
-                        });
-                      }
-                    }
-
-                    Get.back();
-
-                    if (_matchingCartItem == null && widget.cartItem == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              '${widget.product.nameMap.trLanguage} added to cart!',
-                              style: poppinsMedium.copyWith(
-                                color: ColorResource.textWhite,
-                                fontSize: Constants.fontSizeDefault,
-                              ),
-                            ),
-                            backgroundColor: Colors.green,
-                            behavior: SnackBarBehavior.floating,
-                            duration: const Duration(seconds: 3),
-                            action: SnackBarAction(
-                                    label: 'View Cart',
-                                    textColor: ColorResource.textWhite,
-                                    onPressed: () {
-                                      Get.to(() => const CartPage());
-                                    },
-                                  )
-                          ),
-                        );
-                    } else {
-                        customToster('${widget.product.nameMap.trLanguage} updated!');
-                    }
-
-                  } catch (e) {
-                    if (mounted) {
-                      setState(() {
-                        _isAddingToCart = false;
-                      });
-                    }
-                    Get.back();
-                    customToster('Failed to add to cart');
-                  }
-                }
-              : null,
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-              gradient: outOfStock
-                  ? LinearGradient(
-                      colors: [
-                        ColorResource.error.withOpacity(0.7),
-                        ColorResource.error.withOpacity(0.7),
-                      ],
-                    )
-                  : _canAddToCart
-                      ? ColorResource.primaryGradient
-                      : LinearGradient(
-                          colors: [
-                            ColorResource.textLight.withOpacity(0.5),
-                            ColorResource.textLight.withOpacity(0.5),
-                          ],
-                        ),
-              borderRadius: BorderRadius.circular(Constants.radiusLarge),
-              boxShadow: (!outOfStock && _canAddToCart)
-                  ? [
-                      BoxShadow(
-                        color: ColorResource.primaryMedium.withOpacity(0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
-                      ),
-                    ]
-                  : [],
-            ),
-            child: _isAddingToCart
-                ? Center(
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        color: ColorResource.textWhite,
-                        strokeWidth: 3,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: ColorResource.scaffoldBackground,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${isUpdate ? 'Total' : 'Total'}: ${PriceHelper.formatPrice(_totalPrice)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: poppinsBold.copyWith(
+                        fontSize: Constants.fontSizeLarge,
+                        color: ColorResource.textPrimary,
                       ),
                     ),
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        outOfStock
-                            ? Icons.remove_shopping_cart_outlined
-                            : Icons.shopping_cart,
-                        color: ColorResource.textWhite,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        outOfStock
-                            ? 'Out of Stock'
-                            : (_matchingCartItem != null || widget.cartItem != null)
-                                ? 'Update Cart - ${PriceHelper.formatPrice(_totalPrice)}'
-                                : 'Add to Cart - ${PriceHelper.formatPrice(_totalPrice)}',
-                        style: poppinsBold.copyWith(
-                          fontSize: Constants.fontSizeLarge,
-                          color: ColorResource.textWhite,
-                        ),
-                      ),
-                    ],
                   ),
-          ),
+                  const SizedBox(width: 10),
+                  _buildFooterQuantityStepper(
+                    outOfStock: outOfStock,
+                    maxQty: maxQty,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            GestureDetector(
+              onTap: (_canAddToCart && !_isAddingToCart)
+                  ? () async {
+                      setState(() {
+                        _isAddingToCart = true;
+                      });
+
+                      try {
+                        String? userId = await Get.find<AuthController>().getUserId();
+                        if (_matchingCartItem != null || widget.cartItem != null) {
+                          final itemToUpdate = _matchingCartItem ?? widget.cartItem!;
+
+                          final updatedCartItem = itemToUpdate.copyWith(
+                            selectedVariants: _buildSelectedVariants(),
+                            quantity: _quantity,
+                            itemTotal: _totalPrice,
+                          );
+                          await Get.find<CartController>().updateCartItemDetails(updatedCartItem);
+                        } else {
+                          final cartItem = CartItemModel(
+                            id: '',
+                            userId: userId ?? '',
+                            productId: widget.product.id,
+                            productName: widget.product.nameMap.trLanguage,
+                            productImage: widget.product.imageId,
+                            basePrice: widget.product.price,
+                            discountType: widget.product.discountType,
+                            discountValue: widget.product.discountValue,
+                            finalPrice: widget.product.finalPrice,
+                            selectedVariants: _buildSelectedVariants(),
+                            quantity: _quantity,
+                            itemTotal: _totalPrice,
+                          );
+
+                          await Get.find<CartController>().addToCart(cartItem);
+                        }
+
+                        if (!mounted) return;
+
+                        setState(() {
+                          _isAddingToCart = false;
+                        });
+
+                        if (_matchingCartItem == null && widget.cartItem == null) {
+                          Future.delayed(const Duration(milliseconds: 100), () {
+                            if (mounted) {
+                              Get.find<CartAnimationController>().animateAddToCart(
+                                context: this.context,
+                                productImageUrl: widget.product.imageId,
+                                buttonPosition: Offset(
+                                  screenSize.width / 2,
+                                  screenSize.height - 150,
+                                ),
+                              );
+                            }
+                          });
+                        }
+
+                        Get.back();
+
+                        if (_matchingCartItem == null && widget.cartItem == null) {
+                          ScaffoldMessenger.of(this.context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '${widget.product.nameMap.trLanguage} added to cart!',
+                                style: poppinsMedium.copyWith(
+                                  color: ColorResource.textWhite,
+                                  fontSize: Constants.fontSizeDefault,
+                                ),
+                              ),
+                              backgroundColor: Colors.green,
+                              behavior: SnackBarBehavior.floating,
+                              duration: const Duration(seconds: 3),
+                              action: SnackBarAction(
+                                label: 'View Cart',
+                                textColor: ColorResource.textWhite,
+                                onPressed: () {
+                                  Get.to(() => const CartPage());
+                                },
+                              ),
+                            ),
+                          );
+                        } else {
+                          customToster('${widget.product.nameMap.trLanguage} updated!');
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          setState(() {
+                            _isAddingToCart = false;
+                          });
+                        }
+                        Get.back();
+                        customToster('Failed to add to cart');
+                      }
+                    }
+                  : null,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  gradient: outOfStock
+                      ? LinearGradient(
+                          colors: [
+                            ColorResource.error.withValues(alpha: 0.78),
+                            ColorResource.error.withValues(alpha: 0.78),
+                          ],
+                        )
+                      : _canAddToCart
+                          ? ColorResource.primaryGradient
+                          : LinearGradient(
+                              colors: [
+                                ColorResource.textLight.withValues(alpha: 0.5),
+                                ColorResource.textLight.withValues(alpha: 0.5),
+                              ],
+                            ),
+                  borderRadius: BorderRadius.circular(Constants.radiusLarge),
+                  boxShadow: (!outOfStock && _canAddToCart)
+                      ? [
+                          BoxShadow(
+                            color: ColorResource.primaryMedium.withValues(alpha: 0.35),
+                            blurRadius: 16,
+                            offset: const Offset(0, 8),
+                          ),
+                        ]
+                      : [],
+                ),
+                child: _isAddingToCart
+                    ? const Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: ColorResource.textWhite,
+                            strokeWidth: 3,
+                          ),
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            outOfStock
+                                ? Icons.remove_shopping_cart_outlined
+                                : isUpdate
+                                    ? Icons.edit_outlined
+                                    : Icons.shopping_bag_outlined,
+                            color: ColorResource.textWhite,
+                            size: 22,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            outOfStock
+                                ? 'Out of stock'
+                                : isUpdate
+                                    ? 'Update cart'
+                                    : 'Add to cart',
+                            style: poppinsBold.copyWith(
+                              fontSize: Constants.fontSizeDefault,
+                              color: ColorResource.textWhite,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildFooterQuantityStepper({
+    required bool outOfStock,
+    required int maxQty,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      decoration: BoxDecoration(
+        color: ColorResource.cardBackground,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildQuantityButton(
+            icon: Icons.remove,
+            onTap: () {
+              if (_quantity > 1) {
+                setState(() => _quantity--);
+              }
+            },
+            enabled: !outOfStock && _quantity > 1,
+          ),
+          SizedBox(
+            width: 34,
+            child: Center(
+              child: Text(
+                outOfStock ? '0' : '$_quantity',
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeDefault,
+                  color: outOfStock
+                      ? ColorResource.textLight
+                      : ColorResource.textPrimary,
+                ),
+              ),
+            ),
+          ),
+          _buildQuantityButton(
+            icon: Icons.add,
+            onTap: () {
+              if (_quantity < maxQty) {
+                setState(() => _quantity++);
+              }
+            },
+            enabled: !outOfStock && _quantity < maxQty,
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildReviewsSection() {
     final authController = Get.find<AuthController>();
-    
-    return Column(
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: ColorResource.cardBackground,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: ColorResource.textLight.withValues(alpha: 0.12),
+        ),
+      ),
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Reviews header
         Text(
-          'Customer Reviews',
+          'Customer reviews',
           style: poppinsBold.copyWith(
             fontSize: Constants.fontSizeLarge,
             color: ColorResource.textPrimary,
           ),
         ),
-        const SizedBox(height: 16),
-        
-        // Reviews list
+        const SizedBox(height: 4),
+        Text(
+          'See what other customers are saying before you order.',
+          style: poppinsRegular.copyWith(
+            fontSize: Constants.fontSizeSmall,
+            color: ColorResource.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 12),
         FutureBuilder<String?>(
           future: authController.getUserId(),
           builder: (context, snapshot) {
@@ -1068,6 +1212,31 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
           },
         ),
       ],
+    ),
+    );
+  }
+
+  Widget _buildInfoChip({required IconData icon, required String label}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: ColorResource.cardBackground,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: ColorResource.primaryDark),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: poppinsMedium.copyWith(
+              fontSize: Constants.fontSizeExtraSmall,
+              color: ColorResource.textPrimary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

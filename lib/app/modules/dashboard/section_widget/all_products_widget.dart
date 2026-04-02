@@ -7,6 +7,7 @@ import 'package:appwrite_user_app/app/helper/cart_helper.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/dashboard_shimmer.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -17,8 +18,12 @@ import 'package:get/get.dart';
 class AllProductsWidget extends StatelessWidget {
   final bool isTablet;
   final ScrollController scrollController;
-  
-  const AllProductsWidget({super.key, this.isTablet = false, required this.scrollController});
+
+  const AllProductsWidget({
+    super.key,
+    this.isTablet = false,
+    required this.scrollController,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,15 +31,9 @@ class AllProductsWidget extends StatelessWidget {
       builder: (controller) {
         // Loading State (initial)
         if (controller.isLoading && controller.products.isEmpty) {
-          return SliverFillRemaining(
-            child: Center(
-              child: CircularProgressIndicator(
-                color: ColorResource.primaryDark,
-              ),
-            ),
-          );
+          return AllProductsGridShimmer(isTablet: isTablet);
         }
-        
+
         // Error State
         if (controller.errorMessage != null && controller.products.isEmpty) {
           return SliverFillRemaining(
@@ -71,7 +70,7 @@ class AllProductsWidget extends StatelessWidget {
             ),
           );
         }
-        
+
         // Empty State
         if (controller.products.isEmpty) {
           return SliverFillRemaining(
@@ -97,7 +96,7 @@ class AllProductsWidget extends StatelessWidget {
             ),
           );
         }
-        
+
         // Return a MultiSliver containing the grid and loading indicator
         return SliverMainAxisGroup(
           slivers: [
@@ -111,52 +110,46 @@ class AllProductsWidget extends StatelessWidget {
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
                 ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final ProductModel product = controller.products[index];
-                    return GetBuilder<CartController>(
-                      builder: (cartController) {
-                        final cartQuantity = CartHelper.getProductCartQuantity(product.id);
-                        return _buildProductCard(
-                          product: product,
-                          cartQuantity: cartQuantity,
-                          onTap: () {
-                            ProductDetailBottomSheet.show(context, product);
-                          },
-                          onAddToCart: () => CartHelper.handleAddToCart(product, context),
-                          onQuantityChanged: (isIncrement) {
-                            if (isIncrement) {
-                              CartHelper.incrementQuantity(product, context);
-                            } else {
-                              CartHelper.decrementQuantity(product, context);
-                            }
-                          },
-                        );
-                      },
-                    );
-                  },
-                  childCount: controller.products.length,
-                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final ProductModel product = controller.products[index];
+                  return GetBuilder<CartController>(
+                    builder: (cartController) {
+                      final cartQuantity = CartHelper.getProductCartQuantity(
+                        product.id,
+                      );
+                      return _buildProductCard(
+                        product: product,
+                        cartQuantity: cartQuantity,
+                        onTap: () {
+                          ProductDetailBottomSheet.show(context, product);
+                        },
+                        onAddToCart: () =>
+                            CartHelper.handleAddToCart(product, context),
+                        onQuantityChanged: (isIncrement) {
+                          if (isIncrement) {
+                            CartHelper.incrementQuantity(product, context);
+                          } else {
+                            CartHelper.decrementQuantity(product, context);
+                          }
+                        },
+                      );
+                    },
+                  );
+                }, childCount: controller.products.length),
               ),
             ),
-            
+
             // Load More Indicator
             if (controller.isLoadingMore)
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      color: ColorResource.primaryDark,
-                    ),
-                  ),
+                  child: const Center(child: LoadMoreShimmer()),
                 ),
               ),
-            
+
             // Bottom spacing
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 20),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 20)),
           ],
         );
       },
@@ -172,7 +165,8 @@ class AllProductsWidget extends StatelessWidget {
   }) {
     final hasDiscount = product.hasDiscount;
     final discountPercentage = hasDiscount
-        ? ((product.price - product.finalPrice) / product.price * 100).toStringAsFixed(0)
+        ? ((product.price - product.finalPrice) / product.price * 100)
+              .toStringAsFixed(0)
         : null;
 
     return CustomClickableWidget(
@@ -189,7 +183,11 @@ class AllProductsWidget extends StatelessWidget {
                     topLeft: Radius.circular(Constants.radiusLarge),
                     topRight: Radius.circular(Constants.radiusLarge),
                   ),
-                  child: CustomNetworkImage(image: product.imageId, height: 160, width: double.infinity),
+                  child: CustomNetworkImage(
+                    image: product.imageId,
+                    height: 160,
+                    width: double.infinity,
+                  ),
                 ),
 
                 // Discount Badge
@@ -198,10 +196,15 @@ class AllProductsWidget extends StatelessWidget {
                     top: 8,
                     left: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: ColorResource.error,
-                        borderRadius: BorderRadius.circular(Constants.radiusSmall),
+                        borderRadius: BorderRadius.circular(
+                          Constants.radiusSmall,
+                        ),
                       ),
                       child: Text(
                         '$discountPercentage% OFF',
@@ -216,10 +219,7 @@ class AllProductsWidget extends StatelessWidget {
                 Positioned(
                   top: 8,
                   right: 8,
-                  child: FavoriteButton(
-                    product: product,
-                    size: 18,
-                  ),
+                  child: FavoriteButton(product: product, size: 18),
                 ),
               ],
             ),
@@ -286,7 +286,10 @@ class AllProductsWidget extends StatelessWidget {
                     ),
                     // Quantity selector or Add Button
                     cartQuantity != null
-                        ? _buildQuantitySelector(cartQuantity, onQuantityChanged)
+                        ? _buildQuantitySelector(
+                            cartQuantity,
+                            onQuantityChanged,
+                          )
                         : _buildAddButton(onAddToCart),
                   ],
                 ),
@@ -325,7 +328,10 @@ class AllProductsWidget extends StatelessWidget {
   }
 
   /// Build quantity selector for grid cards
-  Widget _buildQuantitySelector(int quantity, Function(bool isIncrement) onQuantityChanged) {
+  Widget _buildQuantitySelector(
+    int quantity,
+    Function(bool isIncrement) onQuantityChanged,
+  ) {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -370,11 +376,7 @@ class AllProductsWidget extends StatelessWidget {
             onTap: () => onQuantityChanged(true),
             child: Padding(
               padding: const EdgeInsets.all(4),
-              child: Icon(
-                Icons.add,
-                color: ColorResource.textWhite,
-                size: 14,
-              ),
+              child: Icon(Icons.add, color: ColorResource.textWhite, size: 14),
             ),
           ),
         ],
