@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
+import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/products/domain/repository/product_repo_interface.dart';
 
@@ -127,15 +128,7 @@ class ProductRepository implements ProductRepoInterface {
         return [];
       }
 
-      final remoteResults = await _searchProductsFromBackend(query.trim());
-      final fallbackResults = await _searchProductsLocally(normalizedQuery);
-
-      final Map<String, ProductModel> combinedResults = {};
-      for (final product in [...remoteResults, ...fallbackResults]) {
-        combinedResults[product.id] = product;
-      }
-
-      final rankedResults = combinedResults.values.toList()
+      final rankedResults = (await _searchProductsLocally(normalizedQuery))
         ..sort((a, b) {
           final aScore = _getSearchScore(a, normalizedQuery);
           final bScore = _getSearchScore(b, normalizedQuery);
@@ -153,37 +146,11 @@ class ProductRepository implements ProductRepoInterface {
     }
   }
 
-  Future<List<ProductModel>> _searchProductsFromBackend(String query) async {
-    try {
-      print('====neodknln Searching products from backend with query: "$query"');
-      final response = await appwriteService.listTable(
-        tableId: AppwriteConfig.productsCollection,
-        queries: [
-          Query.or([
-            Query.search('name', query),
-            Query.search('description', query),
-          ]),
-          Query.equal('is_available', true),
-          Query.limit(50),
-        ],
-      );
-
-      return response.rows.map((row) {
-        log('====\u003e Search Product Data: ${row.data}');
-        return ProductModel.fromJson(row.data);
-      }).toList();
-    } catch (e) {
-      log('====\\u003e Backend search fallback triggered: $e');
-      return [];
-    }
-  }
-
   Future<List<ProductModel>> _searchProductsLocally(String normalizedQuery) async {
     final List<ProductModel> products = [];
     int offset = 0;
 
     while (true) {
-      print('====local Searching products from backend with query: "$normalizedQuery"');
       final response = await appwriteService.listTable(
         tableId: AppwriteConfig.productsCollection,
         queries: [
@@ -211,15 +178,24 @@ class ProductRepository implements ProductRepoInterface {
   }
 
   bool _matchesSearch(ProductModel product, String normalizedQuery) {
-    final searchableText = [
-      ...product.nameMap.values,
-      ...product.descriptionMap.values,
-    ].join(' ');
+    final localizedName = _normalizeSearchQuery(product.nameMap.trLanguage);
+    final localizedDescription = _normalizeSearchQuery(product.descriptionMap.trLanguage);
+    final allNames = product.nameMap.values
+        .map((value) => _normalizeSearchQuery(value.toString()))
+        .where((value) => value.isNotEmpty);
+    final allDescriptions = product.descriptionMap.values
+        .map((value) => _normalizeSearchQuery(value.toString()))
+        .where((value) => value.isNotEmpty);
 
-    return _normalizeSearchQuery(searchableText).contains(normalizedQuery);
+    return localizedName.contains(normalizedQuery) ||
+        localizedDescription.contains(normalizedQuery) ||
+        allNames.any((value) => value.contains(normalizedQuery)) ||
+        allDescriptions.any((value) => value.contains(normalizedQuery));
   }
 
   int _getSearchScore(ProductModel product, String normalizedQuery) {
+    final localizedName = _normalizeSearchQuery(product.nameMap.trLanguage);
+    final localizedDescription = _normalizeSearchQuery(product.descriptionMap.trLanguage);
     final names = product.nameMap.values
         .map((value) => _normalizeSearchQuery(value.toString()))
         .where((value) => value.isNotEmpty)
@@ -229,23 +205,39 @@ class ProductRepository implements ProductRepoInterface {
         .where((value) => value.isNotEmpty)
         .toList();
 
-    if (names.any((value) => value == normalizedQuery)) {
+    if (localizedName == normalizedQuery) {
       return 0;
     }
 
-    if (names.any((value) => value.startsWith(normalizedQuery))) {
+    if (localizedName.startsWith(normalizedQuery)) {
       return 1;
     }
 
-    if (names.any((value) => value.contains(normalizedQuery))) {
+    if (localizedName.contains(normalizedQuery)) {
       return 2;
     }
 
-    if (descriptions.any((value) => value.contains(normalizedQuery))) {
+    if (localizedDescription.contains(normalizedQuery)) {
       return 3;
     }
 
-    return 4;
+    if (names.any((value) => value == normalizedQuery)) {
+      return 4;
+    }
+
+    if (names.any((value) => value.startsWith(normalizedQuery))) {
+      return 5;
+    }
+
+    if (names.any((value) => value.contains(normalizedQuery))) {
+      return 6;
+    }
+
+    if (descriptions.any((value) => value.contains(normalizedQuery))) {
+      return 7;
+    }
+
+    return 8;
   }
 
   String _normalizeSearchQuery(String value) {
