@@ -107,7 +107,9 @@ class OrderRepository implements OrderRepoInterface {
       ];
 
       // Add status filter if provided
-      if (status != null && status.isNotEmpty && status.toLowerCase() != 'all') {
+      if (status != null &&
+          status.isNotEmpty &&
+          status.toLowerCase() != 'all') {
         queries.add(Query.equal('status', status.toLowerCase()));
       }
 
@@ -125,9 +127,7 @@ class OrderRepository implements OrderRepoInterface {
         queries: queries,
       );
 
-      return response.rows
-          .map((doc) => OrderModel.fromJson(doc.data))
-          .toList();
+      return response.rows.map((doc) => OrderModel.fromJson(doc.data)).toList();
     } catch (e) {
       log('Error fetching user orders: $e');
       rethrow;
@@ -138,11 +138,29 @@ class OrderRepository implements OrderRepoInterface {
   Future<OrderModel?> getOrderById(String orderId) async {
     try {
       final response = await appwriteService.getDocument(
-        collectionId: AppwriteConfig.ordersCollection,
-        documentId: orderId,
+        tableId: AppwriteConfig.ordersCollection,
+        rowId: orderId,
       );
 
-      return OrderModel.fromJson(response.data);
+      OrderModel order = OrderModel.fromJson(response.data);
+
+      if ((order.driverId?.isNotEmpty ?? false) && order.deliveryman == null) {
+        try {
+          final driverResponse = await appwriteService.getDocument(
+            tableId: AppwriteConfig.driversCollection,
+            rowId: order.driverId!,
+          );
+
+          final deliveryman = DeliverymanInfo.fromJson(driverResponse.data);
+          if (deliveryman.hasData) {
+            order = order.copyWith(deliveryman: deliveryman);
+          }
+        } catch (e) {
+          log('Error fetching deliveryman info: $e');
+        }
+      }
+
+      return order;
     } catch (e) {
       log('Error fetching order: $e');
       return null;

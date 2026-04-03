@@ -23,8 +23,8 @@ class ProfileRepository implements ProfileRepoInterface {
 
       // Fetch user document from users collection
       final response = await appwriteService.getDocument(
-        collectionId: AppwriteConfig.usersCollection,
-        documentId: user.$id,
+        tableId: AppwriteConfig.usersCollection,
+        rowId: user.$id,
       );
 
       return UserModel.fromJson(response.data);

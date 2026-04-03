@@ -58,8 +58,8 @@ class CartRepository implements CartRepoInterface {
     try {
       // First get the item to recalculate total
       final item = await appwriteService.getDocument(
-        collectionId: AppwriteConfig.cartCollection,
-        documentId: itemId,
+        tableId: AppwriteConfig.cartCollection,
+        rowId: itemId,
       );
 
       final cartItem = CartItemModel.fromJson(item.data);

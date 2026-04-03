@@ -30,4 +30,5 @@ class AppwriteConfig {
   static const String collectionId = 'reviews';
   static const String notificationsCollection = 'notifications';
   static const String privacyPolicyCollection = 'privacy_policy';
+  static const String driversCollection = 'drivers';
 }

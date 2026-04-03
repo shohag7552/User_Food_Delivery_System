@@ -63,16 +63,26 @@ class AppwriteService {
   }
 
   Future<Row> getDocument({
-    required String collectionId,
-    required String documentId,
+    required String tableId,
+    required String rowId,
     List<String>? queries,
   }) async {
-    return await databases.getRow(
-      databaseId: AppwriteConfig.databaseId,
-      tableId: collectionId,
-      rowId: documentId,
-      queries: queries,
-    );
+    try {
+      log('====> listDocuments in database: ${AppwriteConfig.databaseId}, tableId: $tableId, rowId: $rowId, with queries: $queries');
+
+      return await databases.getRow(
+        databaseId: AppwriteConfig.databaseId,
+        tableId: tableId,
+        rowId: rowId,
+        queries: queries ?? [],
+      );
+    } on AppwriteException catch (e) {
+      log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
+      rethrow;
+    } catch (e) {
+      log('Upload error: $e');
+      rethrow;
+    }
   }
 
   Future<RowList> listTable({required String tableId, List<String>? queries}) async {

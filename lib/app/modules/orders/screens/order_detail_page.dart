@@ -2,7 +2,9 @@ import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
+import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
+import 'package:appwrite_user_app/app/modules/orders/screens/order_delivery_map_page.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/submit_review_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
@@ -16,11 +18,7 @@ class OrderDetailPage extends StatefulWidget {
   final String orderId;
   final OrderModel? initialOrder;
 
-  const OrderDetailPage({
-    super.key,
-    required this.orderId,
-    this.initialOrder,
-  });
+  const OrderDetailPage({super.key, required this.orderId, this.initialOrder});
 
   @override
   State<OrderDetailPage> createState() => _OrderDetailPageState();
@@ -50,15 +48,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               : _fallbackOrder;
 
           if (controller.isOrderDetailsLoading && order == null) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (order == null && controller.isOrderDetailsLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (order == null) {
@@ -118,6 +112,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   _buildItemsList(order),
                   const SizedBox(height: 16),
                   _buildDeliveryInfo(order),
+                  if (_hasDeliveryman(order)) ...[
+                    const SizedBox(height: 16),
+                    _buildDeliverymanSection(order),
+                  ],
                   const SizedBox(height: 16),
                   _buildPricingBreakdown(order),
                   const SizedBox(height: 24),
@@ -180,11 +178,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               value: order.orderNumber,
             ),
           ),
-          Container(
-            width: 1,
-            height: 40,
-            color: Colors.grey.shade300,
-          ),
+          Container(width: 1, height: 40, color: Colors.grey.shade300),
           Expanded(
             child: _buildInfoItem(
               icon: Icons.shopping_bag_outlined,
@@ -265,7 +259,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   Widget _buildOrderItem(OrderModel order, OrderItem item) {
     final itemTotal = item.price * item.quantity;
-    
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -312,7 +306,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: ColorResource.primaryDark.withValues(alpha: 0.1),
+                          color: ColorResource.primaryDark.withValues(
+                            alpha: 0.1,
+                          ),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -357,7 +353,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         side: BorderSide(color: ColorResource.primaryDark),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(Constants.radiusDefault),
+                          borderRadius: BorderRadius.circular(
+                            Constants.radiusDefault,
+                          ),
                         ),
                       ),
                       icon: Icon(
@@ -365,7 +363,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                         size: 18,
                         color: ColorResource.primaryDark,
                       ),
-                       label: Text(
+                      label: Text(
                         'rate_this_product'.tr,
                         style: poppinsMedium.copyWith(
                           fontSize: Constants.fontSizeSmall,
@@ -448,7 +446,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   Widget _buildPricingBreakdown(OrderModel order) {
     final subtotal = order.totalAmount - order.deliveryFee;
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
@@ -475,6 +473,126 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           const Divider(),
           const SizedBox(height: 12),
           _buildPriceRow('total_amount'.tr, order.totalAmount, true),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeliverymanSection(OrderModel order) {
+    final deliveryman = order.deliveryman;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: ColorResource.cardBackground,
+        borderRadius: BorderRadius.circular(Constants.radiusLarge),
+        boxShadow: ColorResource.customShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.delivery_dining,
+                color: ColorResource.primaryDark,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Deliveryman',
+                  style: poppinsBold.copyWith(
+                    fontSize: Constants.fontSizeLarge,
+                    color: ColorResource.textPrimary,
+                  ),
+                ),
+              ),
+              InkWell(
+                onTap: () => _openDeliveryMap(order),
+                borderRadius: BorderRadius.circular(Constants.radiusDefault),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: ColorResource.primaryDark.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(
+                      Constants.radiusDefault,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.location_on_outlined,
+                    color: ColorResource.primaryDark,
+                    size: 22,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: ColorResource.scaffoldBackground,
+              borderRadius: BorderRadius.circular(Constants.radiusDefault),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(28),
+                    color: ColorResource.primaryDark.withValues(alpha: 0.08),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(28),
+                    child:
+                        deliveryman?.image != null &&
+                            deliveryman!.image!.isNotEmpty
+                        ? CustomNetworkImage(
+                            image: deliveryman.image!,
+                            width: 56,
+                            height: 56,
+                          )
+                        : Icon(
+                            Icons.person,
+                            color: ColorResource.primaryDark,
+                            size: 28,
+                          ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        deliveryman?.name.isNotEmpty == true
+                            ? deliveryman!.name
+                            : 'Deliveryman',
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeDefault,
+                          color: ColorResource.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        deliveryman?.phone.isNotEmpty == true
+                            ? deliveryman!.phone
+                            : 'Phone number not available',
+                        style: poppinsRegular.copyWith(
+                          fontSize: Constants.fontSizeDefault,
+                          color: ColorResource.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -579,8 +697,56 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   bool _isOrderDelivered(OrderModel order) {
-    return order.status.toLowerCase() == 'delivered' || 
-           order.status.toLowerCase() == 'completed';
+    return order.status.toLowerCase() == 'delivered' ||
+        order.status.toLowerCase() == 'completed';
+  }
+
+  bool _hasDeliveryman(OrderModel order) {
+    return (order.driverId?.isNotEmpty ?? false) || order.deliveryman != null;
+  }
+
+  Future<void> _openDeliveryMap(OrderModel order) async {
+    final deliveryman = order.deliveryman;
+    final settingsController = Get.find<SettingsController>();
+
+    if (settingsController.businessSetup == null) {
+      await settingsController.fetchBusinessSetup();
+    }
+
+    final businessSetup = settingsController.businessSetup;
+
+    if (deliveryman == null || !deliveryman.hasLocation) {
+      Get.snackbar(
+        'Location unavailable',
+        'Deliveryman current location is not available yet.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: ColorResource.error,
+        colorText: ColorResource.textWhite,
+      );
+      return;
+    }
+
+    if (businessSetup?.storeLatitude == null ||
+        businessSetup?.storeLongitude == null) {
+      Get.snackbar(
+        'Location unavailable',
+        'Business location is not available right now.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: ColorResource.error,
+        colorText: ColorResource.textWhite,
+      );
+      return;
+    }
+
+    Get.to(
+      () => OrderDeliveryMapPage(
+        deliveryman: deliveryman,
+        businessName: businessSetup?.businessName ?? '',
+        businessAddress: businessSetup?.storeLocation ?? '',
+        businessLatitude: businessSetup!.storeLatitude!,
+        businessLongitude: businessSetup.storeLongitude!,
+      ),
+    );
   }
 
   Future<void> _showReviewBottomSheet(OrderItem item) async {

@@ -47,6 +47,7 @@ void main() async {
     await _setupReviews(databases);
     await _setupNotifications(databases);
     await _setupPrivacyPolicy(databases);
+    await _setupDrivers(databases);
 
     print("\n🎉 SETUP COMPLETE! Your Appwrite backend is ready.");
   } catch (e) {
@@ -759,6 +760,32 @@ Future<void> _setupPrivacyPolicy(Databases db) async {
       Permission.delete(Role.team('admin_team')),
     ],
   );
+}
+
+Future<void> _setupDrivers(Databases db) async {
+  await _createCollection(db, AppwriteConfig.driversCollection, 'Drivers', [
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.driversCollection, key: 'user_id', size: 128, xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.driversCollection, key: 'name', size: 128, xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.driversCollection, key: 'profile_image_url', size: 2000, xrequired: false),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.driversCollection, key: 'email', size: 128, xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.driversCollection, key: 'phone', size: 20, xrequired: true),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.driversCollection, key: 'role', elements: ['driver'], xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.driversCollection, key: 'fcm_token', size: 255, xrequired: false),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.driversCollection, key: 'wallet_balance', xrequired: false, xdefault: 0.0),
+        () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.driversCollection, key: 'is_online', xrequired: false, xdefault: false),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.driversCollection, key: 'vehicle_type', elements: ['bike', 'car', 'cycle'], xrequired: false),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.driversCollection, key: 'current_latitude', xrequired: false, xdefault: 0.0),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.driversCollection, key: 'current_longitude', xrequired: false, xdefault: 0.0),
+        () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.driversCollection, key: 'is_approved', xrequired: false, xdefault: false),
+  ], [
+    Permission.create(Role.users()),      // Any logged-in user can add
+    Permission.read(Role.users()),      // Any logged-in user can read
+    Permission.update(Role.users()),      // Any logged-in user can update
+    Permission.read(Role.team('admin_team')), // Only 'admin' team can edit
+    Permission.update(Role.team('admin_team')), // Only 'admin' team can edit
+    Permission.create(Role.team('admin_team')), // Only 'admin' team can create
+    Permission.delete(Role.team('admin_team')), // Only 'admin' team can edit
+  ]);
 }
 
 // Import the additional services

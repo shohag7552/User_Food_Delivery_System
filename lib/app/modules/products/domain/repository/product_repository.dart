@@ -152,8 +152,8 @@ class ProductRepository implements ProductRepoInterface {
   Future<ProductModel?> getProductById(String id) async {
     try {
       final response = await appwriteService.getDocument(
-        collectionId: AppwriteConfig.productsCollection,
-        documentId: id,
+        tableId: AppwriteConfig.productsCollection,
+        rowId: id,
       );
       return ProductModel.fromJson(response.data);
     } catch (e) {
