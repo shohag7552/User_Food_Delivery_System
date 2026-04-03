@@ -13,9 +13,11 @@ class OrderController extends GetxController implements GetxService {
   OrderController({required this.orderRepoInterface});
 
   List<OrderModel> _orders = [];
+  OrderModel? _selectedOrder;
   bool _isLoading = false;
   bool _isPlacingOrder = false;
   bool _isLoadingMore = false;
+  bool _isOrderDetailsLoading = false;
   
   // Filter and search state
   String _selectedStatus = 'all';
@@ -28,9 +30,11 @@ class OrderController extends GetxController implements GetxService {
   bool _hasMore = true;
 
   List<OrderModel> get orders => _orders;
+  OrderModel? get selectedOrder => _selectedOrder;
   bool get isLoading => _isLoading;
   bool get isPlacingOrder => _isPlacingOrder;
   bool get isLoadingMore => _isLoadingMore;
+  bool get isOrderDetailsLoading => _isOrderDetailsLoading;
   String get selectedStatus => _selectedStatus;
   String get searchQuery => _searchQuery;
   bool get hasMore => _hasMore;
@@ -205,5 +209,29 @@ class OrderController extends GetxController implements GetxService {
   /// Refresh orders
   Future<void> refreshOrders() async {
     await fetchUserOrders(refresh: true);
+  }
+
+  Future<OrderModel?> fetchOrderDetails(String orderId, {bool showLoader = true}) async {
+    try {
+      if (showLoader) {
+        _isOrderDetailsLoading = true;
+        _selectedOrder = null;
+      }
+
+      final order = await orderRepoInterface.getOrderById(orderId);
+      _selectedOrder = order;
+      _isOrderDetailsLoading = false;
+      update();
+      return order;
+    } catch (e) {
+      _isOrderDetailsLoading = false;
+      update();
+      log('Error fetching order details: $e');
+      return null;
+    }
+  }
+
+  Future<void> refreshOrderDetails(String orderId) async {
+    await fetchOrderDetails(orderId, showLoader: false);
   }
 }

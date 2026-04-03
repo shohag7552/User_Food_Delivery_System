@@ -1,6 +1,7 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
+import 'package:appwrite_user_app/app/controllers/order_controller.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/submit_review_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -11,36 +12,125 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-class OrderDetailPage extends StatelessWidget {
-  final OrderModel order;
+class OrderDetailPage extends StatefulWidget {
+  final String orderId;
+  final OrderModel? initialOrder;
 
-  const OrderDetailPage({super.key, required this.order});
+  const OrderDetailPage({
+    super.key,
+    required this.orderId,
+    this.initialOrder,
+  });
+
+  @override
+  State<OrderDetailPage> createState() => _OrderDetailPageState();
+}
+
+class _OrderDetailPageState extends State<OrderDetailPage> {
+  late final OrderController _orderController;
+  OrderModel? _fallbackOrder;
+
+  @override
+  void initState() {
+    super.initState();
+    _orderController = Get.find<OrderController>();
+    _fallbackOrder = widget.initialOrder;
+    _orderController.fetchOrderDetails(widget.orderId);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
       appBar: CustomAppbar(title: 'order_details'.tr),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildHeader(),
-            const SizedBox(height: 16),
-            _buildOrderInfo(),
-            const SizedBox(height: 16),
-            _buildItemsList(),
-            const SizedBox(height: 16),
-            _buildDeliveryInfo(),
-            const SizedBox(height: 16),
-            _buildPricingBreakdown(),
-            const SizedBox(height: 24),
-          ],
-        ),
+      body: GetBuilder<OrderController>(
+        builder: (controller) {
+          final order = controller.selectedOrder?.id == widget.orderId
+              ? controller.selectedOrder
+              : _fallbackOrder;
+
+          if (controller.isOrderDetailsLoading && order == null) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (order == null && controller.isOrderDetailsLoading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (order == null) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.receipt_long_outlined,
+                      size: 64,
+                      color: ColorResource.textLight,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Unable to load order details',
+                      style: poppinsBold.copyWith(
+                        fontSize: Constants.fontSizeLarge,
+                        color: ColorResource.textPrimary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Pull to refresh or try again in a moment.',
+                      style: poppinsRegular.copyWith(
+                        fontSize: Constants.fontSizeDefault,
+                        color: ColorResource.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: () async {
+              await controller.refreshOrderDetails(widget.orderId);
+              if (controller.selectedOrder?.id == widget.orderId && mounted) {
+                setState(() {
+                  _fallbackOrder = controller.selectedOrder;
+                });
+              }
+            },
+            color: ColorResource.primaryDark,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                children: [
+                  _buildHeader(order),
+                  const SizedBox(height: 16),
+                  _buildOrderInfo(order),
+                  const SizedBox(height: 16),
+                  _buildItemsList(order),
+                  const SizedBox(height: 16),
+                  _buildDeliveryInfo(order),
+                  const SizedBox(height: 16),
+                  _buildPricingBreakdown(order),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(OrderModel order) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -62,7 +152,7 @@ class OrderDetailPage extends StatelessWidget {
             DateFormat('EEEE, MMMM dd, yyyy • hh:mm a').format(order.createdAt),
             style: poppinsRegular.copyWith(
               fontSize: Constants.fontSizeDefault,
-              color: ColorResource.textWhite.withOpacity(0.9),
+              color: ColorResource.textWhite.withValues(alpha: 0.9),
             ),
           ),
           const SizedBox(height: 16),
@@ -72,7 +162,7 @@ class OrderDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildOrderInfo() {
+  Widget _buildOrderInfo(OrderModel order) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
@@ -135,7 +225,7 @@ class OrderDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildItemsList() {
+  Widget _buildItemsList(OrderModel order) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -165,7 +255,7 @@ class OrderDetailPage extends StatelessWidget {
             separatorBuilder: (context, index) => const SizedBox(height: 16),
             itemBuilder: (context, index) {
               final item = order.items[index];
-              return _buildOrderItem(item);
+              return _buildOrderItem(order, item);
             },
           ),
         ],
@@ -173,7 +263,7 @@ class OrderDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildOrderItem(OrderItem item) {
+  Widget _buildOrderItem(OrderModel order, OrderItem item) {
     final itemTotal = item.price * item.quantity;
     
     return Container(
@@ -222,7 +312,7 @@ class OrderDetailPage extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: ColorResource.primaryDark.withOpacity(0.1),
+                          color: ColorResource.primaryDark.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -257,7 +347,7 @@ class OrderDetailPage extends StatelessWidget {
                   ],
                 ),
                 // Add review button for delivered orders
-                if (_isOrderDelivered()) ...[
+                if (_isOrderDelivered(order)) ...[
                   const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
@@ -293,7 +383,7 @@ class OrderDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildDeliveryInfo() {
+  Widget _buildDeliveryInfo(OrderModel order) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
@@ -356,7 +446,7 @@ class OrderDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildPricingBreakdown() {
+  Widget _buildPricingBreakdown(OrderModel order) {
     final subtotal = order.totalAmount - order.deliveryFee;
     
     return Container(
@@ -488,7 +578,7 @@ class OrderDetailPage extends StatelessWidget {
     );
   }
 
-  bool _isOrderDelivered() {
+  bool _isOrderDelivered(OrderModel order) {
     return order.status.toLowerCase() == 'delivered' || 
            order.status.toLowerCase() == 'completed';
   }

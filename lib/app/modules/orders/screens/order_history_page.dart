@@ -289,8 +289,20 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   }
 
   Widget _buildOrderCard(OrderModel order) {
-    return GestureDetector(
-      onTap: () => Get.to(() => OrderDetailPage(order: order)),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(Constants.radiusLarge),
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => OrderDetailPage(
+                orderId: order.id,
+                initialOrder: order,
+              ),
+            ),
+          );
+        },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
@@ -436,6 +448,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
