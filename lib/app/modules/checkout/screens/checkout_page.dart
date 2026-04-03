@@ -18,6 +18,7 @@ import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:appwrite_user_app/app/services/stripe_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:appwrite_user_app/app/enums/payment_method_enum.dart';
 
 class CheckoutPage extends StatefulWidget {
@@ -41,9 +42,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   String _deliveryType = 'asap'; // 'asap' or 'scheduled'
   DateTime? _selectedDate;
   String? _selectedTimeSlot;
-  
-  final double deliveryFee = 5.00;
-  
+
   @override
   void initState() {
     super.initState();
@@ -52,6 +51,68 @@ class _CheckoutPageState extends State<CheckoutPage> {
     if (addressController.defaultAddress != null) {
       _selectedAddress = addressController.defaultAddress;
     }
+  }
+
+  void _syncSelectedAddress(AddressController addressController) {
+    final hasSelectedAddress = _selectedAddress != null &&
+        addressController.addresses.any((address) => address.id == _selectedAddress!.id);
+
+    if (!hasSelectedAddress && addressController.defaultAddress != null) {
+      _selectedAddress = addressController.defaultAddress;
+    }
+  }
+
+  double? _calculateDistanceKm(SettingsController settingsController) {
+    final businessSetup = settingsController.businessSetup;
+    final address = _selectedAddress;
+
+    if (businessSetup?.storeLatitude == null ||
+        businessSetup?.storeLongitude == null ||
+        address?.latitude == null ||
+        address?.longitude == null) {
+      return null;
+    }
+
+    return const Distance().as(
+      LengthUnit.Kilometer,
+      LatLng(businessSetup!.storeLatitude!, businessSetup.storeLongitude!),
+      LatLng(address!.latitude!, address.longitude!),
+    );
+  }
+
+  double _calculateDeliveryFee(
+    CartController cartController,
+    SettingsController settingsController,
+  ) {
+    final businessSetup = settingsController.businessSetup;
+    final orderAmount = cartController.total;
+    final freeDeliveryAbove = businessSetup?.freeDeliveryAbove;
+
+    if (freeDeliveryAbove != null && orderAmount >= freeDeliveryAbove) {
+      return 0;
+    }
+
+    final distanceKm = _calculateDistanceKm(settingsController);
+    final minFee = businessSetup?.minDeliveryFee ?? 0;
+    final feePerKm = businessSetup?.deliveryFeePerKm ?? 0;
+
+    if (distanceKm == null) {
+      return minFee;
+    }
+
+    final calculatedFee = distanceKm * feePerKm;
+    return calculatedFee < minFee ? minFee : calculatedFee;
+  }
+
+  bool _isOutsideDeliveryRadius(SettingsController settingsController) {
+    final maxRadius = settingsController.businessSetup?.maxDeliveryRadius;
+    final distanceKm = _calculateDistanceKm(settingsController);
+
+    if (maxRadius == null || distanceKm == null) {
+      return false;
+    }
+
+    return distanceKm > maxRadius;
   }
   
   @override
@@ -231,6 +292,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Widget _buildDeliveryAddress() {
     return GetBuilder<AddressController>(
       builder: (addressController) {
+        _syncSelectedAddress(addressController);
+        final settingsController = Get.find<SettingsController>();
+        final distanceKm = _calculateDistanceKm(settingsController);
+        final isOutsideRadius = _isOutsideDeliveryRadius(settingsController);
+
         return GestureDetector(
           onTap: () async {
             final result = await AddressSelectionBottomSheet.show(
@@ -419,6 +485,18 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
+                              if (distanceKm != null) ...[
+                                const SizedBox(height: 6),
+                                Text(
+                                  isOutsideRadius
+                                      ? 'Distance: ${distanceKm.toStringAsFixed(2)} km • Outside delivery radius'
+                                      : 'Distance: ${distanceKm.toStringAsFixed(2)} km',
+                                  style: poppinsMedium.copyWith(
+                                    fontSize: Constants.fontSizeExtraSmall,
+                                    color: isOutsideRadius ? Colors.red : ColorResource.primaryDark,
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -735,6 +813,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   Widget _buildBottomSummary(CartController controller) {
+    final settingsController = Get.find<SettingsController>();
+    final deliveryFee = _calculateDeliveryFee(controller, settingsController);
+    final isOutsideRadius = _isOutsideDeliveryRadius(settingsController);
     final total = controller.total + deliveryFee;
     
     return Container(
@@ -763,6 +844,19 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         _buildSummaryRow('${'cart_items_count'.tr} (${controller.itemCount})', controller.subtotal),
                         const SizedBox(height: 8),
                         _buildSummaryRow('delivery_fee'.tr, deliveryFee),
+                        if (isOutsideRadius) ...[
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Selected address is outside the delivery radius.',
+                              style: poppinsMedium.copyWith(
+                                fontSize: Constants.fontSizeSmall,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 8),
                         _buildSummaryRow('tax_10'.tr, controller.tax),
                         if (controller.appliedCoupon != null) ...[ 
@@ -838,7 +932,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 return SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: orderController.isPlacingOrder ? null : () => _placeOrder(controller, total),
+                    onPressed: orderController.isPlacingOrder || isOutsideRadius
+                        ? null
+                        : () => _placeOrder(controller, total, deliveryFee),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: ColorResource.primaryDark,
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -894,10 +990,20 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
-  Future<void> _placeOrder(CartController cartController, double total) async {
+  Future<void> _placeOrder(
+    CartController cartController,
+    double total,
+    double deliveryFee,
+  ) async {
     // Validate address selection
     if (_selectedAddress == null) {
       customToster('please_select_delivery_address'.tr, isSuccess: false);
+      return;
+    }
+
+    final settingsController = Get.find<SettingsController>();
+    if (_isOutsideDeliveryRadius(settingsController)) {
+      customToster('Selected address is outside the delivery radius.', isSuccess: false);
       return;
     }
 
@@ -986,7 +1092,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       if (mounted) {
         Get.to(() => OrderFailedPage(
           errorMessage: e.toString().replaceAll('Exception: ', ''),
-          onRetry: () => _placeOrder(cartController, total),
+          onRetry: () => _placeOrder(cartController, total, deliveryFee),
         ));
       }
     }

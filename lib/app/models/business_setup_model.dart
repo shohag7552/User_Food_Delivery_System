@@ -17,6 +17,8 @@ class BusinessSetupModel {
   final double? freeDeliveryAbove;
   final double? maxDeliveryRadius;
   final String storeLocation;
+  final double? storeLatitude;
+  final double? storeLongitude;
   final bool isStoreOpen;
   final bool isMaintenanceModeOn;
   final DateTime? createdAt;
@@ -39,6 +41,8 @@ class BusinessSetupModel {
     this.freeDeliveryAbove,
     this.maxDeliveryRadius,
     required this.storeLocation,
+    this.storeLatitude,
+    this.storeLongitude,
     required this.isStoreOpen,
     required this.isMaintenanceModeOn,
     this.createdAt,
@@ -65,6 +69,8 @@ class BusinessSetupModel {
       freeDeliveryAbove: json['free_delivery_above']?.toDouble(),
       maxDeliveryRadius: json['max_delivery_radius']?.toDouble(),
       storeLocation: json['store_location'] ?? '',
+      storeLatitude: json['store_latitude']?.toDouble(),
+      storeLongitude: json['store_longitude']?.toDouble(),
       isStoreOpen: json['is_store_open'] ?? true,
       isMaintenanceModeOn: json['is_maintenance_mode_on'] ?? false,
       createdAt: json['\$createdAt'] != null
@@ -93,6 +99,8 @@ class BusinessSetupModel {
       if (freeDeliveryAbove != null) 'free_delivery_above': freeDeliveryAbove,
       if (maxDeliveryRadius != null) 'max_delivery_radius': maxDeliveryRadius,
       'store_location': storeLocation,
+      if (storeLatitude != null) 'store_latitude': storeLatitude,
+      if (storeLongitude != null) 'store_longitude': storeLongitude,
       'is_store_open': isStoreOpen,
       'is_maintenance_mode_on': isMaintenanceModeOn ,
     };
@@ -115,6 +123,8 @@ class BusinessSetupModel {
     double? freeDeliveryAbove,
     double? maxDeliveryRadius,
     String? storeLocation,
+    double? storeLatitude,
+    double? storeLongitude,
     bool? isStoreOpen,
     bool? isMaintenanceModeOn,
     DateTime? createdAt,
@@ -137,6 +147,8 @@ class BusinessSetupModel {
       freeDeliveryAbove: freeDeliveryAbove ?? this.freeDeliveryAbove,
       maxDeliveryRadius: maxDeliveryRadius ?? this.maxDeliveryRadius,
       storeLocation: storeLocation ?? this.storeLocation,
+      storeLatitude: storeLatitude ?? this.storeLatitude,
+      storeLongitude: storeLongitude ?? this.storeLongitude,
       isStoreOpen: isStoreOpen ?? this.isStoreOpen,
       isMaintenanceModeOn: isMaintenanceModeOn ?? this.isMaintenanceModeOn,
       createdAt: createdAt ?? this.createdAt,

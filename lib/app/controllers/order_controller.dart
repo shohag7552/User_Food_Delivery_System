@@ -63,8 +63,8 @@ class OrderController extends GetxController implements GetxService {
         'name': address.name,
         'phone': address.phone,
         'address': address.fullAddress,
-        'lat': 0.0, // TODO: Add lat/lng to AddressModel if needed
-        'lng': 0.0,
+        'lat': address.latitude ?? 0.0,
+        'lng': address.longitude ?? 0.0,
       });
 
       // Convert cart items to order items JSON

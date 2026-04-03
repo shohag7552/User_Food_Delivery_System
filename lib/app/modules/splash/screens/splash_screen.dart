@@ -25,22 +25,14 @@ class _SplashScreenState extends State<SplashScreen> {
       bool isLoggedIn = await Get.find<AuthController>().isAlreadyLoggedIn();
       print('Checking login status in Splash Screen: $isLoggedIn');
       
-      if(isLoggedIn) {
-        print('-------------User is logged in, fetching settings...');
-        
-        // Fetch business and store setup data
-        bool settingsFetched = await Get.find<SplashController>().fetchSettings();
-        
-        if(settingsFetched) {
-          print('Settings fetched successfully, navigating to Dashboard');
+      bool settingsFetched = await Get.find<SplashController>().fetchSettings();
+      if(settingsFetched) {
+        if(isLoggedIn) {
           Get.offAll(() => DashboardScreen());
         } else {
-          print('Failed to fetch settings');
-          // You can show an error dialog or navigate to an error screen
-          Get.offAll(() => DashboardScreen()); // Navigate anyway for now
+          Get.offAll(() => LoginScreen());
         }
       } else {
-        Get.offAll(() => LoginScreen());
       }
     });
   }

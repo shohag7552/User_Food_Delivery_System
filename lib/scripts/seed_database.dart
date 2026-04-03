@@ -131,8 +131,10 @@ Future<void> _setupBusinessSetup(Databases db) async {
         () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'delivery_fee_per_km', xrequired: true),
         () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'min_delivery_fee', xrequired: true),
         () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'free_delivery_above', xrequired: false),
-        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'max_delivery_radius', xrequired: true), // in meters
-        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'store_location', size: 1000, xrequired: true), // JSON string
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'max_delivery_radius', xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'store_location', size: 1000, xrequired: true),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'store_latitude', xrequired: false),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'store_longitude', xrequired: false),
         () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'is_store_open', xdefault: true, xrequired: false),
         () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'is_maintenance_mode_on', xdefault: false, xrequired: false),
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'business_name', size: 1000, xrequired: true),
