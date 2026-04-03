@@ -7,6 +7,7 @@ import 'package:appwrite_user_app/app/modules/products/domain/repository/product
 
 class ProductRepository implements ProductRepoInterface {
   final AppwriteService appwriteService;
+  static const int _searchBatchSize = 100;
 
   ProductRepository({required this.appwriteService});
 
@@ -121,11 +122,40 @@ class ProductRepository implements ProductRepoInterface {
   @override
   Future<List<ProductModel>> searchProducts(String query) async {
     try {
-      if (query.trim().isEmpty) {
+      final normalizedQuery = _normalizeSearchQuery(query);
+      if (normalizedQuery.isEmpty) {
         return [];
       }
 
-      // Search in both name and description fields
+      final remoteResults = await _searchProductsFromBackend(query.trim());
+      final fallbackResults = await _searchProductsLocally(normalizedQuery);
+
+      final Map<String, ProductModel> combinedResults = {};
+      for (final product in [...remoteResults, ...fallbackResults]) {
+        combinedResults[product.id] = product;
+      }
+
+      final rankedResults = combinedResults.values.toList()
+        ..sort((a, b) {
+          final aScore = _getSearchScore(a, normalizedQuery);
+          final bScore = _getSearchScore(b, normalizedQuery);
+          if (aScore != bScore) {
+            return aScore.compareTo(bScore);
+          }
+
+          return a.nameMap.values.join(' ').compareTo(b.nameMap.values.join(' '));
+        });
+
+      return rankedResults;
+    } catch (e) {
+      log('====\\u003e Error searching products: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<ProductModel>> _searchProductsFromBackend(String query) async {
+    try {
+      print('====neodknln Searching products from backend with query: "$query"');
       final response = await appwriteService.listTable(
         tableId: AppwriteConfig.productsCollection,
         queries: [
@@ -134,18 +164,92 @@ class ProductRepository implements ProductRepoInterface {
             Query.search('description', query),
           ]),
           Query.equal('is_available', true),
-          Query.limit(50), // Limit search results
+          Query.limit(50),
         ],
       );
-      
+
       return response.rows.map((row) {
         log('====\u003e Search Product Data: ${row.data}');
         return ProductModel.fromJson(row.data);
       }).toList();
     } catch (e) {
-      log('====\\u003e Error searching products: $e');
-      rethrow;
+      log('====\\u003e Backend search fallback triggered: $e');
+      return [];
     }
+  }
+
+  Future<List<ProductModel>> _searchProductsLocally(String normalizedQuery) async {
+    final List<ProductModel> products = [];
+    int offset = 0;
+
+    while (true) {
+      print('====local Searching products from backend with query: "$normalizedQuery"');
+      final response = await appwriteService.listTable(
+        tableId: AppwriteConfig.productsCollection,
+        queries: [
+          Query.equal('is_available', true),
+          Query.offset(offset),
+          Query.limit(_searchBatchSize),
+        ],
+      );
+
+      final rows = response.rows;
+      if (rows.isEmpty) {
+        break;
+      }
+
+      products.addAll(rows.map((row) => ProductModel.fromJson(row.data)));
+
+      if (rows.length < _searchBatchSize) {
+        break;
+      }
+
+      offset += _searchBatchSize;
+    }
+
+    return products.where((product) => _matchesSearch(product, normalizedQuery)).toList();
+  }
+
+  bool _matchesSearch(ProductModel product, String normalizedQuery) {
+    final searchableText = [
+      ...product.nameMap.values,
+      ...product.descriptionMap.values,
+    ].join(' ');
+
+    return _normalizeSearchQuery(searchableText).contains(normalizedQuery);
+  }
+
+  int _getSearchScore(ProductModel product, String normalizedQuery) {
+    final names = product.nameMap.values
+        .map((value) => _normalizeSearchQuery(value.toString()))
+        .where((value) => value.isNotEmpty)
+        .toList();
+    final descriptions = product.descriptionMap.values
+        .map((value) => _normalizeSearchQuery(value.toString()))
+        .where((value) => value.isNotEmpty)
+        .toList();
+
+    if (names.any((value) => value == normalizedQuery)) {
+      return 0;
+    }
+
+    if (names.any((value) => value.startsWith(normalizedQuery))) {
+      return 1;
+    }
+
+    if (names.any((value) => value.contains(normalizedQuery))) {
+      return 2;
+    }
+
+    if (descriptions.any((value) => value.contains(normalizedQuery))) {
+      return 3;
+    }
+
+    return 4;
+  }
+
+  String _normalizeSearchQuery(String value) {
+    return value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
   }
 
   @override

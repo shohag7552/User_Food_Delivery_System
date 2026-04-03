@@ -25,6 +25,7 @@ class _SearchPageState extends State<SearchPage> {
   List<ProductModel> _searchResults = [];
   bool _isSearching = false;
   bool _hasSearched = false;
+  String _activeQuery = '';
 
   @override
   void initState() {
@@ -45,22 +46,26 @@ class _SearchPageState extends State<SearchPage> {
 
   void _onSearchChanged(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
-    
-    if (query.isEmpty) {
+
+    final normalizedQuery = query.trim();
+
+    if (normalizedQuery.isEmpty) {
       setState(() {
         _searchResults = [];
         _hasSearched = false;
         _isSearching = false;
+        _activeQuery = '';
       });
       return;
     }
 
     setState(() {
       _isSearching = true;
+      _activeQuery = normalizedQuery;
     });
 
     _debounce = Timer(const Duration(milliseconds: 500), () {
-      _performSearch(query);
+      _performSearch(normalizedQuery);
     });
   }
 
@@ -69,7 +74,7 @@ class _SearchPageState extends State<SearchPage> {
       final productController = Get.find<ProductController>();
       final results = await productController.searchProducts(query);
 
-      if (mounted) {
+      if (mounted && _activeQuery == query) {
         setState(() {
           _searchResults = results;
           _isSearching = false;
@@ -77,7 +82,7 @@ class _SearchPageState extends State<SearchPage> {
         });
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && _activeQuery == query) {
         setState(() {
           _searchResults = [];
           _isSearching = false;
@@ -88,10 +93,13 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void _clearSearch() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
     _searchController.clear();
     setState(() {
       _searchResults = [];
       _hasSearched = false;
+      _isSearching = false;
+      _activeQuery = '';
     });
     _searchFocusNode.requestFocus();
   }
@@ -234,6 +242,16 @@ class _SearchPageState extends State<SearchPage> {
               color: ColorResource.textSecondary,
             ),
           ),
+          if (_activeQuery.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              '"$_activeQuery"',
+              style: poppinsRegular.copyWith(
+                fontSize: Constants.fontSizeSmall,
+                color: ColorResource.textLight,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -324,7 +342,7 @@ class _SearchPageState extends State<SearchPage> {
             ),
             const SizedBox(height: 12),
             Text(
-              'We couldn\'t find any dishes matching "${_searchController.text}"',
+              'We couldn\'t find any dishes matching "$_activeQuery"',
               textAlign: TextAlign.center,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,
@@ -361,31 +379,48 @@ class _SearchPageState extends State<SearchPage> {
       children: [
         Padding(
           padding: const EdgeInsets.all(20),
-          child: Text(
-            '${_searchResults.length} ${_searchResults.length == 1 ? 'Result' : 'Results'} Found',
-            style: poppinsBold.copyWith(
-              fontSize: Constants.fontSizeLarge,
-              color: ColorResource.textPrimary,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${_searchResults.length} ${_searchResults.length == 1 ? 'Result' : 'Results'} Found',
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeLarge,
+                  color: ColorResource.textPrimary,
+                ),
+              ),
+              if (_activeQuery.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  'Showing matches for "$_activeQuery"',
+                  style: poppinsRegular.copyWith(
+                    fontSize: Constants.fontSizeSmall,
+                    color: ColorResource.textSecondary,
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
         Expanded(
-          child: GridView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.65,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-            ),
-            itemCount: _searchResults.length,
-            itemBuilder: (context, index) {
-              return _buildProductCard(
-                product: _searchResults[index],
-                onTap: () => ProductDetailBottomSheet.show(context, _searchResults[index]),
-              );
-            },
-          ),
+          child: _searchResults.isEmpty
+              ? const SizedBox()
+              : GridView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.65,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                  ),
+                  itemCount: _searchResults.length,
+                  itemBuilder: (context, index) {
+                    return _buildProductCard(
+                      product: _searchResults[index],
+                      onTap: () => ProductDetailBottomSheet.show(context, _searchResults[index]),
+                    );
+                  },
+                ),
         ),
       ],
     );
