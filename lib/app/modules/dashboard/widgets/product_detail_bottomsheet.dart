@@ -8,6 +8,7 @@ import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/modules/cart/screens/cart_page.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/full_screen_image_viewer.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/review_list_section.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -68,6 +69,8 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
     }
     return count;
   }
+
+  String get _imageHeroTag => 'product-image-${widget.product.id}';
 
   @override
   void initState() {
@@ -295,160 +298,175 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                 .toStringAsFixed(0)
         : null;
 
-    return Stack(
-      children: [
-        ClipRRect(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(Constants.radiusExtraLarge),
-            topRight: Radius.circular(Constants.radiusExtraLarge),
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => FullScreenImageViewer(
+              imageUrl: widget.product.imageId,
+              heroTag: _imageHeroTag,
+            ),
           ),
-          child: CustomNetworkImage(
-            image: widget.product.imageId,
-            height: 200,
-            width: double.infinity,
-          ),
-        ),
-
-        // Gradient overlay
-        Container(
-          height: 200,
-          decoration: BoxDecoration(
+        );
+      },
+      child: Stack(
+        children: [
+          ClipRRect(
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(Constants.radiusExtraLarge),
               topRight: Radius.circular(Constants.radiusExtraLarge),
             ),
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.transparent,
-                Colors.black.withValues(alpha: 0.3),
-              ],
+            child: Hero(
+              tag: _imageHeroTag,
+              child: CustomNetworkImage(
+                image: widget.product.imageId,
+                height: 200,
+                width: double.infinity,
+              ),
             ),
           ),
-        ),
-
-        Center(
-          child: Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
+      
+          // Gradient overlay
+          Container(
+            height: 200,
             decoration: BoxDecoration(
-              color: ColorResource.textWhite.withValues(alpha: 0.8),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-        ),
-
-        if (widget.product.isOutOfStock)
-          Positioned.fill(
-            child: ClipRRect(
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(Constants.radiusExtraLarge),
                 topRight: Radius.circular(Constants.radiusExtraLarge),
               ),
-              child: Container(
-                color: Colors.black.withValues(alpha: 0.55),
-                alignment: Alignment.center,
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withValues(alpha: 0.3),
+                ],
+              ),
+            ),
+          ),
+      
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: ColorResource.textWhite.withValues(alpha: 0.8),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+      
+          if (widget.product.isOutOfStock)
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(Constants.radiusExtraLarge),
+                  topRight: Radius.circular(Constants.radiusExtraLarge),
+                ),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: ColorResource.error,
-                    borderRadius: BorderRadius.circular(Constants.radiusDefault),
-                  ),
-                  child: Text(
-                    'OUT OF STOCK',
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeLarge,
-                      color: ColorResource.textWhite,
-                      letterSpacing: 2,
+                  color: Colors.black.withValues(alpha: 0.55),
+                  alignment: Alignment.center,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: ColorResource.error,
+                      borderRadius: BorderRadius.circular(Constants.radiusDefault),
+                    ),
+                    child: Text(
+                      'OUT OF STOCK',
+                      style: poppinsBold.copyWith(
+                        fontSize: Constants.fontSizeLarge,
+                        color: ColorResource.textWhite,
+                        letterSpacing: 2,
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-
-        Positioned(
-          top: 16,
-          left: 16,
-          right: 16,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: widget.product.isVeg ? Colors.green : ColorResource.error,
-                      borderRadius: BorderRadius.circular(Constants.radiusSmall),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          widget.product.isVeg
-                              ? Icons.circle
-                              : Icons.change_history,
-                          color: ColorResource.textWhite,
-                          size: 12,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          widget.product.isVeg ? 'VEG' : 'NON-VEG',
-                          style: poppinsBold.copyWith(
-                            fontSize: Constants.fontSizeExtraSmall,
+      
+          Positioned(
+            top: 16,
+            left: 16,
+            right: 16,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: widget.product.isVeg ? Colors.green : ColorResource.error,
+                        borderRadius: BorderRadius.circular(Constants.radiusSmall),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            widget.product.isVeg
+                                ? Icons.circle
+                                : Icons.change_history,
                             color: ColorResource.textWhite,
+                            size: 12,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: ColorResource.textWhite.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(
-                        color: ColorResource.textWhite.withValues(alpha: 0.24),
+                          const SizedBox(width: 4),
+                          Text(
+                            widget.product.isVeg ? 'VEG' : 'NON-VEG',
+                            style: poppinsBold.copyWith(
+                              fontSize: Constants.fontSizeExtraSmall,
+                              color: ColorResource.textWhite,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: ColorResource.textWhite.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color: ColorResource.textWhite.withValues(alpha: 0.24),
+                        ),
+                      ),
+                      child: Text(
+                        widget.product.isOutOfStock
+                            ? 'Unavailable'
+                            : '${widget.product.stock} in stock',
+                        style: poppinsMedium.copyWith(
+                          fontSize: Constants.fontSizeSmall,
+                          color: ColorResource.textWhite,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (hasDiscount) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: ColorResource.discountBadge,
+                      borderRadius: BorderRadius.circular(Constants.radiusSmall),
+                    ),
                     child: Text(
-                      widget.product.isOutOfStock
-                          ? 'Unavailable'
-                          : '${widget.product.stock} in stock',
-                      style: poppinsMedium.copyWith(
+                      '$discountPercentage% OFF',
+                      style: poppinsBold.copyWith(
                         fontSize: Constants.fontSizeSmall,
                         color: ColorResource.textWhite,
                       ),
                     ),
                   ),
                 ],
-              ),
-              if (hasDiscount) ...[
-                const SizedBox(height: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: ColorResource.discountBadge,
-                    borderRadius: BorderRadius.circular(Constants.radiusSmall),
-                  ),
-                  child: Text(
-                    '$discountPercentage% OFF',
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeSmall,
-                      color: ColorResource.textWhite,
-                    ),
-                  ),
-                ),
               ],
-            ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
