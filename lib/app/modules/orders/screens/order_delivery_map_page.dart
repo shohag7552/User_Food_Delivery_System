@@ -5,14 +5,18 @@ import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:get/get.dart';
 import 'package:latlong2/latlong.dart';
 
 class OrderDeliveryMapPage extends StatefulWidget {
-  final DeliverymanInfo deliveryman;
+  final DeliverymanInfo? deliveryman;
   final String businessName;
   final String businessAddress;
   final double businessLatitude;
   final double businessLongitude;
+  final String deliveryAddress;
+  final double deliveryLatitude;
+  final double deliveryLongitude;
 
   const OrderDeliveryMapPage({
     super.key,
@@ -21,6 +25,9 @@ class OrderDeliveryMapPage extends StatefulWidget {
     required this.businessAddress,
     required this.businessLatitude,
     required this.businessLongitude,
+    required this.deliveryAddress,
+    required this.deliveryLatitude,
+    required this.deliveryLongitude,
   });
 
   @override
@@ -30,7 +37,8 @@ class OrderDeliveryMapPage extends StatefulWidget {
 class _OrderDeliveryMapPageState extends State<OrderDeliveryMapPage> {
   late final MapController _mapController;
   late final LatLng _businessLocation;
-  late final LatLng _deliverymanLocation;
+  late final LatLng _deliveryAddressLocation;
+  LatLng? _deliverymanLocation;
   bool _hasBoundMarkers = false;
 
   @override
@@ -41,22 +49,32 @@ class _OrderDeliveryMapPageState extends State<OrderDeliveryMapPage> {
       widget.businessLatitude,
       widget.businessLongitude,
     );
-    _deliverymanLocation = LatLng(
-      widget.deliveryman.latitude!,
-      widget.deliveryman.longitude!,
+    if (widget.deliveryman?.hasLocation == true) {
+      _deliverymanLocation = LatLng(
+        widget.deliveryman!.latitude!,
+        widget.deliveryman!.longitude!,
+      );
+    }
+    _deliveryAddressLocation = LatLng(
+      widget.deliveryLatitude,
+      widget.deliveryLongitude,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final LatLng initialCenter = LatLng(
-      (widget.businessLatitude + widget.deliveryman.latitude!) / 2,
-      (widget.businessLongitude + widget.deliveryman.longitude!) / 2,
+      _deliverymanLocation != null
+          ? (widget.businessLatitude + _deliverymanLocation!.latitude) / 2
+          : (widget.businessLatitude + widget.deliveryLatitude) / 2,
+      _deliverymanLocation != null
+          ? (widget.businessLongitude + _deliverymanLocation!.longitude) / 2
+          : (widget.businessLongitude + widget.deliveryLongitude) / 2,
     );
 
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
-      appBar: CustomAppbar(title: 'Delivery Location'),
+      appBar: CustomAppbar(title: 'delivery_location'.tr),
       body: Stack(
         children: [
           FlutterMap(
@@ -82,19 +100,30 @@ class _OrderDeliveryMapPageState extends State<OrderDeliveryMapPage> {
                       color: ColorResource.primaryDark,
                       label: widget.businessName.isNotEmpty
                           ? widget.businessName
-                          : 'Business',
+                          : 'business'.tr,
                     ),
                   ),
+                  if (_deliverymanLocation != null)
+                    Marker(
+                      point: _deliverymanLocation!,
+                      width: 120,
+                      height: 80,
+                      child: _buildMarker(
+                        icon: Icons.delivery_dining,
+                        color: Colors.red,
+                        label: widget.deliveryman?.name.isNotEmpty == true
+                            ? widget.deliveryman!.name
+                            : 'deliveryman'.tr,
+                      ),
+                    ),
                   Marker(
-                    point: _deliverymanLocation,
+                    point: _deliveryAddressLocation,
                     width: 120,
                     height: 80,
                     child: _buildMarker(
-                      icon: Icons.delivery_dining,
-                      color: Colors.red,
-                      label: widget.deliveryman.name.isNotEmpty
-                          ? widget.deliveryman.name
-                          : 'Deliveryman',
+                      icon: Icons.location_on,
+                      color: Colors.green,
+                      label: 'delivery_address'.tr,
                     ),
                   ),
                 ],
@@ -116,24 +145,35 @@ class _OrderDeliveryMapPageState extends State<OrderDeliveryMapPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildLocationInfo(
-                    icon: Icons.delivery_dining,
-                    iconColor: Colors.red,
-                    title: widget.deliveryman.name.isNotEmpty
-                        ? widget.deliveryman.name
-                        : 'Deliveryman',
-                    subtitle: 'Current location',
-                  ),
-                  const SizedBox(height: 12),
+                  if (_deliverymanLocation != null) ...[
+                    _buildLocationInfo(
+                      icon: Icons.delivery_dining,
+                      iconColor: Colors.red,
+                      title: widget.deliveryman?.name.isNotEmpty == true
+                          ? widget.deliveryman!.name
+                          : 'deliveryman'.tr,
+                      subtitle: 'current_location'.tr,
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   _buildLocationInfo(
                     icon: Icons.storefront,
                     iconColor: ColorResource.primaryDark,
                     title: widget.businessName.isNotEmpty
                         ? widget.businessName
-                        : 'Business',
+                        : 'business'.tr,
                     subtitle: widget.businessAddress.isNotEmpty
                         ? widget.businessAddress
-                        : 'Business location',
+                        : 'business_location'.tr,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildLocationInfo(
+                    icon: Icons.location_on,
+                    iconColor: Colors.green,
+                    title: 'delivery_address'.tr,
+                    subtitle: widget.deliveryAddress.isNotEmpty
+                        ? widget.deliveryAddress
+                        : 'customer_location'.tr,
                   ),
                 ],
               ),
@@ -158,7 +198,8 @@ class _OrderDeliveryMapPageState extends State<OrderDeliveryMapPage> {
 
       final bounds = LatLngBounds.fromPoints([
         _businessLocation,
-        _deliverymanLocation,
+        _deliveryAddressLocation,
+        ?_deliverymanLocation,
       ]);
 
       _mapController.fitCamera(

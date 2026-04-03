@@ -477,5 +477,22 @@
   "days_remaining": "দিন বাকি",
   "not_yet_active": "এখনো সক্রিয় নয়",
   "days": "দিন",
-  "apply_this_coupon": "এই কুপন প্রয়োগ করুন"
+  "apply_this_coupon": "এই কুপন প্রয়োগ করুন",
+  "delivery_location": "ডেলিভারি লোকেশন",
+  "business": "ব্যবসা প্রতিষ্ঠান",
+  "deliveryman": "ডেলিভারিম্যান",
+  "current_location": "বর্তমান অবস্থান",
+  "business_location": "ব্যবসা প্রতিষ্ঠানের অবস্থান",
+  "customer_location": "গ্রাহকের অবস্থান",
+  "unable_to_load_order_details": "অর্ডারের বিবরণ লোড করা যায়নি",
+  "pull_to_refresh_or_try_again": "রিফ্রেশ করতে নিচে টানুন অথবা একটু পরে আবার চেষ্টা করুন।",
+  "phone_number_not_available": "ফোন নম্বর উপলব্ধ নয়",
+  "view_on_map": "ম্যাপে দেখুন",
+  "are_you_sure_you_want_to_cancel_this_order": "আপনি কি এই অর্ডারটি বাতিল করতে চান?",
+  "order_cancelled_successfully": "অর্ডার সফলভাবে বাতিল হয়েছে।",
+  "failed_to_cancel_order": "অর্ডার বাতিল করা যায়নি।",
+  "location_unavailable": "লোকেশন উপলব্ধ নয়",
+  "business_location_is_not_available_right_now": "এই মুহূর্তে ব্যবসা প্রতিষ্ঠানের লোকেশন উপলব্ধ নয়।",
+  "user": "ব্যবহারকারী",
+  "close": "বন্ধ করুন"
 }

@@ -18,12 +18,13 @@ class OrderController extends GetxController implements GetxService {
   bool _isPlacingOrder = false;
   bool _isLoadingMore = false;
   bool _isOrderDetailsLoading = false;
-  
+  bool _isCancellingOrder = false;
+
   // Filter and search state
   String _selectedStatus = 'all';
   String _searchQuery = '';
   Timer? _debounce;
-  
+
   // Pagination state
   int _currentPage = 0;
   final int _pageSize = 10;
@@ -35,6 +36,7 @@ class OrderController extends GetxController implements GetxService {
   bool get isPlacingOrder => _isPlacingOrder;
   bool get isLoadingMore => _isLoadingMore;
   bool get isOrderDetailsLoading => _isOrderDetailsLoading;
+  bool get isCancellingOrder => _isCancellingOrder;
   String get selectedStatus => _selectedStatus;
   String get searchQuery => _searchQuery;
   bool get hasMore => _hasMore;
@@ -192,17 +194,17 @@ class OrderController extends GetxController implements GetxService {
   /// Search orders with debounce
   void searchOrders(String query) {
     _searchQuery = query;
-    
+
     // Cancel previous debounce timer
     _debounce?.cancel();
-    
+
     // Set new debounce timer
     _debounce = Timer(const Duration(milliseconds: 300), () {
       _currentPage = 0;
       _hasMore = true;
       fetchUserOrders(refresh: true);
     });
-    
+
     update(); // Update UI to show search query immediately
   }
 
@@ -211,7 +213,10 @@ class OrderController extends GetxController implements GetxService {
     await fetchUserOrders(refresh: true);
   }
 
-  Future<OrderModel?> fetchOrderDetails(String orderId, {bool showLoader = true}) async {
+  Future<OrderModel?> fetchOrderDetails(
+    String orderId, {
+    bool showLoader = true,
+  }) async {
     try {
       if (showLoader) {
         _isOrderDetailsLoading = true;
@@ -233,5 +238,32 @@ class OrderController extends GetxController implements GetxService {
 
   Future<void> refreshOrderDetails(String orderId) async {
     await fetchOrderDetails(orderId, showLoader: false);
+  }
+
+  Future<bool> cancelOrder(String orderId) async {
+    try {
+      _isCancellingOrder = true;
+      update();
+
+      await orderRepoInterface.cancelOrder(orderId);
+
+      if (_selectedOrder?.id == orderId) {
+        _selectedOrder = _selectedOrder!.copyWith(status: 'cancelled');
+      }
+
+      final orderIndex = _orders.indexWhere((order) => order.id == orderId);
+      if (orderIndex != -1) {
+        _orders[orderIndex] = _orders[orderIndex].copyWith(status: 'cancelled');
+      }
+
+      _isCancellingOrder = false;
+      update();
+      return true;
+    } catch (e) {
+      _isCancellingOrder = false;
+      update();
+      log('Error cancelling order: $e');
+      return false;
+    }
   }
 }

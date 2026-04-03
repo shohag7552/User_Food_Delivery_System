@@ -14,7 +14,7 @@ abstract class OrderRepoInterface {
     DateTime? scheduledDate,
     String? scheduledTimeSlot,
   });
-  
+
   /// Get user's orders with optional filtering, search, and pagination
   Future<List<OrderModel>> getUserOrders({
     String? status,
@@ -23,4 +23,5 @@ abstract class OrderRepoInterface {
     int offset = 0,
   });
   Future<OrderModel?> getOrderById(String orderId);
+  Future<void> cancelOrder(String orderId);
 }

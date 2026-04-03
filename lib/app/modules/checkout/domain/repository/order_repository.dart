@@ -166,4 +166,18 @@ class OrderRepository implements OrderRepoInterface {
       return null;
     }
   }
+
+  @override
+  Future<void> cancelOrder(String orderId) async {
+    try {
+      await appwriteService.updateTable(
+        tableId: AppwriteConfig.ordersCollection,
+        rowId: orderId,
+        data: {'status': 'cancelled'},
+      );
+    } catch (e) {
+      log('Error cancelling order: $e');
+      rethrow;
+    }
+  }
 }

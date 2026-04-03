@@ -41,6 +41,19 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
       appBar: CustomAppbar(title: 'order_details'.tr),
+      bottomNavigationBar: GetBuilder<OrderController>(
+        builder: (controller) {
+          final order = controller.selectedOrder?.id == widget.orderId
+              ? controller.selectedOrder
+              : _fallbackOrder;
+
+          if (order == null) {
+            return const SizedBox.shrink();
+          }
+
+          return _buildBottomActionBar(order, controller);
+        },
+      ),
       body: GetBuilder<OrderController>(
         builder: (controller) {
           final order = controller.selectedOrder?.id == widget.orderId
@@ -69,7 +82,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Unable to load order details',
+                      'unable_to_load_order_details'.tr,
                       style: poppinsBold.copyWith(
                         fontSize: Constants.fontSizeLarge,
                         color: ColorResource.textPrimary,
@@ -78,7 +91,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Pull to refresh or try again in a moment.',
+                      'pull_to_refresh_or_try_again'.tr,
                       style: poppinsRegular.copyWith(
                         fontSize: Constants.fontSizeDefault,
                         color: ColorResource.textSecondary,
@@ -119,6 +132,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   const SizedBox(height: 16),
                   _buildPricingBreakdown(order),
                   const SizedBox(height: 24),
+                  const SizedBox(height: 90),
                 ],
               ),
             ),
@@ -502,28 +516,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Deliveryman',
+                  'deliveryman'.tr,
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeLarge,
                     color: ColorResource.textPrimary,
-                  ),
-                ),
-              ),
-              InkWell(
-                onTap: () => _openDeliveryMap(order),
-                borderRadius: BorderRadius.circular(Constants.radiusDefault),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: ColorResource.primaryDark.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(
-                      Constants.radiusDefault,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.location_on_outlined,
-                    color: ColorResource.primaryDark,
-                    size: 22,
                   ),
                 ),
               ),
@@ -571,7 +567,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                       Text(
                         deliveryman?.name.isNotEmpty == true
                             ? deliveryman!.name
-                            : 'Deliveryman',
+                            : 'deliveryman'.tr,
                         style: poppinsBold.copyWith(
                           fontSize: Constants.fontSizeDefault,
                           color: ColorResource.textPrimary,
@@ -581,7 +577,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                       Text(
                         deliveryman?.phone.isNotEmpty == true
                             ? deliveryman!.phone
-                            : 'Phone number not available',
+                            : 'phone_number_not_available'.tr,
                         style: poppinsRegular.copyWith(
                           fontSize: Constants.fontSizeDefault,
                           color: ColorResource.textSecondary,
@@ -705,6 +701,142 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     return (order.driverId?.isNotEmpty ?? false) || order.deliveryman != null;
   }
 
+  Widget _buildBottomActionBar(OrderModel order, OrderController controller) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      decoration: BoxDecoration(
+        color: ColorResource.cardBackground,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            if (_canCancelOrder(order)) ...[
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: controller.isCancellingOrder
+                      ? null
+                      : () => _showCancelOrderConfirmation(order),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: ColorResource.error,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: BorderSide(color: ColorResource.error, width: 1.5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        Constants.radiusLarge,
+                      ),
+                    ),
+                  ),
+                  child: controller.isCancellingOrder
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              ColorResource.error,
+                            ),
+                          ),
+                        )
+                      : Text(
+                          'cancel'.tr,
+                          style: poppinsBold.copyWith(
+                            fontSize: Constants.fontSizeDefault,
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(width: 12),
+            ],
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => _openDeliveryMap(order),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ColorResource.primaryDark,
+                  foregroundColor: ColorResource.textWhite,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(Constants.radiusLarge),
+                  ),
+                ),
+                child: Text(
+                  'view_on_map'.tr,
+                  style: poppinsBold.copyWith(
+                    fontSize: Constants.fontSizeDefault,
+                    color: ColorResource.textWhite,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  bool _canCancelOrder(OrderModel order) {
+    return order.status.toLowerCase() == 'pending';
+  }
+
+  void _showCancelOrderConfirmation(OrderModel order) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          'cancel'.tr,
+          style: poppinsBold.copyWith(fontSize: Constants.fontSizeLarge),
+        ),
+        content: Text(
+          'are_you_sure_you_want_to_cancel_this_order'.tr,
+          style: poppinsRegular.copyWith(fontSize: Constants.fontSizeDefault),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              'close'.tr,
+              style: poppinsMedium.copyWith(color: ColorResource.textSecondary),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              final success = await _orderController.cancelOrder(order.id);
+              if (!mounted) {
+                return;
+              }
+              Get.snackbar(
+                success ? 'success'.tr : 'error'.tr,
+                success
+                    ? 'order_cancelled_successfully'.tr
+                    : 'failed_to_cancel_order'.tr,
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: success
+                    ? ColorResource.primaryDark
+                    : ColorResource.error,
+                colorText: ColorResource.textWhite,
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ColorResource.error,
+            ),
+            child: Text(
+              'cancel'.tr,
+              style: poppinsBold.copyWith(color: ColorResource.textWhite),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _openDeliveryMap(OrderModel order) async {
     final deliveryman = order.deliveryman;
     final settingsController = Get.find<SettingsController>();
@@ -715,22 +847,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
     final businessSetup = settingsController.businessSetup;
 
-    if (deliveryman == null || !deliveryman.hasLocation) {
-      Get.snackbar(
-        'Location unavailable',
-        'Deliveryman current location is not available yet.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: ColorResource.error,
-        colorText: ColorResource.textWhite,
-      );
-      return;
-    }
-
     if (businessSetup?.storeLatitude == null ||
         businessSetup?.storeLongitude == null) {
       Get.snackbar(
-        'Location unavailable',
-        'Business location is not available right now.',
+        'location_unavailable'.tr,
+        'business_location_is_not_available_right_now'.tr,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: ColorResource.error,
         colorText: ColorResource.textWhite,
@@ -745,6 +866,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         businessAddress: businessSetup?.storeLocation ?? '',
         businessLatitude: businessSetup!.storeLatitude!,
         businessLongitude: businessSetup.storeLongitude!,
+        deliveryAddress: order.address.street,
+        deliveryLatitude: order.address.lat,
+        deliveryLongitude: order.address.lng,
       ),
     );
   }
@@ -770,7 +894,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       Get.context!,
       productId: item.productId, // Use actual product ID from order item
       userId: userId,
-      userName: userName ?? 'User',
+      userName: userName ?? 'user'.tr,
       productName: item.productName,
       verifiedPurchase: true, // User purchased this product
     );
