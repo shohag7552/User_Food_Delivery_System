@@ -10,6 +10,7 @@ import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -19,10 +20,13 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
+  static const String _searchHistoryKey = 'search_history';
+  static const int _maxSearchHistoryItems = 8;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   Timer? _debounce;
   List<ProductModel> _searchResults = [];
+  List<String> _searchHistory = [];
   bool _isSearching = false;
   bool _hasSearched = false;
   String _activeQuery = '';
@@ -30,6 +34,7 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
+    _loadSearchHistory();
     // Auto-focus on search field
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _searchFocusNode.requestFocus();
@@ -69,12 +74,81 @@ class _SearchPageState extends State<SearchPage> {
     });
   }
 
+  Future<void> _loadSearchHistory() async {
+    final sharedPreferences = Get.find<SharedPreferences>();
+    final searchHistory = sharedPreferences.getStringList(_searchHistoryKey) ?? [];
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _searchHistory = searchHistory;
+    });
+  }
+
+  Future<void> _saveSearchHistory(String query) async {
+    final normalizedQuery = query.trim();
+    if (normalizedQuery.isEmpty) {
+      return;
+    }
+
+    final updatedHistory = [normalizedQuery, ..._searchHistory.where((item) => item.toLowerCase() != normalizedQuery.toLowerCase())]
+        .take(_maxSearchHistoryItems)
+        .toList();
+    final sharedPreferences = Get.find<SharedPreferences>();
+    await sharedPreferences.setStringList(_searchHistoryKey, updatedHistory);
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _searchHistory = updatedHistory;
+    });
+  }
+
+  Future<void> _removeHistoryItem(String query) async {
+    final updatedHistory = _searchHistory.where((item) => item != query).toList();
+    final sharedPreferences = Get.find<SharedPreferences>();
+    await sharedPreferences.setStringList(_searchHistoryKey, updatedHistory);
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _searchHistory = updatedHistory;
+    });
+  }
+
+  Future<void> _clearSearchHistory() async {
+    final sharedPreferences = Get.find<SharedPreferences>();
+    await sharedPreferences.remove(_searchHistoryKey);
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _searchHistory = [];
+    });
+  }
+
+  void _searchFromHistory(String query) {
+    _searchController.text = query;
+    _searchController.selection = TextSelection.fromPosition(TextPosition(offset: query.length));
+    _onSearchChanged(query);
+    _searchFocusNode.unfocus();
+  }
+
   void _performSearch(String query) async {
     try {
       final productController = Get.find<ProductController>();
       final results = await productController.searchProducts(query);
 
       if (mounted && _activeQuery == query) {
+        await _saveSearchHistory(query);
         setState(() {
           _searchResults = results;
           _isSearching = false;
@@ -108,100 +182,119 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Search Header
-            _buildSearchHeader(),
-            
-            // Search Results
-            Expanded(
-              child: _buildSearchBody(),
-            ),
-          ],
-        ),
+      body: Column(
+        children: [
+          // Search Header
+          _buildSearchHeader(),
+
+          // Search Results
+          Expanded(
+            child: _buildSearchBody(),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildSearchHeader() {
+    final topPadding = MediaQuery.of(context).padding.top;
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(20, topPadding + 14, 20, 20),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        gradient: ColorResource.primaryGradient,
         boxShadow: [
           BoxShadow(
-            color: ColorResource.shadowLight,
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: ColorResource.primaryMedium.withValues(alpha: 0.18),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Back Button
-          IconButton(
-            onPressed: () => Get.back(),
-            icon: Icon(
-              Icons.arrow_back,
-              color: ColorResource.textPrimary,
-            ),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-          const SizedBox(width: 12),
-
-          // Search Field
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: ColorResource.scaffoldBackground,
-                borderRadius: BorderRadius.circular(Constants.radiusLarge),
-                border: Border.all(
-                  color: ColorResource.primaryDark.withValues(alpha: 0.2),
-                  width: 1,
+          Container(
+            decoration: BoxDecoration(
+              color: ColorResource.cardBackground,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 14,
+                  offset: const Offset(0, 6),
                 ),
+              ],
+            ),
+            child: TextField(
+              controller: _searchController,
+              focusNode: _searchFocusNode,
+              onChanged: _onSearchChanged,
+              onSubmitted: (value) => _onSearchChanged(value),
+              textInputAction: TextInputAction.search,
+              style: poppinsRegular.copyWith(
+                fontSize: Constants.fontSizeDefault,
+                color: ColorResource.textPrimary,
               ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.search,
-                    color: ColorResource.primaryDark,
-                    size: 24,
+              decoration: InputDecoration(
+                hintText: 'search_for_dishes'.tr,
+                hintStyle: poppinsRegular.copyWith(
+                  fontSize: Constants.fontSizeDefault,
+                  color: ColorResource.textLight,
+                ),
+                prefixIcon: IconButton(
+                  onPressed: () => Get.back(),
+                  icon: Icon(
+                    Icons.arrow_back,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      focusNode: _searchFocusNode,
-                      onChanged: _onSearchChanged,
-                      style: poppinsRegular.copyWith(
-                        fontSize: Constants.fontSizeDefault,
-                        color: ColorResource.textPrimary,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'search_for_dishes'.tr,
-                        hintStyle: poppinsRegular.copyWith(
-                          fontSize: Constants.fontSizeDefault,
-                          color: ColorResource.textLight,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minHeight: 42,
+                    minWidth: 42,
+                  ),
+                ),
+                prefixIconConstraints: const BoxConstraints(
+                  minHeight: 24,
+                  minWidth: 44,
+                ),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? GestureDetector(
+                        onTap: _clearSearch,
+                        child: Container(
+                          margin: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: ColorResource.scaffoldBackground,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.close_rounded,
+                            color: ColorResource.textSecondary,
+                            size: 18,
+                          ),
                         ),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
+                      )
+                    : null,
+                filled: true,
+                fillColor: ColorResource.cardBackground,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide(
+                    color: ColorResource.primaryDark.withValues(alpha: 0.08),
+                    width: 1,
                   ),
-                  if (_searchController.text.isNotEmpty)
-                    GestureDetector(
-                      onTap: _clearSearch,
-                      child: Icon(
-                        Icons.clear,
-                        color: ColorResource.textSecondary,
-                        size: 20,
-                      ),
-                    ),
-                ],
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide(
+                    color: ColorResource.primaryDark.withValues(alpha: 0.25),
+                    width: 1.4,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
               ),
             ),
           ),
@@ -262,33 +355,99 @@ class _SearchPageState extends State<SearchPage> {
     final recentProducts = productController.products.take(6).toList();
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.search,
-            size: 80,
-            color: ColorResource.textLight.withValues(alpha: 0.3),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'search_for_your_favorite_dishes'.tr,
-            style: poppinsBold.copyWith(
-              fontSize: Constants.fontSizeExtraLarge,
-              color: ColorResource.textPrimary,
+
+          if (_searchHistory.isNotEmpty) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Recent searches',
+                  style: poppinsBold.copyWith(
+                    fontSize: Constants.fontSizeLarge,
+                    color: ColorResource.textPrimary,
+                  ),
+                ),
+                TextButton(
+                  onPressed: _clearSearchHistory,
+                  child: Text(
+                    'Clear all',
+                    style: poppinsMedium.copyWith(
+                      fontSize: Constants.fontSizeSmall,
+                      color: ColorResource.primaryDark,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'try_searching_hint'.tr,
-            style: poppinsRegular.copyWith(
-              fontSize: Constants.fontSizeDefault,
-              color: ColorResource.textSecondary,
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: _searchHistory.map((item) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: ColorResource.cardBackground,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: ColorResource.primaryDark.withValues(alpha: 0.08),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      InkWell(
+                        onTap: () => _searchFromHistory(item),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.history_rounded,
+                                size: 16,
+                                color: ColorResource.textSecondary,
+                              ),
+                              const SizedBox(width: 8),
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 180),
+                                child: Text(
+                                  item,
+                                  style: poppinsRegular.copyWith(
+                                    fontSize: Constants.fontSizeSmall,
+                                    color: ColorResource.textPrimary,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () => _removeHistoryItem(item),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(2, 10, 12, 10),
+                          child: Icon(
+                            Icons.close_rounded,
+                            size: 16,
+                            color: ColorResource.textLight,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
             ),
-          ),
+          ],
           if (recentProducts.isNotEmpty) ...[
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
             Text(
               'popular_items'.tr,
               style: poppinsBold.copyWith(
@@ -300,6 +459,7 @@ class _SearchPageState extends State<SearchPage> {
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.zero,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 childAspectRatio: 0.75,
