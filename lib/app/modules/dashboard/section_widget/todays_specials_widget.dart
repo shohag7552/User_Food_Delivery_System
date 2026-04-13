@@ -136,8 +136,7 @@ class TodaysSpecialsWidget extends StatelessWidget {
                           onTap: () {
                             ProductDetailBottomSheet.show(context, product);
                           },
-                          onAddToCart: () =>
-                              CartHelper.handleAddToCart(product, context),
+                          onAddToCart: () => CartHelper.handleAddToCart(product, context),
                           onQuantityChanged: (isIncrement) {
                             if (isIncrement) {
                               CartHelper.incrementQuantity(product, context);

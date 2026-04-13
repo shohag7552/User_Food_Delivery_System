@@ -154,15 +154,18 @@ class _FoodItemCardState extends State<FoodItemCard> {
               Expanded(
                 child: Stack(
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(Constants.radiusLarge),
-                        topRight: Radius.circular(Constants.radiusLarge),
-                      ),
-                      child: CustomNetworkImage(
-                        image: widget.imageUrl,
-                        height: 160,
-                        width: double.infinity,
+                    Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(Constants.radiusLarge),
+                          topRight: Radius.circular(Constants.radiusLarge),
+                        ),
+                        child: CustomNetworkImage(
+                          image: widget.imageUrl,
+                          height: 160,
+                          width: double.infinity,
+                        ),
                       ),
                     ),
                     // Discount badge
@@ -172,8 +175,8 @@ class _FoodItemCardState extends State<FoodItemCard> {
                         left: 12,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
+                            horizontal: 8,
+                            vertical: 5,
                           ),
                           decoration: BoxDecoration(
                             color: ColorResource.discountBadge,
@@ -184,7 +187,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
                           child: Text(
                             '${discountPercentage.toStringAsFixed(0)}% OFF',
                             style: poppinsBold.copyWith(
-                              fontSize: Constants.fontSizeSmall,
+                              fontSize: Constants.fontSizeExtraSmall,
                               color: ColorResource.textWhite,
                             ),
                           ),

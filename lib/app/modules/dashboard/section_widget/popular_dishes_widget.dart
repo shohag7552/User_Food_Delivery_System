@@ -119,11 +119,9 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
                 builder: (context, constraints) {
                   final products = controller.popularProducts;
                   final width = constraints.maxWidth;
-                  final viewportFraction = width >= 900
-                      ? 0.28
-                      : width >= 600
-                      ? 0.38
-                      : 0.58;
+                  final viewportFraction = width >= 900 ? 0.28
+                      : width >= 600 ? 0.39
+                      : 0.6;
 
                   return CarouselSlider.builder(
                     itemCount: products.length,
@@ -132,8 +130,7 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
 
                       return GetBuilder<CartController>(
                         builder: (cartController) {
-                          final cartQuantity =
-                              CartHelper.getProductCartQuantity(product.id);
+                          final cartQuantity = CartHelper.getProductCartQuantity(product.id);
 
                           return FoodItemCard(
                             name: product.nameMap.trLanguage,
