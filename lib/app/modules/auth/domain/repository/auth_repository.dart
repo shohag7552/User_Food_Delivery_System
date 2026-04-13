@@ -9,8 +9,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AuthRepository implements AuthRepoInterface {
   final SharedPreferences sharedPreferences;
   final AppwriteService appwriteService;
-  
-  AuthRepository({required this.sharedPreferences, required this.appwriteService});
+
+  AuthRepository({
+    required this.sharedPreferences,
+    required this.appwriteService,
+  });
 
   // @override
   // Future<bool> auth(String email, String password) async {
@@ -29,19 +32,20 @@ class AuthRepository implements AuthRepoInterface {
   Future<bool> loginUser(String email, String password) async {
     try {
       // Attempt to sign in with Appwrite
-      String? userId = await appwriteService.signIn(email: email, password: password);
+      String? userId = await appwriteService.signIn(
+        email: email,
+        password: password,
+      );
 
-      if(userId != null) {
+      if (userId != null) {
         String? fcmToken = await _getDeviceToken();
         await appwriteService.updateTable(
           tableId: AppwriteConfig.usersCollection,
           rowId: userId,
-          data: {
-            'fcm_token' : fcmToken,
-          },
+          data: {'fcm_token': fcmToken},
         );
 
-        if(fcmToken != null) {
+        if (fcmToken != null) {
           await appwriteService.setupMessaging(fcmToken: fcmToken);
         }
       }
@@ -52,17 +56,18 @@ class AuthRepository implements AuthRepoInterface {
     } catch (e) {
       // Handle login errors
       String errorMessage = 'Login failed. Please try again.';
-      
-      if (e.toString().contains('Invalid credentials') || 
+
+      if (e.toString().contains('Invalid credentials') ||
           e.toString().contains('401') ||
           e.toString().contains('Invalid email or password')) {
         errorMessage = 'Invalid email or password.';
-      } else if (e.toString().contains('network') || e.toString().contains('connection')) {
+      } else if (e.toString().contains('network') ||
+          e.toString().contains('connection')) {
         errorMessage = 'Network error. Please check your connection.';
       } else if (e.toString().contains('User not found')) {
         errorMessage = 'No account found with this email.';
       }
-      
+
       print('Login error: $e');
       // Show error toast to user
       // Note: The toast will be shown by the controller/UI layer
@@ -83,37 +88,77 @@ class AuthRepository implements AuthRepoInterface {
     required String phone,
     required String password,
   }) async {
-      // 1. Create Appwrite account
-      AppWriteResponse data = await appwriteService.signUp(
-        email: email,
-        password: password,
-        name: name,
-      );
+    // 1. Create Appwrite account
+    AppWriteResponse data = await appwriteService.signUp(
+      email: email,
+      password: password,
+      name: name,
+    );
 
-      print('Signup Response: ${data.response}');
-      // 2. Create user document in users collection
-      if(data.response.$id.isEmpty) {
-        return false;
-      }
-      String? fcmToken = await _getDeviceToken();
-      await appwriteService.createUserDocument(
-        userId: data.response.$id,
-        name: name,
-        email: email,
-        phone: phone,
-        fcmToken: fcmToken,
-      );
+    print('Signup Response: ${data.response}');
+    // 2. Create user document in users collection
+    if (data.response.$id.isEmpty) {
+      return false;
+    }
+    String? fcmToken = await _getDeviceToken();
+    await appwriteService.createUserDocument(
+      userId: data.response.$id,
+      name: name,
+      email: email,
+      phone: phone,
+      fcmToken: fcmToken,
+    );
 
-      if(fcmToken != null) {
-        await appwriteService.setupMessaging(fcmToken: fcmToken);
-      }
+    if (fcmToken != null) {
+      await appwriteService.setupMessaging(fcmToken: fcmToken);
+    }
 
-      return true;
+    return true;
   }
 
   @override
   Future<User?> getCurrentUser() async {
     return await appwriteService.getCurrentUser();
+  }
+
+  @override
+  Future<bool> requestPasswordResetOtp(String email) async {
+    try {
+      await appwriteService.requestPasswordResetOtp(
+        email: email.trim().toLowerCase(),
+      );
+      return true;
+    } catch (e) {
+      final message = e.toString().contains('Function with the requested ID could not be found')
+          ? 'Forgot password OTP function is not deployed yet.'
+          : 'Could not send OTP right now. Please try again.';
+      customToster(message, isSuccess: false);
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> resetPasswordWithOtp({
+    required String email,
+    required String otp,
+    required String password,
+  }) async {
+    try {
+      await appwriteService.resetPasswordWithOtp(
+        email: email.trim().toLowerCase(),
+        otp: otp.trim(),
+        password: password,
+      );
+      return true;
+    } catch (e) {
+      final message = e.toString().contains('expired')
+          ? 'OTP expired. Please request a new one.'
+          : e.toString().contains('Invalid OTP')
+          ? 'Invalid OTP. Please try again.'
+          : 'Could not reset password. Please try again.';
+      customToster(message, isSuccess: false);
+      return false;
+    }
   }
 
   Future<String?> _getDeviceToken() async {

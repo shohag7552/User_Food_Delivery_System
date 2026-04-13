@@ -11,18 +11,22 @@ import 'app/resources/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Stripe
   Stripe.publishableKey = Constants.stripePublishableKey;
-  
+
   await Global.init().then((languages) => runApp(MyApp(languages: languages)));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final Map<String, Map<String, String>> languages;
   const MyApp({super.key, required this.languages});
 
-  // This widget is the root of your application.
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<LocalizationController>(
@@ -33,13 +37,16 @@ class MyApp extends StatelessWidget {
           theme: localizeController.darkTheme ? darkTheme : lightTheme,
           // theme: darkTheme,
           locale: localizeController.locale,
-          translations: Messages(languages: languages),
-          fallbackLocale: Locale(Constants.languages[0].languageCode!, Constants.languages[0].countryCode),
+          translations: Messages(languages: widget.languages),
+          fallbackLocale: Locale(
+            Constants.languages[0].languageCode,
+            Constants.languages[0].countryCode,
+          ),
           getPages: AppPages.routes,
           // home: VerificationScreen(tempToken: '', registrationModel: null),
           initialRoute: AppPages.goToSplashPage(),
         );
-      }
+      },
     );
   }
 }

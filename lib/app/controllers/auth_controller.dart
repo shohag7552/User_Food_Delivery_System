@@ -109,14 +109,14 @@ class AuthController extends GetxController implements GetxService {
   //   return isSuccess;
   // }
   //
-  Future<bool> login(String phone, String password) async {
+  Future<bool> login(String email, String password) async {
     bool isSuccess = false;
     _isLoading = true;
     update();
 
     try {
-      isSuccess = await authRepoInterface.loginUser(phone, password);
-      
+      isSuccess = await authRepoInterface.loginUser(email, password);
+
       // if (isSuccess) {
       //   customToster('Login successful! Welcome back.');
       // } else {
@@ -124,14 +124,15 @@ class AuthController extends GetxController implements GetxService {
       // }
     } catch (e) {
       String errorMessage = 'Login failed. Please try again.';
-      
-      if (e.toString().contains('Invalid credentials') || 
+
+      if (e.toString().contains('Invalid credentials') ||
           e.toString().contains('401')) {
         errorMessage = 'Invalid email or password.';
-      } else if (e.toString().contains('network') || e.toString().contains('connection')) {
+      } else if (e.toString().contains('network') ||
+          e.toString().contains('connection')) {
         errorMessage = 'Network error. Please check your connection.';
       }
-      
+
       customToster(errorMessage);
       log('Login error: $e');
     }
@@ -165,16 +166,15 @@ class AuthController extends GetxController implements GetxService {
 
       if (isSuccess) {
         customToster('Account created successfully!');
-
       } else {
         customToster('Failed to create account. Please try again.');
-
       }
     } catch (e) {
       isSuccess = false;
       String errorMessage = 'An error occurred during signup';
-      
-      if (e.toString().contains('409') || e.toString().contains('already exists')) {
+
+      if (e.toString().contains('409') ||
+          e.toString().contains('already exists')) {
         errorMessage = 'Email already registered. Please login instead.';
       } else if (e.toString().contains('network')) {
         errorMessage = 'Network error. Please check your connection.';
@@ -199,7 +199,37 @@ class AuthController extends GetxController implements GetxService {
 
   Future<String> getUserEmail() async {
     User? user = await authRepoInterface.getCurrentUser();
-    return user?.email??'';
+    return user?.email ?? '';
+  }
+
+  Future<bool> requestPasswordResetOtp(String email) async {
+    _isLoading = true;
+    update();
+
+    final isSuccess = await authRepoInterface.requestPasswordResetOtp(email);
+
+    _isLoading = false;
+    update();
+    return isSuccess;
+  }
+
+  Future<bool> resetPasswordWithOtp({
+    required String email,
+    required String otp,
+    required String password,
+  }) async {
+    _isLoading = true;
+    update();
+
+    final isSuccess = await authRepoInterface.resetPasswordWithOtp(
+      email: email,
+      otp: otp,
+      password: password,
+    );
+
+    _isLoading = false;
+    update();
+    return isSuccess;
   }
 
   //

@@ -40,19 +40,18 @@ class AppwriteService {
     required Map<String, dynamic> data,
     String? documentId,
   }) async {
-
     try {
       final user = await account.get();
-      log('====> database: ${AppwriteConfig.databaseId}, tableId: $collectionId, rowId: $documentId and  with data: $data');
+      log(
+        '====> database: ${AppwriteConfig.databaseId}, tableId: $collectionId, rowId: $documentId and  with data: $data',
+      );
       // return await databases.createRow(databaseId: databaseId, tableId: tableId, rowId: rowId, data: data)
       return await databases.createRow(
         databaseId: AppwriteConfig.databaseId,
         tableId: collectionId,
         rowId: documentId ?? ID.unique(),
         data: data,
-        permissions: [
-          Permission.write(Role.user(user.$id)),
-        ],
+        permissions: [Permission.write(Role.user(user.$id))],
       );
     } on AppwriteException catch (e) {
       log('===> AppwriteException: ${e.response}');
@@ -68,7 +67,9 @@ class AppwriteService {
     List<String>? queries,
   }) async {
     try {
-      log('====> listDocuments in database: ${AppwriteConfig.databaseId}, tableId: $tableId, rowId: $rowId, with queries: $queries');
+      log(
+        '====> listDocuments in database: ${AppwriteConfig.databaseId}, tableId: $tableId, rowId: $rowId, with queries: $queries',
+      );
 
       return await databases.getRow(
         databaseId: AppwriteConfig.databaseId,
@@ -85,16 +86,20 @@ class AppwriteService {
     }
   }
 
-  Future<RowList> listTable({required String tableId, List<String>? queries}) async {
+  Future<RowList> listTable({
+    required String tableId,
+    List<String>? queries,
+  }) async {
     try {
-      log('====> listDocuments in database: ${AppwriteConfig.databaseId}, tableId: $tableId, with queries: $queries');
+      log(
+        '====> listDocuments in database: ${AppwriteConfig.databaseId}, tableId: $tableId, with queries: $queries',
+      );
 
       return await databases.listRows(
         databaseId: AppwriteConfig.databaseId,
         tableId: tableId,
         queries: queries ?? [],
       );
-
     } on AppwriteException catch (e) {
       log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
       rethrow;
@@ -110,7 +115,9 @@ class AppwriteService {
     required Map<String, dynamic> data,
   }) async {
     try {
-      log('====> listDocuments in database: ${AppwriteConfig.databaseId}, tableId: $tableId, rowId: $rowId with data: $data');
+      log(
+        '====> listDocuments in database: ${AppwriteConfig.databaseId}, tableId: $tableId, rowId: $rowId with data: $data',
+      );
 
       return await databases.updateRow(
         databaseId: AppwriteConfig.databaseId,
@@ -118,7 +125,6 @@ class AppwriteService {
         rowId: rowId,
         data: data,
       );
-
     } on AppwriteException catch (e) {
       log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
       rethrow;
@@ -126,7 +132,6 @@ class AppwriteService {
       log('Upload error: $e');
       rethrow;
     }
-
   }
 
   Future<void> deleteRow({
@@ -134,14 +139,15 @@ class AppwriteService {
     required String rowId,
   }) async {
     try {
-      log('====> listDocuments in database: ${AppwriteConfig.databaseId}, tableId: $collectionId, rowId: $rowId');
+      log(
+        '====> listDocuments in database: ${AppwriteConfig.databaseId}, tableId: $collectionId, rowId: $rowId',
+      );
 
       return await databases.deleteRow(
         databaseId: AppwriteConfig.databaseId,
         tableId: collectionId,
         rowId: rowId,
       );
-
     } on AppwriteException catch (e) {
       log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
       rethrow;
@@ -156,7 +162,6 @@ class AppwriteService {
   Future<User?> getCurrentUser() async {
     try {
       return await account.get();
-
     } on AppwriteException catch (e) {
       log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
       return null;
@@ -182,14 +187,26 @@ class AppwriteService {
       print('====> Signup successful for user: ${user.$id}');
       // Automatically create a session after signup
       await account.createEmailPasswordSession(email: email, password: password);
-      
-      return AppWriteResponse(code: 200, message: 'user create successfully', response: user);
+
+      return AppWriteResponse(
+        code: 200,
+        message: 'user create successfully',
+        response: user,
+      );
     } on AppwriteException catch (e) {
       log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
-      return AppWriteResponse(code: e.code??404, message: e.message??'connection issue', response: e.response);
+      return AppWriteResponse(
+        code: e.code ?? 404,
+        message: e.message ?? 'connection issue',
+        response: e.response,
+      );
     } catch (e) {
       log('Signup error: $e');
-      return AppWriteResponse(code: 000, message: 'connection issue', response: e);
+      return AppWriteResponse(
+        code: 000,
+        message: 'connection issue',
+        response: e,
+      );
     }
   }
 
@@ -234,12 +251,20 @@ class AppwriteService {
     }
   }
 
-  Future<String?> signIn({required String email, required String password}) async {
+  Future<String?> signIn({
+    required String email,
+    required String password,
+  }) async {
     log('====> signIn request- email:$email, password:$password');
 
     try {
-     final response = await account.createEmailPasswordSession(email: email, password: password);
-      log('====> Login successful for: $email // response is: ${response.userId}');
+      final response = await account.createEmailPasswordSession(
+        email: email,
+        password: password,
+      );
+      log(
+        '====> Login successful for: $email // response is: ${response.userId}',
+      );
       return response.userId;
     } on AppwriteException catch (e) {
       log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
@@ -258,19 +283,20 @@ class AppwriteService {
       // 2. Register this device as a "Target" in Appwrite
       // This automatically saves the token securely in Appwrite's internal system.
       final target = await account.createPushTarget(
-          targetId: ID.unique(), // Generates a unique ID for this phone
-          identifier: fcmToken,  // The actual FCM token
-          providerId: AppwriteConfig.messagingProviderId, // Get this from Messaging > Providers
+        targetId: ID.unique(), // Generates a unique ID for this phone
+        identifier: fcmToken, // The actual FCM token
+        providerId: AppwriteConfig
+            .messagingProviderId, // Get this from Messaging > Providers
       );
       print("✅ Device registered for notifications!");
 
       await messaging.createSubscriber(
-        topicId: AppwriteConfig.topicId, // Use the topic you created in Appwrite console
+        topicId: AppwriteConfig
+            .topicId, // Use the topic you created in Appwrite console
         subscriberId: ID.unique(),
         targetId: target.$id, // Link the device target we just created
       );
       print("✅ Subscriber created for topic 'all_users'!");
-
     } on AppwriteException catch (e) {
       print("❌ Failed to register device: ${e.message}");
     } catch (e) {
@@ -293,7 +319,6 @@ class AppwriteService {
         print('===========here=====2');
         return false;
       }
-
     } catch (e) {
       print("❌ User is not logged in.");
       return false;
@@ -303,7 +328,6 @@ class AppwriteService {
   Future<void> signOut() async {
     try {
       await account.deleteSession(sessionId: 'current');
-
     } on AppwriteException catch (e) {
       log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
     } catch (e) {
@@ -315,20 +339,23 @@ class AppwriteService {
     await account.updateName(name: name);
   }
 
-  Future<void> updatePassword({required String password, required String oldPassword}) async {
+  Future<void> updatePassword({
+    required String password,
+    required String oldPassword,
+  }) async {
     await account.updatePassword(password: password, oldPassword: oldPassword);
   }
 
   Future<String?> uploadImage(XFile file) async {
     try {
       final result = await storage.createFile(
-        bucketId: AppwriteConfig.postsBucketId,     // Create bucket in Appwrite console
-        fileId: ID.unique(),            // Auto-generate unique ID
+        bucketId: AppwriteConfig.postsBucketId, // Create bucket in Appwrite console
+        fileId: ID.unique(), // Auto-generate unique ID
         file: InputFile.fromPath(
           path: file.path,
           filename: file.path.split('/').last,
         ),
-        permissions: [Permission.read(Role.any()) ],
+        permissions: [Permission.read(Role.any())],
       );
 
       // Return uploaded file ID
@@ -392,7 +419,11 @@ class AppwriteService {
     }
   }
 
-  Future<Map<String, dynamic>?> requestStripPayment({required int amount, required String currency, required String userEmail}) async {
+  Future<Map<String, dynamic>?> requestStripPayment({
+    required int amount,
+    required String currency,
+    required String userEmail,
+  }) async {
     // Ensure you have initialized 'client' somewhere globally or pass it in
     // Functions functions = Functions(client);
 
@@ -417,7 +448,6 @@ class AppwriteService {
         print("⚠️ Function failed: ${execution.responseBody}");
         return null;
       }
-
     } catch (e) {
       print("❌ Failed to trigger Stripe payment function: $e");
       return null;
@@ -431,8 +461,7 @@ class AppwriteService {
   //   ).href;
   // }
 
-
-// Future<Map<String, dynamic>?> uploadXFileAndSave(XFile xfile, {String? userId}) async {
+  // Future<Map<String, dynamic>?> uploadXFileAndSave(XFile xfile, {String? userId}) async {
   //   try {
   //     // Build InputFile correctly for web vs mobile
   //     late InputFile input;
@@ -493,7 +522,59 @@ class AppwriteService {
   // }
 }
 
-class AppWriteResponse{
+extension AppwritePasswordRecovery on AppwriteService {
+  Future<void> requestPasswordResetOtp({required String email}) async {
+    await _executeForgotPasswordOtpFunction(
+      body: {'action': 'request_otp', 'email': email},
+    );
+  }
+
+  Future<void> resetPasswordWithOtp({
+    required String email,
+    required String otp,
+    required String password,
+  }) async {
+    await _executeForgotPasswordOtpFunction(
+      body: {
+        'action': 'reset_password',
+        'email': email,
+        'otp': otp,
+        'password': password,
+      },
+    );
+  }
+
+  Future<Map<String, dynamic>> _executeForgotPasswordOtpFunction({
+    required Map<String, dynamic> body,
+  }) async {
+    try {
+      final execution = await functions.createExecution(
+        functionId: AppwriteConfig.forgotPasswordOtpFunctionId,
+        body: jsonEncode(body),
+      );
+
+      final responseBody = execution.responseBody;
+      final parsed = responseBody.isEmpty
+          ? <String, dynamic>{}
+          : jsonDecode(responseBody) as Map<String, dynamic>;
+
+      if (execution.status != ExecutionStatus.completed ||
+          parsed['success'] != true) {
+        throw Exception(parsed['message'] ?? 'OTP request failed.');
+      }
+
+      return parsed;
+    } on AppwriteException catch (e) {
+      log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
+      rethrow;
+    } catch (e) {
+      log('Forgot password OTP function error: $e');
+      rethrow;
+    }
+  }
+}
+
+class AppWriteResponse {
   final int code;
   final String message;
   final dynamic response;

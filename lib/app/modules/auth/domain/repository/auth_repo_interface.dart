@@ -12,4 +12,10 @@ abstract class AuthRepoInterface {
     required String password,
   });
   Future<User?> getCurrentUser();
+  Future<bool> requestPasswordResetOtp(String email);
+  Future<bool> resetPasswordWithOtp({
+    required String email,
+    required String otp,
+    required String password,
+  });
 }

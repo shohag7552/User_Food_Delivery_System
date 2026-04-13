@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_button.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
+import 'package:appwrite_user_app/app/modules/auth/screens/forgot_password_screen.dart';
 import 'package:appwrite_user_app/app/modules/auth/screens/signup_screen.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/screens/dashboard_screen.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +14,8 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -50,17 +52,19 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         _isLoading = true;
       });
 
-      await Get.find<AuthController>().login(_emailController.text.trim(), _passwordController.text.trim()).then((v) {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
+      await Get.find<AuthController>()
+          .login(_emailController.text.trim(), _passwordController.text.trim())
+          .then((v) {
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
 
-          if(v){
-            Get.off(()=> DashboardScreen());
-          }
-        }
-      });
+              if (v) {
+                Get.off(() => DashboardScreen());
+              }
+            }
+          });
       // // TODO: Implement auth logic
       // // Simulate auth delay
       // Future.delayed(const Duration(seconds: 2), () {
@@ -76,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    
+
     return Scaffold(
       body: Container(
         width: size.width,
@@ -103,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 60),
-                    
+
                     // Logo and Welcome Text
                     Center(
                       child: Column(
@@ -130,7 +134,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             ),
                           ),
                           const SizedBox(height: 24),
-                          
+
                           // Welcome Text
                           Text(
                             'welcome_back'.tr,
@@ -151,9 +155,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 50),
-                    
+
                     // Login Form Card
                     Container(
                       padding: const EdgeInsets.all(24),
@@ -229,16 +233,17 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 if (value == null || value.isEmpty) {
                                   return 'please_enter_your_email'.tr;
                                 }
-                                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                                    .hasMatch(value)) {
+                                if (!RegExp(
+                                  r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                ).hasMatch(value)) {
                                   return 'please_enter_a_valid_email'.tr;
                                 }
                                 return null;
                               },
                             ),
-                            
+
                             const SizedBox(height: 20),
-                            
+
                             // Password Field
                             Text(
                               'password'.tr,
@@ -314,41 +319,40 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 return null;
                               },
                             ),
-                            
+
                             const SizedBox(height: 12),
-                            
+
                             // Forgot Password
                             Align(
                               alignment: Alignment.centerRight,
                               child: TextButton(
                                 onPressed: () {
-                                  // TODO: Navigate to forgot password
+                                  Get.to(() => const ForgotPasswordScreen());
                                 },
                                 child: Text(
                                   'forgot_password_q'.tr,
                                   style: poppinsMedium.copyWith(
                                     fontSize: 14,
-                                    color: const Color(0xFF003B55),
                                   ),
                                 ),
                               ),
                             ),
-                            
+
                             const SizedBox(height: 24),
-                            
+
                             // Login Button
                             CustomButton(
                               buttonText: 'sign_in'.tr,
                               onPressed: _handleLogin,
                               isLoading: _isLoading,
-                            )
+                            ),
                           ],
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // Or Divider
                     Row(
                       children: [
@@ -361,7 +365,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Text(
-                             'or'.tr,
+                            'or'.tr,
                             style: poppinsMedium.copyWith(
                               fontSize: 14,
                               color: Colors.white.withOpacity(0.8),
@@ -376,9 +380,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // Social Login Buttons
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -405,9 +409,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 32),
-                    
+
                     // Sign Up Link
                     Center(
                       child: Row(
@@ -422,7 +426,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           ),
                           GestureDetector(
                             onTap: () {
-                              Get.to(()=> SignupScreen());
+                              Get.to(() => SignupScreen());
                             },
                             child: Text(
                               'sign_up'.tr,
@@ -436,7 +440,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 32),
                   ],
                 ),
@@ -453,10 +457,7 @@ class _SocialLoginButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  const _SocialLoginButton({
-    required this.icon,
-    required this.onTap,
-  });
+  const _SocialLoginButton({required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -476,11 +477,7 @@ class _SocialLoginButton extends StatelessWidget {
             ),
           ],
         ),
-        child: Icon(
-          icon,
-          size: 32,
-          color: const Color(0xFF003B55),
-        ),
+        child: Icon(icon, size: 32, color: const Color(0xFF003B55)),
       ),
     );
   }
