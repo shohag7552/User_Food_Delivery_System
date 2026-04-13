@@ -6,7 +6,8 @@ class CustomClickableWidget extends StatefulWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
   final EdgeInsetsGeometry? margin;
-  const CustomClickableWidget({super.key, required this.onTap, required this.child, this.padding, this.margin});
+  final bool? isBackgroundTransparent;
+  const CustomClickableWidget({super.key, required this.onTap, required this.child, this.padding, this.margin, this.isBackgroundTransparent = false});
 
   @override
   State<CustomClickableWidget> createState() => _CustomClickableWidgetState();
@@ -59,7 +60,7 @@ class _CustomClickableWidgetState extends State<CustomClickableWidget> with Sing
           padding: widget.padding,
           margin: widget.margin,
           child: Container(
-            decoration: BoxDecoration(
+            decoration: widget.isBackgroundTransparent! ? null : BoxDecoration(
               color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(Constants.radiusLarge + 4),
               boxShadow: _isPressed ? [] : ColorResource.customShadow,

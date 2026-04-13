@@ -353,7 +353,7 @@ class _LoginScreenState extends State<LoginScreen>
 
                     const SizedBox(height: 24),
 
-                    // Or Divider
+                   /* // Or Divider
                     Row(
                       children: [
                         Expanded(
@@ -408,7 +408,7 @@ class _LoginScreenState extends State<LoginScreen>
                           },
                         ),
                       ],
-                    ),
+                    ),*/
 
                     const SizedBox(height: 32),
 

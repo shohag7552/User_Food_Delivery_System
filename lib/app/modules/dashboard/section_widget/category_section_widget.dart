@@ -76,7 +76,7 @@ class CategorySectionWidget extends StatelessWidget {
             // Categories List
             else if (categoryController.categories.isNotEmpty)
               SizedBox(
-                height: 140,
+                height: 120,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
@@ -88,41 +88,34 @@ class CategorySectionWidget extends StatelessWidget {
                       onTap: () {
                         Get.to(() => CategoryProductsPage(category: category));
                       },
-                      margin: const EdgeInsets.only(
-                        right: Constants.paddingSizeLarge,
-                      ),
-                      child: Container(
+                      isBackgroundTransparent: true,
+                      margin: const EdgeInsets.only(right: Constants.paddingSizeLarge),
+                      child: SizedBox(
                         width: 70,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor,
-                          border: Border.all(
-                            color: Theme.of(
-                              context,
-                            ).disabledColor.withValues(alpha: 0.3),
-                          ),
-                          borderRadius: BorderRadius.circular(
-                            Constants.radiusLarge,
-                          ),
-                          // boxShadow: [BoxShadow(color: Theme.of(context).disabledColor.withValues(alpha: 0.3), offset: const Offset(0, 5), blurRadius: 5)],
-                        ),
                         child: Column(
                           children: [
                             Expanded(
-                              flex: 7,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(
-                                  Constants.radiusLarge,
+                              flex: 8,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
+                                  border: Border.all(color: ColorResource.primaryLight, width: 2),
                                 ),
-                                child: CustomNetworkImage(
-                                  image: category.imagePath ?? '',
-                                  width: 70,
-                                  height: double.infinity,
+                                padding: const EdgeInsets.all(1),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(Constants.radiusExtraLarge - 2),
+                                  child: CustomNetworkImage(
+                                    image: category.imagePath ?? '',
+                                    width: 70,
+                                    height: double.infinity,
+                                  ),
                                 ),
                               ),
                             ),
 
                             Expanded(
-                              flex: 3,
+                              flex: 4,
                               child: Center(
                                 child: Text(
                                   category.nameMap.trLanguage,
