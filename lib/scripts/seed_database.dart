@@ -184,6 +184,8 @@ Future<void> _setupProducts(Databases db) async {
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'variants', size: 5000, xrequired: false),
         () => db.createIntegerAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'stock', xrequired: false, xdefault: 0),
         () => db.createIntegerAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'order_count', xrequired: false, xdefault: 0),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'avg_rating', xrequired: false, xdefault: 0.0),
+        () => db.createIntegerAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'rating_count', xrequired: false, xdefault: 0),
   ], [
     Permission.read(Role.any()),          // Everyone can see
     Permission.write(Role.team('admin')), // Only 'admin' team can edit

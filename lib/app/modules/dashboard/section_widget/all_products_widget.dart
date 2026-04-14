@@ -1,6 +1,7 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
+import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/cart_helper.dart';
@@ -241,20 +242,26 @@ class AllProductsWidget extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
-
-                // Description
-                Text(
-                  product.descriptionMap.trLanguage,
-                  style: poppinsRegular.copyWith(
-                    fontSize: Constants.fontSizeSmall,
-                    color: ColorResource.textSecondary,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                const SizedBox(height: 6),
+                RatingStars(
+                  rating: product.avgRating,
+                  reviewCount: product.ratingCount,
+                  size: 13,
                 ),
-
                 const SizedBox(height: 8),
+
+                // // Description
+                // Text(
+                //   product.descriptionMap.trLanguage,
+                //   style: poppinsRegular.copyWith(
+                //     fontSize: Constants.fontSizeSmall,
+                //     color: ColorResource.textSecondary,
+                //   ),
+                //   maxLines: 2,
+                //   overflow: TextOverflow.ellipsis,
+                // ),
+                //
+                // const SizedBox(height: 8),
 
                 // Price and Add Button
                 Row(

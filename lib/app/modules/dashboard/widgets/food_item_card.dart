@@ -2,6 +2,7 @@ import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dar
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
+import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -54,7 +55,6 @@ class _FoodItemCardState extends State<FoodItemCard> {
     if (widget.isPopular!) {
       return Padding(
         padding: const EdgeInsets.only(
-          // right: 12,
           top: 8,
           bottom: Constants.paddingSizeSmall,
         ),
@@ -92,7 +92,15 @@ class _FoodItemCardState extends State<FoodItemCard> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: Constants.paddingSizeSmall),
+                        if (widget.product != null) ...[
+                          const SizedBox(height: 6),
+                          RatingStars(
+                            rating: widget.product!.avgRating,
+                            reviewCount: widget.product!.ratingCount,
+                            size: 14,
+                          ),
+                        ],
+                        // const SizedBox(height: Constants.paddingSizeSmall),
                         
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
@@ -222,18 +230,15 @@ class _FoodItemCardState extends State<FoodItemCard> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (widget.product != null) ...[
+                      const SizedBox(height: 6),
+                      RatingStars(
+                        rating: widget.product!.avgRating,
+                        reviewCount: widget.product!.ratingCount,
+                        size: 13,
+                      ),
+                    ],
                     const SizedBox(height: 4),
-                    // // Description
-                    // Text(
-                    //   widget.description,
-                    //   style: poppinsRegular.copyWith(
-                    //     fontSize: Constants.fontSizeSmall,
-                    //     color: ColorResource.textSecondary,
-                    //   ),
-                    //   maxLines: 2,
-                    //   overflow: TextOverflow.ellipsis,
-                    // ),
-                    // const SizedBox(height: 12),
                     // Price and add button
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -307,7 +312,12 @@ class _FoodItemCardState extends State<FoodItemCard> {
         child: Stack(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.only(
+                topRight: Radius.circular(Constants.radiusLarge),
+                topLeft: Radius.circular(Constants.radiusLarge),
+                bottomRight: Radius.circular(Constants.radiusExtraLarge),
+                bottomLeft: Radius.circular(Constants.radiusExtraLarge),
+              ),
               child: CustomNetworkImage(
                 image: widget.imageUrl,
                 height: 112,
@@ -374,10 +384,10 @@ class _FoodItemCardState extends State<FoodItemCard> {
         height: 52,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: const Color(0xFFFF4A1C),
+          color: Theme.of(context).primaryColor,
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFFF4A1C).withValues(alpha: 0.28),
+              color: Theme.of(context).primaryColor.withValues(alpha: 0.28),
               blurRadius: 14,
               offset: const Offset(0, 6),
             ),

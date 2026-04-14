@@ -14,6 +14,8 @@ class ProductModel {
   final bool isVeg;
   final bool isAvailable;
   final int stock;
+  final double avgRating;
+  final int ratingCount;
   final List<VariantGroup> variants;
 
   ProductModel({
@@ -28,6 +30,8 @@ class ProductModel {
     required this.isVeg,
     required this.isAvailable,
     required this.stock,
+    required this.avgRating,
+    required this.ratingCount,
     required this.variants,
   });
 
@@ -68,6 +72,8 @@ class ProductModel {
       isVeg: json['is_veg'] ?? false,
       isAvailable: json['is_available'] ?? true,
       stock: (json['stock'] as num?)?.toInt() ?? 0,
+      avgRating: (json['avg_rating'] as num?)?.toDouble() ?? 0,
+      ratingCount: (json['rating_count'] as num?)?.toInt() ?? 0,
       // PARSING THE JSON STRING "VARIANTS"
       variants: json['variants'] != null && json['variants'].isNotEmpty
           ? (jsonDecode(json['variants']) as List)
@@ -90,6 +96,8 @@ class ProductModel {
       'is_veg': isVeg,
       'is_available': isAvailable,
       'stock': stock,
+      'avg_rating': avgRating,
+      'rating_count': ratingCount,
       'variants': jsonEncode(variants.map((e) => e.toJson()).toList()),
     };
   }

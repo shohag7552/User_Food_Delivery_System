@@ -218,8 +218,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                       color: ColorResource.textPrimary,
                     ),
                   ),
-                  IconButton(
-                      onPressed: () {}, icon: const Icon(Icons.filter_list))
+                  IconButton(onPressed: () {}, icon: const Icon(Icons.filter_list))
                 ],
               ),
             ),
