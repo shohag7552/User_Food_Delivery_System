@@ -110,7 +110,7 @@ class TodaysSpecialsWidget extends StatelessWidget {
             // Products List
             else
               SizedBox(
-                height: 220,
+                height: 300,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
@@ -132,6 +132,7 @@ class TodaysSpecialsWidget extends StatelessWidget {
                           price: product.finalPrice,
                           oldPrice: product.hasDiscount ? product.price : null,
                           product: product,
+                          isSpecial: true,
                           cartQuantity: cartQuantity,
                           onTap: () {
                             ProductDetailBottomSheet.show(context, product);

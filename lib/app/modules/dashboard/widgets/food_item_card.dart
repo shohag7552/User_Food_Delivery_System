@@ -22,6 +22,7 @@ class FoodItemCard extends StatefulWidget {
   final Function(bool isIncrement)?
   onQuantityChanged; // Callback for quantity changes
   final bool? isPopular;
+  final bool isSpecial;
 
   const FoodItemCard({
     super.key,
@@ -36,6 +37,7 @@ class FoodItemCard extends StatefulWidget {
     this.cartQuantity,
     this.onQuantityChanged,
     this.isPopular = false,
+    this.isSpecial = false,
   });
 
   @override
@@ -140,6 +142,92 @@ class _FoodItemCardState extends State<FoodItemCard> {
                   ),
                 ),
               ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (widget.isSpecial) {
+      return Padding(
+        padding: const EdgeInsets.only(
+          top: 8,
+          right: 18,
+          bottom: Constants.paddingSizeSmall,
+        ),
+        child: CustomClickableWidget(
+          onTap: widget.onTap,
+          child: Container(
+            width: 224,
+            decoration: BoxDecoration(
+              color: ColorResource.cardBackground,
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSpecialImageSection(),
+                  const SizedBox(height: Constants.paddingSizeSmall),
+                  Text(
+                    widget.name,
+                    style: poppinsBold,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (widget.product != null) ...[
+                    const SizedBox(height: Constants.paddingSizeSmall),
+                    RatingStars(
+                      rating: widget.product!.avgRating,
+                      reviewCount: widget.product!.ratingCount,
+                      size: 14,
+                      showRating: true,
+                    ),
+                  ],
+                  const SizedBox(height: Constants.paddingSizeSmall),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor.withValues(alpha: 0.02),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                PriceHelper.formatPrice(widget.price),
+                                style: poppinsBold.copyWith(
+                                  fontSize: 16,
+                                ),
+                              ),
+                              if (widget.oldPrice != null &&
+                                  widget.oldPrice! > widget.price)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Text(
+                                    PriceHelper.formatPrice(widget.oldPrice!),
+                                    style: poppinsRegular.copyWith(
+                                      fontSize: 11.5,
+                                      color: ColorResource.textLight,
+                                      decoration: TextDecoration.lineThrough,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        widget.cartQuantity != null
+                            ? _buildSpecialQuantitySelector()
+                            : _buildSpecialAddButton(),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -394,6 +482,179 @@ class _FoodItemCardState extends State<FoodItemCard> {
           ],
         ),
         child: const Icon(Icons.add, color: ColorResource.textWhite, size: 28),
+      ),
+    );
+  }
+
+  Widget _buildSpecialImageSection() {
+    return Expanded(
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 16,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: CustomNetworkImage(
+                image: widget.imageUrl,
+                height: 142,
+                width: double.infinity,
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.white.withValues(alpha: 0.02),
+                    Colors.black.withValues(alpha: 0.08),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (discountPercentage > 0)
+            Positioned(
+              left: 12,
+              top: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF11293D).withValues(alpha: 0.9),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Text(
+                  '${discountPercentage.toStringAsFixed(0)}% OFF',
+                  style: poppinsBold.copyWith(
+                    fontSize: 10.5,
+                    letterSpacing: 0.2,
+                    color: ColorResource.textWhite,
+                  ),
+                ),
+              ),
+            ),
+          if (widget.product != null)
+            Positioned(
+              right: 14,
+              top: 14,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: ColorResource.textWhite,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.16),
+                      blurRadius: 14,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: FavoriteButton(
+                  product: widget.product!,
+                  size: 20,
+                  activeColor: Theme.of(context).primaryColor,
+                  inactiveColor: Theme.of(context).primaryColor,
+                  backgroundColor: Colors.transparent,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSpecialAddButton() {
+    return GestureDetector(
+      onTap: widget.onAddToCart,
+      child: Container(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          color: Theme.of(context).primaryColor,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: const Icon(
+          Icons.add_rounded,
+          color: ColorResource.textWhite,
+          size: 26,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSpecialQuantitySelector() {
+    return Container(
+      height: 42,
+      decoration: BoxDecoration(
+        color: const Color(0xFF4FBBC5),
+        borderRadius: BorderRadius.circular(21),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF4FBBC5).withValues(alpha: 0.28),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildSpecialQuantityButton(
+            icon: Icons.remove_rounded,
+            onTap: () => widget.onQuantityChanged?.call(false),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            child: Text(
+              '${widget.cartQuantity}',
+              style: poppinsBold.copyWith(
+                fontSize: Constants.fontSizeDefault,
+                color: ColorResource.textWhite,
+              ),
+            ),
+          ),
+          _buildSpecialQuantityButton(
+            icon: Icons.add_rounded,
+            onTap: () => widget.onQuantityChanged?.call(true),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSpecialQuantityButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 32,
+        height: 42,
+        child: Icon(icon, color: ColorResource.textWhite, size: 18),
       ),
     );
   }
