@@ -12,6 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class CategorySectionWidget extends StatelessWidget {
+  static const int _maxHomeCategorySlots = 10;
+
   const CategorySectionWidget({super.key});
 
   @override
@@ -75,64 +77,7 @@ class CategorySectionWidget extends StatelessWidget {
               )
             // Categories List
             else if (categoryController.categories.isNotEmpty)
-              SizedBox(
-                height: 120,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.only(left: 20, bottom: 10),
-                  itemCount: categoryController.categories.length,
-                  itemBuilder: (context, index) {
-                    final category = categoryController.categories[index];
-                    return CustomClickableWidget(
-                      onTap: () {
-                        Get.to(() => CategoryProductsPage(category: category));
-                      },
-                      isBackgroundTransparent: true,
-                      margin: const EdgeInsets.only(right: Constants.paddingSizeLarge),
-                      child: SizedBox(
-                        width: 70,
-                        child: Column(
-                          children: [
-                            Expanded(
-                              flex: 8,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
-                                  border: Border.all(color: ColorResource.primaryLight, width: 2),
-                                ),
-                                padding: const EdgeInsets.all(1),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(Constants.radiusExtraLarge - 2),
-                                  child: CustomNetworkImage(
-                                    image: category.imagePath ?? '',
-                                    width: 70,
-                                    height: double.infinity,
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                            Expanded(
-                              flex: 4,
-                              child: Center(
-                                child: Text(
-                                  category.nameMap.trLanguage,
-                                  style: poppinsMedium,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              )
+              _buildHomeCategories(context, categoryController)
             // Empty State
             else
               SizedBox(
@@ -146,10 +91,176 @@ class CategorySectionWidget extends StatelessWidget {
                     ),
                   ),
                 ),
-              ),
+              )
           ],
         );
       },
+    );
+  }
+
+  Widget _buildHomeCategories(
+    BuildContext context,
+    CategoryController categoryController,
+  ) {
+    final categories = categoryController.categories;
+    final showMoreTile = categories.length > _maxHomeCategorySlots;
+    final visibleCategories = showMoreTile
+        ? categories.take(_maxHomeCategorySlots - 1).toList()
+        : categories.take(_maxHomeCategorySlots).toList();
+    final itemCount = visibleCategories.length + (showMoreTile ? 1 : 0);
+
+    return SizedBox(
+      height: 120,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.only(left: 20, bottom: 10),
+        itemCount: itemCount,
+        itemBuilder: (context, index) {
+          if (showMoreTile && index == itemCount - 1) {
+            return _buildMoreCategoriesTile(context, categories.length);
+          }
+
+          final category = visibleCategories[index];
+          return _buildCategoryTile(
+            context,
+            label: category.nameMap.trLanguage,
+            imagePath: category.imagePath,
+            onTap: () {
+              Get.to(() => CategoryProductsPage(category: category));
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildCategoryTile(
+    BuildContext context, {
+    required String label,
+    required VoidCallback onTap,
+    String? imagePath,
+  }) {
+    return CustomClickableWidget(
+      onTap: onTap,
+      isBackgroundTransparent: true,
+      margin: const EdgeInsets.only(right: Constants.paddingSizeLarge),
+      child: SizedBox(
+        width: 70,
+        child: Column(
+          children: [
+            Expanded(
+              flex: 8,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(
+                    Constants.radiusExtraLarge,
+                  ),
+                  border: Border.all(
+                    color: ColorResource.primaryLight,
+                    width: 2,
+                  ),
+                ),
+                padding: const EdgeInsets.all(1),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(
+                    Constants.radiusExtraLarge - 2,
+                  ),
+                  child: imagePath != null && imagePath.isNotEmpty
+                      ? CustomNetworkImage(
+                          image: imagePath,
+                          width: 70,
+                          height: double.infinity,
+                        )
+                      : Container(
+                          color: ColorResource.cardBackground,
+                          alignment: Alignment.center,
+                          child: Icon(
+                            Icons.restaurant_menu,
+                            color: ColorResource.primaryDark,
+                            size: 28,
+                          ),
+                        ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 4,
+              child: Center(
+                child: Text(
+                  label,
+                  style: poppinsMedium,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMoreCategoriesTile(BuildContext context, int totalCategories) {
+    return CustomClickableWidget(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const CategoryScreen(),
+          ),
+        );
+      },
+      isBackgroundTransparent: true,
+      margin: const EdgeInsets.only(right: Constants.paddingSizeLarge),
+      child: SizedBox(
+        width: 70,
+        child: Column(
+          children: [
+            Expanded(
+              flex: 8,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: ColorResource.primaryGradient,
+                  borderRadius: BorderRadius.circular(
+                    Constants.radiusExtraLarge,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: ColorResource.primaryMedium.withValues(alpha: 0.2),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  '$totalCategories+',
+                  style: poppinsBold.copyWith(
+                    fontSize: Constants.fontSizeLarge,
+                    color: ColorResource.textWhite,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 4,
+              child: Center(
+                child: Text(
+                  'see_all'.tr,
+                  style: poppinsMedium.copyWith(
+                    color: ColorResource.primaryDark,
+                  ),
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
