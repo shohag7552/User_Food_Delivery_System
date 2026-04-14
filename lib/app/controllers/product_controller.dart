@@ -3,6 +3,8 @@ import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/products/domain/repository/product_repo_interface.dart';
 import 'package:get/get.dart';
 
+enum ProductListFilter { all, veg, nonVeg }
+
 class ProductController extends GetxController implements GetxService {
   final ProductRepoInterface productRepoInterface;
   
@@ -30,6 +32,18 @@ class ProductController extends GetxController implements GetxService {
   bool get hasMore => _hasMore;
 
   final int _pageSize = 10;
+  ProductListFilter _selectedProductFilter = ProductListFilter.all;
+  ProductListFilter get selectedProductFilter => _selectedProductFilter;
+  bool? get _selectedIsVegFilter {
+    switch (_selectedProductFilter) {
+      case ProductListFilter.all:
+        return null;
+      case ProductListFilter.veg:
+        return true;
+      case ProductListFilter.nonVeg:
+        return false;
+    }
+  }
 
   final List<ProductModel> _products = [];
   List<ProductModel> get products => _products;
@@ -66,13 +80,12 @@ class ProductController extends GetxController implements GetxService {
       
       _isLoading = true;
       _errorMessage = null;
-      if(!reload) {
-        update();
-      }
+      update();
 
       final newProducts = await productRepoInterface.getProducts(
         offset: _currentPage * _pageSize,
         limit: _pageSize,
+        isVeg: _selectedIsVegFilter,
       );
       
       if (newProducts.length < _pageSize) {
@@ -104,6 +117,7 @@ class ProductController extends GetxController implements GetxService {
       final newProducts = await productRepoInterface.getProducts(
         offset: _currentPage * _pageSize,
         limit: _pageSize,
+        isVeg: _selectedIsVegFilter,
       );
       
       if (newProducts.length < _pageSize) {
@@ -218,6 +232,15 @@ class ProductController extends GetxController implements GetxService {
       log('====> Error fetching product by ID: $e');
       return null;
     }
+  }
+
+  Future<void> setProductFilter(ProductListFilter filter) async {
+    if (_selectedProductFilter == filter) {
+      return;
+    }
+
+    _selectedProductFilter = filter;
+    await getProducts(refresh: true);
   }
 
   void updateProductRatingSummary(

@@ -13,14 +13,25 @@ class ProductRepository implements ProductRepoInterface {
   ProductRepository({required this.appwriteService});
 
   @override
-  Future<List<ProductModel>> getProducts({int offset = 0, int limit = 10}) async {
+  Future<List<ProductModel>> getProducts({
+    int offset = 0,
+    int limit = 10,
+    bool? isVeg,
+  }) async {
     try {
+      final queries = <String>[
+        Query.equal('is_available', true),
+        Query.offset(offset),
+        Query.limit(limit),
+      ];
+
+      if (isVeg != null) {
+        queries.insert(1, Query.equal('is_veg', isVeg));
+      }
+
       final response = await appwriteService.listTable(
         tableId: AppwriteConfig.productsCollection,
-        queries: [
-          Query.offset(offset),
-          Query.limit(limit),
-        ],
+        queries: queries,
       );
       return response.rows.map((row) {
         log('====\u003e Product Data: ${row.data}');

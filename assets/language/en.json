@@ -508,5 +508,7 @@
   "confirm_location": "Confirm Location",
   "select_location": "Select Location",
   "set_as_default_address": "Set as Default Address",
-  "update_address": "Update Address"
+  "update_address": "Update Address",
+  "veg": "Veg",
+  "non_veg": "Non-Veg"
 }

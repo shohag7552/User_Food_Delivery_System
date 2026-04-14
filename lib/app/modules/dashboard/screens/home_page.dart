@@ -206,21 +206,64 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
             backgroundColor: ColorResource.scaffoldBackground,
             elevation: 0,
             toolbarHeight: 0,
-            flexibleSpace: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'all_products'.tr,
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeExtraLarge,
-                      color: ColorResource.textPrimary,
-                    ),
+            flexibleSpace: GetBuilder<ProductController>(
+              builder: (productController) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'all_products'.tr,
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeExtraLarge,
+                          color: ColorResource.textPrimary,
+                        ),
+                      ),
+                      PopupMenuButton<ProductListFilter>(
+                        tooltip: 'Filter products',
+                        onSelected: (filter) async {
+                          print('=====> Selected filter: $filter');
+                          await productController.setProductFilter(filter);
+                        },
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            value: ProductListFilter.all,
+                            child: _buildFilterMenuItem(
+                              label: 'all'.tr,
+                              isSelected:
+                                  productController.selectedProductFilter ==
+                                  ProductListFilter.all,
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: ProductListFilter.veg,
+                            child: _buildFilterMenuItem(
+                              label: 'veg'.tr,
+                              isSelected: productController.selectedProductFilter == ProductListFilter.veg,
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: ProductListFilter.nonVeg,
+                            child: _buildFilterMenuItem(
+                              label: 'non_veg'.tr,
+                              isSelected: productController.selectedProductFilter == ProductListFilter.nonVeg,
+                            ),
+                          ),
+                        ],
+                        icon: Icon(
+                          Icons.filter_list,
+                          color:
+                              productController.selectedProductFilter ==
+                                  ProductListFilter.all
+                              ? ColorResource.textPrimary
+                              : ColorResource.primaryDark,
+                        ),
+                      ),
+                    ],
                   ),
-                  IconButton(onPressed: () {}, icon: const Icon(Icons.filter_list))
-                ],
-              ),
+                );
+              },
             ),
           ),
 
@@ -392,6 +435,33 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
           onRetry: () => bannerController.getBanners(),
         );
       },
+    );
+  }
+
+  Widget _buildFilterMenuItem({
+    required String label,
+    required bool isSelected,
+  }) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: poppinsMedium.copyWith(
+              fontSize: Constants.fontSizeDefault,
+              color: isSelected
+                  ? ColorResource.primaryDark
+                  : ColorResource.textPrimary,
+            ),
+          ),
+        ),
+        if (isSelected)
+          Icon(
+            Icons.check_rounded,
+            size: 18,
+            color: ColorResource.primaryDark,
+          ),
+      ],
     );
   }
 }
