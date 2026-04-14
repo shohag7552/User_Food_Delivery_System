@@ -2,8 +2,10 @@ import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
+import 'package:appwrite_user_app/app/controllers/review_controller.dart';
 import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
+import 'package:appwrite_user_app/app/models/review_model.dart';
 import 'package:appwrite_user_app/app/modules/orders/screens/order_delivery_map_page.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/submit_review_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -26,14 +28,32 @@ class OrderDetailPage extends StatefulWidget {
 
 class _OrderDetailPageState extends State<OrderDetailPage> {
   late final OrderController _orderController;
+  late final ReviewController _reviewController;
   OrderModel? _fallbackOrder;
+  String? _currentUserId;
+  String? _reviewPrefetchedOrderId;
 
   @override
   void initState() {
     super.initState();
     _orderController = Get.find<OrderController>();
+    _reviewController = Get.find<ReviewController>();
     _fallbackOrder = widget.initialOrder;
     _orderController.fetchOrderDetails(widget.orderId);
+    _loadCurrentUser();
+  }
+
+  Future<void> _loadCurrentUser() async {
+    final authController = Get.find<AuthController>();
+    final userId = await authController.getUserId();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _currentUserId = userId;
+    });
   }
 
   @override
@@ -234,6 +254,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   Widget _buildItemsList(OrderModel order) {
+    _prefetchUserReviews(order);
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -359,35 +381,140 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 // Add review button for delivered orders
                 if (_isOrderDelivered(order)) ...[
                   const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () => _showReviewBottomSheet(item),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        side: BorderSide(color: ColorResource.primaryDark),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            Constants.radiusDefault,
-                          ),
-                        ),
-                      ),
-                      icon: Icon(
-                        Icons.rate_review,
-                        size: 18,
-                        color: ColorResource.primaryDark,
-                      ),
-                      label: Text(
-                        'rate_this_product'.tr,
-                        style: poppinsMedium.copyWith(
-                          fontSize: Constants.fontSizeSmall,
-                          color: ColorResource.primaryDark,
-                        ),
-                      ),
-                    ),
-                  ),
+                  _buildReviewAction(order, item),
                 ],
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _prefetchUserReviews(OrderModel order) {
+    if (!_isOrderDelivered(order) ||
+        _currentUserId == null ||
+        _reviewPrefetchedOrderId == order.id) {
+      return;
+    }
+
+    _reviewPrefetchedOrderId = order.id;
+    final userId = _currentUserId!;
+    final productIds = order.items
+        .map((item) => item.productId)
+        .where((productId) => productId.isNotEmpty)
+        .toSet();
+
+    for (final productId in productIds) {
+      _reviewController.fetchUserProductReview(
+        userId,
+        productId,
+        orderId: order.id,
+      );
+    }
+  }
+
+  Widget _buildReviewAction(OrderModel order, OrderItem item) {
+    final userId = _currentUserId;
+
+    if (userId == null) {
+      return _buildRateProductButton(item);
+    }
+
+    return GetBuilder<ReviewController>(
+      builder: (reviewController) {
+        final hasLoaded = reviewController.hasUserProductReviewLoaded(
+          userId,
+          item.productId,
+          orderId: order.id,
+        );
+        final isLoading = reviewController.isUserProductReviewLoading(
+          userId,
+          item.productId,
+          orderId: order.id,
+        );
+        final review = reviewController.getCachedUserProductReview(
+          userId,
+          item.productId,
+          orderId: order.id,
+        );
+
+        if (review != null) {
+          return _buildExistingReviewCard(review);
+        }
+
+        if (!hasLoaded || isLoading) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        }
+
+        return _buildRateProductButton(item);
+      },
+    );
+  }
+
+  Widget _buildRateProductButton(OrderItem item) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () => _showReviewBottomSheet(item),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          side: BorderSide(color: ColorResource.primaryDark),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              Constants.radiusDefault,
+            ),
+          ),
+        ),
+        icon: Icon(
+          Icons.rate_review,
+          size: 18,
+          color: ColorResource.primaryDark,
+        ),
+        label: Text(
+          'rate_this_product'.tr,
+          style: poppinsMedium.copyWith(
+            fontSize: Constants.fontSizeSmall,
+            color: ColorResource.primaryDark,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExistingReviewCard(ReviewModel review) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: ColorResource.primaryDark.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(Constants.radiusDefault),
+        border: Border.all(
+          color: ColorResource.primaryDark.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.check_circle,
+            size: 18,
+            color: Colors.green,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '${'already_rated'.tr} (${review.rating.toDouble()}✭)',
+            style: poppinsMedium.copyWith(
+              fontSize: Constants.fontSizeSmall,
+              color: ColorResource.primaryDark,
             ),
           ),
         ],
@@ -890,13 +1017,23 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     }
 
     // Show submit review bottom sheet with verified purchase
-    await SubmitReviewBottomSheet.show(
+    final didSubmit = await SubmitReviewBottomSheet.show(
       Get.context!,
+      orderId: widget.orderId,
       productId: item.productId, // Use actual product ID from order item
       userId: userId,
       userName: userName ?? 'user'.tr,
       productName: item.productName,
       verifiedPurchase: true, // User purchased this product
     );
+
+    if (didSubmit == true) {
+      await _reviewController.fetchUserProductReview(
+        userId,
+        item.productId,
+        orderId: widget.orderId,
+        forceRefresh: true,
+      );
+    }
   }
 }

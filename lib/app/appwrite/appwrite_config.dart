@@ -28,7 +28,7 @@ class AppwriteConfig {
   static const String addressesCollection = 'addresses';
   static const String ordersCollection = 'orders';
   static const String favoritesCollection = 'favorites';
-  static const String collectionId = 'reviews';
+  static const String reviewsCollection = 'reviews';
   static const String notificationsCollection = 'notifications';
   static const String privacyPolicyCollection = 'privacy_policy';
   static const String driversCollection = 'drivers';

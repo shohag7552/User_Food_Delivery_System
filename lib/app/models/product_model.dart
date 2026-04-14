@@ -101,6 +101,46 @@ class ProductModel {
       'variants': jsonEncode(variants.map((e) => e.toJson()).toList()),
     };
   }
+
+  ProductModel copyWith({
+    String? id,
+    String? categoryId,
+    Map<String, dynamic>? nameMap,
+    Map<String, dynamic>? descriptionMap,
+    double? price,
+    String? discountType,
+    double? discountValue,
+    String? imageId,
+    bool? isVeg,
+    bool? isAvailable,
+    int? stock,
+    double? avgRating,
+    int? ratingCount,
+    List<VariantGroup>? variants,
+    bool clearDiscountType = false,
+    bool clearDiscountValue = false,
+  }) {
+    return ProductModel(
+      id: id ?? this.id,
+      categoryId: categoryId ?? this.categoryId,
+      nameMap: nameMap ?? this.nameMap,
+      descriptionMap: descriptionMap ?? this.descriptionMap,
+      price: price ?? this.price,
+      discountType: clearDiscountType
+          ? null
+          : (discountType ?? this.discountType),
+      discountValue: clearDiscountValue
+          ? null
+          : (discountValue ?? this.discountValue),
+      imageId: imageId ?? this.imageId,
+      isVeg: isVeg ?? this.isVeg,
+      isAvailable: isAvailable ?? this.isAvailable,
+      stock: stock ?? this.stock,
+      avgRating: avgRating ?? this.avgRating,
+      ratingCount: ratingCount ?? this.ratingCount,
+      variants: variants ?? this.variants,
+    );
+  }
 }
 
 // --- HELPER CLASSES FOR VARIANTS ---

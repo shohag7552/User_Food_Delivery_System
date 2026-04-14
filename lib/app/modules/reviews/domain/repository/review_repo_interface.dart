@@ -20,7 +20,18 @@ abstract class ReviewRepoInterface {
   Future<void> markHelpful(String reviewId);
 
   /// Check if user has reviewed a product
-  Future<bool> hasUserReviewedProduct(String userId, String productId);
+  Future<bool> hasUserReviewedProduct(
+    String userId,
+    String productId, {
+    String? orderId,
+  });
+
+  /// Get a user's review for a specific product
+  Future<ReviewModel?> getUserProductReview(
+    String userId,
+    String productId, {
+    String? orderId,
+  });
 
   /// Get average rating for a product
   Future<double> getProductAverageRating(String productId);

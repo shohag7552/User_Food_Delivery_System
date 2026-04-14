@@ -7,15 +7,15 @@ import 'package:appwrite_user_app/app/modules/reviews/domain/repository/review_r
 
 class ReviewRepository implements ReviewRepoInterface {
   final AppwriteService appwriteService;
+  static const int _reviewBatchSize = 100;
 
   ReviewRepository({required this.appwriteService});
-
 
   @override
   Future<List<ReviewModel>> getProductReviews(String productId) async {
     try {
       final response = await appwriteService.listTable(
-        tableId: AppwriteConfig.collectionId,
+        tableId: AppwriteConfig.reviewsCollection,
         queries: [
           Query.equal('product_id', productId),
           Query.orderDesc('\$createdAt'),
@@ -36,7 +36,7 @@ class ReviewRepository implements ReviewRepoInterface {
   Future<List<ReviewModel>> getUserReviews(String userId) async {
     try {
       final response = await appwriteService.listTable(
-        tableId: AppwriteConfig.collectionId,
+        tableId: AppwriteConfig.reviewsCollection,
         queries: [
           Query.equal('user_id', userId),
           Query.orderDesc('\$createdAt'),
@@ -56,11 +56,13 @@ class ReviewRepository implements ReviewRepoInterface {
   Future<ReviewModel> submitReview(ReviewModel review) async {
     try {
       final response = await appwriteService.createRow(
-        collectionId: AppwriteConfig.collectionId,
+        collectionId: AppwriteConfig.reviewsCollection,
         data: review.toJson(),
       );
 
-      return ReviewModel.fromJson(response.data);
+      final createdReview = ReviewModel.fromJson(response.data);
+      await _syncProductRatingSummary(review.productId);
+      return createdReview;
     } catch (e) {
       log('Error submitting review: $e');
       rethrow;
@@ -72,12 +74,14 @@ class ReviewRepository implements ReviewRepoInterface {
       String reviewId, Map<String, dynamic> data) async {
     try {
       final response = await appwriteService.updateTable(
-        tableId: AppwriteConfig.collectionId,
+        tableId: AppwriteConfig.reviewsCollection,
         rowId: reviewId,
         data: data,
       );
 
-      return ReviewModel.fromJson(response.data);
+      final updatedReview = ReviewModel.fromJson(response.data);
+      await _syncProductRatingSummary(updatedReview.productId);
+      return updatedReview;
     } catch (e) {
       log('Error updating review: $e');
       rethrow;
@@ -87,10 +91,25 @@ class ReviewRepository implements ReviewRepoInterface {
   @override
   Future<void> deleteReview(String reviewId) async {
     try {
+      final response = await appwriteService.listTable(
+        tableId: AppwriteConfig.reviewsCollection,
+        queries: [
+          Query.equal('\$id', reviewId),
+          Query.limit(1),
+        ],
+      );
+      final productId = response.rows.isNotEmpty
+          ? (response.rows.first.data['product_id'] ?? '').toString()
+          : '';
+
       await appwriteService.deleteRow(
-        collectionId: AppwriteConfig.collectionId,
+        collectionId: AppwriteConfig.reviewsCollection,
         rowId: reviewId,
       );
+
+      if (productId.isNotEmpty) {
+        await _syncProductRatingSummary(productId);
+      }
     } catch (e) {
       log('Error deleting review: $e');
       rethrow;
@@ -101,7 +120,7 @@ class ReviewRepository implements ReviewRepoInterface {
   Future<void> markHelpful(String reviewId) async {
     try {
       final response = await appwriteService.listTable(
-        tableId: AppwriteConfig.collectionId,
+        tableId: AppwriteConfig.reviewsCollection,
         queries: [
           Query.equal('\$id', reviewId),
           Query.limit(1),
@@ -117,7 +136,7 @@ class ReviewRepository implements ReviewRepoInterface {
 
       // Increment helpful count
       await appwriteService.updateTable(
-        tableId: AppwriteConfig.collectionId,
+        tableId: AppwriteConfig.reviewsCollection,
         rowId: reviewId,
         data: {'helpful_count': currentCount + 1},
       );
@@ -128,18 +147,18 @@ class ReviewRepository implements ReviewRepoInterface {
   }
 
   @override
-  Future<bool> hasUserReviewedProduct(String userId, String productId) async {
+  Future<bool> hasUserReviewedProduct(
+    String userId,
+    String productId, {
+    String? orderId,
+  }) async {
     try {
-      final response = await appwriteService.listTable(
-        tableId: AppwriteConfig.collectionId,
-        queries: [
-          Query.equal('user_id', userId),
-          Query.equal('product_id', productId),
-          Query.limit(1),
-        ],
+      final review = await getUserProductReview(
+        userId,
+        productId,
+        orderId: orderId,
       );
-
-      return response.rows.isNotEmpty;
+      return review != null;
     } catch (e) {
       log('Error checking if user reviewed product: $e');
       return false;
@@ -147,9 +166,43 @@ class ReviewRepository implements ReviewRepoInterface {
   }
 
   @override
+  Future<ReviewModel?> getUserProductReview(
+    String userId,
+    String productId, {
+    String? orderId,
+  }) async {
+    try {
+      final queries = <String>[
+        Query.equal('user_id', userId),
+        Query.equal('product_id', productId),
+        Query.orderDesc('\$createdAt'),
+        Query.limit(1),
+      ];
+
+      if (orderId != null && orderId.isNotEmpty) {
+        queries.insert(2, Query.equal('order_id', orderId));
+      }
+
+      final response = await appwriteService.listTable(
+        tableId: AppwriteConfig.reviewsCollection,
+        queries: queries,
+      );
+
+      if (response.rows.isEmpty) {
+        return null;
+      }
+
+      return ReviewModel.fromJson(response.rows.first.data);
+    } catch (e) {
+      log('Error fetching user product review: $e');
+      return null;
+    }
+  }
+
+  @override
   Future<double> getProductAverageRating(String productId) async {
     try {
-      final reviews = await getProductReviews(productId);
+      final reviews = await _getAllProductReviews(productId);
       
       if (reviews.isEmpty) return 0.0;
 
@@ -163,5 +216,56 @@ class ReviewRepository implements ReviewRepoInterface {
       log('Error calculating average rating: $e');
       return 0.0;
     }
+  }
+
+  Future<List<ReviewModel>> _getAllProductReviews(String productId) async {
+    final List<ReviewModel> reviews = [];
+    int offset = 0;
+
+    while (true) {
+      final response = await appwriteService.listTable(
+        tableId: AppwriteConfig.reviewsCollection,
+        queries: [
+          Query.equal('product_id', productId),
+          Query.orderDesc('\$createdAt'),
+          Query.offset(offset),
+          Query.limit(_reviewBatchSize),
+        ],
+      );
+
+      if (response.rows.isEmpty) {
+        break;
+      }
+
+      reviews.addAll(
+        response.rows.map((row) => ReviewModel.fromJson(row.data)),
+      );
+
+      if (response.rows.length < _reviewBatchSize) {
+        break;
+      }
+
+      offset += _reviewBatchSize;
+    }
+
+    return reviews;
+  }
+
+  Future<void> _syncProductRatingSummary(String productId) async {
+    final reviews = await _getAllProductReviews(productId);
+    final ratingCount = reviews.length;
+    final avgRating = ratingCount == 0
+        ? 0.0
+        : reviews.fold<int>(0, (sum, review) => sum + review.rating) /
+            ratingCount;
+
+    await appwriteService.updateTable(
+      tableId: AppwriteConfig.productsCollection,
+      rowId: productId,
+      data: {
+        'rating_count': ratingCount,
+        'avg_rating': avgRating,
+      },
+    );
   }
 }

@@ -31,7 +31,7 @@ class ProductController extends GetxController implements GetxService {
 
   final int _pageSize = 10;
 
-  List<ProductModel> _products = [];
+  final List<ProductModel> _products = [];
   List<ProductModel> get products => _products;
 
   List<ProductModel> _specialProducts = [];
@@ -217,6 +217,36 @@ class ProductController extends GetxController implements GetxService {
     } catch (e) {
       log('====> Error fetching product by ID: $e');
       return null;
+    }
+  }
+
+  void updateProductRatingSummary(
+    String productId, {
+    required double avgRating,
+    required int ratingCount,
+  }) {
+    bool hasChanges = false;
+
+    bool updateList(List<ProductModel> products) {
+      final index = products.indexWhere((product) => product.id == productId);
+      if (index == -1) {
+        return false;
+      }
+
+      products[index] = products[index].copyWith(
+        avgRating: avgRating,
+        ratingCount: ratingCount,
+      );
+      return true;
+    }
+
+    hasChanges = updateList(_products) || hasChanges;
+    hasChanges = updateList(_specialProducts) || hasChanges;
+    hasChanges = updateList(_popularProducts) || hasChanges;
+    hasChanges = updateList(_newProducts) || hasChanges;
+
+    if (hasChanges) {
+      update();
     }
   }
 }

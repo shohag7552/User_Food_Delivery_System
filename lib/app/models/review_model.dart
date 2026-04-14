@@ -2,6 +2,7 @@ import 'package:appwrite/models.dart' as models;
 
 class ReviewModel {
   final String id;
+  final String? orderId;
   final String productId;
   final String userId;
   final String userName;
@@ -14,6 +15,7 @@ class ReviewModel {
 
   ReviewModel({
     required this.id,
+    this.orderId,
     required this.productId,
     required this.userId,
     required this.userName,
@@ -29,6 +31,7 @@ class ReviewModel {
   factory ReviewModel.fromDocument(models.Document doc) {
     return ReviewModel(
       id: doc.$id,
+      orderId: doc.data['order_id']?.toString(),
       productId: doc.data['product_id'] ?? '',
       userId: doc.data['user_id'] ?? '',
       userName: doc.data['user_name'] ?? 'Anonymous',
@@ -45,6 +48,7 @@ class ReviewModel {
   factory ReviewModel.fromJson(Map<String, dynamic> json) {
     return ReviewModel(
       id: json['\$id'] ?? '',
+      orderId: json['order_id']?.toString(),
       productId: json['product_id'] ?? '',
       userId: json['user_id'] ?? '',
       userName: json['user_name'] ?? 'Anonymous',
@@ -64,6 +68,7 @@ class ReviewModel {
   /// Convert to Map for Appwrite
   Map<String, dynamic> toMap() {
     return {
+      'order_id': orderId,
       'product_id': productId,
       'user_id': userId,
       'user_name': userName,
@@ -79,6 +84,7 @@ class ReviewModel {
   /// Convert to JSON Map
   Map<String, dynamic> toJson() {
     return {
+      'order_id': orderId,
       'product_id': productId,
       'user_id': userId,
       'user_name': userName,
@@ -94,6 +100,7 @@ class ReviewModel {
   /// Copy with
   ReviewModel copyWith({
     String? id,
+    String? orderId,
     String? productId,
     String? userId,
     String? userName,
@@ -106,6 +113,7 @@ class ReviewModel {
   }) {
     return ReviewModel(
       id: id ?? this.id,
+      orderId: orderId ?? this.orderId,
       productId: productId ?? this.productId,
       userId: userId ?? this.userId,
       userName: userName ?? this.userName,
@@ -118,4 +126,3 @@ class ReviewModel {
     );
   }
 }
-

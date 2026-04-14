@@ -192,6 +192,7 @@ Future<void> _setupProducts(Databases db) async {
     Permission.create(Role.team('admin_team')),
     Permission.read(Role.team('admin_team')),
     Permission.update(Role.team('admin_team')),
+    Permission.update(Role.users()),
     Permission.delete(Role.team('admin_team')),
   ]);
 }
@@ -446,31 +447,38 @@ Future<void> _setupFavorites(Databases db) async {
 }
 
 Future<void> _setupReviews(Databases db) async {
-  await _createCollection(db, AppwriteConfig.collectionId, 'Reviews', [
+  await _createCollection(db, AppwriteConfig.reviewsCollection, 'Reviews', [
     () => db.createStringAttribute(
       databaseId: AppwriteConfig.dbId,
-      collectionId: AppwriteConfig.collectionId,
+      collectionId: AppwriteConfig.reviewsCollection,
+      key: 'order_id',
+      size: 128,
+      xrequired: false,
+    ),
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.reviewsCollection,
       key: 'product_id',
       size: 128,
       xrequired: true,
     ),
     () => db.createStringAttribute(
       databaseId: AppwriteConfig.dbId,
-      collectionId: AppwriteConfig.collectionId,
+      collectionId: AppwriteConfig.reviewsCollection,
       key: 'user_id',
       size: 128,
       xrequired: true,
     ),
     () => db.createStringAttribute(
       databaseId: AppwriteConfig.dbId,
-      collectionId: AppwriteConfig.collectionId,
+      collectionId: AppwriteConfig.reviewsCollection,
       key: 'user_name',
       size: 256,
       xrequired: true,
     ),
     () => db.createIntegerAttribute(
       databaseId: AppwriteConfig.dbId,
-      collectionId: AppwriteConfig.collectionId,
+      collectionId: AppwriteConfig.reviewsCollection,
       key: 'rating',
       min: 1,
       max: 5,
@@ -478,35 +486,35 @@ Future<void> _setupReviews(Databases db) async {
     ),
     () => db.createStringAttribute(
       databaseId: AppwriteConfig.dbId,
-      collectionId: AppwriteConfig.collectionId,
+      collectionId: AppwriteConfig.reviewsCollection,
       key: 'title',
       size: 256,
       xrequired: false,
     ),
     () => db.createStringAttribute(
       databaseId: AppwriteConfig.dbId,
-      collectionId: AppwriteConfig.collectionId,
+      collectionId: AppwriteConfig.reviewsCollection,
       key: 'comment',
       size: 2000,
       xrequired: true,
     ),
     () => db.createIntegerAttribute(
       databaseId: AppwriteConfig.dbId,
-      collectionId: AppwriteConfig.collectionId,
+      collectionId: AppwriteConfig.reviewsCollection,
       key: 'helpful_count',
       xrequired: false,
       xdefault: 0,
     ),
     () => db.createBooleanAttribute(
       databaseId: AppwriteConfig.dbId,
-      collectionId: AppwriteConfig.collectionId,
+      collectionId: AppwriteConfig.reviewsCollection,
       key: 'verified_purchase',
       xrequired: false,
       xdefault: false,
     ),
     () => db.createStringAttribute(
       databaseId: AppwriteConfig.dbId,
-      collectionId: AppwriteConfig.collectionId,
+      collectionId: AppwriteConfig.reviewsCollection,
       key: 'created_at',
       size: 64,
       xrequired: true,

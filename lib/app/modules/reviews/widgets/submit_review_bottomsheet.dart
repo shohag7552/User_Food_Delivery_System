@@ -8,12 +8,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class SubmitReviewBottomSheet extends StatefulWidget {
+  final String? orderId;
   final String productId;
   final String productName;
   final bool verifiedPurchase;
 
   const SubmitReviewBottomSheet({
     super.key,
+    this.orderId,
     required this.productId,
     required this.productName,
     this.verifiedPurchase = false,
@@ -25,6 +27,7 @@ class SubmitReviewBottomSheet extends StatefulWidget {
 
   static Future<bool?> show(
     BuildContext context, {
+    String? orderId,
     required String productId,
     String? userId,
     String? userName,
@@ -36,6 +39,7 @@ class SubmitReviewBottomSheet extends StatefulWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => SubmitReviewBottomSheet(
+        orderId: orderId,
         productId: productId,
         productName: productName,
         verifiedPurchase: verifiedPurchase,
@@ -76,6 +80,7 @@ class _SubmitReviewBottomSheetState extends State<SubmitReviewBottomSheet> {
       }
 
       final success = await Get.find<ReviewController>().submitReview(
+        orderId: widget.orderId,
         productId: widget.productId,
         userId: userId,
         userName: userName,
