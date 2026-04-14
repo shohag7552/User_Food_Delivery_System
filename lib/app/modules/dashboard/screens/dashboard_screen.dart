@@ -2,18 +2,19 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
+import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
+import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
+import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/screens/home_page.dart';
-import 'package:appwrite_user_app/app/modules/profile/screens/profile_page.dart';
 import 'package:appwrite_user_app/app/modules/cart/screens/cart_page.dart';
 import 'package:appwrite_user_app/app/modules/favorites/screens/favorites_screen.dart';
 import 'package:appwrite_user_app/app/modules/orders/screens/orders_page.dart';
-import 'package:appwrite_user_app/app/resources/constants.dart';
-import 'package:flutter/material.dart';
-import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:appwrite_user_app/app/modules/profile/screens/profile_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
-import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
-import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
-import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
+import 'package:appwrite_user_app/app/resources/constants.dart';
+import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
@@ -25,9 +26,12 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  final Connectivity _connectivity = Connectivity();
   late PageController _pageController;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   int _selectedIndex = 0;
   bool _canExit = false;
+  bool _hadConnection = true;
 
   // Pages
   final List<Widget> _pages = [
@@ -44,16 +48,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     Get.lazyPut(() => CartAnimationController());
     _pageController = PageController(initialPage: 0);
-    
+    _listenToConnectivity();
+
     // Load favorites
     Get.find<FavoritesController>().fetchFavorites(canUpdate: false);
-    
+
     // Load cart items (using hardcoded user_id for now)
     Get.find<CartController>().getCartItems();
   }
 
+  Future<void> _reloadDashboardData() async {
+    await Future.wait([
+      Get.find<FavoritesController>().fetchFavorites(canUpdate: false),
+      Get.find<CartController>().getCartItems(),
+    ]);
+  }
+
+  Future<void> _listenToConnectivity() async {
+    _hadConnection = await _checkConnection();
+    _connectivitySubscription = _connectivity.onConnectivityChanged.listen((
+      results,
+    ) async {
+      final hasConnection = _hasUsableConnection(results);
+      if (hasConnection && !_hadConnection) {
+        await _reloadDashboardData();
+      }
+      _hadConnection = hasConnection;
+    });
+  }
+
+  Future<bool> _checkConnection() async {
+    final results = await _connectivity.checkConnectivity();
+    return _hasUsableConnection(results);
+  }
+
+  bool _hasUsableConnection(List<ConnectivityResult> results) {
+    return results.any((result) => result != ConnectivityResult.none);
+  }
+
   @override
   void dispose() {
+    _connectivitySubscription?.cancel();
     _pageController.dispose();
     super.dispose();
   }

@@ -1,11 +1,15 @@
+import 'dart:async';
+
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/splash_controller.dart';
 import 'package:appwrite_user_app/app/modules/auth/screens/login_screen.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/screens/dashboard_screen.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/images.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -14,28 +18,86 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  final Connectivity _connectivity = Connectivity();
+
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  bool _hasConnection = true;
+  bool _isBootstrapping = false;
+  bool _hasNavigated = false;
+
   @override
   void initState() {
     super.initState();
+    _listenToConnectivity();
 
     Future.delayed(const Duration(milliseconds: 500), () async {
-      // Navigate to the next screen after the splash duration
-      if(!mounted) return;
+      if (!mounted) return;
 
-      bool isLoggedIn = await Get.find<AuthController>().isAlreadyLoggedIn();
-      print('Checking login status in Splash Screen: $isLoggedIn');
-      
-      bool settingsFetched = await Get.find<SplashController>().fetchSettings();
-      if(settingsFetched) {
-        if(isLoggedIn) {
-          Get.offAll(() => DashboardScreen());
-        } else {
-          Get.offAll(() => LoginScreen());
-        }
-      } else {
+      final hasConnection = await _checkConnection();
+
+      if (hasConnection) {
+        await _bootstrapApp();
       }
     });
   }
+
+  Future<void> _listenToConnectivity() async {
+    _hasConnection = await _checkConnection();
+    _connectivitySubscription = _connectivity.onConnectivityChanged.listen((
+      results,
+    ) async {
+      final hasConnection = _hasUsableConnection(results);
+      final wasOffline = !_hasConnection;
+      _hasConnection = hasConnection;
+
+      if (hasConnection && wasOffline) {
+        await _bootstrapApp();
+      }
+    });
+  }
+
+  Future<bool> _checkConnection() async {
+    final results = await _connectivity.checkConnectivity();
+    final hasConnection = _hasUsableConnection(results);
+    _hasConnection = hasConnection;
+    return hasConnection;
+  }
+
+  bool _hasUsableConnection(List<ConnectivityResult> results) {
+    return results.any((result) => result != ConnectivityResult.none);
+  }
+
+  Future<void> _bootstrapApp() async {
+    if (!mounted || !_hasConnection || _isBootstrapping || _hasNavigated) {
+      return;
+    }
+
+    _isBootstrapping = true;
+
+    final isLoggedIn = await Get.find<AuthController>().isAlreadyLoggedIn();
+    final settingsFetched = await Get.find<SplashController>().fetchSettings();
+
+    if (!mounted) return;
+
+    _isBootstrapping = false;
+
+    if (!settingsFetched || _hasNavigated) return;
+
+    _hasNavigated = true;
+
+    if (isLoggedIn) {
+      Get.offAll(() => DashboardScreen());
+    } else {
+      Get.offAll(() => LoginScreen());
+    }
+  }
+
+  @override
+  void dispose() {
+    _connectivitySubscription?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

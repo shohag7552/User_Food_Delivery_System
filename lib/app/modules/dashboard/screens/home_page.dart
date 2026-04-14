@@ -1,18 +1,21 @@
+import 'dart:async';
+
+import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/section_widget/category_section_widget.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/section_widget/todays_specials_widget.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/section_widget/popular_dishes_widget.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/section_widget/new_items_widget.dart';
+import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/all_products_widget.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/section_widget/category_section_widget.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/section_widget/new_items_widget.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/section_widget/popular_dishes_widget.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/section_widget/todays_specials_widget.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/promotional_banner.dart';
 import 'package:appwrite_user_app/app/modules/notification/screens/notification_screen.dart';
 import 'package:appwrite_user_app/app/modules/search/screens/search_page.dart';
-import 'package:appwrite_user_app/app/resources/constants.dart';
-import 'package:flutter/material.dart';
-import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/widgets/promotional_banner.dart';
-import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
-import 'package:appwrite_user_app/app/controllers/product_controller.dart';
+import 'package:appwrite_user_app/app/resources/constants.dart';
+import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class HomePage extends StatefulWidget {
@@ -23,7 +26,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin {
+  static const Duration _reconnectReloadDelay = Duration(seconds: 1);
+  static const int _maxReconnectReloadAttempts = 3;
+
   final ScrollController _scrollController = ScrollController();
+  final Connectivity _connectivity = Connectivity();
+
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  Timer? _reconnectReloadTimer;
+  bool _hadConnection = true;
+  bool _isReloadingAfterReconnect = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -33,8 +45,38 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     super.initState();
 
     _scrollController.addListener(_onScroll);
-
+    _listenToConnectivity();
     _initApiDataCall();
+  }
+
+  Future<void> _listenToConnectivity() async {
+    _hadConnection = await _checkConnection();
+    _connectivitySubscription = _connectivity.onConnectivityChanged.listen((
+      results,
+    ) async {
+      final hasConnection = _hasUsableConnection(results);
+      if (hasConnection && !_hadConnection) {
+        _scheduleReconnectReload();
+      }
+      _hadConnection = hasConnection;
+    });
+  }
+
+  void _scheduleReconnectReload() {
+    _reconnectReloadTimer?.cancel();
+    _reconnectReloadTimer = Timer(_reconnectReloadDelay, () {
+      if (!mounted) return;
+      _reloadHomeDataAfterReconnect();
+    });
+  }
+
+  Future<bool> _checkConnection() async {
+    final results = await _connectivity.checkConnectivity();
+    return _hasUsableConnection(results);
+  }
+
+  bool _hasUsableConnection(List<ConnectivityResult> results) {
+    return results.any((result) => result != ConnectivityResult.none);
   }
 
   void _onScroll() {
@@ -45,17 +87,66 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   }
 
   Future<void> _initApiDataCall({bool canReload = false}) async {
-    // Initialize controllers and fetch data
-    Get.find<CategoryController>().getCategories(reload: canReload);
-    Get.find<BannerController>().getBanners(reload: canReload);
-    Get.find<ProductController>().getSpecialProducts(reload: canReload);
-    Get.find<ProductController>().getPopularProducts(reload: canReload);
-    Get.find<ProductController>().getNewProducts(reload: canReload);
-    Get.find<ProductController>().getProducts(reload: canReload);
+    final categoryController = Get.find<CategoryController>();
+    final bannerController = Get.find<BannerController>();
+    final productController = Get.find<ProductController>();
+
+    await Future.wait([
+      categoryController.getCategories(reload: canReload),
+      bannerController.getBanners(reload: canReload),
+      productController.getSpecialProducts(reload: canReload),
+      productController.getPopularProducts(reload: canReload),
+      productController.getNewProducts(reload: canReload),
+      productController.getProducts(reload: canReload),
+    ]);
+  }
+
+  Future<void> _reloadHomeData() async {
+    await _initApiDataCall(canReload: true);
+  }
+
+  Future<void> _reloadHomeDataAfterReconnect() async {
+    if (_isReloadingAfterReconnect) return;
+
+    _isReloadingAfterReconnect = true;
+    try {
+      for (var attempt = 0; attempt < _maxReconnectReloadAttempts; attempt++) {
+        if (!mounted) return;
+
+        await _reloadHomeData();
+
+        if (!_hasHomeReloadErrors()) {
+          return;
+        }
+
+        if (attempt < _maxReconnectReloadAttempts - 1) {
+          await Future<void>.delayed(
+            Duration(milliseconds: 800 * (attempt + 1)),
+          );
+        }
+      }
+    } finally {
+      _isReloadingAfterReconnect = false;
+    }
+  }
+
+  bool _hasHomeReloadErrors() {
+    final categoryController = Get.find<CategoryController>();
+    final bannerController = Get.find<BannerController>();
+    final productController = Get.find<ProductController>();
+
+    return categoryController.errorMessage != null ||
+        bannerController.errorMessage != null ||
+        productController.errorMessage != null ||
+        productController.specialsErrorMessage != null ||
+        productController.popularErrorMessage != null ||
+        productController.newErrorMessage != null;
   }
 
   @override
   void dispose() {
+    _connectivitySubscription?.cancel();
+    _reconnectReloadTimer?.cancel();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
