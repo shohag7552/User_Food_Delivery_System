@@ -204,9 +204,17 @@ class ProductController extends GetxController implements GetxService {
   }
 
   /// Fetch products by category
-  Future<List<ProductModel>> getProductsByCategory(String categoryId) async {
+  Future<List<ProductModel>> getProductsByCategory(
+    String categoryId, {
+    int offset = 0,
+    int limit = 10,
+  }) async {
     try {
-      return await productRepoInterface.getProductsByCategory(categoryId);
+      return await productRepoInterface.getProductsByCategory(
+        categoryId,
+        offset: offset,
+        limit: limit,
+      );
     } catch (e) {
       log('====> Error loading products by category: $e');
       rethrow;

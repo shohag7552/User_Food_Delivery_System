@@ -25,7 +25,6 @@ class FavoriteButton extends StatelessWidget {
     return GetBuilder<FavoritesController>(
       builder: (controller) {
         final isFavorite = controller.isFavorite(product.id);
-        print('FavoriteButton: Product ID: ${product.id}, isFavorite: $isFavorite');
         final isLoading = controller.isToggleLoading(product.id);
 
         return GestureDetector(

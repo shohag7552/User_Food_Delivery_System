@@ -21,26 +21,67 @@ class CategoryProductsPage extends StatefulWidget {
 }
 
 class _CategoryProductsPageState extends State<CategoryProductsPage> {
+  static const int _pageSize = 10;
+
+  final ScrollController _scrollController = ScrollController();
   List<ProductModel> _products = [];
   bool _isLoading = false;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
   String? _errorMessage;
+  int _currentPage = 0;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     _loadProducts();
   }
 
-  Future<void> _loadProducts() async {
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients ||
+        _isLoading ||
+        _isLoadingMore ||
+        !_hasMore) {
+      return;
+    }
+
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      _loadMoreProducts();
+    }
+  }
+
+  Future<void> _loadProducts({bool refresh = false}) async {
+    if (refresh) {
+      _currentPage = 0;
+      _hasMore = true;
+      _products = [];
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      final products = await Get.find<ProductController>().getProductsByCategory(widget.category.id);
+      final products = await Get.find<ProductController>().getProductsByCategory(
+        widget.category.id,
+        offset: _currentPage * _pageSize,
+        limit: _pageSize,
+      );
       setState(() {
         _products = products;
+        _hasMore = products.length >= _pageSize;
+        _currentPage = products.isEmpty ? 0 : 1;
         _isLoading = false;
       });
     } catch (e) {
@@ -51,11 +92,51 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
     }
   }
 
+  Future<void> _loadMoreProducts() async {
+    if (_isLoadingMore || !_hasMore) {
+      return;
+    }
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      final products = await Get.find<ProductController>().getProductsByCategory(
+        widget.category.id,
+        offset: _currentPage * _pageSize,
+        limit: _pageSize,
+      );
+
+      setState(() {
+        _products.addAll(products);
+        _hasMore = products.length >= _pageSize;
+        if (products.isNotEmpty) {
+          _currentPage++;
+        }
+        _isLoadingMore = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingMore = false;
+      });
+
+      Get.snackbar(
+        'Error',
+        'Failed to load more products',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: ColorResource.error.withValues(alpha: 0.9),
+        colorText: ColorResource.textWhite,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
       body: CustomScrollView(
+        controller: _scrollController,
         slivers: [
           // App Bar with Category Info
           _buildSliverAppBar(),
@@ -74,23 +155,38 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
               child: _buildEmptyState(),
             )
           else
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 0.7,
+            SliverMainAxisGroup(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.all(16),
+                  sliver: SliverGrid(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 0.7,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final product = _products[index];
+                        return _buildProductCard(product);
+                      },
+                      childCount: _products.length,
+                    ),
+                  ),
                 ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final product = _products[index];
-                    return _buildProductCard(product);
-                  },
-                  childCount: _products.length,
-                ),
-              ),
+                if (_isLoadingMore)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 24),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: ColorResource.primaryDark,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
         ],
       ),
@@ -198,7 +294,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
-              onPressed: _loadProducts,
+              onPressed: () => _loadProducts(refresh: true),
               icon: const Icon(Icons.refresh),
               label: Text('try_again'.tr),
               style: ElevatedButton.styleFrom(

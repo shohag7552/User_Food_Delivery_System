@@ -112,13 +112,19 @@ class ProductRepository implements ProductRepoInterface {
   }
 
   @override
-  Future<List<ProductModel>> getProductsByCategory(String categoryId) async {
+  Future<List<ProductModel>> getProductsByCategory(
+    String categoryId, {
+    int offset = 0,
+    int limit = 10,
+  }) async {
     try {
       final response = await appwriteService.listTable(
         tableId: AppwriteConfig.productsCollection,
         queries: [
           Query.equal('category_id', categoryId),
           Query.equal('is_available', true),
+          Query.offset(offset),
+          Query.limit(limit),
         ],
       );
       return response.rows.map((row) {
