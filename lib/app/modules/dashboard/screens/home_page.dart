@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
+import 'package:appwrite_user_app/app/controllers/notification_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/all_products_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/category_section_widget.dart';
@@ -89,7 +90,10 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   Future<void> _initApiDataCall({bool canReload = false}) async {
     final categoryController = Get.find<CategoryController>();
     final bannerController = Get.find<BannerController>();
+    final notificationController = Get.find<NotificationController>();
     final productController = Get.find<ProductController>();
+
+    unawaited(notificationController.getNotifications());
 
     await Future.wait([
       categoryController.getCategories(reload: canReload),
@@ -330,46 +334,112 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                               ],
                             ),
                           ),
-                          // Notifications & Profile
-                          Row(
-                            children: [
-                              Stack(
-                                children: [
-                                  InkWell(
-                                    onTap: () => Get.to(() => const NotificationScreen()),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(
-                                        color: ColorResource.overlayMedium,
-                                        borderRadius: BorderRadius.circular(Constants.radiusDefault),
-                                      ),
-                                      child: Icon(
-                                        Icons.notifications_outlined,
-                                        color: ColorResource.textWhite,
-                                        size: 24,
+
+                          InkWell(
+                            borderRadius: BorderRadius.circular(
+                              Constants.radiusDefault,
+                            ),
+                            onTap: () => Get.to(() => const NotificationScreen(),
+                            ),
+                            child: Stack(
+                              children: [
+                                Material(
+                                  color: Colors.transparent,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: ColorResource.overlayMedium,
+                                      borderRadius:
+                                          BorderRadius.circular(
+                                        Constants.radiusDefault,
                                       ),
                                     ),
+                                    child: Icon(
+                                      Icons.notifications_outlined,
+                                      color: ColorResource.textWhite,
+                                      size: 24,
+                                    ),
                                   ),
+                                ),
+                                // if (hasUnreadNotifications)
                                   Positioned(
                                     top: 6,
                                     right: 6,
-                                    child: Container(
-                                      width: 10,
-                                      height: 10,
-                                      decoration: BoxDecoration(
-                                        color: ColorResource.error,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: ColorResource.primaryDark,
-                                          width: 2,
+                                    child: IgnorePointer(
+                                      child: Container(
+                                        width: 10,
+                                        height: 10,
+                                        decoration: BoxDecoration(
+                                          color: ColorResource.error,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color:
+                                                ColorResource.primaryDark,
+                                            width: 2,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ],
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                          // // Notifications & Profile
+                          // GetBuilder<NotificationController>(
+                          //   builder: (notificationController) {
+                          //     final hasUnreadNotifications = notificationController.unreadCount > 0;
+                          
+                          //     return InkWell(
+                          //       borderRadius: BorderRadius.circular(
+                          //         Constants.radiusDefault,
+                          //       ),
+                          //       onTap: () => Get.to(() => const NotificationScreen(),
+                          //       ),
+                          //       child: Stack(
+                          //         children: [
+                          //           Material(
+                          //             color: Colors.transparent,
+                          //             child: Container(
+                          //               padding: const EdgeInsets.all(10),
+                          //               decoration: BoxDecoration(
+                          //                 color: ColorResource.overlayMedium,
+                          //                 borderRadius:
+                          //                     BorderRadius.circular(
+                          //                   Constants.radiusDefault,
+                          //                 ),
+                          //               ),
+                          //               child: Icon(
+                          //                 Icons.notifications_outlined,
+                          //                 color: ColorResource.textWhite,
+                          //                 size: 24,
+                          //               ),
+                          //             ),
+                          //           ),
+                          //           if (hasUnreadNotifications)
+                          //             Positioned(
+                          //               top: 6,
+                          //               right: 6,
+                          //               child: IgnorePointer(
+                          //                 child: Container(
+                          //                   width: 10,
+                          //                   height: 10,
+                          //                   decoration: BoxDecoration(
+                          //                     color: ColorResource.error,
+                          //                     shape: BoxShape.circle,
+                          //                     border: Border.all(
+                          //                       color:
+                          //                           ColorResource.primaryDark,
+                          //                       width: 2,
+                          //                     ),
+                          //                   ),
+                          //                 ),
+                          //               ),
+                          //             ),
+                          //         ],
+                          //       ),
+                          //     );
+                          //   },
+                          // ),
                         ],
                       ),
                       const SizedBox(height: 20),
