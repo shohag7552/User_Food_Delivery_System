@@ -1,5 +1,7 @@
+import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
+
 class CustomButton extends StatelessWidget {
   final Function()? onPressed;
   final bool isLoading;
@@ -16,13 +18,13 @@ class CustomButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF003B55),
+          backgroundColor: ColorResource.primary,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           elevation: elevation,
-          shadowColor: const Color(0xFF003B55).withOpacity(0.5),
+          shadowColor: ColorResource.primary.withOpacity(0.5),
         ),
         child: isLoading
             ? SizedBox(

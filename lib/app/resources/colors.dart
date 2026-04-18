@@ -2,10 +2,34 @@ import 'package:flutter/material.dart';
 
 class ColorResource {
   // Primary Brand Colors
-  static const Color appBarColor = Color(0xFF003B55);
-  static const Color primaryDark = Color(0xFF003B55);
-  static const Color primaryMedium = Color(0xFF006B8F);
-  static const Color primaryLight = Color(0xFF0099CC);
+  // static const Color primaryDark = Color(0xFF003B55);
+    // static const Color primaryMedium = Color(0xFF006B8F);
+  // static const Color primaryLight = Color(0xFF0099CC);
+  static const Color primaryDark = Color(0xFFC92A2A);
+  static const Color primaryMedium = Color(0xFFC92A2A);
+  static const Color primaryLight = Color(0xFFC92A2A);
+  static const Color primary = primaryDark;
+  static const Color appBarColor = primaryDark;
+  static const LinearGradient primaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [primaryDark, primaryMedium, primaryLight],
+  );
+  static const MaterialColor primarySwatch = MaterialColor(
+    0xFF003B55,
+    <int, Color>{
+      50: Color(0xFFE0EBEF),
+      100: Color(0xFFB3C8D3),
+      200: Color(0xFF80A1B1),
+      300: Color(0xFF4D7A8F),
+      400: Color(0xFF265E76),
+      500: primaryDark,
+      600: Color(0xFF00354E),
+      700: Color(0xFF002D44),
+      800: Color(0xFF00263B),
+      900: Color(0xFF001926),
+    },
+  );
 
   // Background Colors
   static const Color scaffoldBackground = Color(0xFFF5F7FA);
@@ -40,17 +64,6 @@ class ColorResource {
   static Color overlayMedium = Colors.white.withValues(alpha: 0.2);
   static Color overlayDark = Colors.black.withValues(alpha: 0.3);
 
-  // Gradient
-  static const LinearGradient primaryGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      Color(0xFF003B55),
-      Color(0xFF006B8F),
-      Color(0xFF0099CC),
-    ],
-  );
-
   static const LinearGradient cardGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -60,7 +73,7 @@ class ColorResource {
     ],
   );
 
-  static const List<BoxShadow>?  customShadow = [
+  static const List<BoxShadow>? customShadow = [
     BoxShadow(
       color: Colors.black12,
       blurRadius: 10,

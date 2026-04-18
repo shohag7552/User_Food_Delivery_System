@@ -1,6 +1,7 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_button.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
+import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -119,11 +120,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
         width: size.width,
         height: size.height,
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF003B55), Color(0xFF006B8F), Color(0xFF0099CC)],
-          ),
+          gradient: ColorResource.primaryGradient,
         ),
         child: SafeArea(
           child: SingleChildScrollView(
@@ -172,7 +169,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                             child: const Icon(
                               Icons.mark_email_read_outlined,
                               size: 48,
-                              color: Color(0xFF003B55),
+                              color: ColorResource.primaryDark,
                             ),
                           ),
                           const SizedBox(height: 24),
@@ -261,7 +258,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                                   : 'The OTP will be delivered to the user email through your Appwrite email provider.',
                               style: poppinsRegular.copyWith(
                                 fontSize: 13,
-                                color: const Color(0xFF003B55),
+                                color: ColorResource.primaryDark,
                               ),
                             ),
                           ),
@@ -365,7 +362,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                                       'Resend OTP',
                                       style: poppinsMedium.copyWith(
                                         fontSize: 14,
-                                        color: const Color(0xFF003B55),
+                                        color: ColorResource.primaryDark,
                                       ),
                                     ),
                                   ),
@@ -390,7 +387,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
       text,
       style: poppinsMedium.copyWith(
         fontSize: 14,
-        color: const Color(0xFF003B55),
+        color: ColorResource.primaryDark,
       ),
     );
   }
@@ -403,7 +400,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     return InputDecoration(
       hintText: hintText,
       counterText: counterText,
-      prefixIcon: Icon(icon, color: const Color(0xFF003B55)),
+      prefixIcon: Icon(icon, color: ColorResource.primaryDark),
       filled: true,
       fillColor: Colors.grey[100],
       border: OutlineInputBorder(
@@ -416,7 +413,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF003B55), width: 2),
+        borderSide: const BorderSide(color: ColorResource.primaryDark, width: 2),
       ),
     );
   }
@@ -435,7 +432,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
           obscureText
               ? Icons.visibility_outlined
               : Icons.visibility_off_outlined,
-          color: const Color(0xFF003B55),
+          color: ColorResource.primaryDark,
         ),
         onPressed: onToggle,
       ),

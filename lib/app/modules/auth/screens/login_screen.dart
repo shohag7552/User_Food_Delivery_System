@@ -3,6 +3,7 @@ import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/modules/auth/screens/forgot_password_screen.dart';
 import 'package:appwrite_user_app/app/modules/auth/screens/signup_screen.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/screens/dashboard_screen.dart';
+import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:get/get.dart';
@@ -86,15 +87,7 @@ class _LoginScreenState extends State<LoginScreen>
         width: size.width,
         height: size.height,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF003B55),
-              const Color(0xFF006B8F),
-              const Color(0xFF0099CC),
-            ],
-          ),
+          gradient: ColorResource.primaryGradient,
         ),
         child: SafeArea(
           child: SingleChildScrollView(
@@ -130,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen>
                             child: const Icon(
                               Icons.store_rounded,
                               size: 60,
-                              color: Color(0xFF003B55),
+                              color: ColorResource.primaryDark,
                             ),
                           ),
                           const SizedBox(height: 24),
@@ -182,7 +175,7 @@ class _LoginScreenState extends State<LoginScreen>
                               'email'.tr,
                               style: poppinsMedium.copyWith(
                                 fontSize: 14,
-                                color: const Color(0xFF003B55),
+                                color: ColorResource.primaryDark,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -198,7 +191,7 @@ class _LoginScreenState extends State<LoginScreen>
                                 ),
                                 prefixIcon: const Icon(
                                   Icons.email_outlined,
-                                  color: Color(0xFF003B55),
+                                  color: ColorResource.primaryDark,
                                 ),
                                 filled: true,
                                 fillColor: Colors.grey[100],
@@ -213,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen>
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: const BorderSide(
-                                    color: Color(0xFF003B55),
+                                    color: ColorResource.primaryDark,
                                     width: 2,
                                   ),
                                 ),
@@ -249,7 +242,7 @@ class _LoginScreenState extends State<LoginScreen>
                               'password'.tr,
                               style: poppinsMedium.copyWith(
                                 fontSize: 14,
-                                color: const Color(0xFF003B55),
+                                color: ColorResource.primaryDark,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -265,14 +258,14 @@ class _LoginScreenState extends State<LoginScreen>
                                 ),
                                 prefixIcon: const Icon(
                                   Icons.lock_outline,
-                                  color: Color(0xFF003B55),
+                                  color: ColorResource.primaryDark,
                                 ),
                                 suffixIcon: IconButton(
                                   icon: Icon(
                                     _obscurePassword
                                         ? Icons.visibility_outlined
                                         : Icons.visibility_off_outlined,
-                                    color: const Color(0xFF003B55),
+                                    color: ColorResource.primaryDark,
                                   ),
                                   onPressed: () {
                                     setState(() {
@@ -293,7 +286,7 @@ class _LoginScreenState extends State<LoginScreen>
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: const BorderSide(
-                                    color: Color(0xFF003B55),
+                                    color: ColorResource.primaryDark,
                                     width: 2,
                                   ),
                                 ),
@@ -477,7 +470,7 @@ class _SocialLoginButton extends StatelessWidget {
             ),
           ],
         ),
-        child: Icon(icon, size: 32, color: const Color(0xFF003B55)),
+        child: Icon(icon, size: 32, color: ColorResource.primaryDark),
       ),
     );
   }

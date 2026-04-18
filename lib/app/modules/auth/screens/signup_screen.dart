@@ -3,6 +3,7 @@ import 'package:appwrite_user_app/app/common/widgets/custom_text_field.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/screens/dashboard_screen.dart';
+import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:get/get.dart';
@@ -100,15 +101,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
         width: size.width,
         height: size.height,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF003B55),
-              const Color(0xFF006B8F),
-              const Color(0xFF0099CC),
-            ],
-          ),
+          gradient: ColorResource.primaryGradient,
         ),
         child: SafeArea(
           child: SingleChildScrollView(
@@ -165,7 +158,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                               child: const Icon(
                                 Icons.person_add_rounded,
                                 size: 50,
-                                color: Color(0xFF003B55),
+                                color: ColorResource.primaryDark,
                               ),
                             ),
                             const SizedBox(height: 24),
@@ -286,7 +279,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                                     _obscurePassword
                                         ? Icons.visibility_outlined
                                         : Icons.visibility_off_outlined,
-                                    color: const Color(0xFF003B55),
+                                    color: ColorResource.primaryDark,
                                   ),
                                   onPressed: () {
                                     setState(() {
@@ -323,7 +316,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                                     _obscureConfirmPassword
                                         ? Icons.visibility_outlined
                                         : Icons.visibility_off_outlined,
-                                    color: const Color(0xFF003B55),
+                                    color: ColorResource.primaryDark,
                                   ),
                                   onPressed: () {
                                     setState(() {
@@ -357,7 +350,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                                           _agreeToTerms = value ?? false;
                                         });
                                       },
-                                      activeColor: const Color(0xFF003B55),
+                                      activeColor: ColorResource.primaryDark,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(4),
                                       ),
@@ -377,7 +370,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                                             text: 'Terms & Conditions',
                                             style: poppinsMedium.copyWith(
                                               fontSize: 13,
-                                              color: const Color(0xFF003B55),
+                                              color: ColorResource.primaryDark,
                                               decoration: TextDecoration.underline,
                                             ),
                                           ),
@@ -386,7 +379,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                                             text: 'Privacy Policy',
                                             style: poppinsMedium.copyWith(
                                               fontSize: 13,
-                                              color: const Color(0xFF003B55),
+                                              color: ColorResource.primaryDark,
                                               decoration: TextDecoration.underline,
                                             ),
                                           ),
@@ -549,7 +542,7 @@ class _SocialSignupButton extends StatelessWidget {
         child: Icon(
           icon,
           size: 32,
-          color: const Color(0xFF003B55),
+          color: ColorResource.primaryDark,
         ),
       ),
     );
