@@ -36,8 +36,11 @@ class _ProfilePageState extends State<ProfilePage> {
   }
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: GetBuilder<ProfileController>(
         builder: (controller) {
           return RefreshIndicator(
@@ -164,6 +167,18 @@ class _ProfilePageState extends State<ProfilePage> {
                               },
                             ),
                             GetBuilder<LocalizationController>(
+                              builder: (localizationController) {
+                                return _ThemeModeOption(
+                                  isDarkMode: localizationController.darkTheme,
+                                  onChanged: (value) {
+                                    localizationController.setTheme(
+                                      isDark: value,
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                            GetBuilder<LocalizationController>(
                               builder: (localeController) {
                                 final selectedLang = localeController.languages.isNotEmpty
                                     ? localeController.languages[localeController.selectedLanguageIndex]
@@ -265,7 +280,9 @@ class _ProfilePageState extends State<ProfilePage> {
                             'version'.tr,
                             style: poppinsRegular.copyWith(
                               fontSize: Constants.fontSizeSmall,
-                              color: ColorResource.textLight,
+                              color: isDark
+                                  ? Colors.white54
+                                  : ColorResource.textLight,
                             ),
                           ),
                         ),
@@ -409,6 +426,9 @@ class _ProfilePageState extends State<ProfilePage> {
     required String title,
     required List<Widget> items,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -418,15 +438,23 @@ class _ProfilePageState extends State<ProfilePage> {
             title,
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeDefault,
-              color: ColorResource.textSecondary,
+              color: isDark ? Colors.white70 : ColorResource.textSecondary,
             ),
           ),
         ),
         Container(
           decoration: BoxDecoration(
-            color: ColorResource.cardBackground,
+            color: theme.cardColor,
             borderRadius: BorderRadius.circular(Constants.radiusLarge),
-            boxShadow: ColorResource.customShadow,
+            boxShadow: [
+              BoxShadow(
+                color: isDark
+                    ? Colors.black.withValues(alpha: 0.22)
+                    : Colors.black.withValues(alpha: 0.05),
+                blurRadius: 18,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
           child: Column(
             children: List.generate(items.length, (index) {
@@ -438,7 +466,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     Divider(
                       height: 1,
                       indent: 60,
-                      color: ColorResource.textLight.withValues(alpha: 0.2),
+                      color: theme.dividerColor.withValues(
+                        alpha: isDark ? 0.45 : 0.3,
+                      ),
                     ),
                 ],
               );
@@ -573,17 +603,21 @@ class _ProfileOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final resolvedIconColor = iconColor ?? ColorResource.primaryDark;
+
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      contentPadding: theme.listTileTheme.contentPadding,
       leading: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: (iconColor ?? ColorResource.primaryDark).withValues(alpha: 0.1),
+          color: resolvedIconColor.withValues(alpha: isDark ? 0.18 : 0.1),
           borderRadius: BorderRadius.circular(Constants.radiusDefault),
         ),
         child: Icon(
           icon,
-          color: iconColor ?? ColorResource.primaryDark,
+          color: resolvedIconColor,
           size: 24,
         ),
       ),
@@ -591,22 +625,75 @@ class _ProfileOption extends StatelessWidget {
         title,
         style: poppinsMedium.copyWith(
           fontSize: Constants.fontSizeDefault,
-          color: ColorResource.textPrimary,
+          color: isDark ? Colors.white : ColorResource.textPrimary,
         ),
       ),
       subtitle: Text(
         subtitle,
         style: poppinsRegular.copyWith(
           fontSize: Constants.fontSizeSmall,
-          color: ColorResource.textSecondary,
+          color: isDark ? Colors.white60 : ColorResource.textSecondary,
         ),
       ),
       trailing: trailing ??
           Icon(
             Icons.chevron_right,
-            color: ColorResource.textLight,
+            color: isDark ? Colors.white38 : ColorResource.textLight,
           ),
       onTap: onTap,
+    );
+  }
+}
+
+class _ThemeModeOption extends StatelessWidget {
+  final bool isDarkMode;
+  final ValueChanged<bool> onChanged;
+
+  const _ThemeModeOption({
+    required this.isDarkMode,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return ListTile(
+      contentPadding: theme.listTileTheme.contentPadding,
+      leading: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: ColorResource.primaryDark.withValues(alpha: isDark ? 0.18 : 0.1),
+          borderRadius: BorderRadius.circular(Constants.radiusDefault),
+        ),
+        child: Icon(
+          isDarkMode ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
+          color: ColorResource.primaryDark,
+          size: 24,
+        ),
+      ),
+      title: Text(
+        'Dark mode',
+        style: poppinsMedium.copyWith(
+          fontSize: Constants.fontSizeDefault,
+          color: isDark ? Colors.white : ColorResource.textPrimary,
+        ),
+      ),
+      subtitle: Text(
+        isDarkMode
+            ? 'Use a darker appearance across the app'
+            : 'Switch to a brighter appearance across the app',
+        style: poppinsRegular.copyWith(
+          fontSize: Constants.fontSizeSmall,
+          color: isDark ? Colors.white60 : ColorResource.textSecondary,
+        ),
+      ),
+      trailing: Switch.adaptive(
+        value: isDarkMode,
+        onChanged: onChanged,
+      ),
+      onTap: () => onChanged(!isDarkMode),
     );
   }
 }

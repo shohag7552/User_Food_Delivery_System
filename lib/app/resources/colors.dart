@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class ColorResource {
   // Primary Brand Colors
@@ -32,14 +33,23 @@ class ColorResource {
   );
 
   // Background Colors
-  static const Color scaffoldBackground = Color(0xFFF5F7FA);
-  static const Color cardBackground = Colors.white;
+  static Color get scaffoldBackground => Get.isDarkMode
+      ? const Color(0xFF0B1220)
+      : const Color(0xFFF5F7FA);
+  static Color get cardBackground =>
+      Get.isDarkMode ? const Color(0xFF111827) : Colors.white;
   static const Color darkBackground = Color(0xFF1A1A1A);
 
   // Text Colors
-  static const Color textPrimary = Color(0xFF1A1A1A);
-  static const Color textSecondary = Color(0xFF6B7280);
-  static const Color textLight = Color(0xFF9CA3AF);
+  static Color get textPrimary => Get.isDarkMode
+      ? const Color(0xFFF8FAFC)
+      : const Color(0xFF1A1A1A);
+  static Color get textSecondary => Get.isDarkMode
+      ? const Color(0xFFCBD5E1)
+      : const Color(0xFF6B7280);
+  static Color get textLight => Get.isDarkMode
+      ? const Color(0xFF94A3B8)
+      : const Color(0xFF9CA3AF);
   static const Color textWhite = Colors.white;
 
   // Status Colors

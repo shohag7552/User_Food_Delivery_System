@@ -144,13 +144,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildBottomNavBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       decoration: BoxDecoration(
         color: ColorResource.cardBackground,
+        border: Border(
+          top: BorderSide(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : ColorResource.textLight.withValues(alpha: 0.12),
+          ),
+        ),
         boxShadow: [
           BoxShadow(
-            color: ColorResource.shadowMedium,
-            blurRadius: 10,
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.25)
+                : ColorResource.shadowMedium,
+            blurRadius: isDark ? 18 : 10,
             offset: const Offset(0, -4),
           ),
         ],

@@ -94,6 +94,8 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return GetBuilder<LocalizationController>(
       builder: (localizeController) {
+        Global.setSystemUi(isDarkMode: localizeController.darkTheme);
+
         return GetMaterialApp(
           title: Constants.appName,
           debugShowCheckedModeBanner: false,

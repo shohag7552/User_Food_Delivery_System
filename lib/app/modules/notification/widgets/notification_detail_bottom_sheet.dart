@@ -30,7 +30,7 @@ class NotificationDetailBottomSheet extends StatelessWidget {
 
     return Container(
       constraints: BoxConstraints(maxHeight: screenHeight * 0.85),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: ColorResource.cardBackground,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -94,7 +94,7 @@ class NotificationDetailBottomSheet extends StatelessWidget {
                 color: ColorResource.scaffoldBackground,
                 borderRadius: BorderRadius.circular(Constants.radiusDefault),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.close_rounded,
                 size: 20,
                 color: ColorResource.textSecondary,
@@ -341,7 +341,7 @@ class NotificationDetailBottomSheet extends StatelessWidget {
             child: OutlinedButton(
               onPressed: () => Navigator.of(context).pop(),
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: ColorResource.textLight),
+                side: BorderSide(color: ColorResource.textLight),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(Constants.radiusLarge),
                 ),

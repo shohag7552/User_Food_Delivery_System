@@ -47,7 +47,7 @@ class CartPage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.shopping_cart_outlined,
                     size: 100,
                     color: ColorResource.textLight,
@@ -94,6 +94,8 @@ class CartPage extends StatelessWidget {
   }
 
   Widget _buildCartItem(BuildContext context, CartItemModel item, CartController controller, int index) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: () async {
         // Show loading dialog
@@ -133,135 +135,162 @@ class CartPage extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Column(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(20),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: ColorResource.cardBackground,
+              borderRadius: BorderRadius.circular(Constants.radiusLarge),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : ColorResource.textLight.withValues(alpha: 0.12),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.18)
+                      : Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
                 ),
-                padding: const EdgeInsets.all(12),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: CustomNetworkImage(
-                    image: item.productImage,
-                    fit: BoxFit.contain,
+              ],
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.all(12),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: CustomNetworkImage(
+                      image: item.productImage,
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            item.productName,
-                            style: poppinsBold.copyWith(
-                              fontSize: 15,
-                              color: Colors.black87,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: () => controller.removeItem(item.id),
-                          child: const Icon(
-                            Icons.close,
-                            size: 20,
-                            color: Colors.black38,
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (item.selectedVariants.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        item.selectedVariants
-                            .expand((v) => v.selections)
-                            .map((s) => s.optionName)
-                            .join(', '),
-                        style: poppinsRegular.copyWith(
-                          fontSize: 13,
-                          color: Colors.black45,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ] else ...[
-                       const SizedBox(height: 4),
-                       Text(
-                        ' ', // spacer
-                        style: poppinsRegular.copyWith(
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          CurrencyHelper.formatAmount(item.itemTotal),
-                          style: poppinsBold.copyWith(
-                            fontSize: Constants.fontSizeLarge,
-                            color: ColorResource.primaryDark,
-                          ),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: ColorResource.scaffoldBackground,
-                            borderRadius: BorderRadius.circular(Constants.radiusDefault),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _buildQuantityButton(
-                                icon: Icons.remove,
-                                onTap: () => controller.decrementQuantity(item.id),
-                                enabled: item.quantity > 1,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              item.productName,
+                              style: poppinsBold.copyWith(
+                                fontSize: 15,
+                                color: ColorResource.textPrimary,
                               ),
-                              Container(
-                                width: 40,
-                                alignment: Alignment.center,
-                                child: Text(
-                                  '${item.quantity}',
-                                  style: poppinsBold.copyWith(
-                                    fontSize: Constants.fontSizeLarge,
-                                    color: ColorResource.textPrimary,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () => controller.removeItem(item.id),
+                            child: Icon(
+                              Icons.close,
+                              size: 20,
+                              color: isDark
+                                  ? Colors.white54
+                                  : Colors.black38,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (item.selectedVariants.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          item.selectedVariants
+                              .expand((v) => v.selections)
+                              .map((s) => s.optionName)
+                              .join(', '),
+                          style: poppinsRegular.copyWith(
+                            fontSize: 13,
+                            color: ColorResource.textSecondary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ] else ...[
+                        const SizedBox(height: 22),
+                      ],
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            CurrencyHelper.formatAmount(item.itemTotal),
+                            style: poppinsBold.copyWith(
+                              fontSize: Constants.fontSizeLarge,
+                              color: ColorResource.primaryDark,
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: ColorResource.scaffoldBackground,
+                              borderRadius: BorderRadius.circular(
+                                Constants.radiusDefault,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildQuantityButton(
+                                  icon: Icons.remove,
+                                  onTap: () =>
+                                      controller.decrementQuantity(item.id),
+                                  enabled: item.quantity > 1,
+                                ),
+                                Container(
+                                  width: 40,
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    '${item.quantity}',
+                                    style: poppinsBold.copyWith(
+                                      fontSize: Constants.fontSizeLarge,
+                                      color: ColorResource.textPrimary,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              _buildQuantityButton(
-                                icon: Icons.add,
-                                onTap: () => controller.incrementQuantity(item.id),
-                                enabled: (controller.getProductStock(item.productId) == null) || 
-                                         (item.quantity < controller.getProductStock(item.productId)!),
-                              ),
-                            ],
+                                _buildQuantityButton(
+                                  icon: Icons.add,
+                                  onTap: () =>
+                                      controller.incrementQuantity(item.id),
+                                  enabled:
+                                      (controller.getProductStock(item.productId) ==
+                                              null) ||
+                                          (item.quantity <
+                                              controller.getProductStock(
+                                                item.productId,
+                                              )!),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
 
           if (index < controller.cartItems.length - 1) ...[
-            const SizedBox(height: 10),
-            Divider(color: Theme.of(context).disabledColor,),
+            const SizedBox(height: 12),
           ],
         ],
       ),
@@ -426,4 +455,3 @@ class CartPage extends StatelessWidget {
     );
   }
 }
-

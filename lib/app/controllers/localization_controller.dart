@@ -35,6 +35,16 @@ class LocalizationController extends GetxController implements GetxService {
     update();
   }
 
+  void setTheme({required bool isDark}) {
+    if (_darkTheme == isDark) {
+      return;
+    }
+
+    _darkTheme = isDark;
+    sharedPreferences.setBool(Constants.theme, _darkTheme);
+    update();
+  }
+
   void setLanguage(Locale locale, {bool fromBottomSheet = false}) {
     Get.updateLocale(locale);
     _locale = locale;

@@ -44,20 +44,26 @@ class Global {
 
     await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
-    setSystemUi();
+    setSystemUi(isDarkMode: false);
 
     return await initializeDependencies();
   }
 
-  static void setSystemUi() {
+  static void setSystemUi({required bool isDarkMode}) {
     if (GetPlatform.isAndroid) {
-      SystemUiOverlayStyle systemUiOverlayStyle = const SystemUiOverlayStyle(
+      final systemUiOverlayStyle = SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarBrightness: Brightness.light,
-        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: isDarkMode ? Brightness.dark : Brightness.light,
+        statusBarIconBrightness: isDarkMode
+            ? Brightness.light
+            : Brightness.dark,
         systemNavigationBarDividerColor: Colors.transparent,
-        systemNavigationBarColor: Colors.white,
-        systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: isDarkMode
+            ? const Color(0xFF0B1220)
+            : Colors.white,
+        systemNavigationBarIconBrightness: isDarkMode
+            ? Brightness.light
+            : Brightness.dark,
       );
       SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
     }

@@ -335,111 +335,61 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                             ),
                           ),
 
-                          InkWell(
-                            borderRadius: BorderRadius.circular(
-                              Constants.radiusDefault,
-                            ),
-                            onTap: () => Get.to(() => const NotificationScreen(),
-                            ),
-                            child: Stack(
-                              children: [
-                                Material(
-                                  color: Colors.transparent,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: ColorResource.overlayMedium,
-                                      borderRadius:
-                                          BorderRadius.circular(
-                                        Constants.radiusDefault,
-                                      ),
-                                    ),
-                                    child: Icon(
-                                      Icons.notifications_outlined,
-                                      color: ColorResource.textWhite,
-                                      size: 24,
-                                    ),
-                                  ),
+                          GetBuilder<NotificationController>(
+                            builder: (notificationController) {
+                              final hasUnreadNotifications =
+                                  notificationController.unreadCount > 0;
+
+                              return InkWell(
+                                borderRadius: BorderRadius.circular(
+                                  Constants.radiusDefault,
                                 ),
-                                // if (hasUnreadNotifications)
-                                  Positioned(
-                                    top: 6,
-                                    right: 6,
-                                    child: IgnorePointer(
+                                onTap: () => Get.to(
+                                  () => const NotificationScreen(),
+                                ),
+                                child: Stack(
+                                  children: [
+                                    Material(
+                                      color: Colors.transparent,
                                       child: Container(
-                                        width: 10,
-                                        height: 10,
+                                        padding: const EdgeInsets.all(10),
                                         decoration: BoxDecoration(
-                                          color: ColorResource.error,
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color:
-                                                ColorResource.primaryDark,
-                                            width: 2,
+                                          color: ColorResource.overlayMedium,
+                                          borderRadius: BorderRadius.circular(
+                                            Constants.radiusDefault,
                                           ),
+                                        ),
+                                        child: Icon(
+                                          Icons.notifications_outlined,
+                                          color: ColorResource.textWhite,
+                                          size: 24,
                                         ),
                                       ),
                                     ),
-                                  ),
-                              ],
-                            ),
+                                    if (hasUnreadNotifications)
+                                      Positioned(
+                                        top: 6,
+                                        right: 6,
+                                        child: IgnorePointer(
+                                          child: Container(
+                                            width: 10,
+                                            height: 10,
+                                            decoration: BoxDecoration(
+                                              color: ColorResource.error,
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: ColorResource.primaryDark,
+                                                width: 2,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              );
+                            },
                           ),
-                          // // Notifications & Profile
-                          // GetBuilder<NotificationController>(
-                          //   builder: (notificationController) {
-                          //     final hasUnreadNotifications = notificationController.unreadCount > 0;
-                          
-                          //     return InkWell(
-                          //       borderRadius: BorderRadius.circular(
-                          //         Constants.radiusDefault,
-                          //       ),
-                          //       onTap: () => Get.to(() => const NotificationScreen(),
-                          //       ),
-                          //       child: Stack(
-                          //         children: [
-                          //           Material(
-                          //             color: Colors.transparent,
-                          //             child: Container(
-                          //               padding: const EdgeInsets.all(10),
-                          //               decoration: BoxDecoration(
-                          //                 color: ColorResource.overlayMedium,
-                          //                 borderRadius:
-                          //                     BorderRadius.circular(
-                          //                   Constants.radiusDefault,
-                          //                 ),
-                          //               ),
-                          //               child: Icon(
-                          //                 Icons.notifications_outlined,
-                          //                 color: ColorResource.textWhite,
-                          //                 size: 24,
-                          //               ),
-                          //             ),
-                          //           ),
-                          //           if (hasUnreadNotifications)
-                          //             Positioned(
-                          //               top: 6,
-                          //               right: 6,
-                          //               child: IgnorePointer(
-                          //                 child: Container(
-                          //                   width: 10,
-                          //                   height: 10,
-                          //                   decoration: BoxDecoration(
-                          //                     color: ColorResource.error,
-                          //                     shape: BoxShape.circle,
-                          //                     border: Border.all(
-                          //                       color:
-                          //                           ColorResource.primaryDark,
-                          //                       width: 2,
-                          //                     ),
-                          //                   ),
-                          //                 ),
-                          //               ),
-                          //             ),
-                          //         ],
-                          //       ),
-                          //     );
-                          //   },
-                          // ),
                         ],
                       ),
                       const SizedBox(height: 20),
@@ -457,17 +407,26 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   }
 
   Widget _buildSearchBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: () => Get.to(() => const SearchPage()),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: ColorResource.textWhite,
+          color: ColorResource.cardBackground,
           borderRadius: BorderRadius.circular(Constants.radiusLarge),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.transparent,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 10,
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.22)
+                  : Colors.black.withValues(alpha: 0.1),
+              blurRadius: isDark ? 18 : 10,
               offset: const Offset(0, 4),
             ),
           ],
