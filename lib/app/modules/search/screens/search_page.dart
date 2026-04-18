@@ -619,8 +619,8 @@ class _SearchPageState extends State<SearchPage> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: ColorResource.error,
-                          borderRadius: BorderRadius.circular(Constants.radiusSmall),
+                          color: ColorResource.discountBadge,
+                          borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
                         ),
                         child: Text(
                           '$discountPercentage% OFF',
@@ -674,7 +674,6 @@ class _SearchPageState extends State<SearchPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            // '\$${product.finalPrice.toStringAsFixed(2)}',
                             PriceHelper.formatPrice(product.finalPrice),
                             style: poppinsBold.copyWith(
                               fontSize: Constants.fontSizeLarge,
@@ -683,7 +682,6 @@ class _SearchPageState extends State<SearchPage> {
                           ),
                           if (hasDiscount)
                             Text(
-                              // '\$${product.price.toStringAsFixed(2)}',
                               PriceHelper.formatPrice(product.price),
                               style: poppinsRegular.copyWith(
                                 fontSize: Constants.fontSizeSmall,

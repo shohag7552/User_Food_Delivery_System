@@ -34,13 +34,7 @@ class FavoriteButton extends StatelessWidget {
             decoration: BoxDecoration(
               color: backgroundColor ?? ColorResource.textWhite,
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+            
             ),
             child: isLoading
                 ? SizedBox(

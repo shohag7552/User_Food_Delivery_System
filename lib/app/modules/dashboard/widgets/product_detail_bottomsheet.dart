@@ -54,22 +54,22 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
   String get _productDescription =>
       widget.product.descriptionMap.trLanguage.trim();
 
-  int get _selectedVariantCount {
-    int count = 0;
-    for (final variant in widget.product.variants) {
-      if (!_selectedVariants.containsKey(variant.title)) continue;
+  // int get _selectedVariantCount {
+  //   int count = 0;
+  //   for (final variant in widget.product.variants) {
+  //     if (!_selectedVariants.containsKey(variant.title)) continue;
 
-      if (variant.type == 'radio') {
-        if (_selectedVariants[variant.title] != null) {
-          count++;
-        }
-      } else {
-        final options = _selectedVariants[variant.title] as List<VariantOption>?;
-        count += options?.length ?? 0;
-      }
-    }
-    return count;
-  }
+  //     if (variant.type == 'radio') {
+  //       if (_selectedVariants[variant.title] != null) {
+  //         count++;
+  //       }
+  //     } else {
+  //       final options = _selectedVariants[variant.title] as List<VariantOption>?;
+  //       count += options?.length ?? 0;
+  //     }
+  //   }
+  //   return count;
+  // }
 
   String get _imageHeroTag => 'product-image-${widget.product.id}';
 

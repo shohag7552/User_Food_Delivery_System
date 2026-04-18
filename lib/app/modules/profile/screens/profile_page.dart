@@ -103,7 +103,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               title: 'favorites'.tr,
                               subtitle: 'favorites_subtitle'.tr,
                               onTap: () {
-                                Get.to(() => const FavoritesScreen());
+                                Get.to(() => FavoritesScreen(isFromMenu: true));
                               },
                             ),
                             _ProfileOption(

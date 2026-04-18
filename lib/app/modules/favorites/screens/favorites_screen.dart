@@ -12,7 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class FavoritesScreen extends StatefulWidget {
-  const FavoritesScreen({super.key});
+  final bool? isFromMenu;
+  const FavoritesScreen({super.key, this.isFromMenu = false});
 
   @override
   State<FavoritesScreen> createState() => _FavoritesScreenState();
@@ -33,6 +34,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       backgroundColor: ColorResource.scaffoldBackground,
       appBar: CustomAppbar(
         title: 'my_favorites'.tr,
+        showBackButton: widget.isFromMenu == true,
       ),
       body: GetBuilder<FavoritesController>(
         builder: (controller) {
@@ -270,8 +272,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        gradient: ColorResource.primaryGradient,
-                        borderRadius: BorderRadius.circular(8),
+                        color: ColorResource.discountBadge,
+                        borderRadius: BorderRadius.circular(Constants.radiusLarge),
                       ),
                       child: Text(
                         product.discountType == 'percentage'

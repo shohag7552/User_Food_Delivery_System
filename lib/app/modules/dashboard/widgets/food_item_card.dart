@@ -45,12 +45,12 @@ class FoodItemCard extends StatefulWidget {
 }
 
 class _FoodItemCardState extends State<FoodItemCard> {
-  double get discountPercentage {
-    if (widget.oldPrice != null && widget.oldPrice! > widget.price) {
-      return ((widget.oldPrice! - widget.price) / widget.oldPrice!) * 100;
-    }
-    return 0;
-  }
+  // double get discountPercentage {
+  //   if (widget.oldPrice != null && widget.oldPrice! > widget.price) {
+  //     return ((widget.oldPrice! - widget.price) / widget.oldPrice!) * 100;
+  //   }
+  //   return 0;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -102,6 +102,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
                             size: 14,
                           ),
                         ],
+                        const Spacer(),
                         // const SizedBox(height: Constants.paddingSizeSmall),
                         
                         Row(
@@ -265,7 +266,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
                       ),
                     ),
                     // Discount badge
-                    if (discountPercentage > 0)
+                    if (widget.product?.hasDiscount?? false)
                       Positioned(
                         top: 12,
                         left: 12,
@@ -281,7 +282,9 @@ class _FoodItemCardState extends State<FoodItemCard> {
                             ),
                           ),
                           child: Text(
-                            '${discountPercentage.toStringAsFixed(0)}% OFF',
+                            widget.product?.discountType == 'percentage'
+                              ? '${widget.product?.discountValue?.toInt()}% OFF'
+                              : '${PriceHelper.formatPrice(widget.product?.discountValue?.toDouble()??0)} OFF',
                             style: poppinsBold.copyWith(
                               fontSize: Constants.fontSizeExtraSmall,
                               color: ColorResource.textWhite,
@@ -396,7 +399,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
       child: SizedBox(
-        height: 112,
+        height: 122,
         child: Stack(
           children: [
             ClipRRect(
@@ -408,30 +411,32 @@ class _FoodItemCardState extends State<FoodItemCard> {
               ),
               child: CustomNetworkImage(
                 image: widget.imageUrl,
-                height: 112,
+                height: 122,
                 width: double.infinity,
               ),
             ),
-            if (discountPercentage > 0)
+            if (widget.product?.hasDiscount?? false)
               Positioned(
                 top: 0,
                 right: 0,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
-                    vertical: 8,
+                    vertical: 5,
                   ),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF04D23),
-                    borderRadius: BorderRadius.only(
-                      topRight: Radius.circular(24),
+                  decoration: BoxDecoration(
+                    color: ColorResource.discountBadge.withValues(alpha: 0.9),
+                    borderRadius: const BorderRadius.only(
+                      topRight: Radius.circular(15),
                       bottomLeft: Radius.circular(18),
                     ),
                   ),
                   child: Text(
-                    'Off ${discountPercentage.toStringAsFixed(0)}%',
+                    widget.product?.discountType == 'percentage'
+                              ? '${widget.product?.discountValue?.toInt()}% OFF'
+                              : '${PriceHelper.formatPrice(widget.product?.discountValue?.toDouble()??0)} OFF',
                     style: poppinsMedium.copyWith(
-                      fontSize: 12,
+                      fontSize: Constants.fontSizeSmall,
                       color: ColorResource.textWhite,
                     ),
                   ),
@@ -468,8 +473,8 @@ class _FoodItemCardState extends State<FoodItemCard> {
     return GestureDetector(
       onTap: widget.onAddToCart,
       child: Container(
-        width: 52,
-        height: 52,
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: Theme.of(context).primaryColor,
@@ -526,7 +531,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
               ),
             ),
           ),
-          if (discountPercentage > 0)
+          if (widget.product?.hasDiscount?? false)
             Positioned(
               left: 12,
               top: 12,
@@ -536,11 +541,13 @@ class _FoodItemCardState extends State<FoodItemCard> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF11293D).withValues(alpha: 0.9),
+                  color: ColorResource.discountBadge.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Text(
-                  '${discountPercentage.toStringAsFixed(0)}% OFF',
+                  widget.product?.discountType == 'percentage'
+                    ? '${widget.product?.discountValue?.toInt()}% OFF'
+                    : '${PriceHelper.formatPrice(widget.product?.discountValue?.toDouble()??0)} OFF',
                   style: poppinsBold.copyWith(
                     fontSize: 10.5,
                     letterSpacing: 0.2,
@@ -583,8 +590,8 @@ class _FoodItemCardState extends State<FoodItemCard> {
     return GestureDetector(
       onTap: widget.onAddToCart,
       child: Container(
-        width: 46,
-        height: 46,
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(
           color: Theme.of(context).primaryColor,
           shape: BoxShape.circle,

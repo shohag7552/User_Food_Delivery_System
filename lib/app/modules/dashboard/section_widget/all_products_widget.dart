@@ -165,10 +165,6 @@ class AllProductsWidget extends StatelessWidget {
     required Function(bool isIncrement) onQuantityChanged,
   }) {
     final hasDiscount = product.hasDiscount;
-    final discountPercentage = hasDiscount
-        ? ((product.price - product.finalPrice) / product.price * 100)
-              .toStringAsFixed(0)
-        : null;
 
     return CustomClickableWidget(
       onTap: onTap,
@@ -202,13 +198,15 @@ class AllProductsWidget extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: ColorResource.error,
+                        color: ColorResource.discountBadge,
                         borderRadius: BorderRadius.circular(
-                          Constants.radiusSmall,
+                          Constants.radiusLarge,
                         ),
                       ),
                       child: Text(
-                        '$discountPercentage% OFF',
+                        product.discountType == 'percentage'
+                            ? '${product.discountValue!.toInt()}% OFF'
+                            : '${PriceHelper.formatPrice(product.discountValue!.toDouble())} OFF',
                         style: poppinsBold.copyWith(
                           fontSize: Constants.fontSizeExtraSmall,
                           color: ColorResource.textWhite,

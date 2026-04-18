@@ -4,7 +4,8 @@ import 'package:get/get.dart';
 class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget>? actions;
-  const CustomAppbar({super.key, required this.title, this.actions});
+  final bool? showBackButton;
+  const CustomAppbar({super.key, required this.title, this.actions, this.showBackButton = true});
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +29,10 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
       ),
-      leading: IconButton(
+      leading: showBackButton! ? IconButton(
         icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
         onPressed: () => Navigator.pop(context),
-      ),
+      ) : null,
       elevation: 0,
       actions: actions,
     );

@@ -51,7 +51,7 @@ class ColorResource {
   // UI Element Colors
   static const Color ratingStarColor = Color(0xFFFBBF24);
   static const Color favoriteColor = Color(0xFFEF4444);
-  static const Color discountBadge = Color(0xFFEF4444);
+  static const Color discountBadge = Color(0xFF003B55);
   static const Color premiumBadge = Color(0xFFFFD700);
 
   // Shadow Colors
