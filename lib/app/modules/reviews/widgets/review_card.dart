@@ -60,41 +60,31 @@ class ReviewCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          review.userName,
-                          style: poppinsMedium.copyWith(
-                            fontSize: Constants.fontSizeDefault,
-                            color: ColorResource.textPrimary,
+                        Flexible(
+                          child: Text(
+                            review.userName,
+                            maxLines: 1, overflow: TextOverflow.ellipsis,
+                            style: poppinsMedium.copyWith(
+                              fontSize: Constants.fontSizeDefault,
+                              color: ColorResource.textPrimary,
+                            ),
                           ),
                         ),
                         if (review.verifiedPurchase) ...[
-                          const SizedBox(width: 6),
+                          const SizedBox(width: Constants.paddingSizeExtraSmall),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 6,
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(0.1),
+                              color: Colors.green.withValues(alpha: .1),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.verified,
-                                  size: 12,
-                                  color: Colors.green,
-                                ),
-                                const SizedBox(width: 2),
-                                Text(
-                                  'Verified',
-                                  style: poppinsMedium.copyWith(
-                                    fontSize: 10,
-                                    color: Colors.green,
-                                  ),
-                                ),
-                              ],
+                            child: Icon(
+                              Icons.verified,
+                              size: 12,
+                              color: Colors.green,
                             ),
                           ),
                         ],

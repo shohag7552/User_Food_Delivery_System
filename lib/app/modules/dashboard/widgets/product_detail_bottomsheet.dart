@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
+import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
@@ -254,12 +255,12 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                          crossAxisAlignment: CrossAxisAlignment.start,
                          children: [
                            _buildProductInfo(),
-                           const SizedBox(height: 18),
+                           const SizedBox(height: Constants.paddingSizeDefault),
 
                            // Variants
                            if (widget.product.variants.isNotEmpty) ...[
                              _buildVariantsSection(),
-                             const SizedBox(height: 18),
+                             const SizedBox(height: Constants.paddingSizeDefault),
                            ],
 
                             // Divider
@@ -271,7 +272,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
 
                             // Reviews Section
                             _buildReviewsSection(),
-                            const SizedBox(height: 90), // Space for bottom button
+                            const SizedBox(height: 50), // Space for bottom button
                          ],
                        ),
                      ),
@@ -370,15 +371,14 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
                     decoration: BoxDecoration(
-                      color: ColorResource.error,
+                      color: ColorResource.error.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(Constants.radiusDefault),
                     ),
                     child: Text(
                       'OUT OF STOCK',
                       style: poppinsBold.copyWith(
-                        fontSize: Constants.fontSizeLarge,
+                        fontSize: Constants.fontSizeDefault,
                         color: ColorResource.textWhite,
-                        letterSpacing: 2,
                       ),
                     ),
                   ),
@@ -395,33 +395,11 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
               children: [
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: widget.product.isVeg ? Colors.green : ColorResource.error,
-                        borderRadius: BorderRadius.circular(Constants.radiusSmall),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            widget.product.isVeg
-                                ? Icons.circle
-                                : Icons.change_history,
-                            color: ColorResource.textWhite,
-                            size: 12,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            widget.product.isVeg ? 'VEG' : 'NON-VEG',
-                            style: poppinsBold.copyWith(
-                              fontSize: Constants.fontSizeExtraSmall,
-                              color: ColorResource.textWhite,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    hasDiscount ? _buildInfoChip(
+                      color: ColorResource.error,
+                      label: '$discountPercentage% OFF',
+                      icon: null,
+                    ) : const SizedBox(),
                     const Spacer(),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
@@ -444,24 +422,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                     ),
                   ],
                 ),
-                if (hasDiscount) ...[
-                  const SizedBox(height: 8),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: ColorResource.discountBadge,
-                      borderRadius: BorderRadius.circular(Constants.radiusSmall),
-                    ),
-                    child: Text(
-                      '$discountPercentage% OFF',
-                      style: poppinsBold.copyWith(
-                        fontSize: Constants.fontSizeSmall,
-                        color: ColorResource.textWhite,
-                      ),
-                    ),
-                  ),
-                ],
+
               ],
             ),
           ),
@@ -472,7 +433,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
 
   Widget _buildProductInfo() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: Constants.paddingSizeSmall, vertical: Constants.paddingSizeDefault),
       decoration: BoxDecoration(
         color: ColorResource.scaffoldBackground,
         borderRadius: BorderRadius.circular(20),
@@ -486,32 +447,33 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
         Text(
           widget.product.nameMap.trLanguage,
           style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeOverLarge,
+            fontSize: Constants.fontSizeLarge,
             height: 1.2,
             color: ColorResource.textPrimary,
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: Constants.paddingSizeSmall),
+
+        RatingStars(
+          rating: widget.product.avgRating,
+          reviewCount: widget.product.ratingCount,
+          size: 14,
+          showRating: true,
+        ),
+        const SizedBox(height: Constants.paddingSizeSmall),
 
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [
             _buildInfoChip(
-              icon: Icons.restaurant_menu_rounded,
-              label: widget.product.variants.isEmpty
-                  ? 'Ready to order'
-                  : '${widget.product.variants.length} custom groups',
-            ),
-            _buildInfoChip(
-              icon: Icons.tune_rounded,
-              label: _selectedVariantCount == 0
-                  ? 'No add-ons selected'
-                  : '$_selectedVariantCount options selected',
+              icon: null,
+              color: ColorResource.primarySwatch,
+              label: widget.product.isVeg ? 'VEG' : 'NON-VEG',
             ),
           ],
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: Constants.paddingSizeSmall),
 
         Row(
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -519,8 +481,8 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
             Text(
               PriceHelper.formatPrice(widget.product.finalPrice),
               style: poppinsBold.copyWith(
-                fontSize: Constants.fontSizeOverLarge,
-                color: ColorResource.primaryDark,
+                fontSize: Constants.fontSizeExtraLarge,
+                color: Theme.of(context).textTheme.bodyLarge!.color,
               ),
             ),
             if (widget.product.hasDiscount) ...[
@@ -528,7 +490,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
               Text(
                 PriceHelper.formatPrice(widget.product.price),
                 style: poppinsRegular.copyWith(
-                  fontSize: Constants.fontSizeSmall,
+                  fontSize: Constants.fontSizeDefault,
                   color: ColorResource.textLight,
                   decoration: TextDecoration.lineThrough,
                 ),
@@ -539,14 +501,14 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                 decoration: BoxDecoration(
-                  color: ColorResource.discountBadge.withValues(alpha: 0.1),
+                  color: ColorResource.success.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
                   'Save ${PriceHelper.formatPrice(widget.product.price - widget.product.finalPrice)}',
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeExtraSmall,
-                    color: ColorResource.discountBadge,
+                    color: ColorResource.success,
                   ),
                 ),
               ),
@@ -559,7 +521,6 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
             style: poppinsRegular.copyWith(
               fontSize: Constants.fontSizeSmall,
               color: ColorResource.textSecondary,
-              height: 1.55,
             ),
           ),
         ],
@@ -595,14 +556,14 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: ColorResource.primaryDark.withValues(alpha: 0.08),
+                color: ColorResource.primarySwatch.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
                 '${widget.product.variants.length} groups',
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeExtraSmall,
-                  color: ColorResource.primaryDark,
+                  color: ColorResource.primarySwatch,
                 ),
               ),
             ),
@@ -619,7 +580,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
         const SizedBox(height: 12),
         ...widget.product.variants.map((variant) {
           return Padding(
-            padding: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.only(bottom: Constants.paddingSizeSmall),
             child: _buildVariantGroup(variant),
           );
         }),
@@ -630,9 +591,9 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
 
   Widget _buildVariantGroup(VariantGroup variant) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(Constants.paddingSizeSmall),
       decoration: BoxDecoration(
-        color: ColorResource.scaffoldBackground,
+        color: ColorResource.scaffoldBackground.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
@@ -708,14 +669,14 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: isSelected
-              ? ColorResource.primaryDark.withValues(alpha: 0.08)
+              ? Colors.green.withValues(alpha: 0.05)
               : ColorResource.scaffoldBackground,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
-                ? ColorResource.primaryDark
+                ? Colors.green
                 : ColorResource.textLight.withValues(alpha: 0.2),
-            width: isSelected ? 2 : 1,
+            width: isSelected ? .7 : 0.5,
           ),
         ),
         child: Row(
@@ -779,7 +740,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                 '+${PriceHelper.formatPrice(option.price)}',
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeSmall,
-                  color: ColorResource.primaryDark,
+                  color: ColorResource.primarySwatch,
                 ),
               ),
           ],
@@ -940,7 +901,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 3),
               decoration: BoxDecoration(
                 color: ColorResource.scaffoldBackground,
                 borderRadius: BorderRadius.circular(16),
@@ -949,7 +910,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                 children: [
                   Expanded(
                     child: Text(
-                      '${isUpdate ? 'Total' : 'Total'}: ${PriceHelper.formatPrice(_totalPrice)}',
+                      'Total: ${PriceHelper.formatPrice(_totalPrice)}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: poppinsBold.copyWith(
@@ -1234,23 +1195,26 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
     );
   }
 
-  Widget _buildInfoChip({required IconData icon, required String label}) {
+  Widget _buildInfoChip({required IconData? icon, required String label, Color? color}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: color ?? ColorResource.cardBackground,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: ColorResource.primaryDark),
-          const SizedBox(width: 6),
+          if(icon != null)...[
+            Icon(icon, size: 16, color: ColorResource.primaryDark),
+            const SizedBox(width: 6),
+          ],
+          
           Text(
             label,
             style: poppinsMedium.copyWith(
               fontSize: Constants.fontSizeExtraSmall,
-              color: ColorResource.textPrimary,
+              color: color != null ? Theme.of(context).cardColor : ColorResource.textPrimary,
             ),
           ),
         ],
