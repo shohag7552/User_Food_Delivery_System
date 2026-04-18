@@ -769,6 +769,19 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         icon = Icons.restaurant;
         label = 'preparing'.tr;
         break;
+      case 'ready':
+        backgroundColor = Colors.cyan.shade100;
+        textColor = Colors.cyan.shade700;
+        icon = Icons.done_all;
+        label = 'ready'.tr;
+        break;
+      case 'handover':
+        backgroundColor = Colors.indigo.shade100;
+        textColor = Colors.indigo.shade700;
+        icon = Icons.handshake;
+        label = 'handover'.tr;
+        break;
+      case 'on_way':
       case 'delivering':
       case 'on_the_way':
         backgroundColor = Colors.purple.shade100;

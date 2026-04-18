@@ -23,15 +23,23 @@ class OrderTrackingWidget extends StatelessWidget {
 
   int get currentStep {
     switch (status.toLowerCase()) {
+      case 'pending':
       case 'confirmed':
         return 0;
+      case 'cooking':
       case 'preparing':
         return 1;
+      case 'ready':
+      case 'handover':
+        return 2;
+      case 'on_way':
+      case 'delivering':
       case 'on the way':
       case 'on_the_way':
-        return 2;
-      case 'delivered':
         return 3;
+      case 'delivered':
+      case 'completed':
+        return 4;
       default:
         return 0;
     }
@@ -129,16 +137,23 @@ class OrderTrackingWidget extends StatelessWidget {
               ),
               _buildTimelineLine(isActive: currentStep >= 2),
               _buildTimelineStep(
-                icon: Icons.delivery_dining,
-                label: 'On the way',
+                icon: Icons.handshake,
+                label: 'Handover',
                 isActive: currentStep >= 2,
                 isCompleted: currentStep > 2,
               ),
               _buildTimelineLine(isActive: currentStep >= 3),
               _buildTimelineStep(
+                icon: Icons.delivery_dining,
+                label: 'On the way',
+                isActive: currentStep >= 3,
+                isCompleted: currentStep > 3,
+              ),
+              _buildTimelineLine(isActive: currentStep >= 4),
+              _buildTimelineStep(
                 icon: Icons.home,
                 label: 'Delivered',
-                isActive: currentStep >= 3,
+                isActive: currentStep >= 4,
                 isCompleted: false,
               ),
             ],
