@@ -1,6 +1,5 @@
 import 'package:appwrite_user_app/app/modules/splash/domain/repository/splash_repo_interface.dart';
 import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 class SplashController extends GetxController implements GetxService{

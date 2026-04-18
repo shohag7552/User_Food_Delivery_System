@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
+import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -200,105 +202,93 @@ class _SearchPageState extends State<SearchPage> {
     final topPadding = MediaQuery.of(context).padding.top;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(20, topPadding + 14, 20, 20),
+      padding: EdgeInsets.fromLTRB(Constants.paddingSizeDefault, topPadding + 5, Constants.paddingSizeDefault, Constants.paddingSizeSmall),
       decoration: BoxDecoration(
         gradient: ColorResource.primaryGradient,
-        boxShadow: [
-          BoxShadow(
-            color: ColorResource.primaryMedium.withValues(alpha: 0.18),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: ColorResource.cardBackground,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 14,
-                  offset: const Offset(0, 6),
-                ),
-              ],
+      child: Container(
+        decoration: BoxDecoration(
+          color: ColorResource.cardBackground,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
             ),
-            child: TextField(
-              controller: _searchController,
-              focusNode: _searchFocusNode,
-              onChanged: _onSearchChanged,
-              onSubmitted: (value) => _onSearchChanged(value),
-              textInputAction: TextInputAction.search,
-              style: poppinsRegular.copyWith(
-                fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textPrimary,
-              ),
-              decoration: InputDecoration(
-                hintText: 'search_for_dishes'.tr,
-                hintStyle: poppinsRegular.copyWith(
-                  fontSize: Constants.fontSizeDefault,
-                  color: ColorResource.textLight,
-                ),
-                prefixIcon: IconButton(
-                  onPressed: () => Get.back(),
-                  icon: Icon(
-                    Icons.arrow_back,
-                  ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minHeight: 42,
-                    minWidth: 42,
-                  ),
-                ),
-                prefixIconConstraints: const BoxConstraints(
-                  minHeight: 24,
-                  minWidth: 44,
-                ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? GestureDetector(
-                        onTap: _clearSearch,
-                        child: Container(
-                          margin: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: ColorResource.scaffoldBackground,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.close_rounded,
-                            color: ColorResource.textSecondary,
-                            size: 18,
-                          ),
-                        ),
-                      )
-                    : null,
-                filled: true,
-                fillColor: ColorResource.cardBackground,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(
-                    color: ColorResource.primaryDark.withValues(alpha: 0.08),
-                    width: 1,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(
-                    color: ColorResource.primaryDark.withValues(alpha: 0.25),
-                    width: 1.4,
-                  ),
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-              ),
-            ),
+          ],
+        ),
+        child: TextField(
+          controller: _searchController,
+          focusNode: _searchFocusNode,
+          onChanged: _onSearchChanged,
+          onSubmitted: (value) => _onSearchChanged(value),
+          textInputAction: TextInputAction.search,
+          style: poppinsRegular.copyWith(
+            fontSize: Constants.fontSizeDefault,
+            color: ColorResource.textPrimary,
           ),
-        ],
+          decoration: InputDecoration(
+            hintText: 'search_for_dishes'.tr,
+            hintStyle: poppinsRegular.copyWith(
+              fontSize: Constants.fontSizeDefault,
+              color: ColorResource.textLight,
+            ),
+            prefixIcon: IconButton(
+              onPressed: () => Get.back(),
+              icon: Icon(
+                Icons.arrow_back,
+              ),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(
+                minHeight: 42,
+                minWidth: 42,
+              ),
+            ),
+            prefixIconConstraints: const BoxConstraints(
+              minHeight: 24,
+              minWidth: 44,
+            ),
+            suffixIcon: _searchController.text.isNotEmpty
+                ? GestureDetector(
+                    onTap: _clearSearch,
+                    child: Container(
+                      margin: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: ColorResource.scaffoldBackground,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.close_rounded,
+                        color: ColorResource.textSecondary,
+                        size: 18,
+                      ),
+                    ),
+                  )
+                : null,
+            filled: true,
+            fillColor: ColorResource.cardBackground,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                color: ColorResource.primaryDark.withValues(alpha: 0.08),
+                width: 1,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                color: ColorResource.primaryDark.withValues(alpha: 0.25),
+                width: 1.4,
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+          ),
+        ),
       ),
     );
   }
@@ -659,16 +649,23 @@ class _SearchPageState extends State<SearchPage> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    product.descriptionMap.trLanguage,
-                    style: poppinsRegular.copyWith(
-                      fontSize: Constants.fontSizeSmall,
-                      color: ColorResource.textSecondary,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+
+                  const SizedBox(height: 6),
+                  RatingStars(
+                    rating: product.avgRating,
+                    reviewCount: product.ratingCount,
+                    size: 14,
                   ),
+                  // const SizedBox(height: 4),
+                  // Text(
+                  //   product.descriptionMap.trLanguage,
+                  //   style: poppinsRegular.copyWith(
+                  //     fontSize: Constants.fontSizeSmall,
+                  //     color: ColorResource.textSecondary,
+                  //   ),
+                  //   maxLines: 2,
+                  //   overflow: TextOverflow.ellipsis,
+                  // ),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -677,7 +674,8 @@ class _SearchPageState extends State<SearchPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '\$${product.finalPrice.toStringAsFixed(2)}',
+                            // '\$${product.finalPrice.toStringAsFixed(2)}',
+                            PriceHelper.formatPrice(product.finalPrice),
                             style: poppinsBold.copyWith(
                               fontSize: Constants.fontSizeLarge,
                               color: ColorResource.primaryDark,
@@ -685,7 +683,8 @@ class _SearchPageState extends State<SearchPage> {
                           ),
                           if (hasDiscount)
                             Text(
-                              '\$${product.price.toStringAsFixed(2)}',
+                              // '\$${product.price.toStringAsFixed(2)}',
+                              PriceHelper.formatPrice(product.price),
                               style: poppinsRegular.copyWith(
                                 fontSize: Constants.fontSizeSmall,
                                 color: ColorResource.textLight,
