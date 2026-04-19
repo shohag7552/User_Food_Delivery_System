@@ -1,5 +1,7 @@
+import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/models/category_model.dart';
@@ -374,10 +376,11 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
     final hasDiscount = product.discountValue != null && product.discountValue! > 0;
     final discountPercentage = hasDiscount ? product.discountValue!.toInt() : 0;
 
-    return GestureDetector(
+    return CustomClickableWidget(
       onTap: () {
         ProductDetailBottomSheet.show(context, product);
       },
+      isBackgroundTransparent: true,
       child: Container(
         decoration: BoxDecoration(
           color: ColorResource.cardBackground,
@@ -455,17 +458,11 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                   ),
                   const SizedBox(height: 4),
 
-                  // Description
-                  Text(
-                    product.descriptionMap.trLanguage,
-                    style: poppinsRegular.copyWith(
-                      fontSize: Constants.fontSizeSmall,
-                      color: ColorResource.textSecondary,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                  RatingStars(
+                    rating: product.avgRating,
+                    reviewCount: product.ratingCount,
+                    size: 13,
                   ),
-
                   const SizedBox(height: 8),
 
                   // Price and Add Button
