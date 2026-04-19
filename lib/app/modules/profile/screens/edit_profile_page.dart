@@ -40,6 +40,7 @@ class EditProfilePage extends StatelessWidget {
 
                         // Profile Information Card
                         _buildGlassmorphicCard(
+                          context: context,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -372,14 +373,14 @@ class EditProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildGlassmorphicCard({required Widget child}) {
+  Widget _buildGlassmorphicCard({required BuildContext context, required Widget child}) {
     return Container(
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: ColorResource.primaryDark.withOpacity(0.08),
+            color: ColorResource.primaryDark.withValues(alpha: 0.08),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),

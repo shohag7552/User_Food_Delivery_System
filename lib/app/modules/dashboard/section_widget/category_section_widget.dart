@@ -159,7 +159,7 @@ class CategorySectionWidget extends StatelessWidget {
                   ),
                   border: Border.all(
                     color: ColorResource.primaryLight,
-                    width: 2,
+                    width: 0.5,
                   ),
                 ),
                 padding: const EdgeInsets.all(1),

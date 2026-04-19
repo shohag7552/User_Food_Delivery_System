@@ -1,5 +1,7 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
+import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
 import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
@@ -199,10 +201,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     final bool isVeg = product.isVeg;
     final bool hasDiscount = product.hasDiscount;
 
-    return GestureDetector(
+    return CustomClickableWidget(
       onTap: () {
         ProductDetailBottomSheet.show(context, product);
       },
+      isBackgroundTransparent: true,
       child: Container(
         decoration: BoxDecoration(
           color: ColorResource.cardBackground,
@@ -351,6 +354,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 8),
+                    
+                    RatingStars(
+                      rating: product.avgRating,
+                      reviewCount: product.ratingCount,
+                      size: 13,
+                    ),
+                    const SizedBox(height: 8),
 
                     // Price
                     Row(
