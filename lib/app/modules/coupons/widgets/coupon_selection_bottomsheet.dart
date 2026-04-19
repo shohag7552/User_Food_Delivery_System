@@ -1,6 +1,5 @@
 import 'package:appwrite_user_app/app/controllers/coupon_controller.dart';
 import 'package:appwrite_user_app/app/models/coupon_model.dart';
-import 'package:appwrite_user_app/app/modules/coupons/screens/coupon_details_screen.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -45,9 +44,7 @@ class _CouponSelectionBottomSheetState
         ),
         backgroundColor: Theme.of(context).primaryColor,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -111,7 +108,7 @@ class _CouponSelectionBottomSheetState
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: ColorResource.textLight.withOpacity(0.3),
+                          color: ColorResource.textLight.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -123,8 +120,9 @@ class _CouponSelectionBottomSheetState
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             gradient: ColorResource.primaryGradient,
-                            borderRadius:
-                                BorderRadius.circular(Constants.radiusDefault),
+                            borderRadius: BorderRadius.circular(
+                              Constants.radiusDefault,
+                            ),
                           ),
                           child: Icon(
                             Icons.local_offer_rounded,
@@ -160,9 +158,7 @@ class _CouponSelectionBottomSheetState
                 child: GetBuilder<CouponController>(
                   builder: (controller) {
                     if (controller.isLoading && controller.coupons == null) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
+                      return const Center(child: CircularProgressIndicator());
                     }
 
                     if (controller.coupons == null ||
@@ -237,6 +233,7 @@ class _CouponCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final now = DateTime.now();
     final isExpired = now.isAfter(coupon.validUntil);
     final isNotYetValid = now.isBefore(coupon.validFrom);
@@ -244,182 +241,197 @@ class _CouponCard extends StatelessWidget {
         coupon.usageLimit != null && coupon.usedCount >= coupon.usageLimit!;
     final isValid =
         coupon.isActive && !isExpired && !isNotYetValid && !isUsageLimitReached;
+    final isDark = theme.brightness == Brightness.dark;
+    final accentColor = isValid
+        ? ColorResource.primaryDark
+        : theme.disabledColor;
+    final titleColor = isValid
+        ? theme.textTheme.titleMedium?.color ?? ColorResource.textPrimary
+        : (theme.textTheme.titleMedium?.color ?? ColorResource.textPrimary)
+              .withValues(alpha: 0.72);
+    final bodyColor = isValid
+        ? theme.textTheme.bodyMedium?.color ?? ColorResource.textSecondary
+        : (theme.textTheme.bodyMedium?.color ?? ColorResource.textSecondary)
+              .withValues(alpha: 0.68);
+    final statusBackground = isValid
+        ? accentColor.withValues(alpha: 0.10)
+        : ColorResource.error.withValues(alpha: 0.10);
+    final statusBorder = isValid
+        ? accentColor.withValues(alpha: 0.16)
+        : ColorResource.error.withValues(alpha: 0.18);
+    final statusColor = isValid ? accentColor : ColorResource.error;
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: ColorResource.cardBackground,
-          borderRadius: BorderRadius.circular(Constants.radiusLarge),
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(22),
           boxShadow: [
             BoxShadow(
-              color: ColorResource.shadowLight,
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              color: isValid
+                  ? theme.shadowColor.withValues(alpha: isDark ? 0.22 : 0.06)
+                  : theme.shadowColor.withValues(alpha: isDark ? 0.18 : 0.04),
+              blurRadius: isDark ? 18 : 14,
+              offset: const Offset(0, 8),
             ),
           ],
           border: Border.all(
-            color: !isValid
-                ? ColorResource.error.withOpacity(0.3)
-                : ColorResource.primaryDark.withOpacity(0.2),
-            width: 2,
+            color: isValid
+                ? ColorResource.primaryDark.withValues(alpha: 0.18)
+                : theme.dividerColor.withValues(alpha: 0.4),
+            width: 1.2,
           ),
         ),
-        child: Column(
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                gradient: !isValid
-                    ? LinearGradient(
-                        colors: [Colors.grey[400]!, Colors.grey[500]!],
-                      )
-                    : ColorResource.primaryGradient,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(Constants.radiusDefault),
-                  topRight: Radius.circular(Constants.radiusDefault),
-                ),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+          decoration: BoxDecoration(
+            color: isValid
+                ? ColorResource.primaryDark.withValues(
+                    alpha: isDark ? 0.08 : 0.03,
+                  )
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(22),
+            border: Border(
+              left: BorderSide(
+                color: accentColor.withValues(alpha: 0.9),
+                width: 4,
               ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.local_offer_rounded,
-                    color: ColorResource.textWhite,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: accentColor.withValues(alpha: 0.08),
+                        border: Border.all(
+                          color: accentColor.withValues(alpha: 0.12),
+                        ),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        coupon.code,
+                        style: poppinsMedium.copyWith(
+                          fontSize: Constants.fontSizeSmall,
+                          color: accentColor,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      coupon.description,
+                      style: poppinsBold.copyWith(
+                        fontSize: Constants.fontSizeDefault,
+                        color: titleColor,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: coupon.discountDisplay,
+                            style: poppinsBold.copyWith(
+                              fontSize: 22,
+                              color: accentColor,
+                            ),
+                          ),
+                          TextSpan(
+                            text: ' OFF',
+                            style: poppinsMedium.copyWith(
+                              fontSize: Constants.fontSizeSmall,
+                              color: bodyColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
                       children: [
-                        Text(
-                          coupon.code,
-                          style: poppinsBold.copyWith(
-                            fontSize: Constants.fontSizeDefault,
-                            color: ColorResource.textWhite,
+                        Icon(
+                          Icons.calendar_today_outlined,
+                          size: 13,
+                          color: bodyColor.withValues(alpha: 0.85),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            '${'valid_till'.tr} ${_formatDate(coupon.validUntil)}',
+                            style: poppinsRegular.copyWith(
+                              fontSize: Constants.fontSizeExtraSmall,
+                              color: bodyColor,
+                            ),
                           ),
                         ),
-                        Text(
-                          coupon.discountDisplay,
-                          style: poppinsMedium.copyWith(
-                            fontSize: Constants.fontSizeSmall,
-                            color: ColorResource.textWhite.withOpacity(0.9),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: statusBackground,
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(color: statusBorder),
+                          ),
+                          child: Text(
+                            isValid
+                                ? 'valid'.tr
+                                : isExpired
+                                ? 'expired'.tr
+                                : isNotYetValid
+                                ? 'not_yet_valid'.tr
+                                : 'inactive'.tr,
+                            style: poppinsBold.copyWith(
+                              fontSize: 10,
+                              color: statusColor,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.copy_rounded,
-                      color: ColorResource.textWhite,
-                      size: 18,
-                    ),
-                    onPressed: onCopy,
-                    tooltip: 'Copy code',
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-
-            // Content
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    coupon.description,
-                    style: poppinsRegular.copyWith(
-                      fontSize: Constants.fontSizeSmall,
-                      color: ColorResource.textSecondary,
+              const SizedBox(width: 12),
+              SizedBox(
+                height: 38,
+                child: FilledButton.tonalIcon(
+                  onPressed: onCopy,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: accentColor.withValues(alpha: 0.12),
+                    foregroundColor: accentColor,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 0,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today_rounded,
-                        size: 12,
-                        color: ColorResource.textLight,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          '${'valid_till'.tr} ${_formatDate(coupon.validUntil)}',
-                          style: poppinsRegular.copyWith(
-                            fontSize: Constants.fontSizeExtraSmall,
-                            color: ColorResource.textLight,
-                          ),
-                        ),
-                      ),
-                      if (isValid)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.green.withOpacity(0.3),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.check_circle,
-                                color: Colors.green,
-                                size: 12,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'valid'.tr,
-                                style: poppinsBold.copyWith(
-                                  fontSize: 10,
-                                  color: Colors.green,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      else
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: ColorResource.error.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: ColorResource.error.withOpacity(0.3),
-                            ),
-                          ),
-                          child: Text(
-                            isExpired
-                                ? 'expired'.tr
-                                : isNotYetValid
-                                    ? 'not_yet_valid'.tr
-                                    : 'inactive'.tr,
-                            style: poppinsBold.copyWith(
-                              fontSize: 10,
-                              color: ColorResource.error,
-                            ),
-                          ),
-                        ),
-                    ],
+                  icon: const Icon(Icons.copy_rounded, size: 16),
+                  label: Text(
+                    'Copy',
+                    style: poppinsMedium.copyWith(
+                      fontSize: Constants.fontSizeExtraSmall,
+                    ),
                   ),
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -438,7 +450,7 @@ class _CouponCard extends StatelessWidget {
       'Sep',
       'Oct',
       'Nov',
-      'Dec'
+      'Dec',
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }

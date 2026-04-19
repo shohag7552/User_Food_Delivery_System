@@ -106,7 +106,7 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
 
-            Image.asset(Images.logo, width: 150, height: 150),
+            ClipRRect(borderRadius: BorderRadius.circular(Constants.radiusExtraLarge), child: Image.asset(Images.logo, width: 150, height: 150)),
             SizedBox(height: 20),
 
             Text(
