@@ -11,8 +11,10 @@ class EditProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: GetBuilder<ProfileController>(
         builder: (controller) {
           if (controller.isLoading) {
@@ -26,7 +28,7 @@ class EditProfilePage extends StatelessWidget {
           return CustomScrollView(
             slivers: [
               // Animated App Bar with Gradient
-              _buildSliverAppBar(controller),
+              _buildSliverAppBar(context, controller),
 
               // Profile Content
               SliverToBoxAdapter(
@@ -49,6 +51,7 @@ class EditProfilePage extends StatelessWidget {
 
                               // Name Field
                               _buildCustomTextField(
+                                context: context,
                                 controller: controller.nameController,
                                 label: 'full_name_label'.tr,
                                 icon: Icons.person_outline,
@@ -58,6 +61,7 @@ class EditProfilePage extends StatelessWidget {
 
                               // Email Field
                               _buildCustomTextField(
+                                context: context,
                                 controller: controller.emailController,
                                 label: 'email_address_label'.tr,
                                 icon: Icons.email_outlined,
@@ -68,6 +72,7 @@ class EditProfilePage extends StatelessWidget {
 
                               // Phone Field
                               _buildCustomTextField(
+                                context: context,
                                 controller: controller.phoneController,
                                 label: 'phone_number_label'.tr,
                                 icon: Icons.phone_outlined,
@@ -81,7 +86,7 @@ class EditProfilePage extends StatelessWidget {
                         const SizedBox(height: 30),
 
                         // Save Button with Gradient
-                        _buildSaveButton(controller),
+                        _buildSaveButton(context, controller),
 
                         const SizedBox(height: 20),
                       ],
@@ -96,7 +101,10 @@ class EditProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildSliverAppBar(ProfileController controller) {
+  Widget _buildSliverAppBar(
+    BuildContext context,
+    ProfileController controller,
+  ) {
     return SliverAppBar(
       expandedHeight: 280,
       floating: false,
@@ -115,7 +123,7 @@ class EditProfilePage extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: [
                 ColorResource.primaryDark,
-                ColorResource.primaryDark.withOpacity(0.8),
+                ColorResource.primaryDark.withValues(alpha: 0.8),
                 ColorResource.primaryLight,
               ],
             ),
@@ -125,12 +133,12 @@ class EditProfilePage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 40),
-                
+
                 // Profile Picture with Edit Overlay
-                _buildProfilePicture(controller),
-                
+                _buildProfilePicture(context, controller),
+
                 const SizedBox(height: 16),
-                
+
                 Text(
                   'edit_profile'.tr,
                   style: poppinsBold.copyWith(
@@ -138,14 +146,14 @@ class EditProfilePage extends StatelessWidget {
                     color: ColorResource.textWhite,
                   ),
                 ),
-                
+
                 const SizedBox(height: 4),
-                
+
                 Text(
                   'update_your_personal_info'.tr,
                   style: poppinsRegular.copyWith(
                     fontSize: Constants.fontSizeDefault,
-                    color: ColorResource.textWhite.withOpacity(0.8),
+                    color: ColorResource.textWhite.withValues(alpha: 0.8),
                   ),
                 ),
               ],
@@ -156,7 +164,12 @@ class EditProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildProfilePicture(ProfileController controller) {
+  Widget _buildProfilePicture(
+    BuildContext context,
+    ProfileController controller,
+  ) {
+    final theme = Theme.of(context);
+
     return Stack(
       alignment: Alignment.center,
       children: [
@@ -167,7 +180,7 @@ class EditProfilePage extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(
-              color: ColorResource.textWhite.withOpacity(0.3),
+              color: ColorResource.textWhite.withValues(alpha: 0.3),
               width: 3,
             ),
           ),
@@ -179,10 +192,10 @@ class EditProfilePage extends StatelessWidget {
           height: 120,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: ColorResource.textWhite,
+            color: theme.cardColor,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -208,12 +221,10 @@ class EditProfilePage extends StatelessWidget {
             height: 120,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withValues(alpha: 0.5),
             ),
             child: Center(
-              child: CircularProgressIndicator(
-                color: ColorResource.textWhite,
-              ),
+              child: CircularProgressIndicator(color: ColorResource.textWhite),
             ),
           ),
 
@@ -223,19 +234,16 @@ class EditProfilePage extends StatelessWidget {
             bottom: 0,
             right: 0,
             child: GestureDetector(
-              onTap: () => _showImageSourceDialog(controller),
+              onTap: () => _showImageSourceDialog(context, controller),
               child: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   gradient: ColorResource.primaryGradient,
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: ColorResource.textWhite,
-                    width: 3,
-                  ),
+                  border: Border.all(color: ColorResource.textWhite, width: 3),
                   boxShadow: [
                     BoxShadow(
-                      color: ColorResource.primaryDark.withOpacity(0.5),
+                      color: ColorResource.primaryDark.withValues(alpha: 0.5),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -255,7 +263,7 @@ class EditProfilePage extends StatelessWidget {
 
   Widget _buildAvatarPlaceholder(ProfileController controller) {
     return Container(
-      color: ColorResource.primaryDark.withOpacity(0.1),
+      color: ColorResource.primaryDark.withValues(alpha: 0.1),
       child: Center(
         child: Text(
           controller.userProfile?.initials ?? '?',
@@ -268,11 +276,16 @@ class EditProfilePage extends StatelessWidget {
     );
   }
 
-  void _showImageSourceDialog(ProfileController controller) {
+  void _showImageSourceDialog(
+    BuildContext context,
+    ProfileController controller,
+  ) {
+    final theme = Theme.of(context);
+
     Get.bottomSheet(
       Container(
         decoration: BoxDecoration(
-          color: ColorResource.cardBackground,
+          color: theme.cardColor,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(20),
             topRight: Radius.circular(20),
@@ -288,7 +301,7 @@ class EditProfilePage extends StatelessWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: ColorResource.textLight,
+                    color: theme.dividerColor,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -297,7 +310,9 @@ class EditProfilePage extends StatelessWidget {
                   'choose_profile_picture'.tr,
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeLarge,
-                    color: ColorResource.textPrimary,
+                    color:
+                        theme.textTheme.titleLarge?.color ??
+                        ColorResource.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -305,6 +320,7 @@ class EditProfilePage extends StatelessWidget {
                   children: [
                     Expanded(
                       child: _buildImageSourceOption(
+                        context: context,
                         icon: Icons.photo_library_outlined,
                         label: 'gallery'.tr,
                         onTap: () {
@@ -316,6 +332,7 @@ class EditProfilePage extends StatelessWidget {
                     const SizedBox(width: 16),
                     Expanded(
                       child: _buildImageSourceOption(
+                        context: context,
                         icon: Icons.camera_alt_outlined,
                         label: 'camera'.tr,
                         onTap: () {
@@ -332,21 +349,27 @@ class EditProfilePage extends StatelessWidget {
           ),
         ),
       ),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
     );
   }
 
   Widget _buildImageSourceOption({
+    required BuildContext context,
     required IconData icon,
     required String label,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          border: Border.all(color: ColorResource.primaryDark.withOpacity(0.2)),
+          color: theme.inputDecorationTheme.fillColor?.withValues(alpha: 0.5),
+          border: Border.all(color: theme.dividerColor.withValues(alpha: 0.6)),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -364,7 +387,9 @@ class EditProfilePage extends StatelessWidget {
               label,
               style: poppinsMedium.copyWith(
                 fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textPrimary,
+                color:
+                    theme.textTheme.bodyMedium?.color ??
+                    ColorResource.textPrimary,
               ),
             ),
           ],
@@ -373,15 +398,21 @@ class EditProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildGlassmorphicCard({required BuildContext context, required Widget child}) {
+  Widget _buildGlassmorphicCard({
+    required BuildContext context,
+    required Widget child,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: ColorResource.primaryDark.withValues(alpha: 0.08),
-            blurRadius: 20,
+            color: theme.shadowColor.withValues(alpha: isDark ? 0.35 : 0.08),
+            blurRadius: isDark ? 24 : 20,
             offset: const Offset(0, 8),
           ),
         ],
@@ -397,13 +428,15 @@ class EditProfilePage extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  ColorResource.textWhite.withOpacity(0.9),
-                  ColorResource.textWhite.withOpacity(0.6),
+                  theme.cardColor.withValues(alpha: isDark ? 0.92 : 0.9),
+                  theme.cardColor.withValues(alpha: isDark ? 0.72 : 0.6),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: ColorResource.textWhite.withOpacity(0.2),
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.white.withValues(alpha: 0.2),
                 width: 1.5,
               ),
             ),
@@ -438,25 +471,28 @@ class EditProfilePage extends StatelessWidget {
   }
 
   Widget _buildCustomTextField({
+    required BuildContext context,
     required TextEditingController controller,
     required String label,
     required IconData icon,
     required String? Function(String?)? validator,
     TextInputType? keyboardType,
   }) {
+    final theme = Theme.of(context);
+
     return TextFormField(
       controller: controller,
       validator: validator,
       keyboardType: keyboardType,
       style: poppinsRegular.copyWith(
         fontSize: Constants.fontSizeDefault,
-        color: ColorResource.textPrimary,
+        color: theme.textTheme.bodyLarge?.color ?? ColorResource.textPrimary,
       ),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: poppinsMedium.copyWith(
           fontSize: Constants.fontSizeDefault,
-          color: ColorResource.textSecondary,
+          color: theme.hintColor,
         ),
         prefixIcon: Container(
           margin: const EdgeInsets.all(12),
@@ -468,44 +504,40 @@ class EditProfilePage extends StatelessWidget {
           child: Icon(icon, color: ColorResource.textWhite, size: 20),
         ),
         filled: true,
-        fillColor: ColorResource.scaffoldBackground.withOpacity(0.5),
+        fillColor:
+            theme.inputDecorationTheme.fillColor ??
+            theme.colorScheme.surface.withValues(alpha: 0.5),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: ColorResource.textLight.withOpacity(0.3),
+            color: theme.dividerColor.withValues(alpha: 0.3),
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: ColorResource.textLight.withOpacity(0.3),
+            color: theme.dividerColor.withValues(alpha: 0.3),
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: ColorResource.primaryDark,
-            width: 2,
-          ),
+          borderSide: BorderSide(color: ColorResource.primaryDark, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: ColorResource.error,
-          ),
+          borderSide: BorderSide(color: ColorResource.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: ColorResource.error,
-            width: 2,
-          ),
+          borderSide: BorderSide(color: ColorResource.error, width: 2),
         ),
       ),
     );
   }
 
-  Widget _buildSaveButton(ProfileController controller) {
+  Widget _buildSaveButton(BuildContext context, ProfileController controller) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       height: 56,
@@ -514,8 +546,10 @@ class EditProfilePage extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: ColorResource.primaryDark.withOpacity(0.4),
-            blurRadius: 20,
+            color: ColorResource.primaryDark.withValues(
+              alpha: isDark ? 0.25 : 0.4,
+            ),
+            blurRadius: isDark ? 14 : 20,
             offset: const Offset(0, 10),
           ),
         ],

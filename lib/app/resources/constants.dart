@@ -35,8 +35,8 @@ class Constants {
   static const double radiusExtraLarge = 20.0;
 
   static List<LanguageModel> languages = [
-    LanguageModel(imageUrl: Images.bengali, languageName: 'Bengali', countryCode: 'BN', languageCode: 'bn'),
     LanguageModel(imageUrl: Images.english, languageName: 'English', countryCode: 'US', languageCode: 'en'),
+    LanguageModel(imageUrl: Images.bengali, languageName: 'Bengali', countryCode: 'BN', languageCode: 'bn'),
   ];
 
   /// Shared Preferences Keys
