@@ -7,6 +7,7 @@ import 'package:appwrite_user_app/app/modules/address/screens/addresses_page.dar
 import 'package:appwrite_user_app/app/modules/coupons/screens/coupons_screen.dart';
 import 'package:appwrite_user_app/app/modules/favorites/screens/favorites_screen.dart';
 import 'package:appwrite_user_app/app/modules/language/screens/language_screen.dart';
+import 'package:appwrite_user_app/app/modules/loyalty_point/screens/loyalty_points_page.dart';
 import 'package:appwrite_user_app/app/modules/notification/screens/notification_screen.dart';
 import 'package:appwrite_user_app/app/modules/orders/screens/order_history_page.dart';
 import 'package:appwrite_user_app/app/modules/auth/screens/login_screen.dart';
@@ -139,7 +140,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               title: 'loyalty_points'.tr,
                               subtitle: 'earn_and_redeem_points'.tr,
                               onTap: () {
-                                Get.snackbar('loyalty_points'.tr, 'feature_coming_soon'.tr);
+                                Get.to(() => const LoyaltyPointsPage());
                               },
                             ),
                             _ProfileOption(
