@@ -58,18 +58,6 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
     });
   }
 
-  int get _earnedPoints {
-    return _transactions
-        .where((item) => item.type == _LoyaltyTransactionType.earned)
-        .fold<int>(0, (sum, item) => sum + item.points);
-  }
-
-  int get _redeemedPoints {
-    return _transactions
-        .where((item) => item.type == _LoyaltyTransactionType.redeemed)
-        .fold<int>(0, (sum, item) => sum + item.points);
-  }
-
   double get _walletValue => _totalPoints * _walletConversionRate;
 
   @override
@@ -104,12 +92,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                 _buildSummaryCard(
                   context: context,
                   userName: user?.name,
-                  walletBalance: user?.walletBalance ?? 0,
                 ),
-                const SizedBox(height: 18),
-                _buildQuickStats(context),
-                const SizedBox(height: 18),
-                _buildConversionSection(context, isDark),
                 const SizedBox(height: 24),
                 Text(
                   'Points activity',
@@ -143,7 +126,6 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
   Widget _buildSummaryCard({
     required BuildContext context,
     required String? userName,
-    required double walletBalance,
   }) {
     return Container(
       width: double.infinity,
@@ -204,7 +186,9 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
           ),
           const SizedBox(height: 20),
           Text(
-            'Available points',
+            userName?.isNotEmpty == true
+                ? '$userName, your total points'
+                : 'Your total loyalty points',
             style: poppinsMedium.copyWith(
               color: Colors.white.withValues(alpha: 0.84),
               fontSize: Constants.fontSizeDefault,
@@ -221,181 +205,16 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
           ),
           const SizedBox(height: 10),
           Text(
-            'Estimated wallet value: ${CurrencyHelper.formatWithSeparators(_walletValue)}',
+            'Convert your points into wallet balance whenever you are ready.',
             style: poppinsRegular.copyWith(
               color: Colors.white.withValues(alpha: 0.9),
               fontSize: Constants.fontSizeDefault,
             ),
           ),
           const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.14),
-              ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _SummaryMetric(
-                    label: 'Member',
-                    value:
-                        userName?.isNotEmpty == true ? userName! : 'Guest user',
-                    valueColor: Colors.white,
-                  ),
-                ),
-                Container(
-                  width: 1,
-                  height: 36,
-                  color: Colors.white.withValues(alpha: 0.18),
-                ),
-                Expanded(
-                  child: _SummaryMetric(
-                    label: 'Wallet balance',
-                    value:
-                        CurrencyHelper.formatWithSeparators(walletBalance),
-                    valueColor: Colors.white,
-                    alignEnd: true,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickStats(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Row(
-      children: [
-        Expanded(
-          child: _StatCard(
-            icon: Icons.arrow_downward_rounded,
-            label: 'Earned',
-            value: NumberFormat.decimalPattern().format(_earnedPoints),
-            iconColor: ColorResource.success,
-            isDark: isDark,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _StatCard(
-            icon: Icons.swap_horiz_rounded,
-            label: 'Converted',
-            value: NumberFormat.decimalPattern().format(_redeemedPoints),
-            iconColor: ColorResource.warning,
-            isDark: isDark,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildConversionSection(BuildContext context, bool isDark) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF141B2D) : Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.05)
-              : ColorResource.primaryDark.withValues(alpha: 0.08),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.18)
-                : Colors.black.withValues(alpha: 0.06),
-            blurRadius: 22,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: ColorResource.primaryDark.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(
-                  Icons.account_balance_wallet_outlined,
-                  color: ColorResource.primaryDark,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Convert points to wallet',
-                      style: poppinsBold.copyWith(
-                        fontSize: Constants.fontSizeLarge,
-                        color:
-                            isDark ? Colors.white : ColorResource.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Use your rewards as wallet credit during checkout.',
-                      style: poppinsRegular.copyWith(
-                        color: isDark
-                            ? Colors.white70
-                            : ColorResource.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.04)
-                  : const Color(0xFFF8F8FC),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _MiniInfo(
-                    title: 'Minimum conversion',
-                    value: '100 points',
-                    isDark: isDark,
-                  ),
-                ),
-                Expanded(
-                  child: _MiniInfo(
-                    title: 'Current value',
-                    value: CurrencyHelper.formatWithSeparators(_walletValue),
-                    isDark: isDark,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
           CustomButton(
-            onPressed: _totalPoints < 100 ? null : _handleConvertToWallet,
-            buttonText: _totalPoints < 100
-                ? 'Earn 100 points to unlock conversion'
-                : 'Convert to Wallet',
+            onPressed: _totalPoints == 0 ? null : _handleConvertToWallet,
+            buttonText: 'Convert to Wallet',
             height: 52,
             elevation: 0,
           ),
@@ -506,43 +325,28 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
 
   void _handleConvertToWallet() {
     final convertedAmount = CurrencyHelper.formatWithSeparators(_walletValue);
-
-    Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Column(
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          title: Text(
+            'Convert loyalty points',
+            style: poppinsBold.copyWith(fontSize: 20),
+          ),
+          content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  width: 42,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
               Text(
-                'Convert loyalty points',
-                style: poppinsBold.copyWith(fontSize: 20),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'You currently have $_totalPoints points available. This is equal to $convertedAmount in wallet credit.',
+                'You can convert ${NumberFormat.decimalPattern().format(_totalPoints)} loyalty points into $convertedAmount wallet balance.',
                 style: poppinsRegular.copyWith(
                   color: ColorResource.textSecondary,
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
@@ -550,183 +354,58 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                   color: ColorResource.primaryDark.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Text(
-                  'Backend conversion is not connected yet. This screen is ready for the real conversion API when you want to hook it up.',
-                  style: poppinsMedium.copyWith(
-                    color: ColorResource.primaryDark,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Total points',
+                      style: poppinsRegular.copyWith(
+                        fontSize: Constants.fontSizeSmall,
+                        color: ColorResource.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      NumberFormat.decimalPattern().format(_totalPoints),
+                      style: poppinsBold.copyWith(
+                        fontSize: Constants.fontSizeLarge,
+                        color: ColorResource.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Wallet amount',
+                      style: poppinsRegular.copyWith(
+                        fontSize: Constants.fontSizeSmall,
+                        color: ColorResource.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      convertedAmount,
+                      style: poppinsBold.copyWith(
+                        fontSize: Constants.fontSizeLarge,
+                        color: ColorResource.primaryDark,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 18),
-              CustomButton(
-                onPressed: () {
-                  Get.back();
-                  Get.snackbar(
-                    'Conversion pending',
-                    'Connect the wallet conversion API to complete this action.',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: ColorResource.primaryDark,
-                    colorText: Colors.white,
-                    margin: const EdgeInsets.all(16),
-                  );
-                },
-                buttonText: 'Continue',
-                height: 50,
-                elevation: 0,
               ),
             ],
           ),
-        ),
-      ),
-      isScrollControlled: true,
-    );
-  }
-}
-
-class _SummaryMetric extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color valueColor;
-  final bool alignEnd;
-
-  const _SummaryMetric({
-    required this.label,
-    required this.value,
-    required this.valueColor,
-    this.alignEnd = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment:
-          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: poppinsRegular.copyWith(
-            color: Colors.white.withValues(alpha: 0.74),
-            fontSize: Constants.fontSizeSmall,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          value,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: poppinsBold.copyWith(
-            color: valueColor,
-            fontSize: Constants.fontSizeDefault,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color iconColor;
-  final bool isDark;
-
-  const _StatCard({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.iconColor,
-    required this.isDark,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF141B2D) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.12)
-                : Colors.black.withValues(alpha: 0.05),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: iconColor),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: poppinsRegular.copyWith(
-                    color: isDark ? Colors.white70 : ColorResource.textSecondary,
-                    fontSize: Constants.fontSizeSmall,
-                  ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                'Close',
+                style: poppinsMedium.copyWith(
+                  color: ColorResource.textSecondary,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: poppinsBold.copyWith(
-                    fontSize: Constants.fontSizeLarge,
-                    color: isDark ? Colors.white : ColorResource.textPrimary,
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MiniInfo extends StatelessWidget {
-  final String title;
-  final String value;
-  final bool isDark;
-
-  const _MiniInfo({
-    required this.title,
-    required this.value,
-    required this.isDark,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: poppinsRegular.copyWith(
-            fontSize: Constants.fontSizeSmall,
-            color: isDark ? Colors.white60 : ColorResource.textSecondary,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          value,
-          style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeDefault,
-            color: isDark ? Colors.white : ColorResource.textPrimary,
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 }
