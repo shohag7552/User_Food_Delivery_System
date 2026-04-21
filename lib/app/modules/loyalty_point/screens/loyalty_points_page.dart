@@ -5,6 +5,7 @@ import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
@@ -57,8 +58,6 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
               : -item.points);
     });
   }
-
-  double get _walletValue => _totalPoints * _walletConversionRate;
 
   @override
   Widget build(BuildContext context) {
@@ -324,89 +323,160 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
   }
 
   void _handleConvertToWallet() {
-    final convertedAmount = CurrencyHelper.formatWithSeparators(_walletValue);
+    final pointsController = TextEditingController();
+
     showDialog<void>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          title: Text(
-            'Convert loyalty points',
-            style: poppinsBold.copyWith(fontSize: 20),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'You can convert ${NumberFormat.decimalPattern().format(_totalPoints)} loyalty points into $convertedAmount wallet balance.',
-                style: poppinsRegular.copyWith(
-                  color: ColorResource.textSecondary,
-                ),
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final enteredPoints = int.tryParse(pointsController.text.trim()) ?? 0;
+            final validationMessage = _getConversionValidation(
+              pointsController.text.trim(),
+            );
+            final convertedAmount = CurrencyHelper.formatWithSeparators(
+              enteredPoints * _walletConversionRate,
+            );
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
               ),
-              const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: ColorResource.primaryDark.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(16),
-                ),
+              title: Text(
+                'Convert loyalty points',
+                style: poppinsBold.copyWith(fontSize: 20),
+              ),
+              content: SingleChildScrollView(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Total points',
-                      style: poppinsRegular.copyWith(
-                        fontSize: Constants.fontSizeSmall,
-                        color: ColorResource.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      NumberFormat.decimalPattern().format(_totalPoints),
-                      style: poppinsBold.copyWith(
-                        fontSize: Constants.fontSizeLarge,
+                      'Available points: ${NumberFormat.decimalPattern().format(_totalPoints)}',
+                      style: poppinsMedium.copyWith(
                         color: ColorResource.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 6),
                     Text(
-                      'Wallet amount',
+                      'Conversion rate: 1 point = ${CurrencyHelper.formatAmount(_walletConversionRate)}',
                       style: poppinsRegular.copyWith(
-                        fontSize: Constants.fontSizeSmall,
                         color: ColorResource.textSecondary,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      convertedAmount,
-                      style: poppinsBold.copyWith(
-                        fontSize: Constants.fontSizeLarge,
-                        color: ColorResource.primaryDark,
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: pointsController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      autofocus: true,
+                      onChanged: (_) => setDialogState(() {}),
+                      decoration: InputDecoration(
+                        labelText: 'Enter points to convert',
+                        hintText: 'e.g. 100',
+                        errorText: validationMessage,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(
+                            color: ColorResource.primaryDark,
+                            width: 1.4,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: ColorResource.primaryDark.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'You will receive',
+                            style: poppinsRegular.copyWith(
+                              fontSize: Constants.fontSizeSmall,
+                              color: ColorResource.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            convertedAmount,
+                            style: poppinsBold.copyWith(
+                              fontSize: Constants.fontSizeLarge,
+                              color: ColorResource.primaryDark,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(
-                'Close',
-                style: poppinsMedium.copyWith(
-                  color: ColorResource.textSecondary,
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(
+                    'Cancel',
+                    style: poppinsMedium.copyWith(
+                      color: ColorResource.textSecondary,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          ],
+                SizedBox(
+                  width: 120,
+                  child: CustomButton(
+                    onPressed: validationMessage != null
+                        ? null
+                        : () {
+                            Navigator.of(dialogContext).pop();
+                            Get.snackbar(
+                              'Conversion pending',
+                              '${NumberFormat.decimalPattern().format(enteredPoints)} points will convert to $convertedAmount once the backend is connected.',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: ColorResource.primaryDark,
+                              colorText: Colors.white,
+                              margin: const EdgeInsets.all(16),
+                            );
+                          },
+                    buttonText: 'Convert',
+                    height: 46,
+                    elevation: 0,
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
-    );
+    ).then((_) => pointsController.dispose());
+  }
+
+  String? _getConversionValidation(String value) {
+    if (value.isEmpty) {
+      return 'Enter loyalty points to convert';
+    }
+
+    final points = int.tryParse(value);
+    if (points == null) {
+      return 'Enter a valid number';
+    }
+
+    if (points <= 0) {
+      return 'Points must be greater than 0';
+    }
+
+    if (points > _totalPoints) {
+      return 'You only have ${NumberFormat.decimalPattern().format(_totalPoints)} points';
+    }
+
+    return null;
   }
 }
 
