@@ -7,6 +7,7 @@ import 'package:appwrite_user_app/app/controllers/order_controller.dart';
 import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
+import 'package:appwrite_user_app/app/modules/address/screens/add_edit_address_page.dart';
 import 'package:appwrite_user_app/app/modules/checkout/screens/order_failed_page.dart';
 import 'package:appwrite_user_app/app/modules/checkout/screens/order_success_page.dart';
 import 'package:appwrite_user_app/app/modules/checkout/widgets/address_selection_bottomsheet.dart';
@@ -31,7 +32,6 @@ class CheckoutPage extends StatefulWidget {
 class _CheckoutPageState extends State<CheckoutPage> {
   final _instructionsController = TextEditingController();
   PaymentMethod _selectedPaymentMethod = PaymentMethod.cod;
-  bool _showAllItems = false;
   bool _isPriceExpanded = false;
   AddressModel? _selectedAddress;
   
@@ -39,7 +39,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   String? _scheduleDisplayText = 'ASAP (30-45 mins)';
   Map<String, dynamic>? scheduleData;
 
-  String _deliveryType = 'asap'; // 'asap' or 'scheduled'
+  String _deliveryType = 'now'; // 'now' or 'schedule'
   DateTime? _selectedDate;
   String? _selectedTimeSlot;
 
@@ -59,6 +59,64 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
     if (!hasSelectedAddress && addressController.defaultAddress != null) {
       _selectedAddress = addressController.defaultAddress;
+    }
+  }
+
+  Future<void> _openAddressSelector() async {
+    final result = await AddressSelectionBottomSheet.show(
+      context,
+      initialAddress: _selectedAddress,
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedAddress = result;
+      });
+      Get.find<AddressController>().selectAddress(result);
+    }
+  }
+
+  Future<void> _openMapAddressPicker() async {
+    final addressController = Get.find<AddressController>();
+    final previousIds = addressController.addresses.map((address) => address.id).toSet();
+
+    await Get.to(() => const AddEditAddressPage());
+    await addressController.fetchAddresses();
+
+    AddressModel? nextSelection;
+
+    for (final address in addressController.addresses) {
+      if (!previousIds.contains(address.id)) {
+        nextSelection = address;
+        break;
+      }
+    }
+
+    nextSelection ??= addressController.defaultAddress ?? _selectedAddress;
+
+    if (nextSelection != null && mounted) {
+      setState(() {
+        _selectedAddress = nextSelection;
+      });
+      addressController.selectAddress(nextSelection);
+    }
+  }
+
+  Future<void> _openDeliverySchedulePicker() async {
+    final result = await DeliveryScheduleBottomSheet.show(
+      context,
+      initialType: _deliveryType,
+      initialDate: _selectedDate,
+      initialTimeSlot: _selectedTimeSlot,
+    );
+
+    if (result != null) {
+      setState(() {
+        _deliveryType = result['type'];
+        _selectedDate = result['date'];
+        _selectedTimeSlot = result['timeSlot'];
+        _scheduleDisplayText = result['displayText'];
+      });
     }
   }
 
@@ -157,13 +215,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildOrderSummary(controller),
-                      const SizedBox(height: 20),
-                      _buildCouponSection(controller),
-                      const SizedBox(height: 20),
                       _buildDeliveryAddress(),
                       const SizedBox(height: 20),
                       _buildDeliverySchedule(),
+                      const SizedBox(height: 20),
+                      _buildCouponSection(controller),
                       const SizedBox(height: 20),
                       _buildPaymentMethod(),
                       const SizedBox(height: 20),
@@ -181,114 +237,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
-  Widget _buildOrderSummary(CartController controller) {
-    final itemsToShow = _showAllItems ? controller.cartItems : controller.cartItems.take(3).toList();
-    
-    return Container(
-      decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
-        borderRadius: BorderRadius.circular(Constants.radiusLarge),
-        boxShadow: ColorResource.customShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'order_summary'.tr,
-                  style: poppinsBold.copyWith(
-                    fontSize: Constants.fontSizeLarge,
-                    color: ColorResource.textPrimary,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => Get.back(),
-                  child: Text(
-                    'edit_cart'.tr,
-                    style: poppinsMedium.copyWith(
-                      fontSize: Constants.fontSizeSmall,
-                      color: ColorResource.primaryDark,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          ...itemsToShow.map((item) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.productName,
-                            style: poppinsMedium.copyWith(
-                              fontSize: Constants.fontSizeDefault,
-                              color: ColorResource.textPrimary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (item.selectedVariants.isNotEmpty)
-                            Text(
-                              item.selectedVariants
-                                  .expand((v) => v.selections)
-                                  .map((s) => s.optionName)
-                                  .join(', '),
-                              style: poppinsRegular.copyWith(
-                                fontSize: Constants.fontSizeExtraSmall,
-                                color: ColorResource.textSecondary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      'x${item.quantity}',
-                      style: poppinsMedium.copyWith(
-                        fontSize: Constants.fontSizeDefault,
-                        color: ColorResource.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      CurrencyHelper.formatAmount(item.itemTotal),
-                      style: poppinsBold.copyWith(
-                        fontSize: Constants.fontSizeDefault,
-                        color: ColorResource.primaryDark,
-                      ),
-                    ),
-                  ],
-                ),
-              )),
-          if (controller.cartItems.length > 3)
-            TextButton(
-              onPressed: () => setState(() => _showAllItems = !_showAllItems),
-              child: Text(
-                _showAllItems
-                    ? 'show_less_checkout'.tr
-                    : '+${controller.cartItems.length - 3} ${'more_items'.tr}',
-                style: poppinsMedium.copyWith(
-                  fontSize: Constants.fontSizeSmall,
-                  color: ColorResource.primaryDark,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildDeliveryAddress() {
     return GetBuilder<AddressController>(
       builder: (addressController) {
@@ -296,221 +244,147 @@ class _CheckoutPageState extends State<CheckoutPage> {
         final settingsController = Get.find<SettingsController>();
         final distanceKm = _calculateDistanceKm(settingsController);
         final isOutsideRadius = _isOutsideDeliveryRadius(settingsController);
+        final hasAddress = _selectedAddress != null;
 
-        return GestureDetector(
-          onTap: () async {
-            final result = await AddressSelectionBottomSheet.show(
-              context,
-              initialAddress: _selectedAddress,
-            );
-
-            if (result != null) {
-              setState(() {
-                _selectedAddress = result;
-              });
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: ColorResource.cardBackground,
-              borderRadius: BorderRadius.circular(Constants.radiusLarge),
-              boxShadow: ColorResource.customShadow,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            gradient: ColorResource.primaryGradient,
-                            borderRadius: BorderRadius.circular(Constants.radiusDefault),
-                          ),
-                          child: Icon(
-                            Icons.location_on,
-                            color: ColorResource.textWhite,
-                            size: 24,
-                          ),
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: ColorResource.cardBackground,
+            borderRadius: BorderRadius.circular(Constants.radiusLarge),
+            boxShadow: ColorResource.customShadow,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              GestureDetector(
+                onTap: _openAddressSelector,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).disabledColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'delivery_address'.tr,
-                          style: poppinsBold.copyWith(
-                            fontSize: Constants.fontSizeLarge,
-                            color: ColorResource.textPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        final result = await AddressSelectionBottomSheet.show(
-                          context,
-                          initialAddress: _selectedAddress,
-                        );
-
-                        if (result != null) {
-                          setState(() {
-                            _selectedAddress = result;
-                          });
-                        }
-                      },
-                      child: Text(
-                        'change'.tr,
-                        style: poppinsMedium.copyWith(
-                          fontSize: Constants.fontSizeSmall,
-                          color: ColorResource.primaryDark,
+                        child: Icon(
+                          Icons.location_on_outlined,
+                          size: 20,
+                          color: Theme.of(context).primaryColor,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                if (_selectedAddress == null)
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: ColorResource.scaffoldBackground,
-                      borderRadius: BorderRadius.circular(Constants.radiusDefault),
-                      border: Border.all(
-                        color: ColorResource.textLight.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.location_off_outlined,
-                          color: ColorResource.textLight,
-                          size: 24,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              hasAddress
+                                  ? _selectedAddress!.name
+                                  : 'Delivery address',
+                              style: poppinsMedium.copyWith(
+                                fontSize: Constants.fontSizeDefault,
+                                color: ColorResource.textPrimary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              hasAddress
+                                  ? _selectedAddress!.shortAddress
+                                  : 'Choose where you want the order delivered',
+                              style: poppinsRegular.copyWith(
+                                fontSize: Constants.fontSizeSmall,
+                                color: ColorResource.textSecondary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
+                      ),
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        height: 40,
+                        child: ElevatedButton(
+                          onPressed: _openAddressSelector,
+                          style: ElevatedButton.styleFrom(
+                            elevation: 0,
+                            backgroundColor: Theme.of(context).primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
                           child: Text(
-                            'no_address_selected'.tr,
-                            style: poppinsRegular.copyWith(
-                              fontSize: Constants.fontSizeDefault,
-                              color: ColorResource.textSecondary,
+                            hasAddress ? 'Change' : 'Choose',
+                            style: poppinsBold.copyWith(
+                              fontSize: Constants.fontSizeSmall,
+                              color: Colors.white,
                             ),
                           ),
                         ),
-                        Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          size: 16,
-                          color: ColorResource.textLight,
-                        ),
-                      ],
-                    ),
-                  )
-                else
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: ColorResource.primaryDark.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(Constants.radiusDefault),
-                      border: Border.all(
-                        color: ColorResource.primaryDark,
-                        width: 2,
                       ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: ColorResource.primaryDark,
-                            borderRadius: BorderRadius.circular(Constants.radiusDefault),
-                          ),
-                          child: Icon(
-                            Icons.location_on,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    _selectedAddress!.name,
-                                    style: poppinsBold.copyWith(
-                                      fontSize: Constants.fontSizeDefault,
-                                      color: ColorResource.primaryDark,
-                                    ),
-                                  ),
-                                  if (_selectedAddress!.isDefault) ...[
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        gradient: ColorResource.primaryGradient,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        'DEFAULT',
-                                        style: poppinsBold.copyWith(
-                                          fontSize: 9,
-                                          color: ColorResource.textWhite,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                _selectedAddress!.phone,
-                                style: poppinsRegular.copyWith(
-                                  fontSize: Constants.fontSizeSmall,
-                                  color: ColorResource.textSecondary,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                _selectedAddress!.fullAddress,
-                                style: poppinsRegular.copyWith(
-                                  fontSize: Constants.fontSizeSmall,
-                                  color: ColorResource.textSecondary,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              if (distanceKm != null) ...[
-                                const SizedBox(height: 6),
-                                Text(
-                                  isOutsideRadius
-                                      ? 'Distance: ${distanceKm.toStringAsFixed(2)} km • Outside delivery radius'
-                                      : 'Distance: ${distanceKm.toStringAsFixed(2)} km',
-                                  style: poppinsMedium.copyWith(
-                                    fontSize: Constants.fontSizeExtraSmall,
-                                    color: isOutsideRadius ? Colors.red : ColorResource.primaryDark,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          size: 16,
-                          color: ColorResource.textLight,
-                        ),
-                      ],
+                    ],
+                  ),
+                ),
+              ),
+              if (hasAddress && distanceKm != null) ...[
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    isOutsideRadius
+                        ? 'Distance: ${distanceKm.toStringAsFixed(2)} km • Outside delivery radius'
+                        : 'Distance: ${distanceKm.toStringAsFixed(2)} km',
+                    style: poppinsMedium.copyWith(
+                      fontSize: Constants.fontSizeExtraSmall,
+                      color: isOutsideRadius ? Colors.red : ColorResource.textSecondary,
                     ),
                   ),
+                ),
               ],
-            ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: OutlinedButton.icon(
+                  onPressed: _openMapAddressPicker,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFFF6B3D),
+                    side: const BorderSide(color: Color(0xFFFFD0C2)),
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  icon: const Icon(Icons.map_outlined, size: 18),
+                  label: Text(
+                    'Select from map',
+                    style: poppinsBold.copyWith(
+                      fontSize: Constants.fontSizeSmall,
+                      color: const Color(0xFFFF6B3D),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -518,159 +392,126 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   Widget _buildCouponSection(CartController controller) {
+    final hasCoupon = controller.appliedCoupon != null;
+
     return Container(
       decoration: BoxDecoration(
         color: ColorResource.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
         boxShadow: ColorResource.customShadow,
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'apply_coupon'.tr,
-                style: poppinsBold.copyWith(
-                  fontSize: Constants.fontSizeLarge,
-                  color: ColorResource.textPrimary,
-                ),
-              ),
-              if (controller.appliedCoupon == null)
-                TextButton.icon(
-                  onPressed: () async {
-                    final result = await CouponSelectionBottomSheet.show(context);
-                    
-                    if (result != null) {
-                      controller.applyCoupon(result);
-                    }
-                  },
-                  icon: const Icon(Icons.add, size: 18),
-                   label: Text('choose'.tr),
-                  style: TextButton.styleFrom(
-                    foregroundColor: ColorResource.primaryDark,
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: Constants.paddingSizeSmall),
-          if (controller.appliedCoupon == null)
-            Container(
-              padding: const EdgeInsets.all(Constants.paddingSizeDefault),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(Constants.radiusDefault),
-                border: Border.all(
-                  color: Colors.grey[300]!, width: 0.3,
-                  // style: BorderStyle.solid,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.local_offer_outlined,
-                    color: Colors.grey[400],
-                    size: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'no_coupon_applied'.tr,
-                      style: poppinsRegular.copyWith(
-                        fontSize: Constants.fontSizeDefault,
-                        color: ColorResource.textSecondary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    ColorResource.primaryDark.withValues(alpha: 0.05),
-                    Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(Constants.radiusDefault),
-                border: Border.all(
-                  color: ColorResource.primaryDark.withValues(alpha: 0.3),
-                  width: 0.5,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              ColorResource.primaryDark,
-                              Theme.of(context).colorScheme.secondary,
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.local_offer_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              controller.appliedCoupon!.code,
-                              style: poppinsBold.copyWith(
-                                fontSize: Constants.fontSizeDefault,
-                                color: ColorResource.primaryDark,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.check_circle_rounded,
-                                  color: Colors.green,
-                                  size: 16,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  '${'you_saved_amount'.tr} ${CurrencyHelper.formatAmount(controller.discountAmount)}!',
-                                  style: poppinsBold.copyWith(
-                                    fontSize: Constants.fontSizeSmall,
-                                    color: Colors.green,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => controller.removeCoupon(),
-                        icon: const Icon(Icons.close_rounded),
-                        color: Colors.red,
-                        tooltip: 'remove_coupon_tooltip'.tr,
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).disabledColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                ],
-              ),
+                  child: Icon(
+                    hasCoupon ? Icons.sell_rounded : Icons.discount_outlined,
+                    size: 20,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        hasCoupon
+                            ? controller.appliedCoupon!.code
+                            : 'Apply a promo code',
+                        style: poppinsMedium.copyWith(
+                          fontSize: Constants.fontSizeDefault,
+                          color: ColorResource.textPrimary,
+                        ),
+                      ),
+                      if (hasCoupon) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          '${'you_saved_amount'.tr} ${CurrencyHelper.formatAmount(controller.discountAmount)}',
+                          style: poppinsRegular.copyWith(
+                            fontSize: Constants.fontSizeSmall,
+                            color: Colors.green.shade700,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                SizedBox(
+                  height: 40,
+                  child: hasCoupon
+                      ? OutlinedButton(
+                          onPressed: () => controller.removeCoupon(),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFFFF6B3D),
+                            side: const BorderSide(color: Color(0xFFFFD0C2)),
+                            backgroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            'Remove',
+                            style: poppinsBold.copyWith(
+                              fontSize: Constants.fontSizeSmall,
+                              color: Theme.of(context).primaryColor,
+                            ),
+                          ),
+                        )
+                      : ElevatedButton(
+                          onPressed: () async {
+                            final result = await CouponSelectionBottomSheet.show(context);
+
+                            if (result != null) {
+                              controller.applyCoupon(result);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            elevation: 0,
+                            backgroundColor: Theme.of(context).primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 22),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            'Apply',
+                            style: poppinsBold.copyWith(
+                              fontSize: Constants.fontSizeSmall,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                ),
+              ],
             ),
+          ),
         ],
       ),
     );
@@ -1101,186 +942,172 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Widget _buildDeliverySchedule() {
     final settingsController = Get.find<SettingsController>();
     final businessSetup = settingsController.businessSetup;
+    final isNow = _deliveryType == 'now';
+    final isStoreClosed = businessSetup?.isStoreOpen == false;
+    final scheduleTitle = isNow ? 'Deliver now' : 'Scheduled delivery';
 
-    return GestureDetector(
-      onTap: () async {
-        final result = await DeliveryScheduleBottomSheet.show(
-          context,
-          initialType: _deliveryType,
-          initialDate: _selectedDate,
-          initialTimeSlot: _selectedTimeSlot,
-        );
-
-        if (result != null) {
-          setState(() {
-            _deliveryType = result['type'];
-            _selectedDate = result['date'];
-            _selectedTimeSlot = result['timeSlot'];
-            _scheduleDisplayText = result['displayText'];
-          });
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: ColorResource.cardBackground,
-          borderRadius: BorderRadius.circular(Constants.radiusLarge),
-          boxShadow: ColorResource.customShadow,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        gradient: ColorResource.primaryGradient,
-                        borderRadius: BorderRadius.circular(Constants.radiusDefault),
-                      ),
-                      child: Icon(
-                        Icons.schedule,
-                        color: ColorResource.textWhite,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'delivery_schedule'.tr,
-                      style: poppinsBold.copyWith(
-                        fontSize: Constants.fontSizeLarge,
-                        color: ColorResource.textPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-                TextButton(
-                  onPressed: () async {
-                    final result = await DeliveryScheduleBottomSheet.show(
-                      context,
-                      initialType: _deliveryType,
-                      initialDate: _selectedDate,
-                      initialTimeSlot: _selectedTimeSlot,
-                    );
-
-                    if (result != null) {
-                      setState(() {
-                        _deliveryType = result['type'];
-                        _selectedDate = result['date'];
-                        _selectedTimeSlot = result['timeSlot'];
-                        _scheduleDisplayText = result['displayText'];
-                      });
-                    }
-                  },
-                  child: Text(
-                    'change'.tr,
-                    style: poppinsMedium.copyWith(
-                      fontSize: Constants.fontSizeSmall,
-                      color: ColorResource.primaryDark,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: ColorResource.cardBackground,
+        borderRadius: BorderRadius.circular(Constants.radiusLarge),
+        boxShadow: ColorResource.customShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onTap: _openDeliverySchedulePicker,
+            child: Container(
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: _deliveryType == 'now'
-                    ? ColorResource.primaryDark.withValues(alpha: 0.1)
-                    : ColorResource.scaffoldBackground,
-                borderRadius: BorderRadius.circular(Constants.radiusDefault),
-                border: Border.all(
-                  color: _deliveryType == 'now'
-                      ? ColorResource.primaryDark
-                      : ColorResource.textLight.withValues(alpha: 0.3),
-                  width: _deliveryType == 'now' ? 2 : 1,
-                ),
+                color: const Color(0xFFF9F7F4),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
-                      color: _deliveryType == 'now'
-                          ? ColorResource.primaryDark
-                          : ColorResource.primaryDark.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(Constants.radiusDefault),
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
                     child: Icon(
-                      _deliveryType == 'now'
-                          ? Icons.flash_on_rounded
-                          : Icons.calendar_today_rounded,
-                      color: _deliveryType == 'now'
-                          ? Colors.white
-                          : ColorResource.primaryDark,
-                      size: 24,
+                      isNow ? Icons.flash_on_rounded : Icons.schedule_outlined,
+                      size: 20,
+                      color: const Color(0xFF424242),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          _deliveryType == 'now' ? 'deliver_now'.tr : 'scheduled_delivery'.tr,
-                          style: poppinsBold.copyWith(
+                          scheduleTitle,
+                          style: poppinsMedium.copyWith(
                             fontSize: Constants.fontSizeDefault,
-                            color: _deliveryType == 'now'
-                                ? ColorResource.primaryDark
-                                : ColorResource.textPrimary,
+                            color: ColorResource.textPrimary,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
                           _scheduleDisplayText ?? 'asap_30_45_mins'.tr,
                           style: poppinsRegular.copyWith(
                             fontSize: Constants.fontSizeSmall,
-                            color: ColorResource.textLight,
+                            color: ColorResource.textSecondary,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
-                  Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 16,
-                    color: ColorResource.textLight,
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    height: 40,
+                    child: ElevatedButton(
+                      onPressed: _openDeliverySchedulePicker,
+                      style: ElevatedButton.styleFrom(
+                        elevation: 0,
+                        backgroundColor: Theme.of(context).primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'Change',
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeSmall,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-            if (businessSetup?.isStoreOpen == false && _deliveryType == 'now') ...[
-              const SizedBox(height: 12),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.orange[50],
-                  borderRadius: BorderRadius.circular(Constants.radiusDefault),
-                  border: Border.all(color: Colors.orange[200]!),
+                  color: isNow
+                      ? Theme.of(context).primaryColor.withValues(alpha: 0.12)
+                      : const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(999),
                 ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline, color: Colors.orange[700], size: 20),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'store_is_currently_closed'.tr,
-                        style: poppinsRegular.copyWith(
-                          fontSize: Constants.fontSizeSmall,
-                          color: Colors.orange[900],
-                        ),
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  isNow ? 'ASAP' : 'Scheduled',
+                  style: poppinsMedium.copyWith(
+                    fontSize: Constants.fontSizeSmall,
+                    color: isNow
+                        ? Theme.of(context).primaryColor
+                        : ColorResource.textSecondary,
+                  ),
                 ),
               ),
+              if (!isNow && _selectedTimeSlot != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    _selectedTimeSlot!,
+                    style: poppinsMedium.copyWith(
+                      fontSize: Constants.fontSizeSmall,
+                      color: ColorResource.textSecondary,
+                    ),
+                  ),
+                ),
             ],
+          ),
+          if (isStoreClosed && isNow) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange[50],
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.orange[200]!),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.orange[700], size: 18),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'store_is_currently_closed'.tr,
+                      style: poppinsRegular.copyWith(
+                        fontSize: Constants.fontSizeSmall,
+                        color: Colors.orange[900],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
-        ),
+        ],
       ),
     );
   }

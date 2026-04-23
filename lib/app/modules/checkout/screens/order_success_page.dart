@@ -45,12 +45,12 @@ class OrderSuccessPage extends StatelessWidget {
                 child: Column(
                   children: [
                     _buildTopBadge(),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 50),
                     _buildHeroCard(),
-                    const SizedBox(height: 18),
-                    _buildOrderDetailsCard(),
-                    const SizedBox(height: 18),
-                    _buildStatusCard(),
+                    // const SizedBox(height: 18),
+                    // _buildOrderDetailsCard(),
+                    // const SizedBox(height: 18),
+                    // _buildStatusCard(),
                     const SizedBox(height: 28),
                     _buildActionButtons(),
                   ],
@@ -189,7 +189,7 @@ class OrderSuccessPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  orderNumber,
+                  '#$orderNumber',
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeExtraLarge + 2,
                     color: ColorResource.primaryDark,
@@ -409,7 +409,7 @@ class OrderSuccessPage extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: () {
               // Push orders page so the default app bar back button remains available
-              Get.to(() => const OrdersPage());
+              Get.off(() => const OrdersPage());
             },
             icon: const Icon(Icons.receipt_long),
             label: Text(
