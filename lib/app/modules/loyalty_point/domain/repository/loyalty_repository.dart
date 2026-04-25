@@ -26,36 +26,6 @@ class LoyaltyRepository implements LoyaltyRepoInterface {
   }
 
   @override
-  Future<UserModel> syncDeliveredOrderPoints({
-    required UserModel user,
-    required double earningRate,
-  }) async {
-    if (earningRate <= 0) {
-      return user;
-    }
-
-    final response = await appwriteService.listTable(
-      tableId: AppwriteConfig.ordersCollection,
-      queries: [
-        Query.equal('customer_id', user.id),
-        Query.equal('status', 'delivered'),
-        Query.limit(100),
-      ],
-    );
-
-    var currentUser = user;
-    for (final row in response.rows) {
-      currentUser = await awardDeliveredOrderPoints(
-        user: currentUser,
-        order: OrderModel.fromJson(row.data),
-        earningRate: earningRate,
-      );
-    }
-
-    return currentUser;
-  }
-
-  @override
   Future<UserModel> awardDeliveredOrderPoints({
     required UserModel user,
     required OrderModel order,
@@ -111,7 +81,7 @@ class LoyaltyRepository implements LoyaltyRepoInterface {
       throw Exception('Invalid loyalty point conversion');
     }
 
-    final walletAmount = points * conversionRate;
+    final walletAmount = points / conversionRate;
     final updatedPoints = user.loyaltyPoints - points;
     final updatedWalletBalance = user.walletBalance + walletAmount;
 

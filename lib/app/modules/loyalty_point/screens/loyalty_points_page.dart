@@ -1,5 +1,4 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_button.dart';
-import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/loyalty_controller.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
@@ -23,9 +22,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Get.find<LoyaltyController>().initializeLoyalty();
-    });
+    Get.find<LoyaltyController>().fetchHistory();
   }
 
   @override
@@ -55,7 +52,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
               final totalPoints = user?.loyaltyPoints ?? 0;
 
               return RefreshIndicator(
-                onRefresh: loyaltyController.initializeLoyalty,
+                onRefresh: loyaltyController.fetchHistory,
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(
                     parent: BouncingScrollPhysics(),
@@ -68,8 +65,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                         context: context,
                         userName: user?.name,
                         totalPoints: totalPoints,
-                        walletConversionRate:
-                            loyaltyController.walletConversionRate,
+                        walletConversionRate: loyaltyController.walletConversionRate,
                         isConverting: loyaltyController.isConverting,
                       ),
                       const SizedBox(height: 24),
@@ -167,7 +163,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  '1 point = ${CurrencyHelper.formatAmount(walletConversionRate)}',
+                  '$walletConversionRate points = ${CurrencyHelper.formatAmount(1)}',
                   style: poppinsMedium.copyWith(
                     color: Colors.white,
                     fontSize: Constants.fontSizeSmall,
@@ -205,7 +201,11 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
           ),
           const SizedBox(height: 20),
           CustomButton(
-            onPressed: totalPoints == 0 ? null : _handleConvertToWallet,
+            onPressed: totalPoints == 0 ||
+                    walletConversionRate <= 0 ||
+                    isConverting
+                ? null
+                : _handleConvertToWallet,
             buttonText: 'Convert to Wallet',
             height: 52,
             elevation: 0,
@@ -323,8 +323,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
   void _handleConvertToWallet() {
     final pointsController = TextEditingController();
     final loyaltyController = Get.find<LoyaltyController>();
-    final totalPoints =
-        Get.find<ProfileController>().userProfile?.loyaltyPoints ?? 0;
+    final totalPoints = Get.find<ProfileController>().userProfile?.loyaltyPoints ?? 0;
     final walletConversionRate = loyaltyController.walletConversionRate;
 
     showDialog<void>(
@@ -332,13 +331,14 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            final enteredPoints =
-                int.tryParse(pointsController.text.trim()) ?? 0;
+            final enteredPoints = int.tryParse(pointsController.text.trim()) ?? 0;
             final validationMessage = _getConversionValidation(
               pointsController.text.trim(),
+              totalPoints: totalPoints,
+              walletConversionRate: walletConversionRate,
             );
             final convertedAmount = CurrencyHelper.formatWithSeparators(
-              enteredPoints * walletConversionRate,
+              enteredPoints / walletConversionRate,
             );
 
             return AlertDialog(
@@ -362,7 +362,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Conversion rate: 1 point = ${CurrencyHelper.formatAmount(walletConversionRate)}',
+                      'Conversion rate: $walletConversionRate points = ${CurrencyHelper.formatAmount(1)}',
                       style: poppinsRegular.copyWith(
                         color: ColorResource.textSecondary,
                       ),
@@ -436,20 +436,23 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                 ),
                 SizedBox(
                   width: 120,
-                  child: CustomButton(
-                    onPressed: validationMessage != null
-                        ? null
-                        : () async {
-                            final converted = await loyaltyController
-                                .convertPointsToWallet(enteredPoints);
-                            if (converted) {
-                              Get.back();
-                              customToster('Conversion successful ${NumberFormat.decimalPattern().format(enteredPoints)} points converted to $convertedAmount.');
-                            }
-                          },
-                    buttonText: 'Convert',
-                    height: 46,
-                    elevation: 0,
+                  child: GetBuilder<LoyaltyController>(
+                    builder: (controller) {
+                      return CustomButton(
+                        onPressed: validationMessage != null || controller.isConverting
+                            ? null
+                            : () async {
+                                final converted = await controller.convertPointsToWallet(enteredPoints);
+                                if (converted && dialogContext.mounted) {
+                                  Navigator.of(dialogContext).pop();
+                                }
+                              },
+                        buttonText: 'Convert',
+                        height: 46,
+                        elevation: 0,
+                        isLoading: controller.isConverting,
+                      );
+                    },
                   ),
                 ),
               ],
@@ -460,9 +463,17 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
     ).then((_) => pointsController.dispose());
   }
 
-  String? _getConversionValidation(String value) {
+  String? _getConversionValidation(
+    String value, {
+    required int totalPoints,
+    required double walletConversionRate,
+  }) {
     if (value.isEmpty) {
       return 'Enter loyalty points to convert';
+    }
+
+    if (walletConversionRate <= 0) {
+      return 'Wallet conversion is unavailable';
     }
 
     final points = int.tryParse(value);
@@ -474,8 +485,6 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
       return 'Points must be greater than 0';
     }
 
-    final totalPoints =
-        Get.find<ProfileController>().userProfile?.loyaltyPoints ?? 0;
     if (points > totalPoints) {
       return 'You only have ${NumberFormat.decimalPattern().format(totalPoints)} points';
     }

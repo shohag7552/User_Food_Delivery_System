@@ -16,9 +16,4 @@ abstract class LoyaltyRepoInterface {
     required OrderModel order,
     required double earningRate,
   });
-
-  Future<UserModel> syncDeliveredOrderPoints({
-    required UserModel user,
-    required double earningRate,
-  });
 }

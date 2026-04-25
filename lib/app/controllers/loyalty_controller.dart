@@ -30,11 +30,11 @@ class LoyaltyController extends GetxController implements GetxService {
     return settingsController.businessSetup?.loyaltyPointWalletRate ?? 0.10;
   }
 
-  Future<void> initializeLoyalty() async {
-    _isLoading = true;
-    update();
-
+  Future<void> fetchHistory() async {
     try {
+      _isLoading = true;
+      update();
+
       final settingsController = Get.find<SettingsController>();
       if (settingsController.businessSetup == null) {
         await settingsController.fetchBusinessSetup();
@@ -47,33 +47,18 @@ class LoyaltyController extends GetxController implements GetxService {
 
       final user = profileController.userProfile;
       if (user == null) {
-        throw Exception('User profile not loaded');
+        _history = [];
+        return;
       }
 
-      final updatedUser = await loyaltyRepoInterface.syncDeliveredOrderPoints(
-        user: user,
-        earningRate: earningRate,
-      );
-      if (updatedUser.loyaltyPoints != user.loyaltyPoints) {
-        profileController.setUserProfile(updatedUser);
-      }
-      await fetchHistory();
+      _history = await loyaltyRepoInterface.getLoyaltyHistory(user.id);
     } catch (e) {
-      log('Error initializing loyalty: $e');
+      log('Error fetching loyalty history: $e');
+      customToster('Failed to load loyalty history', isSuccess: false);
     } finally {
       _isLoading = false;
       update();
     }
-  }
-
-  Future<void> fetchHistory() async {
-    final user = Get.find<ProfileController>().userProfile;
-    if (user == null) {
-      return;
-    }
-
-    _history = await loyaltyRepoInterface.getLoyaltyHistory(user.id);
-    update();
   }
 
   Future<bool> convertPointsToWallet(int points) async {
@@ -85,7 +70,7 @@ class LoyaltyController extends GetxController implements GetxService {
       return false;
     }
 
-    if (points <= 0 || points > user.loyaltyPoints) {
+    if (points <= 0 || points > user.loyaltyPoints || walletConversionRate <= 0) {
       customToster('Enter valid loyalty points', isSuccess: false);
       return false;
     }

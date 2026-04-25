@@ -169,7 +169,7 @@ Future<void> _setupLoyaltyHistory(Databases db) async {
         () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.loyaltyHistoryCollection, key: 'wallet_amount', xrequired: false, xdefault: 0.0),
         () => db.createDatetimeAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.loyaltyHistoryCollection, key: 'created_at', xrequired: true),
   ], [
-    // Permission.create(Role.users()),
+    Permission.create(Role.users()),
     Permission.read(Role.users()),
     Permission.update(Role.users()),
     // Permission.delete(Role.users()),
