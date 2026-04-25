@@ -21,6 +21,14 @@ class ProfileController extends GetxController implements GetxService {
   bool get isUpdating => _isUpdating;
   bool get isUploadingImage => _isUploadingImage;
 
+  void setUserProfile(UserModel user) {
+    _userProfile = user;
+    nameController.text = user.name;
+    emailController.text = user.email;
+    phoneController.text = user.phone;
+    update();
+  }
+
   // Form controllers
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -192,7 +200,7 @@ class ProfileController extends GetxController implements GetxService {
     if (value == null || value.trim().isEmpty) {
       return 'Email is required';
     }
-    
+
     // Basic email validation
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(value.trim())) {
@@ -206,10 +214,10 @@ class ProfileController extends GetxController implements GetxService {
     if (value == null || value.trim().isEmpty) {
       return 'Phone number is required';
     }
-    
+
     // Remove spaces and dashes
     final cleanedPhone = value.replaceAll(RegExp(r'[\s-]'), '');
-    
+
     // Basic phone validation (at least 10 digits)
     if (cleanedPhone.length < 10) {
       return 'Enter a valid phone number';

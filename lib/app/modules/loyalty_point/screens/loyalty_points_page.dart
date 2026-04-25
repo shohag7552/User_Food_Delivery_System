@@ -1,6 +1,9 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_button.dart';
+import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
+import 'package:appwrite_user_app/app/controllers/loyalty_controller.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
+import 'package:appwrite_user_app/app/models/loyalty_history_model.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -17,45 +20,11 @@ class LoyaltyPointsPage extends StatefulWidget {
 }
 
 class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
-  static const double _walletConversionRate = 0.10;
-
-  final List<_LoyaltyTransaction> _transactions = const [
-    _LoyaltyTransaction(
-      title: 'Order reward',
-      subtitle: 'Earned from order #12847',
-      points: 180,
-      type: _LoyaltyTransactionType.earned,
-      date: '2026-04-20T18:40:00',
-    ),
-    _LoyaltyTransaction(
-      title: 'Weekend campaign bonus',
-      subtitle: 'Limited-time promotional reward',
-      points: 120,
-      type: _LoyaltyTransactionType.earned,
-      date: '2026-04-18T12:00:00',
-    ),
-    _LoyaltyTransaction(
-      title: 'Wallet conversion',
-      subtitle: 'Converted to wallet balance',
-      points: 150,
-      type: _LoyaltyTransactionType.redeemed,
-      date: '2026-04-15T10:15:00',
-    ),
-    _LoyaltyTransaction(
-      title: 'First order bonus',
-      subtitle: 'Welcome reward for your first purchase',
-      points: 250,
-      type: _LoyaltyTransactionType.earned,
-      date: '2026-04-09T16:30:00',
-    ),
-  ];
-
-  int get _totalPoints {
-    return _transactions.fold<int>(0, (sum, item) {
-      return sum +
-          (item.type == _LoyaltyTransactionType.earned
-              ? item.points
-              : -item.points);
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Get.find<LoyaltyController>().initializeLoyalty();
     });
   }
 
@@ -78,44 +47,67 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: GetBuilder<ProfileController>(
-        builder: (controller) {
-          final user = controller.userProfile;
+      body: GetBuilder<LoyaltyController>(
+        builder: (loyaltyController) {
+          return GetBuilder<ProfileController>(
+            builder: (profileController) {
+              final user = profileController.userProfile;
+              final totalPoints = user?.loyaltyPoints ?? 0;
 
-          return SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSummaryCard(
-                  context: context,
-                  userName: user?.name,
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Points activity',
-                  style: poppinsBold.copyWith(
-                    fontSize: Constants.fontSizeLarge,
-                    color: isDark ? Colors.white : ColorResource.textPrimary,
+              return RefreshIndicator(
+                onRefresh: loyaltyController.initializeLoyalty,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSummaryCard(
+                        context: context,
+                        userName: user?.name,
+                        totalPoints: totalPoints,
+                        walletConversionRate:
+                            loyaltyController.walletConversionRate,
+                        isConverting: loyaltyController.isConverting,
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Points activity',
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeLarge,
+                          color: isDark
+                              ? Colors.white
+                              : ColorResource.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Track how points are earned and redeemed across your account.',
+                        style: poppinsRegular.copyWith(
+                          color: isDark
+                              ? Colors.white70
+                              : ColorResource.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      if (loyaltyController.isLoading)
+                        const Center(child: CircularProgressIndicator())
+                      else if (loyaltyController.history.isEmpty)
+                        _buildEmptyState(context)
+                      else
+                        ...loyaltyController.history.map(
+                          (transaction) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _buildTransactionCard(context, transaction),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Track how points are earned and redeemed across your account.',
-                  style: poppinsRegular.copyWith(
-                    color: isDark ? Colors.white70 : ColorResource.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ..._transactions.map(
-                  (transaction) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _buildTransactionCard(context, transaction),
-                  ),
-                ),
-              ],
-            ),
+              );
+            },
           );
         },
       ),
@@ -125,6 +117,9 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
   Widget _buildSummaryCard({
     required BuildContext context,
     required String? userName,
+    required int totalPoints,
+    required double walletConversionRate,
+    required bool isConverting,
   }) {
     return Container(
       width: double.infinity,
@@ -133,11 +128,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFFE25757),
-            Color(0xFFC92A2A),
-            Color(0xFF7F1D1D),
-          ],
+          colors: [Color(0xFFE25757), Color(0xFFC92A2A), Color(0xFF7F1D1D)],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
@@ -167,14 +158,16 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
               ),
               const Spacer(),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  '1 point = ${CurrencyHelper.formatAmount(_walletConversionRate)}',
+                  '1 point = ${CurrencyHelper.formatAmount(walletConversionRate)}',
                   style: poppinsMedium.copyWith(
                     color: Colors.white,
                     fontSize: Constants.fontSizeSmall,
@@ -195,7 +188,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
           ),
           const SizedBox(height: 6),
           Text(
-            NumberFormat.decimalPattern().format(_totalPoints),
+            NumberFormat.decimalPattern().format(totalPoints),
             style: poppinsBold.copyWith(
               color: Colors.white,
               fontSize: 36,
@@ -212,10 +205,11 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
           ),
           const SizedBox(height: 20),
           CustomButton(
-            onPressed: _totalPoints == 0 ? null : _handleConvertToWallet,
+            onPressed: totalPoints == 0 ? null : _handleConvertToWallet,
             buttonText: 'Convert to Wallet',
             height: 52,
             elevation: 0,
+            isLoading: isConverting,
           ),
         ],
       ),
@@ -224,12 +218,13 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
 
   Widget _buildTransactionCard(
     BuildContext context,
-    _LoyaltyTransaction transaction,
+    LoyaltyHistoryModel transaction,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isEarned = transaction.type == _LoyaltyTransactionType.earned;
-    final accentColor =
-        isEarned ? ColorResource.success : ColorResource.warning;
+    final isEarned = transaction.isEarned;
+    final accentColor = isEarned
+        ? ColorResource.success
+        : ColorResource.warning;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -279,15 +274,18 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  transaction.subtitle,
+                  transaction.description,
                   style: poppinsRegular.copyWith(
-                    color: isDark ? Colors.white70 : ColorResource.textSecondary,
+                    color: isDark
+                        ? Colors.white70
+                        : ColorResource.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  DateFormat('dd MMM yyyy, hh:mm a')
-                      .format(transaction.parsedDate),
+                  DateFormat(
+                    'dd MMM yyyy, hh:mm a',
+                  ).format(transaction.createdAt),
                   style: poppinsRegular.copyWith(
                     fontSize: Constants.fontSizeSmall,
                     color: isDark ? Colors.white54 : ColorResource.textLight,
@@ -324,18 +322,23 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
 
   void _handleConvertToWallet() {
     final pointsController = TextEditingController();
+    final loyaltyController = Get.find<LoyaltyController>();
+    final totalPoints =
+        Get.find<ProfileController>().userProfile?.loyaltyPoints ?? 0;
+    final walletConversionRate = loyaltyController.walletConversionRate;
 
     showDialog<void>(
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            final enteredPoints = int.tryParse(pointsController.text.trim()) ?? 0;
+            final enteredPoints =
+                int.tryParse(pointsController.text.trim()) ?? 0;
             final validationMessage = _getConversionValidation(
               pointsController.text.trim(),
             );
             final convertedAmount = CurrencyHelper.formatWithSeparators(
-              enteredPoints * _walletConversionRate,
+              enteredPoints * walletConversionRate,
             );
 
             return AlertDialog(
@@ -352,14 +355,14 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Available points: ${NumberFormat.decimalPattern().format(_totalPoints)}',
+                      'Available points: ${NumberFormat.decimalPattern().format(totalPoints)}',
                       style: poppinsMedium.copyWith(
                         color: ColorResource.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Conversion rate: 1 point = ${CurrencyHelper.formatAmount(_walletConversionRate)}',
+                      'Conversion rate: 1 point = ${CurrencyHelper.formatAmount(walletConversionRate)}',
                       style: poppinsRegular.copyWith(
                         color: ColorResource.textSecondary,
                       ),
@@ -392,7 +395,9 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: ColorResource.primaryDark.withValues(alpha: 0.08),
+                        color: ColorResource.primaryDark.withValues(
+                          alpha: 0.08,
+                        ),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
@@ -434,16 +439,13 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                   child: CustomButton(
                     onPressed: validationMessage != null
                         ? null
-                        : () {
-                            Navigator.of(dialogContext).pop();
-                            Get.snackbar(
-                              'Conversion pending',
-                              '${NumberFormat.decimalPattern().format(enteredPoints)} points will convert to $convertedAmount once the backend is connected.',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: ColorResource.primaryDark,
-                              colorText: Colors.white,
-                              margin: const EdgeInsets.all(16),
-                            );
+                        : () async {
+                            final converted = await loyaltyController
+                                .convertPointsToWallet(enteredPoints);
+                            if (converted) {
+                              Get.back();
+                              customToster('Conversion successful ${NumberFormat.decimalPattern().format(enteredPoints)} points converted to $convertedAmount.');
+                            }
                           },
                     buttonText: 'Convert',
                     height: 46,
@@ -472,30 +474,54 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
       return 'Points must be greater than 0';
     }
 
-    if (points > _totalPoints) {
-      return 'You only have ${NumberFormat.decimalPattern().format(_totalPoints)} points';
+    final totalPoints =
+        Get.find<ProfileController>().userProfile?.loyaltyPoints ?? 0;
+    if (points > totalPoints) {
+      return 'You only have ${NumberFormat.decimalPattern().format(totalPoints)} points';
     }
 
     return null;
   }
-}
 
-enum _LoyaltyTransactionType { earned, redeemed }
+  Widget _buildEmptyState(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-class _LoyaltyTransaction {
-  final String title;
-  final String subtitle;
-  final int points;
-  final _LoyaltyTransactionType type;
-  final String date;
-
-  const _LoyaltyTransaction({
-    required this.title,
-    required this.subtitle,
-    required this.points,
-    required this.type,
-    required this.date,
-  });
-
-  DateTime get parsedDate => DateTime.parse(date);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF141B2D) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.black.withValues(alpha: 0.04),
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.workspace_premium_outlined,
+            color: isDark ? Colors.white54 : ColorResource.textLight,
+            size: 40,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'No loyalty activity yet',
+            style: poppinsMedium.copyWith(
+              color: isDark ? Colors.white : ColorResource.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Delivered orders will appear here with earned points.',
+            textAlign: TextAlign.center,
+            style: poppinsRegular.copyWith(
+              color: isDark ? Colors.white70 : ColorResource.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

@@ -48,6 +48,7 @@ void main() async {
     await _setupNotifications(databases);
     await _setupPrivacyPolicy(databases);
     await _setupDrivers(databases);
+    await _setupLoyaltyHistory(databases);
 
     print("\n🎉 SETUP COMPLETE! Your Appwrite backend is ready.");
   } catch (e) {
@@ -97,6 +98,7 @@ Future<void> _setupUsers(Databases db) async {
         () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.usersCollection, key: 'role', elements: ['customer', 'driver', 'manager', 'admin'], xrequired: true),
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.usersCollection, key: 'fcm_token', size: 255, xrequired: false),
         () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.usersCollection, key: 'wallet_balance', xrequired: false, xdefault: 0.0),
+        () => db.createIntegerAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.usersCollection, key: 'loyalty_points', xrequired: false, xdefault: 0),
         () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.usersCollection, key: 'is_active', xrequired: false, xdefault: true),
   ], [
     Permission.read(Role.users()),
@@ -144,6 +146,8 @@ Future<void> _setupBusinessSetup(Databases db) async {
         () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'is_cod_active', xdefault: false, xrequired: false),
         () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'is_digital_active', xdefault: false, xrequired: false),
         () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'is_wallet_active', xdefault: false, xrequired: false),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'loyalty_point_earning_rate', xdefault: 1.0, xrequired: false),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'loyalty_point_wallet_rate', xdefault: 0.10, xrequired: false),
 
   ], [
     Permission.read(Role.any()),          // Everyone can see
@@ -151,6 +155,28 @@ Future<void> _setupBusinessSetup(Databases db) async {
     Permission.read(Role.team('admin_team')),
     Permission.update(Role.team('admin_team')),
     Permission.delete(Role.team('admin_team')),
+  ]);
+}
+
+Future<void> _setupLoyaltyHistory(Databases db) async {
+  await _createCollection(db, AppwriteConfig.loyaltyHistoryCollection, 'Loyalty History', [
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.loyaltyHistoryCollection, key: 'user_id', size: 64, xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.loyaltyHistoryCollection, key: 'order_id', size: 64, xrequired: false),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.loyaltyHistoryCollection, key: 'type', elements: ['earned', 'converted'], xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.loyaltyHistoryCollection, key: 'title', size: 128, xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.loyaltyHistoryCollection, key: 'description', size: 500, xrequired: false),
+        () => db.createIntegerAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.loyaltyHistoryCollection, key: 'points', xrequired: true),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.loyaltyHistoryCollection, key: 'wallet_amount', xrequired: false, xdefault: 0.0),
+        () => db.createDatetimeAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.loyaltyHistoryCollection, key: 'created_at', xrequired: true),
+  ], [
+    // Permission.create(Role.users()),
+    Permission.read(Role.users()),
+    Permission.update(Role.users()),
+    // Permission.delete(Role.users()),
+    Permission.read(Role.team('admin_team')),
+    Permission.write(Role.team('admin_team')),
+    Permission.create(Role.team('admin_team')),
+    Permission.update(Role.team('admin_team')),
   ]);
 }
 

@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 
 import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
@@ -17,6 +16,7 @@ import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
 import 'package:appwrite_user_app/app/controllers/review_controller.dart';
 import 'package:appwrite_user_app/app/controllers/notification_controller.dart';
+import 'package:appwrite_user_app/app/controllers/loyalty_controller.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repository.dart';
 import 'package:appwrite_user_app/app/modules/categories/domain/repository/category_repo_interface.dart';
@@ -43,6 +43,8 @@ import 'package:appwrite_user_app/app/modules/reviews/domain/repository/review_r
 import 'package:appwrite_user_app/app/modules/reviews/domain/repository/review_repository.dart';
 import 'package:appwrite_user_app/app/modules/notification/domain/repository/notification_repo_interface.dart';
 import 'package:appwrite_user_app/app/modules/notification/domain/repository/notification_repository.dart';
+import 'package:appwrite_user_app/app/modules/loyalty_point/domain/repository/loyalty_repo_interface.dart';
+import 'package:appwrite_user_app/app/modules/loyalty_point/domain/repository/loyalty_repository.dart';
 import 'package:appwrite_user_app/app/modules/splash/domain/repository/splash_repo_interface.dart';
 import 'package:appwrite_user_app/app/modules/splash/domain/repository/splash_repository.dart';
 import 'package:appwrite_user_app/app/modules/policies/domain/repository/policy_repo_interface.dart';
@@ -63,51 +65,86 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   // Get.lazyPut(() => ApiService(appBaseUrl: AppUrls.baseUrl, sharedPreferences: sharedPreferences));
 
   /// Repository Initialization
-  AuthRepoInterface loginRepoInterface = AuthRepository(sharedPreferences: sharedPreferences, appwriteService: Get.find());
+  AuthRepoInterface loginRepoInterface = AuthRepository(
+    sharedPreferences: sharedPreferences,
+    appwriteService: Get.find(),
+  );
   Get.lazyPut(() => loginRepoInterface);
 
-  CategoryRepoInterface categoryRepoInterface = CategoryRepository(appwriteService: Get.find());
+  CategoryRepoInterface categoryRepoInterface = CategoryRepository(
+    appwriteService: Get.find(),
+  );
   Get.lazyPut(() => categoryRepoInterface);
 
-  CouponRepoInterface couponRepoInterface = CouponRepository(appwriteService: Get.find());
+  CouponRepoInterface couponRepoInterface = CouponRepository(
+    appwriteService: Get.find(),
+  );
   Get.lazyPut(() => couponRepoInterface);
 
-  ProductRepoInterface productRepoInterface = ProductRepository(appwriteService: Get.find());
+  ProductRepoInterface productRepoInterface = ProductRepository(
+    appwriteService: Get.find(),
+  );
   Get.lazyPut(() => productRepoInterface);
 
-  BannerRepoInterface bannerRepoInterface = BannerRepository(appwriteService: Get.find());
+  BannerRepoInterface bannerRepoInterface = BannerRepository(
+    appwriteService: Get.find(),
+  );
   Get.lazyPut(() => bannerRepoInterface);
 
-  CartRepoInterface cartRepoInterface = CartRepository(appwriteService: Get.find());
+  CartRepoInterface cartRepoInterface = CartRepository(
+    appwriteService: Get.find(),
+  );
   Get.lazyPut(() => cartRepoInterface);
 
-  AddressRepoInterface addressRepoInterface = AddressRepository(appwriteService: Get.find());
+  AddressRepoInterface addressRepoInterface = AddressRepository(
+    appwriteService: Get.find(),
+  );
   Get.lazyPut(() => addressRepoInterface);
 
-  OrderRepoInterface orderRepoInterface = OrderRepository(appwriteService: Get.find());
+  OrderRepoInterface orderRepoInterface = OrderRepository(
+    appwriteService: Get.find(),
+  );
   Get.lazyPut(() => orderRepoInterface);
 
-  SettingsRepoInterface settingsRepoInterface = SettingsRepository(appwriteService: Get.find());
+  SettingsRepoInterface settingsRepoInterface = SettingsRepository(
+    appwriteService: Get.find(),
+  );
   Get.lazyPut(() => settingsRepoInterface);
 
-  ProfileRepoInterface profileRepoInterface = ProfileRepository(appwriteService: Get.find());
+  ProfileRepoInterface profileRepoInterface = ProfileRepository(
+    appwriteService: Get.find(),
+  );
   Get.lazyPut(() => profileRepoInterface);
 
-  FavoritesRepoInterface favoritesRepoInterface = FavoritesRepository(appwriteService: Get.find());
+  FavoritesRepoInterface favoritesRepoInterface = FavoritesRepository(
+    appwriteService: Get.find(),
+  );
   Get.lazyPut(() => favoritesRepoInterface);
 
-  ReviewRepoInterface reviewRepoInterface = ReviewRepository(appwriteService: Get.find());
+  ReviewRepoInterface reviewRepoInterface = ReviewRepository(
+    appwriteService: Get.find(),
+  );
   Get.lazyPut(() => reviewRepoInterface);
 
-  SplashRepoInterface splashRepoInterface = SplashRepository(sharedPreferences: sharedPreferences);
+  SplashRepoInterface splashRepoInterface = SplashRepository(
+    sharedPreferences: sharedPreferences,
+  );
   Get.lazyPut(() => splashRepoInterface);
 
-  NotificationRepoInterface notificationRepoInterface = NotificationRepository(appwriteService: Get.find());
+  NotificationRepoInterface notificationRepoInterface = NotificationRepository(
+    appwriteService: Get.find(),
+  );
   Get.lazyPut(() => notificationRepoInterface);
 
-  PolicyRepoInterface policyRepoInterface = PolicyRepository(appwriteService: Get.find());
+  PolicyRepoInterface policyRepoInterface = PolicyRepository(
+    appwriteService: Get.find(),
+  );
   Get.lazyPut(() => policyRepoInterface);
 
+  LoyaltyRepoInterface loyaltyRepoInterface = LoyaltyRepository(
+    appwriteService: Get.find(),
+  );
+  Get.lazyPut(() => loyaltyRepoInterface);
 
   /// Controller Initialization
   Get.lazyPut(() => CartAnimationController());
@@ -123,21 +160,26 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   Get.lazyPut(() => ProfileController(profileRepoInterface: Get.find()));
   Get.lazyPut(() => FavoritesController(favoritesRepoInterface: Get.find()));
   Get.lazyPut(() => ReviewController(reviewRepoInterface: Get.find()));
-  Get.lazyPut(() => NotificationController(notificationRepoInterface: Get.find()));
+  Get.lazyPut(
+    () => NotificationController(notificationRepoInterface: Get.find()),
+  );
+  Get.lazyPut(() => LoyaltyController(loyaltyRepoInterface: Get.find()));
   Get.lazyPut(() => SplashController(splashRepositoryInterface: Get.find()));
   Get.lazyPut(() => PolicyController(policyRepoInterface: Get.find()));
 
-
   /// Retrieving localized data
   Map<String, Map<String, String>> languages = {};
-  for(LanguageModel languageModel in Constants.languages) {
-    String jsonStringValues =  await rootBundle.loadString('assets/language/${languageModel.languageCode}.json');
+  for (LanguageModel languageModel in Constants.languages) {
+    String jsonStringValues = await rootBundle.loadString(
+      'assets/language/${languageModel.languageCode}.json',
+    );
     Map<String, dynamic> mappedJson = jsonDecode(jsonStringValues);
     Map<String, String> json = {};
     mappedJson.forEach((key, value) {
       json[key] = value.toString();
     });
-    languages['${languageModel.languageCode}_${languageModel.countryCode}'] = json;
+    languages['${languageModel.languageCode}_${languageModel.countryCode}'] =
+        json;
   }
   return languages;
 }

@@ -16,6 +16,8 @@ class BusinessSetupModel {
   final double? minDeliveryFee;
   final double? freeDeliveryAbove;
   final double? maxDeliveryRadius;
+  final double loyaltyPointEarningRate;
+  final double loyaltyPointWalletRate;
   final String storeLocation;
   final double? storeLatitude;
   final double? storeLongitude;
@@ -40,6 +42,8 @@ class BusinessSetupModel {
     this.minDeliveryFee,
     this.freeDeliveryAbove,
     this.maxDeliveryRadius,
+    this.loyaltyPointEarningRate = 1.0,
+    this.loyaltyPointWalletRate = 0.10,
     required this.storeLocation,
     this.storeLatitude,
     this.storeLongitude,
@@ -68,6 +72,10 @@ class BusinessSetupModel {
       minDeliveryFee: json['min_delivery_fee']?.toDouble(),
       freeDeliveryAbove: json['free_delivery_above']?.toDouble(),
       maxDeliveryRadius: json['max_delivery_radius']?.toDouble(),
+      loyaltyPointEarningRate: (json['loyalty_point_earning_rate'] ?? 1.0)
+          .toDouble(),
+      loyaltyPointWalletRate: (json['loyalty_point_wallet_rate'] ?? 0.10)
+          .toDouble(),
       storeLocation: json['store_location'] ?? '',
       storeLatitude: json['store_latitude']?.toDouble(),
       storeLongitude: json['store_longitude']?.toDouble(),
@@ -98,11 +106,13 @@ class BusinessSetupModel {
       if (minDeliveryFee != null) 'min_delivery_fee': minDeliveryFee,
       if (freeDeliveryAbove != null) 'free_delivery_above': freeDeliveryAbove,
       if (maxDeliveryRadius != null) 'max_delivery_radius': maxDeliveryRadius,
+      'loyalty_point_earning_rate': loyaltyPointEarningRate,
+      'loyalty_point_wallet_rate': loyaltyPointWalletRate,
       'store_location': storeLocation,
       if (storeLatitude != null) 'store_latitude': storeLatitude,
       if (storeLongitude != null) 'store_longitude': storeLongitude,
       'is_store_open': isStoreOpen,
-      'is_maintenance_mode_on': isMaintenanceModeOn ,
+      'is_maintenance_mode_on': isMaintenanceModeOn,
     };
   }
 
@@ -122,6 +132,8 @@ class BusinessSetupModel {
     double? minDeliveryFee,
     double? freeDeliveryAbove,
     double? maxDeliveryRadius,
+    double? loyaltyPointEarningRate,
+    double? loyaltyPointWalletRate,
     String? storeLocation,
     double? storeLatitude,
     double? storeLongitude,
@@ -146,6 +158,10 @@ class BusinessSetupModel {
       minDeliveryFee: minDeliveryFee ?? this.minDeliveryFee,
       freeDeliveryAbove: freeDeliveryAbove ?? this.freeDeliveryAbove,
       maxDeliveryRadius: maxDeliveryRadius ?? this.maxDeliveryRadius,
+      loyaltyPointEarningRate:
+          loyaltyPointEarningRate ?? this.loyaltyPointEarningRate,
+      loyaltyPointWalletRate:
+          loyaltyPointWalletRate ?? this.loyaltyPointWalletRate,
       storeLocation: storeLocation ?? this.storeLocation,
       storeLatitude: storeLatitude ?? this.storeLatitude,
       storeLongitude: storeLongitude ?? this.storeLongitude,

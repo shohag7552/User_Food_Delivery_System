@@ -39,6 +39,7 @@ class AppwriteService {
     required String collectionId,
     required Map<String, dynamic> data,
     String? documentId,
+    List<String>? permissions,
   }) async {
     try {
       final user = await account.get();
@@ -51,7 +52,7 @@ class AppwriteService {
         tableId: collectionId,
         rowId: documentId ?? ID.unique(),
         data: data,
-        permissions: [Permission.write(Role.user(user.$id))],
+        permissions: permissions ?? [Permission.write(Role.user(user.$id))],
       );
     } on AppwriteException catch (e) {
       log('===> AppwriteException: ${e.response}');
@@ -186,7 +187,10 @@ class AppwriteService {
       );
       print('====> Signup successful for user: ${user.$id}');
       // Automatically create a session after signup
-      await account.createEmailPasswordSession(email: email, password: password);
+      await account.createEmailPasswordSession(
+        email: email,
+        password: password,
+      );
 
       return AppWriteResponse(
         code: 200,
@@ -231,6 +235,7 @@ class AppwriteService {
           'phone': phone,
           'role': role,
           'wallet_balance': 0.0,
+          'loyalty_points': 0,
           'fcm_token': fcmToken,
           // 'is_active': true,
         },
@@ -349,7 +354,8 @@ class AppwriteService {
   Future<String?> uploadImage(XFile file) async {
     try {
       final result = await storage.createFile(
-        bucketId: AppwriteConfig.postsBucketId, // Create bucket in Appwrite console
+        bucketId:
+            AppwriteConfig.postsBucketId, // Create bucket in Appwrite console
         fileId: ID.unique(), // Auto-generate unique ID
         file: InputFile.fromPath(
           path: file.path,
@@ -361,7 +367,8 @@ class AppwriteService {
       // Return uploaded file ID
       log("Upload successful: ${result.$id} // ${result.toMap()}");
       // Construct a direct view/preview URL (public if bucket/file perms allow it)
-      final fileUrl = '${AppwriteConfig.endpoint}/storage/buckets/${AppwriteConfig.postsBucketId}/files/${result.$id}/view?project=${AppwriteConfig.projectId}';
+      final fileUrl =
+          '${AppwriteConfig.endpoint}/storage/buckets/${AppwriteConfig.postsBucketId}/files/${result.$id}/view?project=${AppwriteConfig.projectId}';
 
       log(fileUrl);
       return fileUrl;

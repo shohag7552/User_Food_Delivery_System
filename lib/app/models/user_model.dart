@@ -5,6 +5,7 @@ class UserModel {
   final String phone;
   final String role;
   final double walletBalance;
+  final int loyaltyPoints;
   final bool isActive;
   final String? profileImageUrl;
 
@@ -15,6 +16,7 @@ class UserModel {
     required this.phone,
     this.role = 'customer',
     this.walletBalance = 0.0,
+    this.loyaltyPoints = 0,
     this.isActive = true,
     this.profileImageUrl,
   });
@@ -35,6 +37,7 @@ class UserModel {
     String? phone,
     String? role,
     double? walletBalance,
+    int? loyaltyPoints,
     bool? isActive,
     String? profileImageUrl,
   }) {
@@ -45,6 +48,7 @@ class UserModel {
       phone: phone ?? this.phone,
       role: role ?? this.role,
       walletBalance: walletBalance ?? this.walletBalance,
+      loyaltyPoints: loyaltyPoints ?? this.loyaltyPoints,
       isActive: isActive ?? this.isActive,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
     );
@@ -59,6 +63,7 @@ class UserModel {
       phone: json['phone'] ?? '',
       role: json['role'] ?? 'customer',
       walletBalance: (json['wallet_balance'] ?? 0.0).toDouble(),
+      loyaltyPoints: (json['loyalty_points'] ?? 0).toInt(),
       isActive: json['is_active'] ?? true,
       profileImageUrl: json['profile_image_url'],
     );
@@ -72,6 +77,7 @@ class UserModel {
       'phone': phone,
       'role': role,
       'wallet_balance': walletBalance,
+      'loyalty_points': loyaltyPoints,
       'is_active': isActive,
       if (profileImageUrl != null) 'profile_image_url': profileImageUrl,
     };
