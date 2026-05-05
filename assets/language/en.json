@@ -510,5 +510,8 @@
   "set_as_default_address": "Set as Default Address",
   "update_address": "Update Address",
   "veg": "Veg",
-  "non_veg": "Non-Veg"
+  "non_veg": "Non-Veg",
+  "customize_your_order": "Customize your order",
+  "groups": "groups",
+  "choose_your_preferred_options_to_build_the_perfect_order": "Choose your preferred options to build the perfect order."
 }

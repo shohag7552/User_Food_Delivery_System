@@ -13,6 +13,7 @@ import 'package:appwrite_user_app/app/modules/dashboard/widgets/full_screen_imag
 import 'package:appwrite_user_app/app/modules/reviews/widgets/review_list_section.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
+import 'package:appwrite_user_app/app/resources/images.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -291,13 +292,10 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
   }
 
   Widget _buildProductImage() {
-    final hasDiscount = widget.product.hasDiscount;
-    final discountPercentage = hasDiscount
-        ? ((widget.product.price - widget.product.finalPrice) /
-                    widget.product.price *
-                    100)
-                .toStringAsFixed(0)
-        : null;
+    bool hasDiscount = widget.product.hasDiscount;
+    String? discountPercentage = hasDiscount ? (widget.product.discountType == 'percentage'
+        ? '${widget.product.discountValue?.toInt()}% OFF'
+        : '${PriceHelper.formatPrice(widget.product.discountValue?.toDouble()??0)} OFF') : null;
 
     return GestureDetector(
       onTap: () {
@@ -397,7 +395,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                   children: [
                     hasDiscount ? _buildInfoChip(
                       color: ColorResource.error,
-                      label: '$discountPercentage% OFF',
+                      label: '$discountPercentage',
                       icon: null,
                     ) : const SizedBox(),
                     const Spacer(),
@@ -444,13 +442,21 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
       child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          widget.product.nameMap.trLanguage,
-          style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeLarge,
-            height: 1.2,
-            color: ColorResource.textPrimary,
-          ),
+        Wrap(
+          children: [
+            Text(
+              widget.product.nameMap.trLanguage,
+              style: poppinsBold.copyWith(
+                fontSize: Constants.fontSizeLarge,
+                height: 1.2,
+                color: ColorResource.textPrimary,
+              ),
+            ),
+            widget.product.isVeg ? Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Constants.paddingSizeSmall),
+              child: Image.asset(Images.veg, height: 20, width: 20,),
+            ) : const SizedBox(),
+          ],
         ),
         const SizedBox(height: Constants.paddingSizeSmall),
 
@@ -459,19 +465,6 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
           reviewCount: widget.product.ratingCount,
           size: 14,
           showRating: true,
-        ),
-        const SizedBox(height: Constants.paddingSizeSmall),
-
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _buildInfoChip(
-              icon: null,
-              color: ColorResource.primarySwatch,
-              label: widget.product.isVeg ? 'VEG' : 'NON-VEG',
-            ),
-          ],
         ),
         const SizedBox(height: Constants.paddingSizeSmall),
 
@@ -546,7 +539,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
           children: [
             Expanded(
               child: Text(
-                'Customize your order',
+                'customize_your_order'.tr,
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeLarge,
                   color: ColorResource.textPrimary,
@@ -560,7 +553,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
-                '${widget.product.variants.length} groups',
+                '${widget.product.variants.length} ${'groups'.tr}',
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeExtraSmall,
                   color: ColorResource.primarySwatch,
@@ -571,7 +564,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
         ),
         const SizedBox(height: 4),
         Text(
-          'Choose your preferred options to build the perfect order.',
+          'choose_your_preferred_options_to_build_the_perfect_order'.tr,
           style: poppinsRegular.copyWith(
             fontSize: Constants.fontSizeSmall,
             color: ColorResource.textSecondary,
@@ -615,7 +608,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
               decoration: BoxDecoration(
                 color: variant.required
                     ? ColorResource.error.withValues(alpha: 0.08)
-                    : ColorResource.primaryDark.withValues(alpha: 0.08),
+                    : Theme.of(context).textTheme.bodyLarge!.color!.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
@@ -624,7 +617,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                   fontSize: Constants.fontSizeExtraSmall,
                   color: variant.required
                       ? ColorResource.error
-                      : ColorResource.primaryDark,
+                      : Theme.of(context).textTheme.bodyLarge!.color,
                 ),
               ),
             ),
@@ -777,14 +770,14 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: isSelected
-              ? ColorResource.primaryDark.withValues(alpha: 0.08)
+              ? Colors.green.withValues(alpha: 0.05)
               : ColorResource.scaffoldBackground,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
-                ? ColorResource.primaryDark
+                ? Colors.green
                 : ColorResource.textLight.withValues(alpha: 0.2),
-            width: isSelected ? 2 : 1,
+            width: isSelected ? .7 : 0.5,
           ),
         ),
         child: Row(
@@ -844,7 +837,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                 '+${PriceHelper.formatPrice(option.price)}',
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeSmall,
-                  color: ColorResource.primaryDark,
+                  color: ColorResource.primarySwatch,
                 ),
               ),
           ],
