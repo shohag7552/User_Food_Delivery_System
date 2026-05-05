@@ -58,7 +58,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 crossAxisCount: 2,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                childAspectRatio: 0.75,
+                mainAxisExtent: 240,
+                // childAspectRatio: 0.75,
               ),
               itemCount: controller.favorites.length,
               itemBuilder: (context, index) {

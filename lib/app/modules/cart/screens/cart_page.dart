@@ -167,12 +167,12 @@ class CartPage extends StatelessWidget {
                         : const Color(0xFFF5F5F5),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(4),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: CustomNetworkImage(
                       image: item.productImage,
-                      fit: BoxFit.contain,
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
@@ -310,7 +310,7 @@ class CartPage extends StatelessWidget {
         decoration: BoxDecoration(
           color: enabled
               ? ColorResource.primaryDark
-              : ColorResource.textLight.withOpacity(0.2),
+              : ColorResource.textLight.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(Constants.radiusDefault),
         ),
         child: Icon(
