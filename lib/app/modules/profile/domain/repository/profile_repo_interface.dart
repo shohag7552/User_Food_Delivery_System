@@ -10,4 +10,7 @@ abstract class ProfileRepoInterface {
 
   /// Upload profile image and return image URL
   Future<String?> uploadProfileImage(XFile image);
+
+  /// Deduct amount from user's wallet balance and return updated user
+  Future<UserModel> deductWalletBalance(double amount);
 }

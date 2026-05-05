@@ -4,6 +4,7 @@ import 'package:appwrite_user_app/app/controllers/address_controller.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
+import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
@@ -622,31 +623,54 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ),
             activeColor: ColorResource.primaryDark,
           ),
-          RadioListTile<PaymentMethod>(
-            value: PaymentMethod.wallet,
-            groupValue: _selectedPaymentMethod,
-            onChanged: (value) => setState(() => _selectedPaymentMethod = value!),
-            title: Row(
-              children: [
-                Icon(Icons.account_balance_wallet, color: _selectedPaymentMethod == PaymentMethod.wallet ? ColorResource.primaryDark : ColorResource.textLight),
-                const SizedBox(width: 12),
-                Text(
-                  'wallet'.tr,
-                  style: poppinsMedium.copyWith(
-                    fontSize: Constants.fontSizeDefault,
-                    color: _selectedPaymentMethod == PaymentMethod.wallet ? ColorResource.textPrimary : ColorResource.textLight,
+          GetBuilder<ProfileController>(
+            builder: (profileController) {
+              final walletBalance = profileController.walletBalance;
+              return RadioListTile<PaymentMethod>(
+                value: PaymentMethod.wallet,
+                groupValue: _selectedPaymentMethod,
+                onChanged: (value) => setState(() => _selectedPaymentMethod = value!),
+                title: Row(
+                  children: [
+                    Icon(Icons.account_balance_wallet, color: _selectedPaymentMethod == PaymentMethod.wallet ? ColorResource.primaryDark : ColorResource.textLight),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'wallet'.tr,
+                        style: poppinsMedium.copyWith(
+                          fontSize: Constants.fontSizeDefault,
+                          color: _selectedPaymentMethod == PaymentMethod.wallet ? ColorResource.textPrimary : ColorResource.textLight,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: walletBalance > 0
+                            ? Colors.green.withValues(alpha: 0.1)
+                            : Colors.red.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        CurrencyHelper.formatAmount(walletBalance),
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeSmall,
+                          color: walletBalance > 0 ? Colors.green.shade700 : Colors.red.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                subtitle: Text(
+                  'pay_from_wallet_balance'.tr,
+                  style: poppinsRegular.copyWith(
+                    fontSize: Constants.fontSizeSmall,
+                    color: _selectedPaymentMethod == PaymentMethod.wallet ? ColorResource.textSecondary : ColorResource.textLight,
                   ),
                 ),
-              ],
-            ),
-            subtitle: Text(
-              'pay_from_wallet_balance'.tr,
-              style: poppinsRegular.copyWith(
-                fontSize: Constants.fontSizeSmall,
-                color: _selectedPaymentMethod == PaymentMethod.wallet ? ColorResource.textSecondary : ColorResource.textLight,
-              ),
-            ),
-            activeColor: ColorResource.primaryDark,
+                activeColor: ColorResource.primaryDark,
+              );
+            },
           ),
         ],
       ),
@@ -879,6 +903,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     try {
       final orderController = Get.find<OrderController>();
       final authController = Get.find<AuthController>();
+      final profileController = Get.find<ProfileController>();
       String? userId = await authController.getUserId();
 
       if (userId == null) {
@@ -900,6 +925,21 @@ class _CheckoutPageState extends State<CheckoutPage> {
         }
       }
 
+      // Handle wallet payment — check balance before placing order
+      if (_selectedPaymentMethod == PaymentMethod.wallet) {
+        // Refresh profile to get latest wallet balance
+        await profileController.fetchUserProfile();
+        final walletBalance = profileController.walletBalance;
+
+        if (walletBalance < total) {
+          customToster(
+            'Insufficient wallet balance. Your balance is ${CurrencyHelper.formatAmount(walletBalance)} but order total is ${CurrencyHelper.formatAmount(total)}.',
+            isSuccess: false,
+          );
+          return;
+        }
+      }
+
       // Proceed to Appwrite database order placement
       final result = await orderController.placeOrder(
         customerId: userId,
@@ -915,6 +955,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
       );
 
       if (result['success'] == true) {
+        // Deduct wallet balance after successful order placement
+        if (_selectedPaymentMethod == PaymentMethod.wallet) {
+          final deducted = await profileController.deductWalletBalance(total);
+          if (!deducted) {
+            customToster('Order placed but failed to deduct wallet. Please contact support.', isSuccess: false);
+          }
+        }
+
         // Clear cart
         await cartController.clearCart();
 

@@ -224,4 +224,21 @@ class ProfileController extends GetxController implements GetxService {
     }
     return null;
   }
+
+  /// Deduct amount from wallet balance
+  /// Returns true if successful, false otherwise
+  Future<bool> deductWalletBalance(double amount) async {
+    try {
+      final updatedUser = await profileRepoInterface.deductWalletBalance(amount);
+      _userProfile = updatedUser;
+      update();
+      return true;
+    } catch (e) {
+      log('Error deducting wallet balance: $e');
+      return false;
+    }
+  }
+
+  /// Get current wallet balance
+  double get walletBalance => _userProfile?.walletBalance ?? 0.0;
 }
