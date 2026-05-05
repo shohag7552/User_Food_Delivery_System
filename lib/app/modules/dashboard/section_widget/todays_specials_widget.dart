@@ -110,7 +110,7 @@ class TodaysSpecialsWidget extends StatelessWidget {
             // Products List
             else
               SizedBox(
-                height: 300,
+                height: 270,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),

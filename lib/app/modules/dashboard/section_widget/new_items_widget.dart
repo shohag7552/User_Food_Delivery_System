@@ -124,7 +124,7 @@ class NewItemsWidget extends StatelessWidget {
             // Products List
             else
               SizedBox(
-                height: 220,
+                height: 250,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),

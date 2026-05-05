@@ -99,3 +99,4 @@ class LoyaltyController extends GetxController implements GetxService {
     }
   }
 }
+ 

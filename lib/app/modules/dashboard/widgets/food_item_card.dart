@@ -54,6 +54,11 @@ class _FoodItemCardState extends State<FoodItemCard> {
 
   @override
   Widget build(BuildContext context) {
+    bool hasDiscount = widget.product?.hasDiscount?? false;
+    String discount = widget.product?.discountType == 'percentage'
+        ? '${widget.product?.discountValue?.toInt()}% OFF'
+        : '${PriceHelper.formatPrice(widget.product?.discountValue?.toDouble()??0)} OFF';
+
     if (widget.isPopular!) {
       return Padding(
         padding: const EdgeInsets.only(
@@ -78,7 +83,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildPopularImageSection(),
+                _buildPopularImageSection(hasDiscount, discount),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
@@ -159,74 +164,81 @@ class _FoodItemCardState extends State<FoodItemCard> {
         child: CustomClickableWidget(
           onTap: widget.onTap,
           child: Container(
-            width: 224,
+            width: 210,
             decoration: BoxDecoration(
               color: ColorResource.cardBackground,
               borderRadius: BorderRadius.circular(30),
             ),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
+              padding: const EdgeInsets.fromLTRB(6, 6, 6, 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSpecialImageSection(),
+                  _buildSpecialImageSection(hasDiscount, discount),
                   const SizedBox(height: Constants.paddingSizeSmall),
-                  Text(
-                    widget.name,
-                    style: poppinsBold,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (widget.product != null) ...[
-                    const SizedBox(height: Constants.paddingSizeSmall),
-                    RatingStars(
-                      rating: widget.product!.avgRating,
-                      reviewCount: widget.product!.ratingCount,
-                      size: 14,
-                      showRating: true,
-                    ),
-                  ],
-                  const SizedBox(height: Constants.paddingSizeSmall),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor.withValues(alpha: 0.02),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                PriceHelper.formatPrice(widget.price),
-                                style: poppinsBold.copyWith(
-                                  fontSize: 16,
-                                ),
-                              ),
-                              if (widget.oldPrice != null &&
-                                  widget.oldPrice! > widget.price)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 2),
-                                  child: Text(
-                                    PriceHelper.formatPrice(widget.oldPrice!),
-                                    style: poppinsRegular.copyWith(
-                                      fontSize: 11.5,
-                                      color: ColorResource.textLight,
-                                      decoration: TextDecoration.lineThrough,
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(
+                        widget.name,
+                        style: poppinsBold,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (widget.product != null) ...[
+                        const SizedBox(height: Constants.paddingSizeSmall),
+                        RatingStars(
+                          rating: widget.product!.avgRating,
+                          reviewCount: widget.product!.ratingCount,
+                          size: 14,
+                          showRating: true,
+                        ),
+                      ],
+                      const SizedBox(height: Constants.paddingSizeSmall),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor.withValues(alpha: 0.02),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    PriceHelper.formatPrice(widget.price),
+                                    style: poppinsBold.copyWith(
+                                      fontSize: 16,
                                     ),
                                   ),
-                                ),
-                            ],
-                          ),
+                                  if (widget.oldPrice != null &&
+                                      widget.oldPrice! > widget.price)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 2),
+                                      child: Text(
+                                        PriceHelper.formatPrice(widget.oldPrice!),
+                                        style: poppinsRegular.copyWith(
+                                          fontSize: 11.5,
+                                          color: ColorResource.textLight,
+                                          decoration: TextDecoration.lineThrough,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            widget.cartQuantity != null
+                                ? _buildSpecialQuantitySelector()
+                                : _buildSpecialAddButton(),
+                          ],
                         ),
-                        widget.cartQuantity != null
-                            ? _buildSpecialQuantitySelector()
-                            : _buildSpecialAddButton(),
-                      ],
-                    ),
+                      ),
+                    ]),
                   ),
+
                 ],
               ),
             ),
@@ -266,7 +278,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
                       ),
                     ),
                     // Discount badge
-                    if (widget.product?.hasDiscount?? false)
+                    if (hasDiscount)
                       Positioned(
                         top: 12,
                         left: 12,
@@ -282,9 +294,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
                             ),
                           ),
                           child: Text(
-                            widget.product?.discountType == 'percentage'
-                              ? '${widget.product?.discountValue?.toInt()}% OFF'
-                              : '${PriceHelper.formatPrice(widget.product?.discountValue?.toDouble()??0)} OFF',
+                            discount,
                             style: poppinsBold.copyWith(
                               fontSize: Constants.fontSizeExtraSmall,
                               color: ColorResource.textWhite,
@@ -395,7 +405,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
     );
   }
 
-  Widget _buildPopularImageSection() {
+  Widget _buildPopularImageSection(bool hasDiscount, String discount) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
       child: SizedBox(
@@ -415,7 +425,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
                 width: double.infinity,
               ),
             ),
-            if (widget.product?.hasDiscount?? false)
+            if (hasDiscount)
               Positioned(
                 top: 0,
                 right: 0,
@@ -432,9 +442,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
                     ),
                   ),
                   child: Text(
-                    widget.product?.discountType == 'percentage'
-                              ? '${widget.product?.discountValue?.toInt()}% OFF'
-                              : '${PriceHelper.formatPrice(widget.product?.discountValue?.toDouble()??0)} OFF',
+                    discount,
                     style: poppinsMedium.copyWith(
                       fontSize: Constants.fontSizeSmall,
                       color: ColorResource.textWhite,
@@ -491,47 +499,22 @@ class _FoodItemCardState extends State<FoodItemCard> {
     );
   }
 
-  Widget _buildSpecialImageSection() {
+  Widget _buildSpecialImageSection(bool hasDiscount, String discount) {
     return Expanded(
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 16,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: CustomNetworkImage(
-                image: widget.imageUrl,
-                height: 142,
-                width: double.infinity,
-              ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(Constants.radiusLarge),
+            child: CustomNetworkImage(
+              image: widget.imageUrl,
+              fit: BoxFit.cover,
+              height: double.infinity,
+              width: double.infinity,
             ),
           ),
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.white.withValues(alpha: 0.02),
-                    Colors.black.withValues(alpha: 0.08),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          if (widget.product?.hasDiscount?? false)
+
+          if (hasDiscount)
             Positioned(
               left: 12,
               top: 12,
@@ -545,9 +528,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Text(
-                  widget.product?.discountType == 'percentage'
-                    ? '${widget.product?.discountValue?.toInt()}% OFF'
-                    : '${PriceHelper.formatPrice(widget.product?.discountValue?.toDouble()??0)} OFF',
+                  discount,
                   style: poppinsBold.copyWith(
                     fontSize: 10.5,
                     letterSpacing: 0.2,
@@ -558,15 +539,15 @@ class _FoodItemCardState extends State<FoodItemCard> {
             ),
           if (widget.product != null)
             Positioned(
-              right: 14,
-              top: 14,
+              right: 10,
+              top: 10,
               child: Container(
                 decoration: BoxDecoration(
                   color: ColorResource.textWhite,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.16),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 14,
                       offset: const Offset(0, 6),
                     ),

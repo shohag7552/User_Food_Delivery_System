@@ -6,4 +6,5 @@ class Images{
   static const String ring = 'assets/images/ringing.png';
   static const String world = 'assets/images/world.png';
   static const String placeholder = 'assets/images/placeholder.jpg';
+  static const String veg = 'assets/images/vegan.png';
 }
