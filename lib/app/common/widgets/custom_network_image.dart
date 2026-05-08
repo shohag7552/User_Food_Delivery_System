@@ -14,21 +14,9 @@ class CustomNetworkImage extends StatelessWidget {
     return CachedNetworkImage(
       imageUrl: image, height: height, width: width, fit: fit,
       placeholder: (context, url) {
-        // return Container(
-        //   width: double.infinity,
-        //   height: 160,
-        //   decoration: BoxDecoration(
-        //     gradient: ColorResource.primaryGradient,
-        //   ),
-        //   child: Icon(
-        //     Icons.fastfood,
-        //     size: 60,
-        //     color: Theme.of(context).cardColor.withOpacity(0.5),
-        //   ),
-        // );
-        return Image.asset(Images.placeholder, fit: fit, height: height, width: width);
+        return Image.asset(Images.placeholder2, fit: fit, height: height, width: width, color: Theme.of(context).primaryColor);
       },
-      errorWidget: (context, url, error) => Image.asset(Images.placeholder, fit: BoxFit.cover, height: height, width: width),
+      errorWidget: (context, url, error) => Image.asset(Images.placeholder2, fit: fit, height: height, width: width, color: Theme.of(context).primaryColor),
     );
   }
 }

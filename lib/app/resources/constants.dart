@@ -4,6 +4,7 @@ import 'package:appwrite_user_app/app/resources/images.dart';
 class Constants {
 
   static const String appName = 'Food User';
+  static const double appVersion = 1.0;
   static const String packageName = 'com.example.appwrite_user_app';
 
   // Stripe Keys (To be replaced with actual keys by user)

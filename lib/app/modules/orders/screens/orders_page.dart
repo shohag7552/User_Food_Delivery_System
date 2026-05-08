@@ -24,7 +24,7 @@ class _OrdersPageState extends State<OrdersPage> {
   void initState() {
     super.initState();
 
-    Get.find<OrderController>().fetchUserOrders(refresh: true);
+    Get.find<OrderController>().initialSetup();
 
     // Listen to scroll for pagination
     _scrollController.addListener(_onScroll);

@@ -47,6 +47,11 @@ class OrderController extends GetxController implements GetxService {
     super.onClose();
   }
 
+  void initialSetup() {
+    _selectedStatus = 'all';
+    fetchUserOrders(refresh: true);
+  }
+
   /// Place a new order
   Future<Map<String, dynamic>> placeOrder({
     required String customerId,

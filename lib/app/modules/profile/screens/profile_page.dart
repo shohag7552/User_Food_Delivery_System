@@ -278,7 +278,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         // App Version
                         Center(
                           child: Text(
-                            'version'.tr,
+                            '${'version'.tr}: ${Constants.appVersion}',
                             style: poppinsRegular.copyWith(
                               fontSize: Constants.fontSizeSmall,
                               color: isDark
