@@ -7,6 +7,8 @@ class OrderModel {
   final String? driverId;
   final DeliverymanInfo? deliveryman;
   final String status; // 'pending', 'cooking', etc.
+  final String paymentMethod; // 'cod', 'online', 'wallet'
+  final String paymentStatus; // 'unpaid', 'paid', 'failed', 'cancelled'
   final double totalAmount;
   final double deliveryFee;
   final DeliveryAddress address; // <--- Parsed from JSON
@@ -20,6 +22,8 @@ class OrderModel {
     this.driverId,
     this.deliveryman,
     required this.status,
+    required this.paymentMethod,
+    required this.paymentStatus,
     required this.totalAmount,
     required this.deliveryFee,
     required this.address,
@@ -35,6 +39,8 @@ class OrderModel {
       driverId: json['driver_id'] ?? json['deliver_id'],
       deliveryman: DeliverymanInfo.fromOrderJson(json),
       status: json['status'],
+      paymentMethod: json['payment_method'] ?? 'cod',
+      paymentStatus: json['payment_status'] ?? 'unpaid',
       totalAmount: (json['total_amount'] as num).toDouble(),
       deliveryFee: (json['delivery_fee'] as num).toDouble(),
       createdAt: DateTime.parse(json['\$createdAt']), // Appwrite auto-timestamp
@@ -55,6 +61,8 @@ class OrderModel {
     String? driverId,
     DeliverymanInfo? deliveryman,
     String? status,
+    String? paymentMethod,
+    String? paymentStatus,
     double? totalAmount,
     double? deliveryFee,
     DeliveryAddress? address,
@@ -68,6 +76,8 @@ class OrderModel {
       driverId: driverId ?? this.driverId,
       deliveryman: deliveryman ?? this.deliveryman,
       status: status ?? this.status,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
       totalAmount: totalAmount ?? this.totalAmount,
       deliveryFee: deliveryFee ?? this.deliveryFee,
       address: address ?? this.address,

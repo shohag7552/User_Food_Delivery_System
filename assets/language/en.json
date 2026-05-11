@@ -257,6 +257,8 @@
   "preparing": "Preparing",
   "completed": "Completed",
   "payment_summary": "Payment Summary",
+  "payment_info": "Payment Information",
+  "payment_status": "Payment Status",
   "total_amount": "Total Amount",
   "login_required": "Login Required",
   "please_login_to_write_a_review": "Please login to write a review",

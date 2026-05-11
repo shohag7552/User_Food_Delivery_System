@@ -257,6 +257,8 @@
   "preparing": "প্রস্তুত হচ্ছে",
   "completed": "সম্পন্ন",
   "payment_summary": "পেমেন্ট সারসংক্ষেপ",
+  "payment_info": "পেমেন্ট তথ্য",
+  "payment_status": "পেমেন্ট স্ট্যাটাস",
   "total_amount": "মোট পরিমাণ",
   "login_required": "লগইন প্রয়োজন",
   "please_login_to_write_a_review": "রিভিউ লিখতে লগইন করুন",

@@ -145,6 +145,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   _buildItemsList(order),
                   const SizedBox(height: 16),
                   _buildDeliveryInfo(order),
+                  const SizedBox(height: 16),
+                  _buildPaymentInfo(order),
                   if (_hasDeliveryman(order)) ...[
                     const SizedBox(height: 16),
                     _buildDeliverymanSection(order),
@@ -576,6 +578,199 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                       height: 1.5,
                     ),
                   ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentInfo(OrderModel order) {
+    // Payment method display
+    IconData methodIcon;
+    String methodLabel;
+
+    switch (order.paymentMethod.toLowerCase()) {
+      case 'online':
+        methodIcon = Icons.credit_card;
+        methodLabel = 'online_payment'.tr;
+        break;
+      case 'wallet':
+        methodIcon = Icons.account_balance_wallet;
+        methodLabel = 'wallet'.tr;
+        break;
+      case 'cod':
+      default:
+        methodIcon = Icons.money;
+        methodLabel = 'cash_on_delivery'.tr;
+    }
+
+    // Payment status display
+    Color statusBgColor;
+    Color statusTextColor;
+    IconData statusIcon;
+    String statusLabel;
+
+    switch (order.paymentStatus.toLowerCase()) {
+      case 'paid':
+        statusBgColor = Colors.green.shade100;
+        statusTextColor = Colors.green.shade700;
+        statusIcon = Icons.check_circle;
+        statusLabel = 'Paid';
+        break;
+      case 'failed':
+        statusBgColor = Colors.red.shade100;
+        statusTextColor = Colors.red.shade700;
+        statusIcon = Icons.error;
+        statusLabel = 'Failed';
+        break;
+      case 'cancelled':
+        statusBgColor = Colors.orange.shade100;
+        statusTextColor = Colors.orange.shade700;
+        statusIcon = Icons.cancel;
+        statusLabel = 'Cancelled';
+        break;
+      case 'unpaid':
+      default:
+        statusBgColor = Colors.amber.shade100;
+        statusTextColor = Colors.amber.shade800;
+        statusIcon = Icons.schedule;
+        statusLabel = 'Unpaid';
+    }
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: ColorResource.cardBackground,
+        borderRadius: BorderRadius.circular(Constants.radiusLarge),
+        boxShadow: ColorResource.customShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.payment,
+                color: ColorResource.primaryDark,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'payment_info'.tr,
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeLarge,
+                  color: ColorResource.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: ColorResource.scaffoldBackground,
+              borderRadius: BorderRadius.circular(Constants.radiusDefault),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Column(
+              children: [
+                // Payment method row
+                Row(
+                  children: [
+                    Icon(
+                      methodIcon,
+                      color: ColorResource.primaryDark,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'payment_method'.tr,
+                            style: poppinsRegular.copyWith(
+                              fontSize: Constants.fontSizeSmall,
+                              color: ColorResource.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            methodLabel,
+                            style: poppinsBold.copyWith(
+                              fontSize: Constants.fontSizeDefault,
+                              color: ColorResource.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Divider(height: 1),
+                const SizedBox(height: 12),
+                // Payment status row
+                Row(
+                  children: [
+                    Icon(
+                      statusIcon,
+                      color: statusTextColor,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'payment_status'.tr,
+                            style: poppinsRegular.copyWith(
+                              fontSize: Constants.fontSizeSmall,
+                              color: ColorResource.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            statusLabel,
+                            style: poppinsBold.copyWith(
+                              fontSize: Constants.fontSizeDefault,
+                              color: ColorResource.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Status badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusBgColor,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(statusIcon, size: 14, color: statusTextColor),
+                          const SizedBox(width: 4),
+                          Text(
+                            statusLabel,
+                            style: poppinsBold.copyWith(
+                              fontSize: Constants.fontSizeSmall,
+                              color: statusTextColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
