@@ -61,8 +61,6 @@ dependencies:
   connectivity_plus: ^7.1.1
   flutter_inappwebview: ^6.1.5
 
-  flutter_stripe: ^12.3.0
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
