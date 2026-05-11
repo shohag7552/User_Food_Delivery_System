@@ -781,7 +781,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   Widget _buildPricingBreakdown(OrderModel order) {
-    final subtotal = order.totalAmount - order.deliveryFee;
+    final subtotal = order.totalAmount - order.deliveryFee - order.taxAmount;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -805,6 +805,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           _buildPriceRow('subtotal'.tr, subtotal, false),
           const SizedBox(height: 12),
           _buildPriceRow('delivery_fee'.tr, order.deliveryFee, false),
+          if (order.taxAmount > 0) ...[
+            const SizedBox(height: 12),
+            _buildPriceRow('tax_vat'.tr, order.taxAmount, false),
+          ],
           const SizedBox(height: 12),
           const Divider(),
           const SizedBox(height: 12),

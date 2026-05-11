@@ -858,7 +858,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   child: ElevatedButton(
                     onPressed: orderController.isPlacingOrder || isOutsideRadius
                         ? null
-                        : () => _placeOrder(controller, total, deliveryFee),
+                        : () => _placeOrder(controller, total, deliveryFee, controller.tax),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: ColorResource.primaryDark,
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -918,6 +918,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     CartController cartController,
     double total,
     double deliveryFee,
+    double taxAmount,
   ) async {
     // Validate address selection
     if (_selectedAddress == null) {
@@ -991,6 +992,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         cartItems: cartController.cartItems,
         totalAmount: total,
         deliveryFee: deliveryFee,
+        taxAmount: taxAmount,
         paymentMethod: _selectedPaymentMethod.name,
         paymentStatus: 'unpaid',
         deliveryInstructions: _instructionsController.text.trim(),
@@ -1108,7 +1110,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       if (mounted) {
         Get.to(() => OrderFailedPage(
           errorMessage: e.toString().replaceAll('Exception: ', ''),
-          onRetry: () => _placeOrder(cartController, total, deliveryFee),
+          onRetry: () => _placeOrder(cartController, total, deliveryFee, taxAmount),
         ));
       }
     }

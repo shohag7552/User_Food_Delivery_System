@@ -11,6 +11,7 @@ class OrderModel {
   final String paymentStatus; // 'unpaid', 'paid', 'failed', 'cancelled'
   final double totalAmount;
   final double deliveryFee;
+  final double taxAmount;
   final DeliveryAddress address; // <--- Parsed from JSON
   final List<OrderItem> items; // <--- Parsed from JSON
   final DateTime createdAt;
@@ -26,6 +27,7 @@ class OrderModel {
     required this.paymentStatus,
     required this.totalAmount,
     required this.deliveryFee,
+    this.taxAmount = 0.0,
     required this.address,
     required this.items,
     required this.createdAt,
@@ -43,6 +45,7 @@ class OrderModel {
       paymentStatus: json['payment_status'] ?? 'unpaid',
       totalAmount: (json['total_amount'] as num).toDouble(),
       deliveryFee: (json['delivery_fee'] as num).toDouble(),
+      taxAmount: (json['tax_amount'] as num?)?.toDouble() ?? 0.0,
       createdAt: DateTime.parse(json['\$createdAt']), // Appwrite auto-timestamp
       // PARSE ADDRESS SNAPSHOT
       address: DeliveryAddress.fromJson(jsonDecode(json['delivery_address'])),
@@ -65,6 +68,7 @@ class OrderModel {
     String? paymentStatus,
     double? totalAmount,
     double? deliveryFee,
+    double? taxAmount,
     DeliveryAddress? address,
     List<OrderItem>? items,
     DateTime? createdAt,
@@ -80,6 +84,7 @@ class OrderModel {
       paymentStatus: paymentStatus ?? this.paymentStatus,
       totalAmount: totalAmount ?? this.totalAmount,
       deliveryFee: deliveryFee ?? this.deliveryFee,
+      taxAmount: taxAmount ?? this.taxAmount,
       address: address ?? this.address,
       items: items ?? this.items,
       createdAt: createdAt ?? this.createdAt,

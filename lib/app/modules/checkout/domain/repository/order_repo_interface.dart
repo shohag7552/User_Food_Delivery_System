@@ -10,6 +10,7 @@ abstract class OrderRepoInterface {
     required String orderItems,
     required double totalAmount,
     required double deliveryFee,
+    double taxAmount = 0.0,
     required String paymentMethod,
     String paymentStatus = 'unpaid',
     String? deliveryInstructions,
