@@ -11,8 +11,15 @@ import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class CartPage extends StatelessWidget {
+class CartPage extends StatefulWidget {
   const CartPage({super.key});
+
+  @override
+  State<CartPage> createState() => _CartPageState();
+}
+
+class _CartPageState extends State<CartPage> {
+  bool _isPriceExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -231,12 +238,49 @@ class CartPage extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text(
-                            CurrencyHelper.formatAmount(item.itemTotal),
-                            style: poppinsBold.copyWith(
-                              fontSize: Constants.fontSizeLarge,
-                              color: ColorResource.primaryDark,
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Show original price with strikethrough if discounted
+                              if (item.basePrice > item.finalPrice) ...[
+                                Row(
+                                  children: [
+                                    Text(
+                                      CurrencyHelper.formatAmount(item.basePrice * item.quantity),
+                                      style: poppinsRegular.copyWith(
+                                        fontSize: Constants.fontSizeSmall,
+                                        color: ColorResource.textLight,
+                                        decoration: TextDecoration.lineThrough,
+                                        decorationColor: ColorResource.textLight,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green.shade50,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        '${((1 - item.finalPrice / item.basePrice) * 100).round()}% OFF',
+                                        style: poppinsBold.copyWith(
+                                          fontSize: 10,
+                                          color: Colors.green.shade700,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                              ],
+                              Text(
+                                CurrencyHelper.formatAmount(item.itemTotal),
+                                style: poppinsBold.copyWith(
+                                  fontSize: Constants.fontSizeLarge,
+                                  color: ColorResource.primaryDark,
+                                ),
+                              ),
+                            ],
                           ),
                           Container(
                             decoration: BoxDecoration(
@@ -337,6 +381,7 @@ class CartPage extends StatelessWidget {
       ),
       child: SafeArea(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             if (controller.appliedCoupon != null) ...[
               Container(
@@ -375,38 +420,91 @@ class CartPage extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
             ],
-            
-            _buildSummaryRow('subtotal'.tr, controller.subtotal),
-            const SizedBox(height: 8),
-            _buildSummaryRow('tax_10'.tr, controller.tax),
-            if (controller.discountAmount > 0) ...[
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'discount'.tr,
-                    style: poppinsRegular.copyWith(
-                      fontSize: Constants.fontSizeDefault,
-                      color: ColorResource.textSecondary,
+
+            // Expandable price breakdown
+            AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: _isPriceExpanded
+                  ? Column(
+                      children: [
+                        _buildSummaryRow('subtotal'.tr, controller.originalSubtotal),
+                        if (controller.itemDiscountTotal > 0) ...[
+                          const SizedBox(height: 8),
+                          _buildDiscountRow('item_discount'.tr, controller.itemDiscountTotal),
+                        ],
+                        const SizedBox(height: 8),
+                        _buildSummaryRow('tax_10'.tr, controller.tax),
+                        if (controller.discountAmount > 0) ...[
+                          const SizedBox(height: 8),
+                          _buildDiscountRow('coupon_discount'.tr, controller.discountAmount),
+                        ],
+                        const Divider(height: 20),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
+
+            // Total row with expand/collapse button
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _isPriceExpanded = !_isPriceExpanded;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: ColorResource.primaryDark.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(Constants.radiusDefault),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12),
+                      child: Row(
+                        children: [
+                          Text(
+                            'total'.tr,
+                            style: poppinsBold.copyWith(
+                              fontSize: Constants.fontSizeLarge,
+                              color: ColorResource.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          AnimatedRotation(
+                            duration: const Duration(milliseconds: 300),
+                            turns: _isPriceExpanded ? 0.5 : 0,
+                            child: Icon(
+                              Icons.keyboard_arrow_up_rounded,
+                              color: ColorResource.primaryDark,
+                              size: 24,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  Text(
-                    '- ${CurrencyHelper.formatAmount(controller.discountAmount)}',
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeDefault,
-                      color: ColorResource.success,
+                    Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: Text(
+                        CurrencyHelper.formatAmount(controller.total),
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeLarge,
+                          color: ColorResource.primaryDark,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ],
-            const Divider(height: 20),
-            _buildSummaryRow('total'.tr, controller.total, isTotal: true),
-            const SizedBox(height: 20),
-            
+            ),
+
+            const SizedBox(height: 16),
+
+            // Checkout button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -432,6 +530,28 @@ class CartPage extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDiscountRow(String label, double amount) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: poppinsRegular.copyWith(
+            fontSize: Constants.fontSizeDefault,
+            color: Colors.green.shade700,
+          ),
+        ),
+        Text(
+          '- ${CurrencyHelper.formatAmount(amount)}',
+          style: poppinsBold.copyWith(
+            fontSize: Constants.fontSizeDefault,
+            color: Colors.green.shade700,
+          ),
+        ),
+      ],
     );
   }
 

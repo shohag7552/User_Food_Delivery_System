@@ -765,7 +765,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
               child: _isPriceExpanded
                   ? Column(
                       children: [
-                        _buildSummaryRow('${'cart_items_count'.tr} (${controller.itemCount})', controller.subtotal),
+                        _buildSummaryRow('${'cart_items_count'.tr} (${controller.itemCount})', controller.originalSubtotal),
+                        if (controller.itemDiscountTotal > 0) ...[
+                          const SizedBox(height: 8),
+                          _buildSummaryRow('item_discount'.tr, -controller.itemDiscountTotal, isDiscount: true),
+                        ],
                         const SizedBox(height: 8),
                         _buildSummaryRow('delivery_fee'.tr, deliveryFee),
                         if (isOutsideRadius) ...[
@@ -783,9 +787,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         ],
                         const SizedBox(height: 8),
                         _buildSummaryRow('tax_10'.tr, controller.tax),
-                        if (controller.appliedCoupon != null) ...[ 
+                        if (controller.appliedCoupon != null) ...[
                           const SizedBox(height: 8),
-                          _buildSummaryRow('discount'.tr, -controller.discountAmount, isDiscount: true),
+                          _buildSummaryRow('coupon_discount'.tr, -controller.discountAmount, isDiscount: true),
                         ],
                         const Divider(height: 20),
                       ],
@@ -986,6 +990,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
       }
 
       // ─── Step 1: Always create order first with paymentStatus = 'unpaid' ───
+      final itemDiscountTotal = cartController.itemDiscountTotal;
+      final couponDiscountAmount = cartController.discountAmount;
+
       final result = await orderController.placeOrder(
         customerId: userId,
         address: _selectedAddress!,
@@ -993,6 +1000,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
         totalAmount: total,
         deliveryFee: deliveryFee,
         taxAmount: taxAmount,
+        discountAmount: itemDiscountTotal,
+        couponDiscount: couponDiscountAmount,
         paymentMethod: _selectedPaymentMethod.name,
         paymentStatus: 'unpaid',
         deliveryInstructions: _instructionsController.text.trim(),
@@ -1096,8 +1105,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
         await orderController.updatePaymentStatus(orderId, 'paid');
       }
 
-      // ─── Step 3: Clear cart & navigate to success ───
+      // ─── Step 3: Clear cart & coupon, navigate to success ───
       await cartController.clearCart();
+      cartController.removeCoupon();
 
       if (mounted) {
         Get.off(() => OrderSuccessPage(

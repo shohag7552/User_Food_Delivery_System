@@ -364,12 +364,47 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      '${PriceHelper.formatPrice(item.price)} ${'each'.tr}',
-                      style: poppinsRegular.copyWith(
-                        fontSize: Constants.fontSizeSmall,
-                        color: ColorResource.textSecondary,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (item.hasDiscount) ...[
+                          Row(
+                            children: [
+                              Text(
+                                PriceHelper.formatPrice(item.basePrice),
+                                style: poppinsRegular.copyWith(
+                                  fontSize: Constants.fontSizeExtraSmall,
+                                  color: ColorResource.textLight,
+                                  decoration: TextDecoration.lineThrough,
+                                  decorationColor: ColorResource.textLight,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.shade50,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '${((1 - item.price / item.basePrice) * 100).round()}% OFF',
+                                  style: poppinsBold.copyWith(
+                                    fontSize: 9,
+                                    color: Colors.green.shade700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        Text(
+                          '${PriceHelper.formatPrice(item.price)} × ${item.quantity}',
+                          style: poppinsRegular.copyWith(
+                            fontSize: Constants.fontSizeSmall,
+                            color: ColorResource.textSecondary,
+                          ),
+                        ),
+                      ],
                     ),
                     Text(
                       PriceHelper.formatPrice(itemTotal),
@@ -781,7 +816,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   Widget _buildPricingBreakdown(OrderModel order) {
-    final subtotal = order.totalAmount - order.deliveryFee - order.taxAmount;
+    // Subtotal = total - deliveryFee - tax + discounts (add discounts back since they were subtracted from total)
+    final subtotal = order.totalAmount - order.deliveryFee - order.taxAmount + order.discountAmount + order.couponDiscount;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -803,6 +839,14 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           ),
           const SizedBox(height: 16),
           _buildPriceRow('subtotal'.tr, subtotal, false),
+          if (order.discountAmount > 0) ...[
+            const SizedBox(height: 12),
+            _buildPriceRow('item_discount'.tr, -order.discountAmount, false, isDiscount: true),
+          ],
+          if (order.couponDiscount > 0) ...[
+            const SizedBox(height: 12),
+            _buildPriceRow('coupon_discount'.tr, -order.couponDiscount, false, isDiscount: true),
+          ],
           const SizedBox(height: 12),
           _buildPriceRow('delivery_fee'.tr, order.deliveryFee, false),
           if (order.taxAmount > 0) ...[
@@ -920,7 +964,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     );
   }
 
-  Widget _buildPriceRow(String label, double amount, bool isTotal) {
+  Widget _buildPriceRow(String label, double amount, bool isTotal, {bool isDiscount = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -930,18 +974,20 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             fontSize: isTotal
                 ? Constants.fontSizeLarge
                 : Constants.fontSizeDefault,
-            color: ColorResource.textPrimary,
+            color: isDiscount ? Colors.green.shade700 : ColorResource.textPrimary,
           ),
         ),
         Text(
-          PriceHelper.formatPrice(amount),
+          isDiscount
+              ? '- ${PriceHelper.formatPrice(amount.abs())}'
+              : PriceHelper.formatPrice(amount),
           style: poppinsBold.copyWith(
             fontSize: isTotal
                 ? Constants.fontSizeExtraLarge
                 : Constants.fontSizeLarge,
-            color: isTotal
-                ? ColorResource.primaryDark
-                : ColorResource.textPrimary,
+            color: isDiscount
+                ? Colors.green.shade700
+                : (isTotal ? ColorResource.primaryDark : ColorResource.textPrimary),
           ),
         ),
       ],

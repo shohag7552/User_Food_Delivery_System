@@ -11,6 +11,8 @@ abstract class OrderRepoInterface {
     required double totalAmount,
     required double deliveryFee,
     double taxAmount = 0.0,
+    double discountAmount = 0.0,
+    double couponDiscount = 0.0,
     required String paymentMethod,
     String paymentStatus = 'unpaid',
     String? deliveryInstructions,

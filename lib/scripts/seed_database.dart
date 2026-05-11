@@ -249,6 +249,8 @@ Future<void> _setupOrders(Databases db) async {
         () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'total_amount', xrequired: true),
         () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'delivery_fee', xrequired: true),
         () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'tax_amount', xrequired: false, xdefault: 0.0),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'discount_amount', xrequired: false, xdefault: 0.0),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'coupon_discount', xrequired: false, xdefault: 0.0),
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'delivery_address', size: 2000, xrequired: true), // Snapshot JSON
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'order_items', size: 5000, xrequired: true), // Snapshot JSON
         () => db.createDatetimeAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'created_at', xrequired: true),

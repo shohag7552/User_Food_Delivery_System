@@ -60,6 +60,8 @@ class OrderController extends GetxController implements GetxService {
     required double totalAmount,
     required double deliveryFee,
     double taxAmount = 0.0,
+    double discountAmount = 0.0,
+    double couponDiscount = 0.0,
     required String paymentMethod,
     String paymentStatus = 'unpaid',
     String? deliveryInstructions,
@@ -85,6 +87,7 @@ class OrderController extends GetxController implements GetxService {
         return {
           'product_id': item.productId, // ✨ Added for review linking
           'product_name': item.productName,
+          'base_price': item.basePrice,
           'price': item.finalPrice,
           'quantity': item.quantity,
           'product_image': item.productImage,
@@ -105,6 +108,8 @@ class OrderController extends GetxController implements GetxService {
         totalAmount: totalAmount,
         deliveryFee: deliveryFee,
         taxAmount: taxAmount,
+        discountAmount: discountAmount,
+        couponDiscount: couponDiscount,
         paymentMethod: paymentMethod,
         paymentStatus: paymentStatus,
         deliveryInstructions: deliveryInstructions,

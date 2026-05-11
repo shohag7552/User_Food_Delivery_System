@@ -12,6 +12,8 @@ class OrderModel {
   final double totalAmount;
   final double deliveryFee;
   final double taxAmount;
+  final double discountAmount; // Total item-level discount
+  final double couponDiscount; // Coupon discount applied at checkout
   final DeliveryAddress address; // <--- Parsed from JSON
   final List<OrderItem> items; // <--- Parsed from JSON
   final DateTime createdAt;
@@ -28,6 +30,8 @@ class OrderModel {
     required this.totalAmount,
     required this.deliveryFee,
     this.taxAmount = 0.0,
+    this.discountAmount = 0.0,
+    this.couponDiscount = 0.0,
     required this.address,
     required this.items,
     required this.createdAt,
@@ -46,6 +50,8 @@ class OrderModel {
       totalAmount: (json['total_amount'] as num).toDouble(),
       deliveryFee: (json['delivery_fee'] as num).toDouble(),
       taxAmount: (json['tax_amount'] as num?)?.toDouble() ?? 0.0,
+      discountAmount: (json['discount_amount'] as num?)?.toDouble() ?? 0.0,
+      couponDiscount: (json['coupon_discount'] as num?)?.toDouble() ?? 0.0,
       createdAt: DateTime.parse(json['\$createdAt']), // Appwrite auto-timestamp
       // PARSE ADDRESS SNAPSHOT
       address: DeliveryAddress.fromJson(jsonDecode(json['delivery_address'])),
@@ -69,6 +75,8 @@ class OrderModel {
     double? totalAmount,
     double? deliveryFee,
     double? taxAmount,
+    double? discountAmount,
+    double? couponDiscount,
     DeliveryAddress? address,
     List<OrderItem>? items,
     DateTime? createdAt,
@@ -85,6 +93,8 @@ class OrderModel {
       totalAmount: totalAmount ?? this.totalAmount,
       deliveryFee: deliveryFee ?? this.deliveryFee,
       taxAmount: taxAmount ?? this.taxAmount,
+      discountAmount: discountAmount ?? this.discountAmount,
+      couponDiscount: couponDiscount ?? this.couponDiscount,
       address: address ?? this.address,
       items: items ?? this.items,
       createdAt: createdAt ?? this.createdAt,
@@ -196,7 +206,8 @@ class OrderItem {
   final String productId;
   final String productName;
   final String productImage;
-  final double price;
+  final double basePrice; // Original price before discount
+  final double price; // Final price after discount
   final int quantity;
   final List<String> selectedVariants; // e.g. ["Large", "Extra Cheese"]
 
@@ -204,17 +215,22 @@ class OrderItem {
     required this.productId,
     required this.productName,
     required this.productImage,
+    required this.basePrice,
     required this.price,
     required this.quantity,
     required this.selectedVariants,
   });
 
+  bool get hasDiscount => basePrice > price;
+
   factory OrderItem.fromJson(Map<String, dynamic> json) {
+    final price = (json['price'] as num).toDouble();
     return OrderItem(
       productId: json['product_id'] ?? '',
       productName: json['product_name'],
       productImage: json['product_image'] ?? '',
-      price: (json['price'] as num).toDouble(),
+      basePrice: (json['base_price'] as num?)?.toDouble() ?? price,
+      price: price,
       quantity: json['quantity'],
       selectedVariants: List<String>.from(json['selected_variants'] ?? []),
     );

@@ -260,6 +260,8 @@
   "payment_info": "Payment Information",
   "payment_status": "Payment Status",
   "tax_vat": "Tax/VAT",
+  "item_discount": "Item Discount",
+  "coupon_discount": "Coupon Discount",
   "total_amount": "Total Amount",
   "login_required": "Login Required",
   "please_login_to_write_a_review": "Please login to write a review",

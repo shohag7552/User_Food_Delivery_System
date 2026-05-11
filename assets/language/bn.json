@@ -260,6 +260,8 @@
   "payment_info": "পেমেন্ট তথ্য",
   "payment_status": "পেমেন্ট স্ট্যাটাস",
   "tax_vat": "ট্যাক্স/ভ্যাট",
+  "item_discount": "আইটেম ডিসকাউন্ট",
+  "coupon_discount": "কুপন ডিসকাউন্ট",
   "total_amount": "মোট পরিমাণ",
   "login_required": "লগইন প্রয়োজন",
   "please_login_to_write_a_review": "রিভিউ লিখতে লগইন করুন",
