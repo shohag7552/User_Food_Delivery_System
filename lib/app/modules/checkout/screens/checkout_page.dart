@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/appwrite/payment_service.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/address_controller.dart';
@@ -6,6 +7,7 @@ import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
+import 'package:appwrite_user_app/app/enums/payment_method_enum.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
 import 'package:appwrite_user_app/app/modules/address/screens/add_edit_address_page.dart';
@@ -14,14 +16,13 @@ import 'package:appwrite_user_app/app/modules/checkout/screens/order_success_pag
 import 'package:appwrite_user_app/app/modules/checkout/widgets/address_selection_bottomsheet.dart';
 import 'package:appwrite_user_app/app/modules/checkout/widgets/delivery_schedule_bottomsheet.dart';
 import 'package:appwrite_user_app/app/modules/coupons/widgets/coupon_selection_bottomsheet.dart';
+import 'package:appwrite_user_app/app/modules/payment/payment_webview_screen.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
-import 'package:appwrite_user_app/app/services/stripe_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:appwrite_user_app/app/enums/payment_method_enum.dart';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -33,6 +34,7 @@ class CheckoutPage extends StatefulWidget {
 class _CheckoutPageState extends State<CheckoutPage> {
   final _instructionsController = TextEditingController();
   PaymentMethod _selectedPaymentMethod = PaymentMethod.cod;
+  PaymentGateway _selectedGateway = PaymentGateway.sslcommerz;
   bool _isPriceExpanded = false;
   AddressModel? _selectedAddress;
   
@@ -180,6 +182,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     super.dispose();
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -230,6 +233,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   ),
                 ),
               ),
+
               _buildBottomSummary(controller),
             ],
           );
@@ -623,6 +627,61 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ),
             activeColor: ColorResource.primaryDark,
           ),
+          // Gateway selection chips — visible when online is selected
+          AnimatedSize(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            child: _selectedPaymentMethod == PaymentMethod.online
+                ? Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Choose gateway',
+                          style: poppinsMedium.copyWith(
+                            fontSize: Constants.fontSizeSmall,
+                            color: ColorResource.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: PaymentGateway.values.map((gateway) {
+                            final isSelected = _selectedGateway == gateway;
+                            return ChoiceChip(
+                              label: Text(gateway.displayName),
+                              selected: isSelected,
+                              onSelected: (_) => setState(() => _selectedGateway = gateway),
+                              selectedColor: ColorResource.primaryDark.withValues(alpha: 0.15),
+                              backgroundColor: ColorResource.scaffoldBackground,
+                              labelStyle: poppinsMedium.copyWith(
+                                fontSize: Constants.fontSizeSmall,
+                                color: isSelected ? ColorResource.primaryDark : ColorResource.textSecondary,
+                              ),
+                              side: BorderSide(
+                                color: isSelected ? ColorResource.primaryDark : Colors.grey.shade300,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _selectedGateway.description,
+                          style: poppinsRegular.copyWith(
+                            fontSize: Constants.fontSizeExtraSmall,
+                            color: ColorResource.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
           GetBuilder<ProfileController>(
             builder: (profileController) {
               final walletBalance = profileController.walletBalance;
@@ -872,6 +931,21 @@ class _CheckoutPageState extends State<CheckoutPage> {
       return;
     }
 
+    // ─── Wallet: pre-validate balance before confirmation dialog ───
+    if (_selectedPaymentMethod == PaymentMethod.wallet) {
+      final profileController = Get.find<ProfileController>();
+      await profileController.fetchUserProfile();
+      final walletBalance = profileController.walletBalance;
+
+      if (walletBalance < total) {
+        customToster(
+          'Insufficient wallet balance. Your balance is ${CurrencyHelper.formatAmount(walletBalance)} but order total is ${CurrencyHelper.formatAmount(total)}.',
+          isSuccess: false,
+        );
+        return;
+      }
+    }
+
     // Show confirmation dialog
     final confirm = await showDialog<bool>(
       context: context,
@@ -910,37 +984,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         throw Exception('User not logged in');
       }
 
-      // Handle Stripe payment if online is selected
-      if (_selectedPaymentMethod == PaymentMethod.online) {
-        final email = await authController.getUserEmail();
-        // Ensure amount is cast/formatted to support your backend (e.g., handles decimals)
-        final paymentSuccess = await StripeService.instance.makePayment(
-          total,
-          'usd', // Change this to your desired currency code, e.g., 'bdt', 'inr', 'eur'
-          email,
-        );
-
-        if (!paymentSuccess) {
-           throw Exception('Payment failed or was canceled by the user.');
-        }
-      }
-
-      // Handle wallet payment — check balance before placing order
-      if (_selectedPaymentMethod == PaymentMethod.wallet) {
-        // Refresh profile to get latest wallet balance
-        await profileController.fetchUserProfile();
-        final walletBalance = profileController.walletBalance;
-
-        if (walletBalance < total) {
-          customToster(
-            'Insufficient wallet balance. Your balance is ${CurrencyHelper.formatAmount(walletBalance)} but order total is ${CurrencyHelper.formatAmount(total)}.',
-            isSuccess: false,
-          );
-          return;
-        }
-      }
-
-      // Proceed to Appwrite database order placement
+      // ─── Step 1: Always create order first with paymentStatus = 'unpaid' ───
       final result = await orderController.placeOrder(
         customerId: userId,
         address: _selectedAddress!,
@@ -948,33 +992,116 @@ class _CheckoutPageState extends State<CheckoutPage> {
         totalAmount: total,
         deliveryFee: deliveryFee,
         paymentMethod: _selectedPaymentMethod.name,
+        paymentStatus: 'unpaid',
         deliveryInstructions: _instructionsController.text.trim(),
         deliveryType: _deliveryType,
         scheduledDate: _selectedDate,
         scheduledTimeSlot: _selectedTimeSlot,
       );
 
-      if (result['success'] == true) {
-        // Deduct wallet balance after successful order placement
-        if (_selectedPaymentMethod == PaymentMethod.wallet) {
-          final deducted = await profileController.deductWalletBalance(total);
-          if (!deducted) {
-            customToster('Order placed but failed to deduct wallet. Please contact support.', isSuccess: false);
-          }
-        }
-
-        // Clear cart
-        await cartController.clearCart();
-
-        // Navigate to success page
-        if (mounted) {
-          Get.off(() => OrderSuccessPage(
-            orderNumber: result['orderNumber'],
-            totalAmount: total,
-          ));
-        }
-      } else {
+      if (result['success'] != true) {
         throw Exception(result['error'] ?? 'Failed to place order');
+      }
+
+      final orderId = result['orderId'] as String;
+      final orderNumber = result['orderNumber'] as String;
+
+      // ─── Step 2: Handle payment based on method ───
+
+      // ── Online payment via WebView ──
+      if (_selectedPaymentMethod == PaymentMethod.online) {
+        final paymentService = PaymentService();
+        final profile = profileController.userProfile;
+        final currency = 'usd'; // settingsController.businessSetup?.currency ?? 'BDT';
+
+        // Convert total to smallest currency unit (cents/poisha)
+        final amountInSmallest = (total * 100).toInt();
+
+        // Show loading while creating payment session
+        if (mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => const Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final Map<String, dynamic> paymentResult;
+        try {
+          paymentResult = await paymentService.createPayment(
+            gateway: _selectedGateway.key,
+            amount: amountInSmallest,
+            orderId: orderId, // ✅ Real order ID from DB
+            currency: currency,
+            customerName: profile?.name,
+            customerEmail: profile?.email,
+            customerPhone: profile?.phone,
+          );
+        } catch (e) {
+          print('Payment initiation error: $e');
+          // Dismiss loading dialog safely
+          if (mounted) Navigator.of(context).pop();
+          // Mark payment as failed on the order
+          await orderController.updatePaymentStatus(orderId, 'failed');
+          rethrow;
+        }
+
+        // Dismiss loading dialog
+        if (mounted) Navigator.of(context).pop();
+
+        final paymentURL = paymentResult['data']?['paymentURL'] as String?;
+        if (paymentURL == null || paymentURL.isEmpty) {
+          await orderController.updatePaymentStatus(orderId, 'failed');
+          throw Exception('Payment gateway returned no URL');
+        }
+
+        // Open WebView for user to complete payment
+        final webViewResult = await Navigator.push<PaymentResult>(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PaymentWebViewScreen(
+              paymentURL: paymentURL,
+              gatewayName: _selectedGateway.displayName,
+            ),
+          ),
+        );
+
+        if (webViewResult == PaymentResult.success) {
+          // ✅ Payment succeeded — update order status
+          await orderController.updatePaymentStatus(orderId, 'paid');
+        } else {
+          // ❌ Payment failed or cancelled — update order status
+          final status = webViewResult == PaymentResult.failed ? 'failed' : 'cancelled';
+          await orderController.updatePaymentStatus(orderId, status);
+
+          final message = webViewResult == PaymentResult.failed
+              ? 'Payment failed. Your order #$orderNumber has been saved. You can retry payment later.'
+              : 'Payment was cancelled. Your order #$orderNumber has been saved.';
+          customToster(message, isSuccess: false);
+          return;
+        }
+      }
+
+      // ── Wallet payment — deduct balance ──
+      if (_selectedPaymentMethod == PaymentMethod.wallet) {
+        final deducted = await profileController.deductWalletBalance(total);
+        if (!deducted) {
+          await orderController.updatePaymentStatus(orderId, 'failed');
+          customToster('Failed to deduct wallet balance. Please try again.', isSuccess: false);
+          return;
+        }
+        // ✅ Wallet deducted — mark as paid
+        await orderController.updatePaymentStatus(orderId, 'paid');
+      }
+
+      // ─── Step 3: Clear cart & navigate to success ───
+      await cartController.clearCart();
+
+      if (mounted) {
+        Get.off(() => OrderSuccessPage(
+          orderNumber: orderNumber,
+          totalAmount: total,
+        ));
       }
     } catch (e) {
       // Navigate to failed page

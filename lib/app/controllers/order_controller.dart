@@ -60,6 +60,7 @@ class OrderController extends GetxController implements GetxService {
     required double totalAmount,
     required double deliveryFee,
     required String paymentMethod,
+    String paymentStatus = 'unpaid',
     String? deliveryInstructions,
     String? deliveryType,
     DateTime? scheduledDate,
@@ -96,13 +97,14 @@ class OrderController extends GetxController implements GetxService {
       final orderItemsJson = jsonEncode(orderItems);
 
       // Order number is now generated inside the repository (sequential: 10001, 10002, ...)
-      final orderNumber = await orderRepoInterface.createOrder(
+      final result = await orderRepoInterface.createOrder(
         customerId: customerId,
         deliveryAddress: addressJson,
         orderItems: orderItemsJson,
         totalAmount: totalAmount,
         deliveryFee: deliveryFee,
         paymentMethod: paymentMethod,
+        paymentStatus: paymentStatus,
         deliveryInstructions: deliveryInstructions,
         deliveryType: deliveryType,
         scheduledDate: scheduledDate,
@@ -111,12 +113,27 @@ class OrderController extends GetxController implements GetxService {
 
       _isPlacingOrder = false;
       update();
-      return {'success': true, 'orderNumber': orderNumber};
+      return {
+        'success': true,
+        'orderId': result['orderId'],
+        'orderNumber': result['orderNumber'],
+      };
     } catch (e) {
       _isPlacingOrder = false;
       update();
       log('Error placing order: $e');
       return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  /// Update payment status of an existing order
+  Future<bool> updatePaymentStatus(String orderId, String paymentStatus) async {
+    try {
+      await orderRepoInterface.updatePaymentStatus(orderId, paymentStatus);
+      return true;
+    } catch (e) {
+      log('Error updating payment status: $e');
+      return false;
     }
   }
 

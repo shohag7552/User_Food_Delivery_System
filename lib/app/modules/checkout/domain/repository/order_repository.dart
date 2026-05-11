@@ -29,13 +29,14 @@ class OrderRepository implements OrderRepoInterface {
   }
 
   @override
-  Future<String> createOrder({
+  Future<Map<String, String>> createOrder({
     required String customerId,
     required String deliveryAddress,
     required String orderItems,
     required double totalAmount,
     required double deliveryFee,
     required String paymentMethod,
+    String paymentStatus = 'unpaid',
     String? deliveryInstructions,
     String? deliveryType,
     DateTime? scheduledDate,
@@ -50,7 +51,7 @@ class OrderRepository implements OrderRepoInterface {
         'order_number': orderNumber,
         'status': 'pending',
         'payment_method': paymentMethod,
-        'payment_status': paymentMethod == 'cod' ? 'unpaid' : 'paid',
+        'payment_status': paymentStatus,
         'total_amount': totalAmount,
         'delivery_fee': deliveryFee,
         'delivery_address': deliveryAddress,
@@ -72,16 +73,33 @@ class OrderRepository implements OrderRepoInterface {
         orderData['delivery_instructions'] = deliveryInstructions;
       }
 
-      await appwriteService.createRow(
+      final row = await appwriteService.createRow(
         collectionId: AppwriteConfig.ordersCollection,
         data: orderData,
       );
 
       await appwriteService.notifyOrderPlaced(customerId, orderNumber);
 
-      return orderNumber;
+      return {
+        'orderId': row.$id,
+        'orderNumber': orderNumber,
+      };
     } catch (e) {
       log('Error creating order: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> updatePaymentStatus(String orderId, String paymentStatus) async {
+    try {
+      await appwriteService.updateTable(
+        tableId: AppwriteConfig.ordersCollection,
+        rowId: orderId,
+        data: {'payment_status': paymentStatus},
+      );
+    } catch (e) {
+      log('Error updating payment status: $e');
       rethrow;
     }
   }

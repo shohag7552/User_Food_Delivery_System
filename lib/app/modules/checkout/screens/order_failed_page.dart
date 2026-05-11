@@ -16,11 +16,8 @@ class OrderFailedPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        // Allow back button to go to checkout
-        return true;
-      },
+    return PopScope(
+      canPop: true,
       child: Scaffold(
         backgroundColor: ColorResource.scaffoldBackground,
         body: SafeArea(

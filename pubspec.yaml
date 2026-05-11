@@ -59,6 +59,7 @@ dependencies:
   geocoding: ^4.0.0
   location: ^8.0.1
   connectivity_plus: ^7.1.1
+  flutter_inappwebview: ^6.1.5
 
   flutter_stripe: ^12.3.0
 
