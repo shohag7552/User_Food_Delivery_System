@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui' show ImageFilter;
 
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
@@ -100,6 +101,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _onNavItemTapped(int index) {
+    // Subtle physical feedback for a more premium, tactile feel.
+    HapticFeedback.selectionClick();
     _pageController.animateToPage(
       index,
       duration: const Duration(milliseconds: 300),
@@ -132,6 +135,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       },
       child: Scaffold(
         backgroundColor: ColorResource.scaffoldBackground,
+        extendBody: true,
         body: PageView(
           controller: _pageController,
           onPageChanged: _onPageChanged,
@@ -146,38 +150,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildBottomNavBar() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
-        border: Border(
-          top: BorderSide(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.08)
-                : ColorResource.textLight.withValues(alpha: 0.12),
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.25)
-                : ColorResource.shadowMedium,
-            blurRadius: isDark ? 18 : 10,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(Icons.home, 'home'.tr, 0),
-              _buildNavItem(Icons.favorite, 'favorites'.tr, 1),
-              _buildCartNavItem(),
-              _buildNavItem(Icons.receipt_long, 'orders'.tr, 3),
-              _buildNavItem(Icons.person, 'profile'.tr, 4),
-            ],
+    return SafeArea(
+      top: false,
+      child: Padding(
+        // Detaches the bar from the screen edges so it floats.
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: BackdropFilter(
+            // Frosted-glass blur of the content scrolling beneath the bar.
+            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+            child: Container(
+              decoration: BoxDecoration(
+                // Translucent so the blur reads as real glass.
+                color: ColorResource.cardBackground
+                    .withValues(alpha: isDark ? 0.72 : 0.82),
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.10)
+                      : Colors.white.withValues(alpha: 0.55),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: isDark
+                        ? Colors.black.withValues(alpha: 0.40)
+                        : ColorResource.shadowDark,
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildNavItem(Icons.home_rounded, 'home'.tr, 0),
+                    _buildNavItem(Icons.favorite_rounded, 'favorites'.tr, 1),
+                    _buildCartNavItem(),
+                    _buildNavItem(Icons.receipt_long_rounded, 'orders'.tr, 3),
+                    _buildNavItem(Icons.person_rounded, 'profile'.tr, 4),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -187,11 +208,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildNavItem(IconData icon, String label, int index) {
     final isSelected = _selectedIndex == index;
 
-    return GestureDetector(
+    final item = GestureDetector(
       onTap: () => _onNavItemTapped(index),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           gradient: isSelected ? ColorResource.primaryGradient : null,
           borderRadius: BorderRadius.circular(Constants.radiusLarge),
@@ -207,12 +228,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
               size: 24,
             ),
             if (isSelected) ...[
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: poppinsMedium.copyWith(
-                  fontSize: Constants.fontSizeSmall,
-                  color: ColorResource.textWhite,
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.ellipsis,
+                  style: poppinsMedium.copyWith(
+                    fontSize: Constants.fontSizeSmall,
+                    color: ColorResource.textWhite,
+                  ),
                 ),
               ),
             ],
@@ -220,12 +246,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
     );
+
+    // Only the selected item flexes to absorb leftover width; unselected
+    // items stay compact. This guarantees the row never overflows.
+    return isSelected ? Flexible(child: item) : item;
   }
 
   Widget _buildCartNavItem() {
     final isSelected = _selectedIndex == 2;
 
-    return GetBuilder<CartController>(
+    final cart = GetBuilder<CartController>(
       builder: (cartController) {
         final itemCount = cartController.itemCount;
         final hasItems = itemCount > 0;
@@ -237,7 +267,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               gradient: isSelected
                   ? ColorResource.primaryGradient
@@ -258,7 +288,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   clipBehavior: Clip.none,
                   children: [
                     Icon(
-                      Icons.shopping_cart,
+                      Icons.shopping_cart_rounded,
                       color: isSelected
                           ? ColorResource.textWhite
                           : (hasItems
@@ -316,12 +346,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
                 if (isSelected) ...[
-                  const SizedBox(width: 8),
-                  Text(
-                    'cart'.tr,
-                    style: poppinsMedium.copyWith(
-                      fontSize: Constants.fontSizeSmall,
-                      color: ColorResource.textWhite,
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      'cart'.tr,
+                      maxLines: 1,
+                      softWrap: false,
+                      overflow: TextOverflow.ellipsis,
+                      style: poppinsMedium.copyWith(
+                        fontSize: Constants.fontSizeSmall,
+                        color: ColorResource.textWhite,
+                      ),
                     ),
                   ),
                 ],
@@ -331,5 +366,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         );
       },
     );
+
+    // Match the flex behaviour of the other items so the row can't overflow.
+    return isSelected ? Flexible(child: cart) : cart;
   }
 }

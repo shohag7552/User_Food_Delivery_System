@@ -7,8 +7,8 @@ class ColorResource {
     // static const Color primaryMedium = Color(0xFF006B8F);
   // static const Color primaryLight = Color(0xFF0099CC);
   static const Color primaryDark = Color(0xFFC92A2A);
-  static const Color primaryMedium = Color(0xFFC92A2A);
-  static const Color primaryLight = Color(0xFFC92A2A);
+  static const Color primaryMedium = Color(0xFFE03131);
+  static const Color primaryLight = Color(0xFFF03E3E);
   static const Color primary = primaryDark;
   static const Color appBarColor = primaryDark;
   static const LinearGradient primaryGradient = LinearGradient(
@@ -61,7 +61,7 @@ class ColorResource {
   // UI Element Colors
   static const Color ratingStarColor = Color(0xFFFBBF24);
   static const Color favoriteColor = Color(0xFFEF4444);
-  static const Color discountBadge = Color(0xFF003B55);
+  static const Color discountBadge = primaryDark;
   static const Color premiumBadge = Color(0xFFFFD700);
 
   // Shadow Colors

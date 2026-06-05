@@ -380,6 +380,8 @@ class _CartPageState extends State<CartPage> {
         ],
       ),
       child: SafeArea(
+        // Keeps the checkout bar above the floating bottom nav bar.
+        minimum: const EdgeInsets.only(bottom: Constants.bottomNavSpace),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

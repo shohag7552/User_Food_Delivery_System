@@ -31,6 +31,13 @@ class Constants {
   static const double radiusLarge = 15.0;
   static const double radiusExtraLarge = 20.0;
 
+  /// Vertical gap between home sections.
+  static const double spaceSection = 28.0;
+
+  /// Bottom clearance so scrollable content / bottom bars are not hidden
+  /// behind the floating bottom navigation bar.
+  static const double bottomNavSpace = 90.0;
+
   static List<LanguageModel> languages = [
     LanguageModel(imageUrl: Images.english, languageName: 'English', countryCode: 'US', languageCode: 'en'),
     LanguageModel(imageUrl: Images.bengali, languageName: 'Bengali', countryCode: 'BN', languageCode: 'bn'),

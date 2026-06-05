@@ -4,6 +4,7 @@ import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/controllers/notification_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
+import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/all_products_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/category_section_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/new_items_widget.dart';
@@ -179,22 +180,22 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
 
                 _buildPromotionalBanners(),
 
-                const SizedBox(height: 28),
+                const SizedBox(height: Constants.spaceSection),
 
                 // Categories
                 CategorySectionWidget(),
 
-                const SizedBox(height: 28),
+                const SizedBox(height: Constants.spaceSection),
 
                 // Today's Specials
                 const TodaysSpecialsWidget(),
 
-                const SizedBox(height: 28),
+                const SizedBox(height: Constants.spaceSection),
 
                 // Popular Dishes
                 const PopularDishesWidget(),
 
-                const SizedBox(height: 28),
+                const SizedBox(height: Constants.spaceSection),
 
                 // New Items
                 const NewItemsWidget(),
@@ -227,7 +228,6 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                       PopupMenuButton<ProductListFilter>(
                         tooltip: 'Filter products',
                         onSelected: (filter) async {
-                          print('=====> Selected filter: $filter');
                           await productController.setProductFilter(filter);
                         },
                         itemBuilder: (context) => [
@@ -313,25 +313,42 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                         children: [
                           // Greeting
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'good_evening'.tr,
-                                  style: poppinsRegular.copyWith(
-                                    fontSize: Constants.fontSizeDefault,
-                                    color: ColorResource.textWhite.withValues(alpha: 0.9),
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'what_would_you_like_to_eat'.tr,
-                                  style: poppinsBold.copyWith(
-                                    fontSize: Constants.fontSizeExtraLarge,
-                                    color: ColorResource.textWhite,
-                                  ),
-                                ),
-                              ],
+                            child: GetBuilder<ProfileController>(
+                              builder: (profileController) {
+                                final greeting = _greetingContent();
+                                final firstName = _resolveFirstName(
+                                  profileController.userProfile?.name,
+                                );
+                                final greetingLine = firstName.isEmpty
+                                    ? '${greeting.greetingKey.tr} 👋'
+                                    : '${greeting.greetingKey.tr}, $firstName 👋';
+
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      greetingLine,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: poppinsRegular.copyWith(
+                                        fontSize: Constants.fontSizeDefault,
+                                        color: ColorResource.textWhite
+                                            .withValues(alpha: 0.9),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      greeting.taglineKey.tr,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: poppinsBold.copyWith(
+                                        fontSize: Constants.fontSizeExtraLarge,
+                                        color: ColorResource.textWhite,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
                           ),
 
@@ -465,6 +482,29 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
         );
       },
     );
+  }
+
+  /// Returns the localization keys for the greeting and tagline based on the
+  /// current time of day, so the header feels contextual rather than static.
+  ({String greetingKey, String taglineKey}) _greetingContent() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 12) {
+      return (greetingKey: 'good_morning', taglineKey: 'tagline_morning');
+    }
+    if (hour >= 12 && hour < 17) {
+      return (greetingKey: 'good_afternoon', taglineKey: 'tagline_afternoon');
+    }
+    if (hour >= 17 && hour < 21) {
+      return (greetingKey: 'good_evening', taglineKey: 'tagline_evening');
+    }
+    return (greetingKey: 'good_night', taglineKey: 'tagline_night');
+  }
+
+  /// Extracts the first name from a full name for a friendlier greeting.
+  String _resolveFirstName(String? fullName) {
+    final trimmed = fullName?.trim() ?? '';
+    if (trimmed.isEmpty) return '';
+    return trimmed.split(RegExp(r'\s+')).first;
   }
 
   Widget _buildFilterMenuItem({

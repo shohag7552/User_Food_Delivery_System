@@ -83,7 +83,12 @@ class _OrdersPageState extends State<OrdersPage> {
                   color: ColorResource.primaryDark,
                   child: ListView.builder(
                     controller: _scrollController,
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.fromLTRB(
+                      16,
+                      16,
+                      16,
+                      Constants.bottomNavSpace,
+                    ),
                     itemCount: controller.orders.length + (controller.hasMore ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (index == controller.orders.length) {

@@ -53,7 +53,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             onRefresh: () => controller.fetchFavorites(),
             color: ColorResource.primaryDark,
             child: GridView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                Constants.bottomNavSpace,
+              ),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 16,
@@ -76,7 +81,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   Widget _buildLoadingState() {
     return GridView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, Constants.bottomNavSpace),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         crossAxisSpacing: 16,

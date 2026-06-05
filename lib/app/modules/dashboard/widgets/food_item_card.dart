@@ -122,7 +122,7 @@ class _FoodItemCardState extends State<FoodItemCard> {
                                     PriceHelper.formatPrice(widget.price),
                                     style: poppinsBold.copyWith(
                                       fontSize: 16,
-                                      color: const Color(0xFFE45C45),
+                                      color: ColorResource.primaryDark,
                                     ),
                                   ),
                                   if (widget.oldPrice != null &&
@@ -597,11 +597,11 @@ class _FoodItemCardState extends State<FoodItemCard> {
     return Container(
       height: 42,
       decoration: BoxDecoration(
-        color: const Color(0xFF4FBBC5),
+        color: ColorResource.primaryDark,
         borderRadius: BorderRadius.circular(21),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF4FBBC5).withValues(alpha: 0.28),
+            color: ColorResource.primaryDark.withValues(alpha: 0.28),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -651,11 +651,11 @@ class _FoodItemCardState extends State<FoodItemCard> {
     return Container(
       height: 44,
       decoration: BoxDecoration(
-        color: const Color(0xFFFF4A1C),
+        color: ColorResource.primaryDark,
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFF4A1C).withValues(alpha: 0.24),
+            color: ColorResource.primaryDark.withValues(alpha: 0.24),
             blurRadius: 12,
             offset: const Offset(0, 5),
           ),

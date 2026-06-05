@@ -149,8 +149,10 @@ class AllProductsWidget extends StatelessWidget {
                 ),
               ),
 
-            // Bottom spacing
-            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+            // Bottom spacing (clears the floating bottom nav bar)
+            const SliverToBoxAdapter(
+              child: SizedBox(height: Constants.bottomNavSpace),
+            ),
           ],
         );
       },

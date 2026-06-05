@@ -55,7 +55,12 @@ class _ProfilePageState extends State<ProfilePage> {
                 // Profile Options
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.fromLTRB(
+                      16,
+                      16,
+                      16,
+                      Constants.bottomNavSpace,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
