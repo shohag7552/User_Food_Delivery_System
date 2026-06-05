@@ -151,27 +151,39 @@ class ReviewController extends GetxController implements GetxService {
     }
   }
 
-  /// Mark review as helpful
-  Future<void> markReviewHelpful(String reviewId, String productId) async {
+  /// Toggle the current user's "helpful" mark on a review.
+  Future<void> toggleReviewHelpful(
+    String reviewId,
+    String productId,
+    String userId,
+  ) async {
     try {
-      await reviewRepoInterface.markHelpful(reviewId);
+      final updatedReview = await reviewRepoInterface.toggleHelpful(
+        reviewId,
+        userId,
+      );
 
-      // Update local cache
+      // Update local cache with the authoritative values from the server.
       final reviews = _productReviews[productId];
       if (reviews != null) {
         final index = reviews.indexWhere((r) => r.id == reviewId);
         if (index != -1) {
           reviews[index] = reviews[index].copyWith(
-            helpfulCount: reviews[index].helpfulCount + 1,
+            helpfulCount: updatedReview.helpfulCount,
+            helpfulUserIds: updatedReview.helpfulUserIds,
           );
           update();
         }
       }
 
-      customToster('Marked as helpful', isSuccess: true);
+      final isNowHelpful = updatedReview.isMarkedHelpfulBy(userId);
+      customToster(
+        isNowHelpful ? 'Marked as helpful' : 'Removed from helpful',
+        isSuccess: true,
+      );
     } catch (e) {
-      log('Error marking review as helpful: $e');
-      customToster('Failed to mark as helpful', isSuccess: false);
+      log('Error toggling review helpful: $e');
+      customToster('Failed to update helpful', isSuccess: false);
     }
   }
 

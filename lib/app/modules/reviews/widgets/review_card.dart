@@ -12,6 +12,7 @@ class ReviewCard extends StatelessWidget {
   final VoidCallback? onDelete;
   final bool showActions;
   final bool isCurrentUser;
+  final bool isMarkedHelpful;
 
   const ReviewCard({
     super.key,
@@ -20,6 +21,7 @@ class ReviewCard extends StatelessWidget {
     this.onDelete,
     this.showActions = true,
     this.isCurrentUser = false,
+    this.isMarkedHelpful = false,
   });
 
   @override
@@ -142,31 +144,45 @@ class ReviewCard extends StatelessWidget {
                 if (onHelpful != null && !isCurrentUser)
                   GestureDetector(
                     onTap: onHelpful,
-                    child: Container(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: ColorResource.scaffoldBackground,
+                        color: isMarkedHelpful
+                            ? ColorResource.primaryDark.withValues(alpha: 0.1)
+                            : ColorResource.scaffoldBackground,
                         borderRadius: BorderRadius.circular(
                           Constants.radiusSmall,
+                        ),
+                        border: Border.all(
+                          color: isMarkedHelpful
+                              ? ColorResource.primaryDark.withValues(alpha: 0.4)
+                              : Colors.transparent,
                         ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.thumb_up_outlined,
+                            isMarkedHelpful
+                                ? Icons.thumb_up
+                                : Icons.thumb_up_outlined,
                             size: 14,
-                            color: ColorResource.textSecondary,
+                            color: isMarkedHelpful
+                                ? ColorResource.primaryDark
+                                : ColorResource.textSecondary,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             'Helpful',
-                            style: poppinsRegular.copyWith(
+                            style: poppinsMedium.copyWith(
                               fontSize: Constants.fontSizeSmall,
-                              color: ColorResource.textSecondary,
+                              color: isMarkedHelpful
+                                  ? ColorResource.primaryDark
+                                  : ColorResource.textSecondary,
                             ),
                           ),
                           if (review.helpfulCount > 0) ...[

@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
 import 'package:appwrite_user_app/app/controllers/review_controller.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/review_card.dart';
@@ -75,10 +76,21 @@ class ReviewListSection extends StatelessWidget {
                 return ReviewCard(
                   review: review,
                   isCurrentUser: isCurrentUser,
-                  onHelpful: () => controller.markReviewHelpful(
-                    review.id,
-                    productId,
-                  ),
+                  isMarkedHelpful: review.isMarkedHelpfulBy(currentUserId),
+                  onHelpful: () {
+                    if (currentUserId == null) {
+                      customToster(
+                        'Please login to mark helpful',
+                        isSuccess: false,
+                      );
+                      return;
+                    }
+                    controller.toggleReviewHelpful(
+                      review.id,
+                      productId,
+                      currentUserId!,
+                    );
+                  },
                   onDelete: isCurrentUser
                       ? () => controller.deleteReview(review.id, productId)
                       : null,

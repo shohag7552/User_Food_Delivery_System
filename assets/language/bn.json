@@ -429,6 +429,8 @@
   "cancelled_status": "বাতিল হয়েছে",
   "menu_categories": "মেনু বিভাগ",
   "see_all": "সব দেখুন",
+  "see_more": "আরও দেখুন",
+  "see_less": "কম দেখুন",
   "select_delivery_address": "ডেলিভারি ঠিকানা নির্বাচন করুন",
   "add_new_address": "নতুন ঠিকানা যোগ করুন",
   "no_saved_addresses": "কোন সংরক্ষিত ঠিকানা নেই",

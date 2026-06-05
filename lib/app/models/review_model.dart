@@ -10,6 +10,7 @@ class ReviewModel {
   final String? title;
   final String comment;
   final int helpfulCount;
+  final List<String> helpfulUserIds; // users who marked this review helpful
   final bool verifiedPurchase;
   final DateTime createdAt;
 
@@ -23,9 +24,21 @@ class ReviewModel {
     this.title,
     required this.comment,
     this.helpfulCount = 0,
+    this.helpfulUserIds = const [],
     this.verifiedPurchase = false,
     required this.createdAt,
   });
+
+  /// Whether the given user has marked this review as helpful.
+  bool isMarkedHelpfulBy(String? userId) =>
+      userId != null && helpfulUserIds.contains(userId);
+
+  static List<String> _parseStringList(dynamic value) {
+    if (value is List) {
+      return value.map((e) => e.toString()).toList();
+    }
+    return const [];
+  }
 
   /// Create from Appwrite Document
   factory ReviewModel.fromDocument(models.Document doc) {
@@ -39,6 +52,7 @@ class ReviewModel {
       title: doc.data['title'],
       comment: doc.data['comment'] ?? '',
       helpfulCount: doc.data['helpful_count'] ?? 0,
+      helpfulUserIds: _parseStringList(doc.data['helpful_user_ids']),
       verifiedPurchase: doc.data['verified_purchase'] ?? false,
       createdAt: DateTime.parse(doc.data['created_at'] ?? doc.data['\$createdAt']),
     );
@@ -56,6 +70,7 @@ class ReviewModel {
       title: json['title'],
       comment: json['comment'] ?? '',
       helpfulCount: json['helpful_count'] ?? 0,
+      helpfulUserIds: _parseStringList(json['helpful_user_ids']),
       verifiedPurchase: json['verified_purchase'] ?? false,
       createdAt: json['created_at'] != null 
           ? DateTime.parse(json['created_at'])
@@ -108,6 +123,7 @@ class ReviewModel {
     String? title,
     String? comment,
     int? helpfulCount,
+    List<String>? helpfulUserIds,
     bool? verifiedPurchase,
     DateTime? createdAt,
   }) {
@@ -121,6 +137,7 @@ class ReviewModel {
       title: title ?? this.title,
       comment: comment ?? this.comment,
       helpfulCount: helpfulCount ?? this.helpfulCount,
+      helpfulUserIds: helpfulUserIds ?? this.helpfulUserIds,
       verifiedPurchase: verifiedPurchase ?? this.verifiedPurchase,
       createdAt: createdAt ?? this.createdAt,
     );

@@ -117,7 +117,7 @@ class ReviewRepository implements ReviewRepoInterface {
   }
 
   @override
-  Future<void> markHelpful(String reviewId) async {
+  Future<ReviewModel> toggleHelpful(String reviewId, String userId) async {
     try {
       final response = await appwriteService.listTable(
         tableId: AppwriteConfig.reviewsCollection,
@@ -132,16 +132,32 @@ class ReviewRepository implements ReviewRepoInterface {
       }
 
       final reviewData = response.rows.first.data;
-      final currentCount = reviewData['helpful_count'] ?? 0;
+      final helpfulUserIds = (reviewData['helpful_user_ids'] is List)
+          ? List<String>.from(
+              (reviewData['helpful_user_ids'] as List).map((e) => e.toString()),
+            )
+          : <String>[];
 
-      // Increment helpful count
-      await appwriteService.updateTable(
+      // Toggle this user's membership.
+      if (helpfulUserIds.contains(userId)) {
+        helpfulUserIds.remove(userId);
+      } else {
+        helpfulUserIds.add(userId);
+      }
+
+      // Keep the count derived from the list so they never drift apart.
+      final updated = await appwriteService.updateTable(
         tableId: AppwriteConfig.reviewsCollection,
         rowId: reviewId,
-        data: {'helpful_count': currentCount + 1},
+        data: {
+          'helpful_user_ids': helpfulUserIds,
+          'helpful_count': helpfulUserIds.length,
+        },
       );
+
+      return ReviewModel.fromJson(updated.data);
     } catch (e) {
-      log('Error marking review as helpful: $e');
+      log('Error toggling review helpful: $e');
       rethrow;
     }
   }

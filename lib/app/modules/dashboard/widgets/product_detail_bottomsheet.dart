@@ -52,9 +52,30 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
   bool _isAddingToCart = false;
   CartItemModel? _matchingCartItem; // ADDED THIS LINE
   bool _isExpanded = false; // true when the sheet is dragged to full screen
+  bool _isDescriptionExpanded = false; // "see more" / "see less" toggle
+
+  // Required-variant guidance: scroll to + highlight the next required group
+  // that the user still needs to choose before adding to cart.
+  final Map<String, GlobalKey> _variantKeys = {};
+  String? _highlightedVariantTitle;
+  bool _isGuidingVariants = false;
+
+  // Content-based sizing: the sheet opens only as tall as its content needs,
+  // instead of always taking a fixed fraction of the screen.
+  final DraggableScrollableController _sheetController =
+      DraggableScrollableController();
+  final GlobalKey _sheetContentKey = GlobalKey();
+  final GlobalKey _bottomBarKey = GlobalKey();
+  static const double _minSheetSize = 0.4; // floor
+  static const double _maxSheetSize = 0.95; // manual drag ceiling
+  static const double _maxAutoSheetSize = 0.9; // auto-open ceiling
+  static const double _initialSheetSize = 0.7;
 
   String get _productDescription =>
       widget.product.descriptionMap.trLanguage.trim();
+
+  // Reviews section is only shown when the product actually has reviews.
+  bool get _hasReviews => widget.product.ratingCount > 0;
 
   // int get _selectedVariantCount {
   //   int count = 0;
@@ -119,6 +140,38 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
 
     // Call check to see if we match an item in cart
     _checkExistingCartItem();
+
+    // Once laid out, shrink the sheet to fit the actual content height.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _sizeSheetToContent());
+  }
+
+  @override
+  void dispose() {
+    _sheetController.dispose();
+    super.dispose();
+  }
+
+  /// Resizes the sheet so it's only as tall as the product's content (image,
+  /// info, variants, reviews) plus the bottom bar — clamped so small products
+  /// stay compact and rich ones never exceed the auto-open ceiling.
+  void _sizeSheetToContent() {
+    if (!mounted || !_sheetController.isAttached) return;
+
+    final contentCtx = _sheetContentKey.currentContext;
+    final screenHeight = MediaQuery.of(context).size.height;
+    if (contentCtx == null || screenHeight <= 0) return;
+
+    final contentHeight = contentCtx.size?.height ?? 0;
+    final bottomBarHeight = _bottomBarKey.currentContext?.size?.height ?? 150;
+
+    final desired = (contentHeight + bottomBarHeight) / screenHeight;
+    final target = desired
+        .clamp(_minSheetSize, _maxAutoSheetSize)
+        .toDouble();
+
+    if ((_sheetController.size - target).abs() > 0.01) {
+      _sheetController.jumpTo(target);
+    }
   }
 
   void _checkExistingCartItem() {
@@ -180,12 +233,71 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
     // Block if out of stock
     if (widget.product.isOutOfStock) return false;
     // Check if all required variants are selected
+    return _firstUnselectedRequiredVariant() == null;
+  }
+
+  /// The first required variant group the user has not chosen yet, or null
+  /// when every required group is satisfied.
+  VariantGroup? _firstUnselectedRequiredVariant() {
     for (var variant in widget.product.variants) {
       if (variant.required && !_selectedVariants.containsKey(variant.title)) {
-        return false;
+        return variant;
       }
     }
-    return true;
+    return null;
+  }
+
+  /// Triggered from the "Add to cart" button when required choices are still
+  /// missing: starts the guided flow at the first unselected required group.
+  void _startVariantGuidance() {
+    final next = _firstUnselectedRequiredVariant();
+    if (next == null) return;
+    _isGuidingVariants = true;
+    _guideToVariant(next.title);
+  }
+
+  /// Called after any variant selection. While guiding, advance to the next
+  /// unselected required group, or end the flow once all are chosen.
+  void _advanceGuidanceIfNeeded() {
+    if (!_isGuidingVariants) return;
+
+    final next = _firstUnselectedRequiredVariant();
+    if (next == null) {
+      _isGuidingVariants = false;
+      if (_highlightedVariantTitle != null) {
+        setState(() => _highlightedVariantTitle = null);
+      }
+      return;
+    }
+
+    // Wait for the selection's layout change to settle before scrolling.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _guideToVariant(next.title);
+    });
+  }
+
+  /// Scrolls the given variant group into view and pulses a highlight on it.
+  void _guideToVariant(String title) {
+    final ctx = _variantKeys[title]?.currentContext;
+    if (ctx != null) {
+      Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+        alignment: 0.1,
+      );
+    }
+    _highlightVariant(title);
+  }
+
+  void _highlightVariant(String title) {
+    setState(() => _highlightedVariantTitle = title);
+    Future.delayed(const Duration(milliseconds: 1400), () {
+      if (!mounted) return;
+      if (_highlightedVariantTitle == title) {
+        setState(() => _highlightedVariantTitle = null);
+      }
+    });
   }
 
   List<SelectedVariant> _buildSelectedVariants() {
@@ -238,9 +350,10 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
         return false;
       },
       child: DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.45,
-        maxChildSize: 0.95,
+        controller: _sheetController,
+        initialChildSize: _initialSheetSize,
+        minChildSize: _minSheetSize,
+        maxChildSize: _maxSheetSize,
         expand: false,
         builder: (BuildContext context, ScrollController scrollController) {
           return Stack(
@@ -259,6 +372,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                         controller: scrollController,
                         padding: const EdgeInsets.all(0),
                         child: Column(
+                          key: _sheetContentKey,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Product Image with badges
@@ -283,18 +397,19 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                                     ),
                                   ],
 
-                                  // Divider
-                                  Divider(
-                                    color: ColorResource.textLight.withValues(
-                                      alpha: 0.2,
+                                  // Reviews Section — only when the product
+                                  // has reviews.
+                                  if (_hasReviews) ...[
+                                    Divider(
+                                      color: ColorResource.textLight.withValues(
+                                        alpha: 0.2,
+                                      ),
+                                      thickness: 1,
                                     ),
-                                    thickness: 1,
-                                  ),
-                                  const SizedBox(height: 18),
-
-                                  // Reviews Section
-                                  _buildReviewsSection(),
-                                  const SizedBox(height: 50), // Space for button
+                                    const SizedBox(height: 18),
+                                    _buildReviewsSection(),
+                                  ],
+                                  const SizedBox(height: 10), // Space for button
                                 ],
                               ),
                             ),
@@ -304,7 +419,10 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                     ),
 
                     // Fixed bottom: Add to Cart button
-                    _buildAddToCartButton(context),
+                    KeyedSubtree(
+                      key: _bottomBarKey,
+                      child: _buildAddToCartButton(context),
+                    ),
                   ],
                 ),
               ),
@@ -608,16 +726,60 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
         ),
         if (_productDescription.isNotEmpty) ...[
           const SizedBox(height: 12),
-          Text(
-            _productDescription,
-            style: poppinsRegular.copyWith(
-              fontSize: Constants.fontSizeSmall,
-              color: ColorResource.textSecondary,
-            ),
-          ),
+          _buildDescription(),
         ],
       ],
     ),
+    );
+  }
+
+  Widget _buildDescription() {
+    final style = poppinsRegular.copyWith(
+      fontSize: Constants.fontSizeSmall,
+      color: ColorResource.textSecondary,
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Measure whether the text needs more than 2 lines at this width.
+        final textPainter = TextPainter(
+          text: TextSpan(text: _productDescription, style: style),
+          maxLines: 2,
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout(maxWidth: constraints.maxWidth);
+
+        final isOverflowing = textPainter.didExceedMaxLines;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _productDescription,
+              style: style,
+              maxLines: _isDescriptionExpanded ? null : 2,
+              overflow: _isDescriptionExpanded
+                  ? TextOverflow.visible
+                  : TextOverflow.ellipsis,
+            ),
+            if (isOverflowing) ...[
+              const SizedBox(height: 4),
+              GestureDetector(
+                onTap: () => setState(
+                  () => _isDescriptionExpanded = !_isDescriptionExpanded,
+                ),
+                child: Text(
+                  _isDescriptionExpanded ? 'see_less'.tr : 'see_more'.tr,
+                  style: poppinsBold.copyWith(
+                    fontSize: Constants.fontSizeSmall,
+                    color: ColorResource.primaryDark,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 
@@ -682,11 +844,33 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
   }
 
   Widget _buildVariantGroup(VariantGroup variant) {
-    return Container(
+    final isHighlighted = _highlightedVariantTitle == variant.title;
+
+    return AnimatedContainer(
+      key: _variantKeys.putIfAbsent(variant.title, () => GlobalKey()),
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
       padding: const EdgeInsets.all(Constants.paddingSizeSmall),
       decoration: BoxDecoration(
-        color: ColorResource.scaffoldBackground.withValues(alpha: 0.7),
+        color: isHighlighted
+            ? ColorResource.primaryDark.withValues(alpha: 0.06)
+            : ColorResource.scaffoldBackground.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isHighlighted
+              ? ColorResource.primaryDark
+              : Colors.transparent,
+          width: isHighlighted ? 1.5 : 0,
+        ),
+        boxShadow: isHighlighted
+            ? [
+                BoxShadow(
+                  color: ColorResource.primaryDark.withValues(alpha: 0.22),
+                  blurRadius: 12,
+                  spreadRadius: 1,
+                ),
+              ]
+            : const [],
       ),
       child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -755,6 +939,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
           _selectedVariants[variant.title] = option;
         });
         _checkExistingCartItem(); // Add check here
+        _advanceGuidanceIfNeeded();
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
@@ -863,6 +1048,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
           }
         });
         _checkExistingCartItem(); // Add check here
+        _advanceGuidanceIfNeeded();
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
@@ -1021,8 +1207,15 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
             ),
             const SizedBox(height: 10),
             GestureDetector(
-              onTap: (_canAddToCart && !_isAddingToCart)
-                  ? () async {
+              onTap: (outOfStock || _isAddingToCart)
+                  ? null
+                  : () async {
+                      if (!_canAddToCart) {
+                        // Required choices still missing — guide the user to
+                        // the next required variant instead of adding.
+                        _startVariantGuidance();
+                        return;
+                      }
                       setState(() {
                         _isAddingToCart = true;
                       });
@@ -1114,8 +1307,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                         Get.back();
                         customToster('Failed to add to cart');
                       }
-                    }
-                  : null,
+                    },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -1127,16 +1319,9 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                             ColorResource.error.withValues(alpha: 0.78),
                           ],
                         )
-                      : _canAddToCart
-                          ? ColorResource.primaryGradient
-                          : LinearGradient(
-                              colors: [
-                                ColorResource.textLight.withValues(alpha: 0.5),
-                                ColorResource.textLight.withValues(alpha: 0.5),
-                              ],
-                            ),
+                      : ColorResource.primaryGradient,
                   borderRadius: BorderRadius.circular(Constants.radiusLarge),
-                  boxShadow: (!outOfStock && _canAddToCart)
+                  boxShadow: !outOfStock
                       ? [
                           BoxShadow(
                             color: ColorResource.primaryMedium.withValues(alpha: 0.35),

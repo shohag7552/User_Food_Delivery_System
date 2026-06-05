@@ -16,8 +16,9 @@ abstract class ReviewRepoInterface {
   /// Delete a review
   Future<void> deleteReview(String reviewId);
 
-  /// Mark a review as helpful
-  Future<void> markHelpful(String reviewId);
+  /// Toggle the current user's "helpful" mark on a review.
+  /// Returns the updated review (with the new helpful list/count).
+  Future<ReviewModel> toggleHelpful(String reviewId, String userId);
 
   /// Check if user has reviewed a product
   Future<bool> hasUserReviewedProduct(

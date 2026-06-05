@@ -534,6 +534,15 @@ Future<void> _setupReviews(Databases db) async {
       xrequired: false,
       xdefault: 0,
     ),
+    // User IDs who marked this review helpful (per-user toggle).
+    () => db.createStringAttribute(
+      databaseId: AppwriteConfig.dbId,
+      collectionId: AppwriteConfig.reviewsCollection,
+      key: 'helpful_user_ids',
+      size: 128,
+      xrequired: false,
+      array: true,
+    ),
     () => db.createBooleanAttribute(
       databaseId: AppwriteConfig.dbId,
       collectionId: AppwriteConfig.reviewsCollection,
