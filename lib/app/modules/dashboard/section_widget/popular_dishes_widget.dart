@@ -119,9 +119,11 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
                 builder: (context, constraints) {
                   final products = controller.popularProducts;
                   final width = constraints.maxWidth;
-                  final viewportFraction = width >= 900 ? 0.28
-                      : width >= 600 ? 0.39
-                      : 0.6;
+                  final viewportFraction = width >= 900
+                      ? 0.30
+                      : width >= 600
+                      ? 0.40
+                      : 0.56;
 
                   return CarouselSlider.builder(
                     itemCount: products.length,
@@ -132,39 +134,45 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
                         builder: (cartController) {
                           final cartQuantity = CartHelper.getProductCartQuantity(product.id);
 
-                          return FoodItemCard(
-                            name: product.nameMap.trLanguage,
-                            isPopular: true,
-                            imageUrl: product.imageId,
-                            description: product.descriptionMap.trLanguage,
-                            price: product.finalPrice,
-                            oldPrice: product.hasDiscount
-                                ? product.price
-                                : null,
-                            product: product,
-                            cartQuantity: cartQuantity,
-                            onTap: () {
-                              ProductDetailBottomSheet.show(context, product);
-                            },
-                            onAddToCart: () =>
-                                CartHelper.handleAddToCart(product, context),
-                            onQuantityChanged: (isIncrement) {
-                              if (isIncrement) {
-                                CartHelper.incrementQuantity(product, context);
-                              } else {
-                                CartHelper.decrementQuantity(product, context);
-                              }
-                            },
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 4,
+                            ),
+                            child: FoodItemCard(
+                              name: product.nameMap.trLanguage,
+                              isPopular: true,
+                              imageUrl: product.imageId,
+                              description: product.descriptionMap.trLanguage,
+                              price: product.finalPrice,
+                              oldPrice: product.hasDiscount
+                                  ? product.price
+                                  : null,
+                              product: product,
+                              cartQuantity: cartQuantity,
+                              onTap: () {
+                                ProductDetailBottomSheet.show(context, product);
+                              },
+                              onAddToCart: () =>
+                                  CartHelper.handleAddToCart(product, context),
+                              onQuantityChanged: (isIncrement) {
+                                if (isIncrement) {
+                                  CartHelper.incrementQuantity(product, context);
+                                } else {
+                                  CartHelper.decrementQuantity(product, context);
+                                }
+                              },
+                            ),
                           );
                         },
                       );
                     },
                     options: CarouselOptions(
-                      height: 266,
+                      height: 250,
                       viewportFraction: viewportFraction,
                       padEnds: true,
                       enlargeCenterPage: true,
-                      enlargeFactor: 0.25,
+                      enlargeFactor: 0.2,
                       enlargeStrategy: CenterPageEnlargeStrategy.zoom,
                       enableInfiniteScroll: products.length > 1,
                       autoPlay: products.length > 1,

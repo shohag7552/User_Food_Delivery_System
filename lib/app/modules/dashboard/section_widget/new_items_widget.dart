@@ -125,11 +125,12 @@ class NewItemsWidget extends StatelessWidget {
             else
               SizedBox(
                 height: 250,
-                child: ListView.builder(
+                child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
                   itemCount: controller.newProducts.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 14),
                   itemBuilder: (context, index) {
                     final product = controller.newProducts[index];
 
@@ -139,26 +140,31 @@ class NewItemsWidget extends StatelessWidget {
                           product.id,
                         );
 
-                        return FoodItemCard(
-                          name: product.nameMap.trLanguage,
-                          imageUrl: product.imageId,
-                          description: product.descriptionMap.trLanguage,
-                          price: product.finalPrice,
-                          oldPrice: product.hasDiscount ? product.price : null,
-                          product: product,
-                          cartQuantity: cartQuantity,
-                          onTap: () {
-                            ProductDetailBottomSheet.show(context, product);
-                          },
-                          onAddToCart: () =>
-                              CartHelper.handleAddToCart(product, context),
-                          onQuantityChanged: (isIncrement) {
-                            if (isIncrement) {
-                              CartHelper.incrementQuantity(product, context);
-                            } else {
-                              CartHelper.decrementQuantity(product, context);
-                            }
-                          },
+                        return SizedBox(
+                          width: 180,
+                          child: FoodItemCard(
+                            name: product.nameMap.trLanguage,
+                            imageUrl: product.imageId,
+                            description: product.descriptionMap.trLanguage,
+                            price: product.finalPrice,
+                            oldPrice: product.hasDiscount
+                                ? product.price
+                                : null,
+                            product: product,
+                            cartQuantity: cartQuantity,
+                            onTap: () {
+                              ProductDetailBottomSheet.show(context, product);
+                            },
+                            onAddToCart: () =>
+                                CartHelper.handleAddToCart(product, context),
+                            onQuantityChanged: (isIncrement) {
+                              if (isIncrement) {
+                                CartHelper.incrementQuantity(product, context);
+                              } else {
+                                CartHelper.decrementQuantity(product, context);
+                              }
+                            },
+                          ),
                         );
                       },
                     );
