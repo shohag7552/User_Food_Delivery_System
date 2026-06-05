@@ -163,27 +163,29 @@ class _CartPageState extends State<CartPage> {
               ],
             ),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 100,
-                  height: 100,
+                  width: 84,
+                  height: 84,
                   decoration: BoxDecoration(
                     color: isDark
                         ? Colors.white.withValues(alpha: 0.06)
-                        : const Color(0xFFF5F5F5),
-                    borderRadius: BorderRadius.circular(20),
+                        : const Color(0xFFF3F4F6),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   padding: const EdgeInsets.all(4),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: CustomNetworkImage(
                       image: item.productImage,
+                      width: double.infinity,
+                      height: double.infinity,
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -206,12 +208,14 @@ class _CartPageState extends State<CartPage> {
                           const SizedBox(width: 8),
                           GestureDetector(
                             onTap: () => controller.removeItem(item.id),
-                            child: Icon(
-                              Icons.close,
-                              size: 20,
-                              color: isDark
-                                  ? Colors.white54
-                                  : Colors.black38,
+                            behavior: HitTestBehavior.opaque,
+                            child: Padding(
+                              padding: const EdgeInsets.all(2),
+                              child: Icon(
+                                Icons.close_rounded,
+                                size: 18,
+                                color: isDark ? Colors.white54 : Colors.black38,
+                              ),
                             ),
                           ),
                         ],
@@ -224,69 +228,91 @@ class _CartPageState extends State<CartPage> {
                               .map((s) => s.optionName)
                               .join(', '),
                           style: poppinsRegular.copyWith(
-                            fontSize: 13,
+                            fontSize: 12.5,
                             color: ColorResource.textSecondary,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      ] else ...[
-                        const SizedBox(height: 22),
                       ],
                       const SizedBox(height: 12),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Show original price with strikethrough if discounted
-                              if (item.basePrice > item.finalPrice) ...[
-                                Row(
-                                  children: [
-                                    Text(
-                                      CurrencyHelper.formatAmount(item.basePrice * item.quantity),
-                                      style: poppinsRegular.copyWith(
-                                        fontSize: Constants.fontSizeSmall,
-                                        color: ColorResource.textLight,
-                                        decoration: TextDecoration.lineThrough,
-                                        decorationColor: ColorResource.textLight,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: Colors.green.shade50,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        '${((1 - item.finalPrice / item.basePrice) * 100).round()}% OFF',
-                                        style: poppinsBold.copyWith(
-                                          fontSize: 10,
-                                          color: Colors.green.shade700,
+                          // Price block (flexes so it can never overflow)
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Original price + discount badge, if discounted
+                                if (item.basePrice > item.finalPrice) ...[
+                                  Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          CurrencyHelper.formatAmount(
+                                            item.basePrice * item.quantity,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: poppinsRegular.copyWith(
+                                            fontSize: Constants.fontSizeSmall,
+                                            color: ColorResource.textLight,
+                                            decoration:
+                                                TextDecoration.lineThrough,
+                                            decorationColor:
+                                                ColorResource.textLight,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.green.shade50,
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          '${((1 - item.finalPrice / item.basePrice) * 100).round()}% OFF',
+                                          style: poppinsBold.copyWith(
+                                            fontSize: 10,
+                                            color: Colors.green.shade700,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                ],
+                                Text(
+                                  CurrencyHelper.formatAmount(item.itemTotal),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: poppinsBold.copyWith(
+                                    fontSize: Constants.fontSizeLarge,
+                                    color: ColorResource.primaryDark,
+                                  ),
                                 ),
-                                const SizedBox(height: 2),
                               ],
-                              Text(
-                                CurrencyHelper.formatAmount(item.itemTotal),
-                                style: poppinsBold.copyWith(
-                                  fontSize: Constants.fontSizeLarge,
-                                  color: ColorResource.primaryDark,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
+                          const SizedBox(width: 8),
+                          // Quantity stepper
                           Container(
                             decoration: BoxDecoration(
                               color: ColorResource.scaffoldBackground,
                               borderRadius: BorderRadius.circular(
                                 Constants.radiusDefault,
+                              ),
+                              border: Border.all(
+                                color: ColorResource.textLight.withValues(
+                                  alpha: 0.15,
+                                ),
                               ),
                             ),
                             child: Row(
@@ -299,12 +325,12 @@ class _CartPageState extends State<CartPage> {
                                   enabled: item.quantity > 1,
                                 ),
                                 Container(
-                                  width: 40,
+                                  width: 32,
                                   alignment: Alignment.center,
                                   child: Text(
                                     '${item.quantity}',
                                     style: poppinsBold.copyWith(
-                                      fontSize: Constants.fontSizeLarge,
+                                      fontSize: Constants.fontSizeDefault,
                                       color: ColorResource.textPrimary,
                                     ),
                                   ),
@@ -350,7 +376,7 @@ class _CartPageState extends State<CartPage> {
       onTap: enabled ? onTap : null,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(7),
         decoration: BoxDecoration(
           color: enabled
               ? ColorResource.primaryDark
@@ -360,7 +386,7 @@ class _CartPageState extends State<CartPage> {
         child: Icon(
           icon,
           color: enabled ? ColorResource.textWhite : ColorResource.textLight,
-          size: 20,
+          size: 18,
         ),
       ),
     );
