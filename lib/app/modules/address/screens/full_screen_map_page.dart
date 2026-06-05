@@ -4,6 +4,7 @@ import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geocoding/geocoding.dart' hide Location;
 import 'package:get/get.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
@@ -22,12 +23,41 @@ class _FullScreenMapPageState extends State<FullScreenMapPage> {
   late LatLng _selectedLocation;
   final Location _locationService = Location();
   bool _isLoadingLocation = false;
+  String? _resolvedAddress;
+  bool _isFetchingAddress = false;
 
   @override
   void initState() {
     super.initState();
     _mapController = MapController();
     _selectedLocation = widget.initialLocation;
+    _resolveAddress(_selectedLocation);
+  }
+
+  Future<void> _resolveAddress(LatLng position) async {
+    setState(() => _isFetchingAddress = true);
+    try {
+      final placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
+      if (!mounted) return;
+      if (placemarks.isNotEmpty) {
+        final p = placemarks.first;
+        final parts = <String?>[
+          p.street,
+          p.subLocality,
+          p.locality ?? p.subAdministrativeArea,
+          p.postalCode,
+        ]
+            .where((e) =>
+                e != null && e.trim().isNotEmpty && !e.contains('+'))
+            .toList();
+        setState(() => _resolvedAddress = parts.join(', '));
+      }
+    } catch (_) {
+      // Ignore — keep the last resolved address.
+    } finally {
+      if (mounted) setState(() => _isFetchingAddress = false);
+    }
   }
 
   @override
@@ -49,6 +79,7 @@ class _FullScreenMapPageState extends State<FullScreenMapPage> {
                   setState(() {
                     _selectedLocation = _mapController.camera.center;
                   });
+                  _resolveAddress(_selectedLocation);
                 }
               },
             ),
@@ -69,6 +100,93 @@ class _FullScreenMapPageState extends State<FullScreenMapPage> {
               ),
             ),
           ),
+
+          // Live address bar — updates as the map is dragged.
+          Positioned(
+            top: 16,
+            left: 16,
+            right: 16,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: ColorResource.cardBackground,
+                borderRadius: BorderRadius.circular(Constants.radiusLarge),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: ColorResource.primaryDark.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.location_on,
+                      color: ColorResource.primaryDark,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'delivery_location'.tr,
+                          style: poppinsMedium.copyWith(
+                            fontSize: Constants.fontSizeExtraSmall,
+                            color: ColorResource.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        _isFetchingAddress
+                            ? Row(
+                                children: [
+                                  const SizedBox(
+                                    width: 12,
+                                    height: 12,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'locating'.tr,
+                                    style: poppinsMedium.copyWith(
+                                      fontSize: Constants.fontSizeSmall,
+                                      color: ColorResource.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Text(
+                                (_resolvedAddress?.isNotEmpty ?? false)
+                                    ? _resolvedAddress!
+                                    : 'move_map_to_set_location'.tr,
+                                style: poppinsBold.copyWith(
+                                  fontSize: Constants.fontSizeSmall,
+                                  color: ColorResource.textPrimary,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
           Positioned(
             bottom: 30,
             left: 20,

@@ -87,6 +87,20 @@ class AddressController extends GetxController implements GetxService {
     }
   }
 
+  /// Update an address and refresh the list WITHOUT navigating back.
+  /// Use this when saving from a screen that should stay on top (e.g. the
+  /// checkout map flow). Returns true on success.
+  Future<bool> saveAddressChanges(String id, AddressModel address) async {
+    try {
+      await addressRepoInterface.updateAddress(id, address);
+      await fetchAddresses();
+      return true;
+    } catch (e) {
+      log('Error updating address: $e');
+      return false;
+    }
+  }
+
   /// Delete address
   Future<void> deleteAddress(String id) async {
     try {

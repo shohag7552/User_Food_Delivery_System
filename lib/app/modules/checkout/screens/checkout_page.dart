@@ -11,9 +11,11 @@ import 'package:appwrite_user_app/app/enums/payment_method_enum.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
 import 'package:appwrite_user_app/app/modules/address/screens/add_edit_address_page.dart';
+import 'package:appwrite_user_app/app/modules/address/screens/full_screen_map_page.dart';
 import 'package:appwrite_user_app/app/modules/checkout/screens/order_failed_page.dart';
 import 'package:appwrite_user_app/app/modules/checkout/screens/order_success_page.dart';
 import 'package:appwrite_user_app/app/modules/checkout/widgets/address_selection_bottomsheet.dart';
+import 'package:appwrite_user_app/app/modules/checkout/widgets/edit_address_info_bottomsheet.dart';
 import 'package:appwrite_user_app/app/modules/checkout/widgets/delivery_schedule_bottomsheet.dart';
 import 'package:appwrite_user_app/app/modules/coupons/widgets/coupon_selection_bottomsheet.dart';
 import 'package:appwrite_user_app/app/modules/payment/payment_webview_screen.dart';
@@ -21,6 +23,8 @@ import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -36,6 +40,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   PaymentMethod _selectedPaymentMethod = PaymentMethod.cod;
   PaymentGateway _selectedGateway = PaymentGateway.sslcommerz;
   bool _isPriceExpanded = false;
+  bool _isAddressExpanded = false;
   AddressModel? _selectedAddress;
   
   // Delivery schedule
@@ -57,12 +62,89 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   void _syncSelectedAddress(AddressController addressController) {
-    final hasSelectedAddress = _selectedAddress != null &&
-        addressController.addresses.any((address) => address.id == _selectedAddress!.id);
-
-    if (!hasSelectedAddress && addressController.defaultAddress != null) {
-      _selectedAddress = addressController.defaultAddress;
+    // Re-bind to the freshest instance by id so inline edits reflect at once.
+    if (_selectedAddress != null) {
+      for (final address in addressController.addresses) {
+        if (address.id == _selectedAddress!.id) {
+          _selectedAddress = address;
+          return;
+        }
+      }
     }
+    _selectedAddress = addressController.defaultAddress;
+  }
+
+  Future<void> _openEditAddressInfo() async {
+    if (_selectedAddress == null) return;
+    await EditAddressInfoBottomSheet.show(context, _selectedAddress!);
+    // The GetBuilder rebuild re-syncs _selectedAddress; refresh the view.
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _openLocationEditor() async {
+    final addressController = Get.find<AddressController>();
+    final base = _selectedAddress;
+    if (base == null) {
+      await _openMapAddressPicker();
+      return;
+    }
+
+    final initial = (base.latitude != null && base.longitude != null)
+        ? LatLng(base.latitude!, base.longitude!)
+        : const LatLng(23.8103, 90.4125); // Dhaka fallback
+
+    final picked = await Get.to<LatLng?>(
+      () => FullScreenMapPage(initialLocation: initial),
+    );
+    if (picked == null || !mounted) return;
+
+    final updated = await _composeAddressFromLocation(base, picked);
+    final ok = await addressController.saveAddressChanges(base.id, updated);
+    if (!mounted) return;
+    if (ok) {
+      setState(() => _syncSelectedAddress(addressController));
+      customToster('location_updated'.tr);
+    } else {
+      customToster('failed_to_update_address'.tr, isSuccess: false);
+    }
+  }
+
+  /// Reverse-geocodes the picked point and merges it onto the address,
+  /// keeping name/phone/default while refreshing street, city and postal.
+  Future<AddressModel> _composeAddressFromLocation(
+    AddressModel base,
+    LatLng pos,
+  ) async {
+    String line1 = base.addressLine1;
+    String city = base.city;
+    String postal = base.postalCode;
+
+    try {
+      final placemarks =
+          await placemarkFromCoordinates(pos.latitude, pos.longitude);
+      if (placemarks.isNotEmpty) {
+        final p = placemarks.first;
+        final street = [p.street, p.subLocality]
+            .whereType<String>()
+            .where((e) => e.trim().isNotEmpty && !e.contains('+'))
+            .join(', ');
+        if (street.isNotEmpty) line1 = street;
+        final resolvedCity =
+            p.locality ?? p.subAdministrativeArea ?? p.administrativeArea ?? '';
+        if (resolvedCity.isNotEmpty) city = resolvedCity;
+        if ((p.postalCode ?? '').isNotEmpty) postal = p.postalCode!;
+      }
+    } catch (_) {
+      // Keep existing textual address if geocoding fails.
+    }
+
+    return base.copyWith(
+      addressLine1: line1,
+      city: city,
+      postalCode: postal,
+      latitude: pos.latitude,
+      longitude: pos.longitude,
+    );
   }
 
   Future<void> _openAddressSelector() async {
@@ -249,10 +331,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
         final settingsController = Get.find<SettingsController>();
         final distanceKm = _calculateDistanceKm(settingsController);
         final isOutsideRadius = _isOutsideDeliveryRadius(settingsController);
-        final hasAddress = _selectedAddress != null;
+        final address = _selectedAddress;
+
+        if (address == null) {
+          return _buildNoAddressCard();
+        }
+
+        final hasLatLng = address.latitude != null && address.longitude != null;
 
         return Container(
-          padding: const EdgeInsets.all(12),
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             color: ColorResource.cardBackground,
             borderRadius: BorderRadius.circular(Constants.radiusLarge),
@@ -261,47 +349,32 @@ class _CheckoutPageState extends State<CheckoutPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              GestureDetector(
-                onTap: _openAddressSelector,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).disabledColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
+              // Map preview with marker
+              _buildMapPreview(address, hasLatLng),
+
+              // Header — tap to expand/collapse
+              InkWell(
+                onTap: () => setState(
+                  () => _isAddressExpanded = !_isAddressExpanded,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
                   child: Row(
                     children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.04),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Icon(
-                          Icons.location_on_outlined,
-                          size: 20,
-                          color: Theme.of(context).primaryColor,
-                        ),
+                      Icon(
+                        Icons.location_on,
+                        size: 22,
+                        color: ColorResource.primaryDark,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              hasAddress
-                                  ? _selectedAddress!.name
-                                  : 'Delivery address',
-                              style: poppinsMedium.copyWith(
+                              '${'deliver_to'.tr} • ${address.name}',
+                              style: poppinsBold.copyWith(
                                 fontSize: Constants.fontSizeDefault,
                                 color: ColorResource.textPrimary,
                               ),
@@ -310,9 +383,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              hasAddress
-                                  ? _selectedAddress!.shortAddress
-                                  : 'Choose where you want the order delivered',
+                              address.shortAddress,
                               style: poppinsRegular.copyWith(
                                 fontSize: Constants.fontSizeSmall,
                                 color: ColorResource.textSecondary,
@@ -323,76 +394,329 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      SizedBox(
-                        height: 40,
-                        child: ElevatedButton(
-                          onPressed: _openAddressSelector,
-                          style: ElevatedButton.styleFrom(
-                            elevation: 0,
-                            backgroundColor: Theme.of(context).primaryColor,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 18),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Text(
-                            hasAddress ? 'Change' : 'Choose',
-                            style: poppinsBold.copyWith(
-                              fontSize: Constants.fontSizeSmall,
-                              color: Colors.white,
-                            ),
-                          ),
+                      const SizedBox(width: 8),
+                      AnimatedRotation(
+                        duration: const Duration(milliseconds: 250),
+                        turns: _isAddressExpanded ? 0.5 : 0,
+                        child: Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: ColorResource.textSecondary,
+                          size: 26,
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-              if (hasAddress && distanceKm != null) ...[
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(
-                    isOutsideRadius
-                        ? 'Distance: ${distanceKm.toStringAsFixed(2)} km • Outside delivery radius'
-                        : 'Distance: ${distanceKm.toStringAsFixed(2)} km',
-                    style: poppinsMedium.copyWith(
-                      fontSize: Constants.fontSizeExtraSmall,
-                      color: isOutsideRadius ? Colors.red : ColorResource.textSecondary,
+
+              // Expandable details
+              AnimatedSize(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeInOut,
+                alignment: Alignment.topCenter,
+                child: _isAddressExpanded
+                    ? _buildAddressDetails(address, distanceKm, isOutsideRadius)
+                    : const SizedBox(width: double.infinity),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMapPreview(AddressModel address, bool hasLatLng) {
+    if (!hasLatLng) {
+      return GestureDetector(
+        onTap: _openLocationEditor,
+        child: Container(
+          height: 130,
+          width: double.infinity,
+          color: Theme.of(context).disabledColor.withValues(alpha: 0.08),
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.map_outlined, size: 30, color: ColorResource.textLight),
+              const SizedBox(height: 8),
+              Text(
+                'set_location_on_map'.tr,
+                style: poppinsMedium.copyWith(
+                  fontSize: Constants.fontSizeSmall,
+                  color: ColorResource.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final point = LatLng(address.latitude!, address.longitude!);
+
+    return GestureDetector(
+      onTap: _openLocationEditor,
+      child: SizedBox(
+        height: 150,
+        width: double.infinity,
+        child: Stack(
+          children: [
+            FlutterMap(
+              key: ValueKey(
+                '${address.id}_${address.latitude}_${address.longitude}',
+              ),
+              options: MapOptions(
+                initialCenter: point,
+                initialZoom: 15.5,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.none,
+                ),
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: Constants.streetMapTheme,
+                  userAgentPackageName: Constants.packageName,
+                ),
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: point,
+                      width: 44,
+                      height: 44,
+                      child: Icon(
+                        Icons.location_on,
+                        color: ColorResource.primaryDark,
+                        size: 40,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            if (address.isDefault)
+              Positioned(top: 8, left: 8, child: _buildDefaultChip()),
+            Positioned(
+              bottom: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: ColorResource.cardBackground.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(999),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.edit_location_alt_outlined,
+                      size: 14,
+                      color: ColorResource.primaryDark,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'set_location_on_map'.tr,
+                      style: poppinsMedium.copyWith(
+                        fontSize: Constants.fontSizeExtraSmall,
+                        color: ColorResource.primaryDark,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDefaultChip() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: ColorResource.primaryDark,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        'default'.tr,
+        style: poppinsBold.copyWith(
+          fontSize: Constants.fontSizeExtraSmall,
+          color: ColorResource.textWhite,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddressDetails(
+    AddressModel address,
+    double? distanceKm,
+    bool isOutsideRadius,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Divider(color: ColorResource.textLight.withValues(alpha: 0.2)),
+          _buildDetailRow('recipient'.tr, address.name),
+          _buildDetailRow('phone'.tr, address.phone),
+          _buildDetailRow('address'.tr, address.fullAddress),
+          if (distanceKm != null)
+            _buildDetailRow(
+              'distance'.tr,
+              isOutsideRadius
+                  ? '${distanceKm.toStringAsFixed(2)} km • ${'outside_delivery_radius'.tr}'
+                  : '${distanceKm.toStringAsFixed(2)} km',
+              valueColor: isOutsideRadius ? Colors.red : null,
+            ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _openEditAddressInfo,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: ColorResource.primaryDark,
+                    side: BorderSide(
+                      color: ColorResource.primaryDark.withValues(alpha: 0.4),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: Text(
+                    'edit_details'.tr,
+                    style: poppinsBold.copyWith(
+                      fontSize: Constants.fontSizeSmall,
+                      color: ColorResource.primaryDark,
                     ),
                   ),
                 ),
-              ],
-              const SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                height: 44,
-                child: OutlinedButton.icon(
-                  onPressed: _openMapAddressPicker,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFFF6B3D),
-                    side: const BorderSide(color: Color(0xFFFFD0C2)),
-                    backgroundColor: Colors.white,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: _openAddressSelector,
+                  style: ElevatedButton.styleFrom(
+                    elevation: 0,
+                    backgroundColor: ColorResource.primaryDark,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  icon: const Icon(Icons.map_outlined, size: 18),
+                  icon: const Icon(Icons.swap_horiz_rounded, size: 18),
                   label: Text(
-                    'Select from map',
+                    'change_address'.tr,
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeSmall,
-                      color: const Color(0xFFFF6B3D),
+                      color: Colors.white,
                     ),
                   ),
                 ),
               ),
             ],
           ),
-        );
-      },
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, {Color? valueColor}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 84,
+            child: Text(
+              label,
+              style: poppinsRegular.copyWith(
+                fontSize: Constants.fontSizeSmall,
+                color: ColorResource.textSecondary,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: poppinsMedium.copyWith(
+                fontSize: Constants.fontSizeDefault,
+                color: valueColor ?? ColorResource.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoAddressCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: ColorResource.cardBackground,
+        borderRadius: BorderRadius.circular(Constants.radiusLarge),
+        boxShadow: ColorResource.customShadow,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: ColorResource.primaryDark.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.add_location_alt_outlined,
+              color: ColorResource.primaryDark,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'add_delivery_address'.tr,
+              style: poppinsMedium.copyWith(
+                fontSize: Constants.fontSizeDefault,
+                color: ColorResource.textPrimary,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          ElevatedButton(
+            onPressed: _openMapAddressPicker,
+            style: ElevatedButton.styleFrom(
+              elevation: 0,
+              backgroundColor: ColorResource.primaryDark,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              'add'.tr,
+              style: poppinsBold.copyWith(
+                fontSize: Constants.fontSizeSmall,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -865,6 +1189,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         : () => _placeOrder(controller, total, deliveryFee, controller.tax),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: ColorResource.primaryDark,
+                      // Muted grey when out of radius, dimmed brand while placing.
+                      disabledBackgroundColor: isOutsideRadius
+                          ? ColorResource.textLight.withValues(alpha: 0.5)
+                          : ColorResource.primaryDark.withValues(alpha: 0.6),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(Constants.radiusLarge),
@@ -879,13 +1207,37 @@ class _CheckoutPageState extends State<CheckoutPage> {
                               strokeWidth: 2,
                             ),
                           )
-                        : Text(
-                            '${'place_order_with_total'.tr} - ${CurrencyHelper.formatAmount(total)}',
-                            style: poppinsBold.copyWith(
-                              fontSize: Constants.fontSizeLarge,
-                              color: ColorResource.textWhite,
-                            ),
-                          ),
+                        : isOutsideRadius
+                            ? Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.location_off_outlined,
+                                    color: ColorResource.textWhite,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Flexible(
+                                    child: Text(
+                                      'cannot_deliver_to_address'.tr,
+                                      textAlign: TextAlign.center,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: poppinsBold.copyWith(
+                                        fontSize: Constants.fontSizeDefault,
+                                        color: ColorResource.textWhite,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Text(
+                                '${'place_order_with_total'.tr} - ${CurrencyHelper.formatAmount(total)}',
+                                style: poppinsBold.copyWith(
+                                  fontSize: Constants.fontSizeLarge,
+                                  color: ColorResource.textWhite,
+                                ),
+                              ),
                   ),
                 );
               },
