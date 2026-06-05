@@ -51,6 +51,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
   final Map<String, dynamic> _selectedVariants = {};
   bool _isAddingToCart = false;
   CartItemModel? _matchingCartItem; // ADDED THIS LINE
+  bool _isExpanded = false; // true when the sheet is dragged to full screen
 
   String get _productDescription =>
       widget.product.descriptionMap.trLanguage.trim();
@@ -73,6 +74,13 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
   // }
 
   String get _imageHeroTag => 'product-image-${widget.product.id}';
+
+  // The sheet keeps its rounded top corners at every height; the expanded
+  // header bar reuses the same radius so it sits flush with the sheet edge.
+  static const BorderRadius _sheetTopRadius = BorderRadius.only(
+    topLeft: Radius.circular(Constants.radiusExtraLarge),
+    topRight: Radius.circular(Constants.radiusExtraLarge),
+  );
 
   @override
   void initState() {
@@ -220,74 +228,174 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
+    return NotificationListener<DraggableScrollableNotification>(
+      onNotification: (notification) {
+        // Considered "fully expanded" when the drag extent reaches the top.
+        final expanded = notification.extent >= (notification.maxExtent - 0.01);
+        if (expanded != _isExpanded) {
+          setState(() => _isExpanded = expanded);
+        }
+        return false;
+      },
+      child: DraggableScrollableSheet(
         initialChildSize: 0.7,
         minChildSize: 0.45,
-        maxChildSize: 0.9,
+        maxChildSize: 0.95,
         expand: false,
         builder: (BuildContext context, ScrollController scrollController) {
-       return Container(
-         decoration: BoxDecoration(
-           color: ColorResource.cardBackground,
-           borderRadius: const BorderRadius.only(
-             topLeft: Radius.circular(Constants.radiusExtraLarge),
-             topRight: Radius.circular(Constants.radiusExtraLarge),
-           ),
-         ),
-         child: Column(
-           mainAxisSize: MainAxisSize.min,
-           children: [
+          return Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: ColorResource.cardBackground,
+                  borderRadius: _sheetTopRadius,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Scrollable content
+                    Expanded(
+                      child: SingleChildScrollView(
+                        controller: scrollController,
+                        padding: const EdgeInsets.all(0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Product Image with badges
+                            _buildProductImage(),
 
-             // Scrollable content
-             Expanded(
-               child: SingleChildScrollView(
-                 controller: scrollController,
-                 padding: const EdgeInsets.all(0),
-                 child: Column(
-                   crossAxisAlignment: CrossAxisAlignment.start,
-                   children: [
-                     // Product Image with badges
-                     _buildProductImage(),
+                            // Product Details
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildProductInfo(),
+                                  const SizedBox(
+                                    height: Constants.paddingSizeDefault,
+                                  ),
 
-                     // Product Details
-                     Padding(
-                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                       child: Column(
-                         crossAxisAlignment: CrossAxisAlignment.start,
-                         children: [
-                           _buildProductInfo(),
-                           const SizedBox(height: Constants.paddingSizeDefault),
+                                  // Variants
+                                  if (widget.product.variants.isNotEmpty) ...[
+                                    _buildVariantsSection(),
+                                    const SizedBox(
+                                      height: Constants.paddingSizeDefault,
+                                    ),
+                                  ],
 
-                           // Variants
-                           if (widget.product.variants.isNotEmpty) ...[
-                             _buildVariantsSection(),
-                             const SizedBox(height: Constants.paddingSizeDefault),
-                           ],
+                                  // Divider
+                                  Divider(
+                                    color: ColorResource.textLight.withValues(
+                                      alpha: 0.2,
+                                    ),
+                                    thickness: 1,
+                                  ),
+                                  const SizedBox(height: 18),
 
-                            // Divider
-                            Divider(
-                              color: ColorResource.textLight.withValues(alpha: 0.2),
-                              thickness: 1,
+                                  // Reviews Section
+                                  _buildReviewsSection(),
+                                  const SizedBox(height: 50), // Space for button
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 18),
+                          ],
+                        ),
+                      ),
+                    ),
 
-                            // Reviews Section
-                            _buildReviewsSection(),
-                            const SizedBox(height: 50), // Space for bottom button
-                         ],
-                       ),
-                     ),
-                   ],
-                 ),
-               ),
-             ),
+                    // Fixed bottom: Add to Cart button
+                    _buildAddToCartButton(context),
+                  ],
+                ),
+              ),
 
-             // Fixed bottom: Add to Cart button
-             _buildAddToCartButton(context),
-           ],
-         ),
-       );
-      }
+              // App-bar style header — fades in once the sheet is expanded.
+              _buildHeaderBar(),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildHeaderBar() {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: IgnorePointer(
+        ignoring: !_isExpanded,
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 200),
+          opacity: _isExpanded ? 1 : 0,
+          child: Container(
+            decoration: BoxDecoration(
+              color: ColorResource.cardBackground,
+              borderRadius: _sheetTopRadius,
+              boxShadow: [
+                BoxShadow(
+                  color: ColorResource.shadowLight,
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.fromLTRB(16, 8, 10, 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Drag handle — signals the sheet can be dragged.
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: ColorResource.textLight.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        widget.product.nameMap.trLanguage,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeLarge,
+                          color: ColorResource.textPrimary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () => Get.back(),
+                      child: Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: ColorResource.scaffoldBackground,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: ColorResource.textLight.withValues(
+                              alpha: 0.15,
+                            ),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.close,
+                          color: ColorResource.textPrimary,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -311,10 +419,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
       child: Stack(
         children: [
           ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(Constants.radiusExtraLarge),
-              topRight: Radius.circular(Constants.radiusExtraLarge),
-            ),
+            borderRadius: _sheetTopRadius,
             child: Hero(
               tag: _imageHeroTag,
               child: CustomNetworkImage(
@@ -329,10 +434,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
           Container(
             height: 200,
             decoration: BoxDecoration(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(Constants.radiusExtraLarge),
-                topRight: Radius.circular(Constants.radiusExtraLarge),
-              ),
+              borderRadius: _sheetTopRadius,
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -359,10 +461,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
           if (widget.product.isOutOfStock)
             Positioned.fill(
               child: ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(Constants.radiusExtraLarge),
-                  topRight: Radius.circular(Constants.radiusExtraLarge),
-                ),
+                borderRadius: _sheetTopRadius,
                 child: Container(
                   color: Colors.black.withValues(alpha: 0.55),
                   alignment: Alignment.center,
