@@ -5,6 +5,7 @@ import 'package:appwrite_user_app/app/controllers/address_controller.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
+import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/enums/payment_method_enum.dart';
@@ -1590,7 +1591,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
         await orderController.updatePaymentStatus(orderId, 'paid');
       }
 
-      // ─── Step 3: Clear cart & coupon, navigate to success ───
+      // ─── Step 3: Reduce stock, clear cart & coupon, navigate to success ───
+      // Capture items before the cart is cleared.
+      await Get.find<ProductController>()
+          .reduceStockForItems(cartController.cartItems);
       await cartController.clearCart();
       cartController.removeCoupon();
 

@@ -274,4 +274,29 @@ class ProductRepository implements ProductRepoInterface {
       return null;
     }
   }
+
+  @override
+  Future<int> reduceStock(String productId, int quantity) async {
+    try {
+      // Read the latest stock so we don't write a stale value.
+      final response = await appwriteService.getDocument(
+        tableId: AppwriteConfig.productsCollection,
+        rowId: productId,
+      );
+      final currentStock = (response.data['stock'] as num?)?.toInt() ?? 0;
+      final newStock = (currentStock - quantity) < 0 ? 0 : currentStock - quantity;
+
+      await appwriteService.updateTable(
+        tableId: AppwriteConfig.productsCollection,
+        rowId: productId,
+        data: {'stock': newStock},
+      );
+
+      log('====> Stock for $productId: $currentStock -> $newStock (-$quantity)');
+      return newStock;
+    } catch (e) {
+      log('====\\u003e Error reducing stock for $productId: $e');
+      rethrow;
+    }
+  }
 }

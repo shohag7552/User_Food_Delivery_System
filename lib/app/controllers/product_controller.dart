@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/products/domain/repository/product_repo_interface.dart';
 import 'package:get/get.dart';
@@ -279,5 +280,50 @@ class ProductController extends GetxController implements GetxService {
     if (hasChanges) {
       update();
     }
+  }
+
+  /// Reduces stock in the database for every ordered item, then mirrors the
+  /// new values into the cached product lists. Failures per product are logged
+  /// but never abort the order flow.
+  Future<void> reduceStockForItems(List<CartItemModel> items) async {
+    if (items.isEmpty) return;
+
+    // Aggregate quantities so the same product is only written once.
+    final Map<String, int> quantities = {};
+    for (final item in items) {
+      if (item.productId.isEmpty) continue;
+      quantities[item.productId] =
+          (quantities[item.productId] ?? 0) + item.quantity;
+    }
+
+    bool hasChanges = false;
+    for (final entry in quantities.entries) {
+      try {
+        final newStock =
+            await productRepoInterface.reduceStock(entry.key, entry.value);
+        hasChanges = _applyStockToCache(entry.key, newStock) || hasChanges;
+      } catch (e) {
+        log('====> Failed to reduce stock for ${entry.key}: $e');
+      }
+    }
+
+    if (hasChanges) update();
+  }
+
+  bool _applyStockToCache(String productId, int newStock) {
+    bool changed = false;
+
+    bool updateList(List<ProductModel> products) {
+      final index = products.indexWhere((product) => product.id == productId);
+      if (index == -1) return false;
+      products[index] = products[index].copyWith(stock: newStock);
+      return true;
+    }
+
+    changed = updateList(_products) || changed;
+    changed = updateList(_specialProducts) || changed;
+    changed = updateList(_popularProducts) || changed;
+    changed = updateList(_newProducts) || changed;
+    return changed;
   }
 }

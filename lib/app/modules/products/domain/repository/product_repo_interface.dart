@@ -16,4 +16,8 @@ abstract class ProductRepoInterface {
   });
   Future<List<ProductModel>> searchProducts(String query);
   Future<ProductModel?> getProductById(String id);
+
+  /// Decrease a product's stock by [quantity] (never below 0).
+  /// Returns the product's new stock value.
+  Future<int> reduceStock(String productId, int quantity);
 }
