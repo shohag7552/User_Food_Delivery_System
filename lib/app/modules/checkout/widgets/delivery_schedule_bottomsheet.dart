@@ -114,16 +114,6 @@ class _DeliveryScheduleBottomSheetState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Delivery type selection
-                      Text(
-                        'select_delivery_time'.tr,
-                        style: poppinsBold.copyWith(
-                          fontSize: Constants.fontSizeLarge,
-                          color: ColorResource.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
                       // Now option
                       _buildDeliveryOption(
                         type: 'now',
@@ -166,7 +156,7 @@ class _DeliveryScheduleBottomSheetState
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 12, 12, 16),
       decoration: BoxDecoration(
         color: ColorResource.cardBackground,
         borderRadius: const BorderRadius.vertical(
@@ -188,39 +178,66 @@ class _DeliveryScheduleBottomSheetState
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: ColorResource.textLight.withOpacity(0.3),
+                color: ColorResource.textLight.withValues(alpha: 0.4),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   gradient: ColorResource.primaryGradient,
                   borderRadius: BorderRadius.circular(Constants.radiusDefault),
                 ),
                 child: Icon(
-                  Icons.schedule,
+                  Icons.schedule_rounded,
                   color: ColorResource.textWhite,
-                  size: 24,
+                  size: 22,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  'delivery_schedule'.tr,
-                  style: poppinsBold.copyWith(
-                    fontSize: Constants.fontSizeExtraLarge,
-                    color: ColorResource.textPrimary,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'delivery_schedule'.tr,
+                      style: poppinsBold.copyWith(
+                        fontSize: Constants.fontSizeExtraLarge,
+                        color: ColorResource.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'choose_when_to_deliver'.tr,
+                      style: poppinsRegular.copyWith(
+                        fontSize: Constants.fontSizeSmall,
+                        color: ColorResource.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              IconButton(
-                icon: Icon(Icons.close_rounded, color: ColorResource.textSecondary),
-                onPressed: () => Navigator.pop(context),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: ColorResource.scaffoldBackground,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.close_rounded,
+                    color: ColorResource.textSecondary,
+                    size: 20,
+                  ),
+                ),
               ),
             ],
           ),
@@ -294,7 +311,7 @@ class _DeliveryScheduleBottomSheetState
                   Text(
                     title,
                     style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeDefault,
+                      fontSize: Constants.fontSizeLarge,
                       color: !isAvailable
                           ? Colors.grey
                           : (isSelected
@@ -302,14 +319,14 @@ class _DeliveryScheduleBottomSheetState
                               : ColorResource.textPrimary),
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Text(
                     subtitle,
                     style: poppinsRegular.copyWith(
                       fontSize: Constants.fontSizeSmall,
                       color: !isAvailable
                           ? Colors.grey
-                          : ColorResource.textLight,
+                          : ColorResource.textSecondary,
                     ),
                   ),
                 ],
@@ -425,7 +442,7 @@ class _DeliveryScheduleBottomSheetState
                     style: poppinsMedium.copyWith(
                       fontSize: 12,
                       color: isSelected
-                          ? Colors.white.withOpacity(0.9)
+                          ? Colors.white.withValues(alpha: 0.9)
                           : ColorResource.primaryDark,
                     ),
                   ),
@@ -529,7 +546,7 @@ class _DeliveryScheduleBottomSheetState
             });
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: isSelected
                   ? ColorResource.primaryDark
@@ -538,15 +555,25 @@ class _DeliveryScheduleBottomSheetState
               border: Border.all(
                 color: isSelected
                     ? ColorResource.primaryDark
-                    : ColorResource.textLight.withOpacity(0.3),
+                    : ColorResource.textLight.withValues(alpha: 0.3),
               ),
             ),
-            child: Text(
-              slot,
-              style: poppinsMedium.copyWith(
-                fontSize: Constants.fontSizeDefault,
-                color: isSelected ? Colors.white : ColorResource.textPrimary,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isSelected) ...[
+                  const Icon(Icons.check_circle,
+                      color: Colors.white, size: 16),
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  slot,
+                  style: poppinsMedium.copyWith(
+                    fontSize: Constants.fontSizeSmall,
+                    color: isSelected ? Colors.white : ColorResource.textPrimary,
+                  ),
+                ),
+              ],
             ),
           ),
         );

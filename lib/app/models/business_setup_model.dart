@@ -171,4 +171,40 @@ class BusinessSetupModel {
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
+
+  /// Whether [now] falls inside any of today's open time slots (ignores the
+  /// master [isStoreOpen] switch — that's combined in [isOpenNow]).
+  bool isWithinBusinessHours(DateTime now) {
+    final day = businessHours.getDay(now.weekday % 7);
+    if (!day.isOpen) return false;
+    for (final slot in day.timeSlots) {
+      final open = DateTime(now.year, now.month, now.day,
+          slot.openTime.hour, slot.openTime.minute);
+      final close = DateTime(now.year, now.month, now.day,
+          slot.closeTime.hour, slot.closeTime.minute);
+      if (!now.isBefore(open) && now.isBefore(close)) return true;
+    }
+    return false;
+  }
+
+  /// The store accepts immediate ("now") orders only when the master switch
+  /// is on AND the current time is within business hours.
+  bool isOpenNow(DateTime now) => isStoreOpen && isWithinBusinessHours(now);
+
+  /// The next [DateTime] the store opens, scanning up to a week from [now].
+  /// Returns null if no open slot is configured.
+  DateTime? nextOpening(DateTime now) {
+    final base = DateTime(now.year, now.month, now.day);
+    for (int i = 0; i < 8; i++) {
+      final day = base.add(Duration(days: i));
+      final sched = businessHours.getDay(day.weekday % 7);
+      if (!sched.isOpen) continue;
+      for (final slot in sched.timeSlots) {
+        final openDt = DateTime(day.year, day.month, day.day,
+            slot.openTime.hour, slot.openTime.minute);
+        if (openDt.isAfter(now)) return openDt;
+      }
+    }
+    return null;
+  }
 }

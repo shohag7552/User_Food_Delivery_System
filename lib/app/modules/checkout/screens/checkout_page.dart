@@ -10,6 +10,7 @@ import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/enums/payment_method_enum.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
+import 'package:appwrite_user_app/app/models/business_hours_model.dart';
 import 'package:appwrite_user_app/app/modules/address/screens/add_edit_address_page.dart';
 import 'package:appwrite_user_app/app/modules/address/screens/full_screen_map_page.dart';
 import 'package:appwrite_user_app/app/modules/checkout/screens/order_failed_page.dart';
@@ -257,6 +258,37 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
     return distanceKm > maxRadius;
   }
+
+  /// Current store availability for immediate ("now") orders, plus a
+  /// human-readable next-opening label when closed.
+  ({bool isOpenNow, String? nextOpenLabel}) _storeStatus() {
+    final businessSetup = Get.find<SettingsController>().businessSetup;
+    if (businessSetup == null) {
+      return (isOpenNow: true, nextOpenLabel: null);
+    }
+    final now = DateTime.now();
+    if (businessSetup.isOpenNow(now)) {
+      return (isOpenNow: true, nextOpenLabel: null);
+    }
+    final next = businessSetup.nextOpening(now);
+    return (
+      isOpenNow: false,
+      nextOpenLabel: next == null ? null : _formatNextOpen(now, next),
+    );
+  }
+
+  String _formatNextOpen(DateTime now, DateTime next) {
+    final today = DateTime(now.year, now.month, now.day);
+    final nextDay = DateTime(next.year, next.month, next.day);
+    final diffDays = nextDay.difference(today).inDays;
+    final dayLabel = diffDays == 0
+        ? 'today'.tr
+        : diffDays == 1
+            ? 'tomorrow'.tr
+            : WeeklyBusinessHours.dayNames[next.weekday % 7];
+    final time = TimeOfDay.fromDateTime(next).format(context);
+    return '${'opens'.tr} $dayLabel ${'at'.tr} $time';
+  }
   
   @override
   void dispose() {
@@ -310,7 +342,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       _buildPaymentMethod(),
                       const SizedBox(height: 20),
                       _buildDeliveryInstructions(),
-                      const SizedBox(height: 100),
+                      const SizedBox(height: 10),
                     ],
                   ),
                 ),
@@ -721,124 +753,186 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   Widget _buildCouponSection(CartController controller) {
-    final hasCoupon = controller.appliedCoupon != null;
+    return controller.appliedCoupon != null
+        ? _buildAppliedCoupon(controller)
+        : _buildApplyCouponPrompt(controller);
+  }
+
+  Future<void> _openCouponSheet(CartController controller) async {
+    final result = await CouponSelectionBottomSheet.show(context);
+    if (result != null) {
+      controller.applyCoupon(result);
+    }
+  }
+
+  Widget _buildApplyCouponPrompt(CartController controller) {
+    return GestureDetector(
+      onTap: () => _openCouponSheet(controller),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: ColorResource.cardBackground,
+          borderRadius: BorderRadius.circular(Constants.radiusLarge),
+          boxShadow: ColorResource.customShadow,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: ColorResource.primaryDark.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.local_offer_rounded,
+                size: 22,
+                color: ColorResource.primaryDark,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'have_a_promo_code'.tr,
+                    style: poppinsBold.copyWith(
+                      fontSize: Constants.fontSizeDefault,
+                      color: ColorResource.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'apply_to_save'.tr,
+                    style: poppinsRegular.copyWith(
+                      fontSize: Constants.fontSizeSmall,
+                      color: ColorResource.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            ElevatedButton(
+              onPressed: () => _openCouponSheet(controller),
+              style: ElevatedButton.styleFrom(
+                elevation: 0,
+                backgroundColor: ColorResource.primaryDark,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                'apply'.tr,
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeSmall,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppliedCoupon(CartController controller) {
+    final coupon = controller.appliedCoupon!;
 
     return Container(
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: ColorResource.success.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
-        boxShadow: ColorResource.customShadow,
+        border: Border.all(
+          color: ColorResource.success.withValues(alpha: 0.35),
+        ),
       ),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: Theme.of(context).disabledColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
+              color: ColorResource.success.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
             ),
-            child: Row(
+            child: Icon(
+              Icons.local_offer_rounded,
+              size: 22,
+              color: ColorResource.success,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                    color: ColorResource.cardBackground,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: ColorResource.success.withValues(alpha: 0.4),
+                    ),
                   ),
-                  child: Icon(
-                    hasCoupon ? Icons.sell_rounded : Icons.discount_outlined,
-                    size: 20,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      Icon(
+                        Icons.confirmation_number_outlined,
+                        size: 13,
+                        color: ColorResource.success,
+                      ),
+                      const SizedBox(width: 5),
                       Text(
-                        hasCoupon
-                            ? controller.appliedCoupon!.code
-                            : 'Apply a promo code',
-                        style: poppinsMedium.copyWith(
-                          fontSize: Constants.fontSizeDefault,
-                          color: ColorResource.textPrimary,
+                        coupon.code,
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeSmall,
+                          color: Colors.green.shade700,
                         ),
                       ),
-                      if (hasCoupon) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          '${'you_saved_amount'.tr} ${CurrencyHelper.formatAmount(controller.discountAmount)}',
-                          style: poppinsRegular.copyWith(
-                            fontSize: Constants.fontSizeSmall,
-                            color: Colors.green.shade700,
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  height: 40,
-                  child: hasCoupon
-                      ? OutlinedButton(
-                          onPressed: () => controller.removeCoupon(),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFFFF6B3D),
-                            side: const BorderSide(color: Color(0xFFFFD0C2)),
-                            backgroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 18),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Text(
-                            'Remove',
-                            style: poppinsBold.copyWith(
-                              fontSize: Constants.fontSizeSmall,
-                              color: Theme.of(context).primaryColor,
-                            ),
-                          ),
-                        )
-                      : ElevatedButton(
-                          onPressed: () async {
-                            final result = await CouponSelectionBottomSheet.show(context);
-
-                            if (result != null) {
-                              controller.applyCoupon(result);
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            elevation: 0,
-                            backgroundColor: Theme.of(context).primaryColor,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 22),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Text(
-                            'Apply',
-                            style: poppinsBold.copyWith(
-                              fontSize: Constants.fontSizeSmall,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
+                const SizedBox(height: 6),
+                Text(
+                  '${'you_saved_amount'.tr} ${CurrencyHelper.formatAmount(controller.discountAmount)}',
+                  style: poppinsBold.copyWith(
+                    fontSize: Constants.fontSizeSmall,
+                    color: Colors.green.shade700,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: () => controller.removeCoupon(),
+            style: TextButton.styleFrom(
+              foregroundColor: ColorResource.error,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
+            child: Text(
+              'remove'.tr,
+              style: poppinsBold.copyWith(
+                fontSize: Constants.fontSizeSmall,
+                color: ColorResource.error,
+              ),
             ),
           ),
         ],
@@ -882,6 +976,25 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   Widget _buildPaymentMethod() {
+    final businessSetup = Get.find<SettingsController>().businessSetup;
+    final codActive = businessSetup?.acceptsCash ?? true; // is_cod_active
+    final onlineActive =
+        businessSetup?.acceptsOnlinePayment ?? false; // is_digital_active
+    final walletActive =
+        businessSetup?.acceptsDigitalWallet ?? false; // is_wallet_active
+
+    // Keep the chosen method within what's actually enabled.
+    final available = <PaymentMethod>[
+      if (codActive) PaymentMethod.cod,
+      if (onlineActive) PaymentMethod.online,
+      if (walletActive) PaymentMethod.wallet,
+    ];
+    if (available.isNotEmpty && !available.contains(_selectedPaymentMethod)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _selectedPaymentMethod = available.first);
+      });
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: ColorResource.cardBackground,
@@ -902,7 +1015,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ),
           ),
           const Divider(height: 1),
-          RadioListTile<PaymentMethod>(
+          if (codActive) RadioListTile<PaymentMethod>(
             value: PaymentMethod.cod,
             groupValue: _selectedPaymentMethod,
             onChanged: (value) => setState(() => _selectedPaymentMethod = value!),
@@ -925,7 +1038,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ),
             activeColor: ColorResource.primaryDark,
           ),
-          RadioListTile<PaymentMethod>(
+          if (onlineActive) RadioListTile<PaymentMethod>(
             value: PaymentMethod.online,
             groupValue: _selectedPaymentMethod,
             onChanged: (value) => setState(() => _selectedPaymentMethod = value!),
@@ -952,7 +1065,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             activeColor: ColorResource.primaryDark,
           ),
           // Gateway selection chips — visible when online is selected
-          AnimatedSize(
+          if (onlineActive) AnimatedSize(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
             child: _selectedPaymentMethod == PaymentMethod.online
@@ -1006,7 +1119,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   )
                 : const SizedBox.shrink(),
           ),
-          GetBuilder<ProfileController>(
+          if (walletActive) GetBuilder<ProfileController>(
             builder: (profileController) {
               final walletBalance = profileController.walletBalance;
               return RadioListTile<PaymentMethod>(
@@ -1064,6 +1177,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final settingsController = Get.find<SettingsController>();
     final deliveryFee = _calculateDeliveryFee(controller, settingsController);
     final isOutsideRadius = _isOutsideDeliveryRadius(settingsController);
+    final storeStatus = _storeStatus();
+    // Immediate orders are blocked while the store is closed; scheduled
+    // orders for a future slot remain allowed.
+    final blockForClosed = _deliveryType == 'now' && !storeStatus.isOpenNow;
     final total = controller.total + deliveryFee;
     
     return Container(
@@ -1184,13 +1301,15 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 return SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: orderController.isPlacingOrder || isOutsideRadius
+                    onPressed: orderController.isPlacingOrder ||
+                            isOutsideRadius ||
+                            blockForClosed
                         ? null
                         : () => _placeOrder(controller, total, deliveryFee, controller.tax),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: ColorResource.primaryDark,
-                      // Muted grey when out of radius, dimmed brand while placing.
-                      disabledBackgroundColor: isOutsideRadius
+                      // Muted grey when unavailable, dimmed brand while placing.
+                      disabledBackgroundColor: (isOutsideRadius || blockForClosed)
                           ? ColorResource.textLight.withValues(alpha: 0.5)
                           : ColorResource.primaryDark.withValues(alpha: 0.6),
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1208,36 +1327,22 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             ),
                           )
                         : isOutsideRadius
-                            ? Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.location_off_outlined,
-                                    color: ColorResource.textWhite,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Flexible(
-                                    child: Text(
-                                      'cannot_deliver_to_address'.tr,
-                                      textAlign: TextAlign.center,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: poppinsBold.copyWith(
-                                        fontSize: Constants.fontSizeDefault,
-                                        color: ColorResource.textWhite,
-                                      ),
+                            ? _buildBlockedButtonContent(
+                                Icons.location_off_outlined,
+                                'cannot_deliver_to_address'.tr,
+                              )
+                            : blockForClosed
+                                ? _buildBlockedButtonContent(
+                                    Icons.store_mall_directory_outlined,
+                                    'store_closed'.tr,
+                                  )
+                                : Text(
+                                    '${'place_order_with_total'.tr} - ${CurrencyHelper.formatAmount(total)}',
+                                    style: poppinsBold.copyWith(
+                                      fontSize: Constants.fontSizeLarge,
+                                      color: ColorResource.textWhite,
                                     ),
                                   ),
-                                ],
-                              )
-                            : Text(
-                                '${'place_order_with_total'.tr} - ${CurrencyHelper.formatAmount(total)}',
-                                style: poppinsBold.copyWith(
-                                  fontSize: Constants.fontSizeLarge,
-                                  color: ColorResource.textWhite,
-                                ),
-                              ),
                   ),
                 );
               },
@@ -1245,6 +1350,28 @@ class _CheckoutPageState extends State<CheckoutPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildBlockedButtonContent(IconData icon, String label) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, color: ColorResource.textWhite, size: 20),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: poppinsBold.copyWith(
+              fontSize: Constants.fontSizeDefault,
+              color: ColorResource.textWhite,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1285,6 +1412,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final settingsController = Get.find<SettingsController>();
     if (_isOutsideDeliveryRadius(settingsController)) {
       customToster('Selected address is outside the delivery radius.', isSuccess: false);
+      return;
+    }
+
+    // Block immediate orders while the store is closed.
+    if (_deliveryType == 'now' && !_storeStatus().isOpenNow) {
+      customToster('store_is_currently_closed'.tr, isSuccess: false);
       return;
     }
 
@@ -1479,14 +1612,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
   /// Build delivery schedule section with bottom sheet
   Widget _buildDeliverySchedule() {
-    final settingsController = Get.find<SettingsController>();
-    final businessSetup = settingsController.businessSetup;
     final isNow = _deliveryType == 'now';
-    final isStoreClosed = businessSetup?.isStoreOpen == false;
-    final scheduleTitle = isNow ? 'Deliver now' : 'Scheduled delivery';
+    final storeStatus = _storeStatus();
+    final showClosed = isNow && !storeStatus.isOpenNow;
+    final scheduleTitle = isNow ? 'deliver_now'.tr : 'scheduled_delivery'.tr;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: ColorResource.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
@@ -1495,151 +1627,136 @@ class _CheckoutPageState extends State<CheckoutPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GestureDetector(
-            onTap: _openDeliverySchedulePicker,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF9F7F4),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      isNow ? Icons.flash_on_rounded : Icons.schedule_outlined,
-                      size: 20,
-                      color: const Color(0xFF424242),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          scheduleTitle,
-                          style: poppinsMedium.copyWith(
-                            fontSize: Constants.fontSizeDefault,
-                            color: ColorResource.textPrimary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          _scheduleDisplayText ?? 'asap_30_45_mins'.tr,
-                          style: poppinsRegular.copyWith(
-                            fontSize: Constants.fontSizeSmall,
-                            color: ColorResource.textSecondary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  SizedBox(
-                    height: 40,
-                    child: ElevatedButton(
-                      onPressed: _openDeliverySchedulePicker,
-                      style: ElevatedButton.styleFrom(
-                        elevation: 0,
-                        backgroundColor: Theme.of(context).primaryColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 18),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        'Change',
-                        style: poppinsBold.copyWith(
-                          fontSize: Constants.fontSizeSmall,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
+          Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: isNow
-                      ? Theme.of(context).primaryColor.withValues(alpha: 0.12)
-                      : const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(999),
+                  color: ColorResource.primaryDark.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isNow ? Icons.flash_on_rounded : Icons.schedule_rounded,
+                  size: 22,
+                  color: ColorResource.primaryDark,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            scheduleTitle,
+                            style: poppinsBold.copyWith(
+                              fontSize: Constants.fontSizeDefault,
+                              color: ColorResource.textPrimary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: ColorResource.primaryDark
+                                .withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            isNow ? 'asap'.tr : 'scheduled'.tr,
+                            style: poppinsBold.copyWith(
+                              fontSize: Constants.fontSizeExtraSmall,
+                              color: ColorResource.primaryDark,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      _scheduleDisplayText ?? 'asap_30_45_mins'.tr,
+                      style: poppinsRegular.copyWith(
+                        fontSize: Constants.fontSizeSmall,
+                        color: ColorResource.textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              OutlinedButton(
+                onPressed: _openDeliverySchedulePicker,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: ColorResource.primaryDark,
+                  side: BorderSide(
+                    color: ColorResource.primaryDark.withValues(alpha: 0.4),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: Text(
-                  isNow ? 'ASAP' : 'Scheduled',
-                  style: poppinsMedium.copyWith(
+                  'change'.tr,
+                  style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeSmall,
-                    color: isNow
-                        ? Theme.of(context).primaryColor
-                        : ColorResource.textSecondary,
+                    color: ColorResource.primaryDark,
                   ),
                 ),
               ),
-              if (!isNow && _selectedTimeSlot != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF5F5F5),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    _selectedTimeSlot!,
-                    style: poppinsMedium.copyWith(
-                      fontSize: Constants.fontSizeSmall,
-                      color: ColorResource.textSecondary,
-                    ),
-                  ),
-                ),
             ],
           ),
-          if (isStoreClosed && isNow) ...[
-            const SizedBox(height: 10),
+          if (showClosed) ...[
+            const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.orange[50],
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.orange[200]!),
               ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(Icons.info_outline, color: Colors.orange[700], size: 18),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text(
-                      'store_is_currently_closed'.tr,
-                      style: poppinsRegular.copyWith(
-                        fontSize: Constants.fontSizeSmall,
-                        color: Colors.orange[900],
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'store_is_currently_closed'.tr,
+                          style: poppinsBold.copyWith(
+                            fontSize: Constants.fontSizeSmall,
+                            color: Colors.orange[900],
+                          ),
+                        ),
+                        if (storeStatus.nextOpenLabel != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            storeStatus.nextOpenLabel!,
+                            style: poppinsRegular.copyWith(
+                              fontSize: Constants.fontSizeSmall,
+                              color: Colors.orange[900],
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ],

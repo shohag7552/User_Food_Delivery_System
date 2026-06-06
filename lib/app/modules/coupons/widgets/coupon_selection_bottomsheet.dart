@@ -85,7 +85,7 @@ class _CouponSelectionBottomSheetState
             children: [
               // Header
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.fromLTRB(20, 12, 12, 16),
                 decoration: BoxDecoration(
                   color: ColorResource.cardBackground,
                   borderRadius: const BorderRadius.only(
@@ -108,16 +108,16 @@ class _CouponSelectionBottomSheetState
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: ColorResource.textLight.withValues(alpha: 0.3),
+                          color: ColorResource.textLight.withValues(alpha: 0.4),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 18),
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             gradient: ColorResource.primaryGradient,
                             borderRadius: BorderRadius.circular(
@@ -127,25 +127,49 @@ class _CouponSelectionBottomSheetState
                           child: Icon(
                             Icons.local_offer_rounded,
                             color: ColorResource.textWhite,
-                            size: 24,
+                            size: 22,
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Text(
-                            'select_coupon'.tr,
-                            style: poppinsBold.copyWith(
-                              fontSize: Constants.fontSizeExtraLarge,
-                              color: ColorResource.textPrimary,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'select_coupon'.tr,
+                                style: poppinsBold.copyWith(
+                                  fontSize: Constants.fontSizeExtraLarge,
+                                  color: ColorResource.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'choose_a_coupon_to_save'.tr,
+                                style: poppinsRegular.copyWith(
+                                  fontSize: Constants.fontSizeSmall,
+                                  color: ColorResource.textSecondary,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        IconButton(
-                          icon: Icon(
-                            Icons.close_rounded,
-                            color: ColorResource.textSecondary,
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              color: ColorResource.scaffoldBackground,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.close_rounded,
+                              color: ColorResource.textSecondary,
+                              size: 20,
+                            ),
                           ),
-                          onPressed: () => Navigator.pop(context),
                         ),
                       ],
                     ),
@@ -262,7 +286,7 @@ class _CouponCard extends StatelessWidget {
     final statusColor = isValid ? accentColor : ColorResource.error;
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: isValid ? onTap : null,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
@@ -406,29 +430,59 @@ class _CouponCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              SizedBox(
-                height: 38,
-                child: FilledButton.tonalIcon(
-                  onPressed: onCopy,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: accentColor.withValues(alpha: 0.12),
-                    foregroundColor: accentColor,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 0,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Apply (disabled for invalid coupons)
+                  SizedBox(
+                    height: 36,
+                    child: ElevatedButton(
+                      onPressed: isValid ? onTap : null,
+                      style: ElevatedButton.styleFrom(
+                        elevation: 0,
+                        backgroundColor: accentColor,
+                        disabledBackgroundColor:
+                            theme.disabledColor.withValues(alpha: 0.3),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'apply'.tr,
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeExtraSmall,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
-                  icon: const Icon(Icons.copy_rounded, size: 16),
-                  label: Text(
-                    'Copy',
-                    style: poppinsMedium.copyWith(
-                      fontSize: Constants.fontSizeExtraSmall,
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 34,
+                    child: OutlinedButton.icon(
+                      onPressed: onCopy,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: accentColor,
+                        side: BorderSide(
+                          color: accentColor.withValues(alpha: 0.4),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      icon: const Icon(Icons.copy_rounded, size: 14),
+                      label: Text(
+                        'copy'.tr,
+                        style: poppinsMedium.copyWith(
+                          fontSize: Constants.fontSizeExtraSmall,
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
