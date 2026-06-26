@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/controllers/notification_controller.dart';
-import 'package:appwrite_user_app/app/common/widgets/module_toggle.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/all_products_widget.dart';
@@ -309,11 +308,6 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      // Food / Shop switch (only when both modules are enabled)
-                      const Align(
-                        alignment: Alignment.centerRight,
-                        child: ModuleToggle(onGradient: true),
-                      ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [

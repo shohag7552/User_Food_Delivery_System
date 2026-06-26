@@ -1,5 +1,4 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
-import 'package:appwrite_user_app/app/common/widgets/module_toggle.dart';
 import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:appwrite_user_app/app/controllers/brand_controller.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
@@ -103,18 +102,12 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Text(
-                    'shop'.tr,
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeExtraLarge,
-                      color: ColorResource.textWhite,
-                    ),
-                  ),
-                  const Spacer(),
-                  const ModuleToggle(onGradient: true),
-                ],
+              Text(
+                'shop'.tr,
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeExtraLarge,
+                  color: ColorResource.textWhite,
+                ),
               ),
               const SizedBox(height: 12),
               GestureDetector(
