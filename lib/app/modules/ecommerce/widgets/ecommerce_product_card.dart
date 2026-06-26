@@ -110,15 +110,19 @@ class EcommerceProductCard extends StatelessWidget {
                     fontSize: Constants.fontSizeDefault,
                     color: ColorResource.textPrimary,
                   ),
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
-                RatingStars(
-                  rating: product.avgRating,
-                  reviewCount: product.ratingCount,
-                  size: 12,
-                ),
+                if(product.avgRating > 0)...[
+                  const SizedBox(height: 4),
+                  RatingStars(
+                    rating: product.avgRating,
+                    reviewCount: product.ratingCount,
+                    size: 12,
+                  ),
+
+                ],
+                
                 const SizedBox(height: 8),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,

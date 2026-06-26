@@ -6,7 +6,6 @@ import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/brand_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
-import 'package:appwrite_user_app/app/helper/cart_helper.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
@@ -125,6 +124,7 @@ class _EcommerceProductDetailPageState
   @override
   void initState() {
     super.initState();
+    _syncQtyWithCart();
     _fetchProductDetails();
     _loadSuggested(widget.product.categoryId);
   }
@@ -257,12 +257,17 @@ class _EcommerceProductDetailPageState
     final hasDiscount = product.hasDiscount;
     final description = product.descriptionMap.trLanguage.trim();
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildBrand(),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          // Main detail content stays inset; the suggested carousel below is
+          // rendered full-bleed so it spans the whole screen width.
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildBrand(),
           Text(
             product.nameMap.trLanguage,
             style: poppinsBold.copyWith(
@@ -365,9 +370,12 @@ class _EcommerceProductDetailPageState
               ),
             ),
           ],
-          _buildSuggestedSection(),
-        ],
-      ),
+            ],
+          ),
+        ),
+        _buildSuggestedSection(),
+        const SizedBox(height: 24),
+      ],
     );
   }
 
@@ -381,13 +389,19 @@ class _EcommerceProductDetailPageState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 20),
-        Divider(color: ColorResource.textLight.withValues(alpha: 0.2)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Divider(color: ColorResource.textLight.withValues(alpha: 0.2)),
+        ),
         const SizedBox(height: 12),
-        Text(
-          'you_may_also_like'.tr,
-          style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeLarge,
-            color: ColorResource.textPrimary,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            'you_may_also_like'.tr,
+            style: poppinsBold.copyWith(
+              fontSize: Constants.fontSizeLarge,
+              color: ColorResource.textPrimary,
+            ),
           ),
         ),
         const SizedBox(height: 12),
@@ -399,7 +413,10 @@ class _EcommerceProductDetailPageState
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
                   itemCount: _suggested.length,
-                  padding: EdgeInsets.only(bottom: Constants.paddingSizeSmall),
+                  // Full-bleed list: the inset lives inside the scroll view so
+                  // the first/last cards clear the screen edges while the list
+                  // itself spans the full width.
+                  padding: const EdgeInsets.only(left: Constants.paddingSizeDefault, right: Constants.paddingSizeDefault, bottom: Constants.paddingSizeSmall),
                   separatorBuilder: (_, _) => const SizedBox(width: 14),
                   itemBuilder: (context, index) => SizedBox(
                     width: 170,
@@ -804,6 +821,8 @@ class _EcommerceProductDetailPageState
         _highlightedVariantTitle = null;
       }
     });
+    // Reflect the cart quantity for the newly selected configuration.
+    _syncQtyWithCart();
   }
 
   /// Scrolls to and pulses the given required group when the user tries to add
@@ -826,7 +845,27 @@ class _EcommerceProductDetailPageState
     });
   }
 
-  Future<void> _addVariantProductToCart() async {
+  /// Finds the cart line that matches the current product + selected options,
+  /// or null if this exact configuration isn't in the cart yet.
+  CartItemModel? _matchingCartItem() {
+    final cart = Get.find<CartController>();
+    final selected = _buildSelectedVariants();
+    return cart.cartItems.firstWhereOrNull(
+      (e) =>
+          e.productId == product.id &&
+          cart.areVariantsIdentical(e.selectedVariants, selected),
+    );
+  }
+
+  /// Pulls the quantity for the current configuration from the cart so the page
+  /// reflects what's already there when reopened (or after changing options).
+  void _syncQtyWithCart() {
+    final match = _matchingCartItem();
+    if (!mounted) return;
+    setState(() => _qty = match?.quantity ?? 1);
+  }
+
+  Future<void> _submitCart(CartItemModel? matching) async {
     final missing = _firstUnselectedRequiredVariant();
     if (missing != null) {
       _guideToRequiredVariant(missing.title);
@@ -837,134 +876,157 @@ class _EcommerceProductDetailPageState
     setState(() => _isAddingToCart = true);
     try {
       final userId = await Get.find<AuthController>().getUserId();
-      final cartItem = CartItemModel(
-        id: '',
-        userId: userId ?? '',
-        productId: product.id,
-        productName: product.nameMap.trLanguage,
-        productImage: product.imageId,
-        basePrice: product.price,
-        discountType: product.discountType,
-        discountValue: product.discountValue,
-        finalPrice: product.finalPrice,
-        selectedVariants: _buildSelectedVariants(),
-        quantity: _qty,
-        itemTotal: _totalPrice,
-        moduleType: product.moduleType,
-      );
-      await Get.find<CartController>().addToCart(cartItem);
-      if (!mounted) return;
-      customToster('added_to_cart'.tr, isSuccess: true);
+      if (matching != null) {
+        // Already in cart — update the existing line to the chosen quantity.
+        final updated = matching.copyWith(
+          selectedVariants: _buildSelectedVariants(),
+          quantity: _qty,
+          itemTotal: _totalPrice,
+        );
+        await Get.find<CartController>().updateCartItemDetails(updated);
+        if (!mounted) return;
+        customToster('cart_updated'.tr, isSuccess: true);
+      } else {
+        final cartItem = CartItemModel(
+          id: '',
+          userId: userId ?? '',
+          productId: product.id,
+          productName: product.nameMap.trLanguage,
+          productImage: product.imageId,
+          basePrice: product.price,
+          discountType: product.discountType,
+          discountValue: product.discountValue,
+          finalPrice: product.finalPrice,
+          selectedVariants: _buildSelectedVariants(),
+          quantity: _qty,
+          itemTotal: _totalPrice,
+          moduleType: product.moduleType,
+        );
+        await Get.find<CartController>().addToCart(cartItem);
+        if (!mounted) return;
+        customToster('added_to_cart'.tr, isSuccess: true);
+      }
     } catch (_) {
-      // addToCart surfaces its own stock/identical messages.
+      // CartController surfaces its own stock/identical messages.
     } finally {
       if (mounted) setState(() => _isAddingToCart = false);
     }
   }
 
-  /// Bottom bar for variant products: live total + quantity stepper + add.
-  Widget _buildVariantBottomBar() {
+  /// Purchase bar for every product: live total + quantity stepper + add/update.
+  /// Rebuilds with the cart so it always reflects the current cart state.
+  Widget _buildPurchaseBar() {
     final maxQty = product.stock;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
+    return GetBuilder<CartController>(
+      builder: (_) {
+        final matching = _matchingCartItem();
+        final isUpdate = matching != null;
+        return Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'total'.tr,
-                    style: poppinsRegular.copyWith(
-                      fontSize: Constants.fontSizeSmall,
-                      color: ColorResource.textSecondary,
-                    ),
-                  ),
-                  Text(
-                    PriceHelper.formatPrice(_totalPrice),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeOverLarge,
-                      color: ColorResource.primaryDark,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Quantity stepper.
-            Container(
-              decoration: BoxDecoration(
-                color: ColorResource.scaffoldBackground,
-                borderRadius: BorderRadius.circular(Constants.radiusLarge),
-                border: Border.all(
-                  color: ColorResource.textLight.withValues(alpha: 0.2),
-                ),
-              ),
-              child: Row(
-                children: [
-                  _qtyButton(
-                    Icons.remove,
-                    _qty > 1 ? () => setState(() => _qty--) : null,
-                  ),
-                  SizedBox(
-                    width: 36,
-                    child: Center(
-                      child: Text(
-                        '$_qty',
-                        style: poppinsBold.copyWith(
-                          fontSize: Constants.fontSizeLarge,
-                          color: ColorResource.textPrimary,
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isUpdate ? 'in_cart'.tr : 'total'.tr,
+                        style: poppinsRegular.copyWith(
+                          fontSize: Constants.fontSizeSmall,
+                          color: ColorResource.textSecondary,
                         ),
                       ),
+                      Text(
+                        PriceHelper.formatPrice(_totalPrice),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeOverLarge,
+                          color: ColorResource.primaryDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Quantity stepper.
+                Container(
+                  decoration: BoxDecoration(
+                    color: ColorResource.scaffoldBackground,
+                    borderRadius: BorderRadius.circular(Constants.radiusLarge),
+                    border: Border.all(
+                      color: ColorResource.textLight.withValues(alpha: 0.2),
                     ),
                   ),
-                  _qtyButton(
-                    Icons.add,
-                    _qty < maxQty ? () => setState(() => _qty++) : null,
+                  child: Row(
+                    children: [
+                      _qtyButton(
+                        Icons.remove,
+                        _qty > 1 ? () => setState(() => _qty--) : null,
+                      ),
+                      SizedBox(
+                        width: 36,
+                        child: Center(
+                          child: Text(
+                            '$_qty',
+                            style: poppinsBold.copyWith(
+                              fontSize: Constants.fontSizeLarge,
+                              color: ColorResource.textPrimary,
+                            ),
+                          ),
+                        ),
+                      ),
+                      _qtyButton(
+                        Icons.add,
+                        _qty < maxQty ? () => setState(() => _qty++) : null,
+                      ),
+                    ],
                   ),
-                ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed:
+                    _isAddingToCart ? null : () => _submitCart(matching),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ColorResource.primaryDark,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(Constants.radiusLarge),
+                  ),
+                ),
+                icon: _isAddingToCart
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: ColorResource.textWhite,
+                          strokeWidth: 2.5,
+                        ),
+                      )
+                    : Icon(
+                        isUpdate
+                            ? Icons.edit_outlined
+                            : Icons.shopping_bag_outlined,
+                        color: ColorResource.textWhite,
+                        size: 20,
+                      ),
+                label: Text(
+                  isUpdate ? 'update_cart'.tr : 'add_to_cart'.tr,
+                  style: poppinsBold.copyWith(
+                    fontSize: Constants.fontSizeLarge,
+                    color: ColorResource.textWhite,
+                  ),
+                ),
               ),
             ),
           ],
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: _isAddingToCart ? null : _addVariantProductToCart,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: ColorResource.primaryDark,
-              padding: const EdgeInsets.symmetric(vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(Constants.radiusLarge),
-              ),
-            ),
-            icon: _isAddingToCart
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      color: ColorResource.textWhite,
-                      strokeWidth: 2.5,
-                    ),
-                  )
-                : const Icon(
-                    Icons.shopping_bag_outlined,
-                    color: ColorResource.textWhite,
-                    size: 20,
-                  ),
-            label: Text(
-              'add_to_cart'.tr,
-              style: poppinsBold.copyWith(
-                fontSize: Constants.fontSizeLarge,
-                color: ColorResource.textWhite,
-              ),
-            ),
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -982,102 +1044,9 @@ class _EcommerceProductDetailPageState
         ],
       ),
       child: SafeArea(
-        child: GetBuilder<CartController>(
-          builder: (_) {
-            if (product.isOutOfStock) {
-              return _disabledButton('out_of_stock'.tr);
-            }
-            // Products with variants are configured inline above, so the bar
-            // shows the live total, a quantity stepper, and a direct add.
-            if (_hasVariants) {
-              return _buildVariantBottomBar();
-            }
-            final quantity = CartHelper.getProductCartQuantity(product.id);
-            if (quantity == null) {
-              return SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () =>
-                      CartHelper.handleAddToCart(product, context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ColorResource.primaryDark,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(Constants.radiusLarge),
-                    ),
-                  ),
-                  icon: const Icon(
-                    Icons.shopping_bag_outlined,
-                    color: ColorResource.textWhite,
-                    size: 20,
-                  ),
-                  label: Text(
-                    'add_to_cart'.tr,
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeLarge,
-                      color: ColorResource.textWhite,
-                    ),
-                  ),
-                ),
-              );
-            }
-            return Row(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: ColorResource.scaffoldBackground,
-                    borderRadius: BorderRadius.circular(Constants.radiusLarge),
-                    border: Border.all(
-                      color: ColorResource.textLight.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      _qtyButton(
-                        Icons.remove,
-                        () => CartHelper.decrementQuantity(product, context),
-                      ),
-                      SizedBox(
-                        width: 36,
-                        child: Center(
-                          child: Text(
-                            '$quantity',
-                            style: poppinsBold.copyWith(
-                              fontSize: Constants.fontSizeLarge,
-                              color: ColorResource.textPrimary,
-                            ),
-                          ),
-                        ),
-                      ),
-                      _qtyButton(
-                        Icons.add,
-                        () => CartHelper.incrementQuantity(product, context),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Container(
-                    height: 48,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: ColorResource.success.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(Constants.radiusLarge),
-                    ),
-                    child: Text(
-                      'added_to_cart'.tr,
-                      style: poppinsBold.copyWith(
-                        fontSize: Constants.fontSizeDefault,
-                        color: ColorResource.success,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
+        child: product.isOutOfStock
+            ? _disabledButton('out_of_stock'.tr)
+            : _buildPurchaseBar(),
       ),
     );
   }
