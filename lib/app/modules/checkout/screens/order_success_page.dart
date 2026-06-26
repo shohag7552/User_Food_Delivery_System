@@ -22,7 +22,8 @@ class OrderSuccessPage extends StatelessWidget {
       canPop: false,
       child: Scaffold(
         backgroundColor: ColorResource.scaffoldBackground,
-        body: SafeArea(
+        body: Padding(
+          padding: const EdgeInsets.only(top: 40),
           child: Stack(
             children: [
               Container(

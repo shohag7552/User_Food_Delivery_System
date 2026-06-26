@@ -3,9 +3,11 @@ import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dar
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
 import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
+import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
+import 'package:appwrite_user_app/app/modules/ecommerce/widgets/ecommerce_product_card.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -45,7 +47,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             return _buildLoadingState();
           }
 
-          if (!controller.hasFavorites) {
+          // Scope favorites to the active storefront so Food and Shop each show
+          // only their own saved items.
+          final activeModule = Get.find<ModuleController>().activeModule;
+          final favorites = controller.favorites
+              .where((f) =>
+                  f.product != null && f.product!.moduleType == activeModule)
+              .toList();
+
+          if (favorites.isEmpty) {
             return _buildEmptyState();
           }
 
@@ -66,11 +76,16 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 mainAxisExtent: 240,
                 // childAspectRatio: 0.75,
               ),
-              itemCount: controller.favorites.length,
+              itemCount: favorites.length,
               itemBuilder: (context, index) {
-                final product = controller.favorites[index].product;
-                final favorite = controller.favorites[index];
-                return _buildProductCard(context, product!, favorite.id, controller);
+                final favorite = favorites[index];
+                final product = favorite.product!;
+                // Ecommerce products use the storefront card (detail page nav,
+                // favorite toggle, cart controls); food keeps its own card.
+                if (product.moduleType == ModuleController.ecommerce) {
+                  return EcommerceProductCard(product: product);
+                }
+                return _buildProductCard(context, product, favorite.id, controller);
               },
             ),
           );
