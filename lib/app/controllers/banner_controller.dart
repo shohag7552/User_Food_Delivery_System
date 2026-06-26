@@ -17,6 +17,12 @@ class BannerController extends GetxController implements GetxService {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  void clearForModuleSwitch() {
+    _banners = [];
+    _errorMessage = null;
+    update();
+  }
+
   /// Fetch active banners
   Future<void> getBanners({bool reload = false}) async {
     try {

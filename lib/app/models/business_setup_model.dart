@@ -23,6 +23,10 @@ class BusinessSetupModel {
   final double? storeLongitude;
   final bool isStoreOpen;
   final bool isMaintenanceModeOn;
+  // Module enablement — which storefront(s) this store runs.
+  final bool isFoodModuleEnabled;
+  final bool isEcommerceModuleEnabled;
+  final String defaultModule; // 'food' | 'ecommerce'
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -49,6 +53,9 @@ class BusinessSetupModel {
     this.storeLongitude,
     required this.isStoreOpen,
     required this.isMaintenanceModeOn,
+    this.isFoodModuleEnabled = true,
+    this.isEcommerceModuleEnabled = false,
+    this.defaultModule = 'food',
     this.createdAt,
     this.updatedAt,
   });
@@ -81,6 +88,9 @@ class BusinessSetupModel {
       storeLongitude: json['store_longitude']?.toDouble(),
       isStoreOpen: json['is_store_open'] ?? true,
       isMaintenanceModeOn: json['is_maintenance_mode_on'] ?? false,
+      isFoodModuleEnabled: json['is_food_module_enabled'] ?? true,
+      isEcommerceModuleEnabled: json['is_ecommerce_module_enabled'] ?? false,
+      defaultModule: json['default_module'] ?? 'food',
       createdAt: json['\$createdAt'] != null
           ? DateTime.parse(json['\$createdAt'])
           : null,
@@ -113,6 +123,9 @@ class BusinessSetupModel {
       if (storeLongitude != null) 'store_longitude': storeLongitude,
       'is_store_open': isStoreOpen,
       'is_maintenance_mode_on': isMaintenanceModeOn,
+      'is_food_module_enabled': isFoodModuleEnabled,
+      'is_ecommerce_module_enabled': isEcommerceModuleEnabled,
+      'default_module': defaultModule,
     };
   }
 
@@ -139,6 +152,9 @@ class BusinessSetupModel {
     double? storeLongitude,
     bool? isStoreOpen,
     bool? isMaintenanceModeOn,
+    bool? isFoodModuleEnabled,
+    bool? isEcommerceModuleEnabled,
+    String? defaultModule,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -167,6 +183,10 @@ class BusinessSetupModel {
       storeLongitude: storeLongitude ?? this.storeLongitude,
       isStoreOpen: isStoreOpen ?? this.isStoreOpen,
       isMaintenanceModeOn: isMaintenanceModeOn ?? this.isMaintenanceModeOn,
+      isFoodModuleEnabled: isFoodModuleEnabled ?? this.isFoodModuleEnabled,
+      isEcommerceModuleEnabled:
+          isEcommerceModuleEnabled ?? this.isEcommerceModuleEnabled,
+      defaultModule: defaultModule ?? this.defaultModule,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

@@ -6,7 +6,14 @@ import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/controllers/coupon_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
+import 'package:appwrite_user_app/app/controllers/brand_controller.dart';
+import 'package:appwrite_user_app/app/controllers/shipping_controller.dart';
+import 'package:appwrite_user_app/app/modules/brands/domain/repository/brand_repo_interface.dart';
+import 'package:appwrite_user_app/app/modules/brands/domain/repository/brand_repository.dart';
+import 'package:appwrite_user_app/app/modules/shipping/domain/repository/shipping_repo_interface.dart';
+import 'package:appwrite_user_app/app/modules/shipping/domain/repository/shipping_repository.dart';
 import 'package:appwrite_user_app/app/controllers/localization_controller.dart';
+import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
 import 'package:appwrite_user_app/app/controllers/address_controller.dart';
@@ -91,6 +98,16 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   );
   Get.lazyPut(() => bannerRepoInterface);
 
+  BrandRepoInterface brandRepoInterface = BrandRepository(
+    appwriteService: Get.find(),
+  );
+  Get.lazyPut(() => brandRepoInterface);
+
+  ShippingRepoInterface shippingRepoInterface = ShippingRepository(
+    appwriteService: Get.find(),
+  );
+  Get.lazyPut(() => shippingRepoInterface);
+
   CartRepoInterface cartRepoInterface = CartRepository(
     appwriteService: Get.find(),
   );
@@ -153,10 +170,13 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   Get.lazyPut(() => CouponController(couponRepoInterface: Get.find()));
   Get.lazyPut(() => ProductController(productRepoInterface: Get.find()));
   Get.lazyPut(() => BannerController(bannerRepoInterface: Get.find()));
+  Get.lazyPut(() => BrandController(brandRepoInterface: Get.find()));
+  Get.lazyPut(() => ShippingController(shippingRepoInterface: Get.find()));
   Get.lazyPut(() => CartController(cartRepoInterface: Get.find()));
   Get.lazyPut(() => AddressController(addressRepoInterface: Get.find()));
   Get.lazyPut(() => OrderController(orderRepoInterface: Get.find()));
   Get.lazyPut(() => SettingsController(settingsRepoInterface: Get.find()));
+  Get.lazyPut(() => ModuleController(sharedPreferences: Get.find()));
   Get.lazyPut(() => ProfileController(profileRepoInterface: Get.find()));
   Get.lazyPut(() => FavoritesController(favoritesRepoInterface: Get.find()));
   Get.lazyPut(() => ReviewController(reviewRepoInterface: Get.find()));

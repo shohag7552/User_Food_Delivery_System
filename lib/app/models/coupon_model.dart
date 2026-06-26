@@ -11,6 +11,7 @@ class CouponModel {
   final DateTime validFrom;
   final DateTime validUntil;
   final bool isActive;
+  final String moduleType; // 'food' | 'ecommerce' | 'both'
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -27,6 +28,7 @@ class CouponModel {
     required this.validFrom,
     required this.validUntil,
     required this.isActive,
+    this.moduleType = 'both',
     this.createdAt,
     this.updatedAt,
   });
@@ -110,6 +112,7 @@ class CouponModel {
           ? DateTime.parse(json['valid_until'])
           : DateTime.now().add(const Duration(days: 30)),
       isActive: json['is_active'] ?? true,
+      moduleType: json['module_type'] as String? ?? 'both',
       createdAt: json['\$createdAt'] != null
           ? DateTime.parse(json['\$createdAt'])
           : null,
@@ -133,6 +136,7 @@ class CouponModel {
       'valid_from': validFrom.toIso8601String(),
       'valid_until': validUntil.toIso8601String(),
       'is_active': isActive,
+      'module_type': moduleType,
     };
   }
 
@@ -150,6 +154,7 @@ class CouponModel {
     DateTime? validFrom,
     DateTime? validUntil,
     bool? isActive,
+    String? moduleType,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -166,6 +171,7 @@ class CouponModel {
       validFrom: validFrom ?? this.validFrom,
       validUntil: validUntil ?? this.validUntil,
       isActive: isActive ?? this.isActive,
+      moduleType: moduleType ?? this.moduleType,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

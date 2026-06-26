@@ -1,4 +1,5 @@
 import 'package:appwrite_user_app/app/modules/splash/domain/repository/splash_repo_interface.dart';
+import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:get/get.dart';
 
@@ -44,7 +45,10 @@ class SplashController extends GetxController implements GetxService{
     try {
       // Use the settings controller to fetch data
       final settingsController = Get.find<SettingsController>();
-      return await settingsController.fetchSettings();
+      final success = await settingsController.fetchSettings();
+      // Resolve the active module from the freshly loaded business setup.
+      Get.find<ModuleController>().init();
+      return success;
     } catch (e) {
       print('Error fetching settings in SplashController: $e');
       return false;

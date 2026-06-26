@@ -139,6 +139,17 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               child: Column(
                 children: [
                   _buildHeader(order),
+                  if (order.moduleType == 'ecommerce') ...[
+                    if (!['cancelled', 'returned', 'refunded']
+                        .contains(order.status.toLowerCase())) ...[
+                      const SizedBox(height: 16),
+                      _buildStatusTimeline(order),
+                    ],
+                    if ((order.trackingNumber ?? '').isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      _buildTrackingInfo(order),
+                    ],
+                  ],
                   const SizedBox(height: 16),
                   _buildOrderInfo(order),
                   const SizedBox(height: 16),
@@ -994,6 +1005,193 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     );
   }
 
+  /// Ecommerce fulfilment progress (vertical stepper).
+  Widget _buildStatusTimeline(OrderModel order) {
+    const steps = [
+      'confirmed',
+      'packing',
+      'shipped',
+      'out_for_delivery',
+      'delivered',
+    ];
+    final status = order.status.toLowerCase();
+    int current = steps.indexOf(status);
+    if (status == 'pending') current = -1;
+    if (status == 'completed') current = steps.length - 1;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: ColorResource.cardBackground,
+        borderRadius: BorderRadius.circular(Constants.radiusLarge),
+        boxShadow: ColorResource.customShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'order_status'.tr,
+            style: poppinsBold.copyWith(
+              fontSize: Constants.fontSizeLarge,
+              color: ColorResource.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...List.generate(steps.length, (i) {
+            final done = i <= current;
+            final isLast = i == steps.length - 1;
+            return IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    children: [
+                      Container(
+                        width: 26,
+                        height: 26,
+                        decoration: BoxDecoration(
+                          color: done
+                              ? ColorResource.primaryDark
+                              : ColorResource.scaffoldBackground,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: done
+                                ? ColorResource.primaryDark
+                                : ColorResource.textLight
+                                    .withValues(alpha: 0.4),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Icon(
+                          done ? Icons.check : Icons.circle,
+                          size: done ? 15 : 8,
+                          color: done
+                              ? ColorResource.textWhite
+                              : ColorResource.textLight,
+                        ),
+                      ),
+                      if (!isLast)
+                        Expanded(
+                          child: Container(
+                            width: 2,
+                            color: i < current
+                                ? ColorResource.primaryDark
+                                : ColorResource.textLight
+                                    .withValues(alpha: 0.25),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(width: 12),
+                  Padding(
+                    padding: EdgeInsets.only(top: 3, bottom: isLast ? 0 : 20),
+                    child: Text(
+                      _stepLabel(steps[i]),
+                      style: done
+                          ? poppinsBold.copyWith(
+                              fontSize: Constants.fontSizeDefault,
+                              color: ColorResource.textPrimary,
+                            )
+                          : poppinsRegular.copyWith(
+                              fontSize: Constants.fontSizeDefault,
+                              color: ColorResource.textSecondary,
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  String _stepLabel(String step) {
+    switch (step) {
+      case 'confirmed':
+        return 'confirmed'.tr;
+      case 'packing':
+        return 'packing'.tr;
+      case 'shipped':
+        return 'shipped'.tr;
+      case 'out_for_delivery':
+        return 'out_for_delivery'.tr;
+      case 'delivered':
+        return 'completed_status'.tr;
+      default:
+        return step;
+    }
+  }
+
+  Widget _buildTrackingInfo(OrderModel order) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: ColorResource.cardBackground,
+        borderRadius: BorderRadius.circular(Constants.radiusLarge),
+        boxShadow: ColorResource.customShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.local_shipping_outlined,
+                color: ColorResource.primaryDark,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'tracking_info'.tr,
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeLarge,
+                  color: ColorResource.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if ((order.courierName ?? '').isNotEmpty)
+            _trackingRow('courier'.tr, order.courierName!),
+          _trackingRow('tracking_number'.tr, order.trackingNumber!),
+        ],
+      ),
+    );
+  }
+
+  Widget _trackingRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: poppinsRegular.copyWith(
+                fontSize: Constants.fontSizeSmall,
+                color: ColorResource.textSecondary,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: poppinsMedium.copyWith(
+                fontSize: Constants.fontSizeDefault,
+                color: ColorResource.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildStatusBadge(String status) {
     Color backgroundColor;
     Color textColor;
@@ -1046,6 +1244,43 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         textColor = Colors.red.shade700;
         icon = Icons.cancel;
         label = 'cancelled_status'.tr;
+        break;
+      // --- Ecommerce statuses ---
+      case 'confirmed':
+        backgroundColor = Colors.teal.shade100;
+        textColor = Colors.teal.shade700;
+        icon = Icons.verified_outlined;
+        label = 'confirmed'.tr;
+        break;
+      case 'packing':
+        backgroundColor = Colors.amber.shade100;
+        textColor = Colors.amber.shade800;
+        icon = Icons.inventory_2_outlined;
+        label = 'packing'.tr;
+        break;
+      case 'shipped':
+        backgroundColor = Colors.blue.shade100;
+        textColor = Colors.blue.shade700;
+        icon = Icons.local_shipping_outlined;
+        label = 'shipped'.tr;
+        break;
+      case 'out_for_delivery':
+        backgroundColor = Colors.purple.shade100;
+        textColor = Colors.purple.shade700;
+        icon = Icons.delivery_dining;
+        label = 'out_for_delivery'.tr;
+        break;
+      case 'returned':
+        backgroundColor = Colors.orange.shade100;
+        textColor = Colors.orange.shade800;
+        icon = Icons.assignment_return_outlined;
+        label = 'returned'.tr;
+        break;
+      case 'refunded':
+        backgroundColor = Colors.blueGrey.shade100;
+        textColor = Colors.blueGrey.shade700;
+        icon = Icons.replay_circle_filled_outlined;
+        label = 'refunded'.tr;
         break;
       default:
         backgroundColor = Colors.grey.shade100;

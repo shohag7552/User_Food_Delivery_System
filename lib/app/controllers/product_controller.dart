@@ -71,6 +71,17 @@ class ProductController extends GetxController implements GetxService {
   String? get newErrorMessage => _newErrorMessage;
 
   /// Fetch all products (initial load)
+  /// Drops all cached lists so the next fetch loads the active module fresh.
+  void clearForModuleSwitch() {
+    _products.clear();
+    _specialProducts = [];
+    _popularProducts = [];
+    _newProducts = [];
+    _currentPage = 0;
+    _hasMore = true;
+    update();
+  }
+
   Future<void> getProducts({bool refresh = false, bool reload = false}) async {
     try {
       if (refresh || reload) {

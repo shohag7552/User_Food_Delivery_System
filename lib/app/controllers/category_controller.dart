@@ -17,6 +17,12 @@ class CategoryController extends GetxController implements GetxService {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  void clearForModuleSwitch() {
+    _categories = [];
+    _errorMessage = null;
+    update();
+  }
+
   Future<void> getCategories({bool reload = false}) async {
     try {
       _isLoading = true;

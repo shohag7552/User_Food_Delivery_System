@@ -11,6 +11,7 @@ class BannerModel {
   final String? actionValue;
   final bool isActive;
   final int sortOrder;
+  final String moduleType; // 'food' | 'ecommerce' | 'both'
 
   BannerModel({
     required this.id,
@@ -21,6 +22,7 @@ class BannerModel {
     this.actionValue,
     required this.isActive,
     required this.sortOrder,
+    this.moduleType = 'both',
   });
 
   // Factory to convert Appwrite JSON -> Dart Object
@@ -34,6 +36,7 @@ class BannerModel {
       actionValue: json['action_value'],
       isActive: json['is_active'] ?? true,
       sortOrder: json['sort_order'] ?? 0,
+      moduleType: json['module_type'] as String? ?? 'both',
     );
   }
 
@@ -47,6 +50,7 @@ class BannerModel {
       'action_value': actionValue,
       'is_active': isActive,
       'sort_order': sortOrder,
+      'module_type': moduleType,
     };
   }
 

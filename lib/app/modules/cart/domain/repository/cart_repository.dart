@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:appwrite/models.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
+import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/modules/cart/domain/repository/cart_repo_interface.dart';
 // import 'package:dart_appwrite/models.dart' hide User;
@@ -25,6 +26,8 @@ class CartRepository implements CartRepoInterface {
         tableId: AppwriteConfig.cartCollection,
         queries: [
           Query.equal('user_id', user.$id),
+          // Per-module carts: only the active storefront's items.
+          Query.equal('module_type', ModuleController.current),
           Query.orderDesc('\$createdAt'),
         ],
       );
@@ -41,9 +44,11 @@ class CartRepository implements CartRepoInterface {
   @override
   Future<CartItemModel> addCartItem(CartItemModel item) async {
     try {
+      // Always stamp the active module so the item lands in the right cart.
+      final data = item.toJson()..['module_type'] = ModuleController.current;
       final doc = await appwriteService.createRow(
         collectionId: AppwriteConfig.cartCollection,
-        data: item.toJson(),
+        data: data,
       );
 
       return CartItemModel.fromJson(doc.data);

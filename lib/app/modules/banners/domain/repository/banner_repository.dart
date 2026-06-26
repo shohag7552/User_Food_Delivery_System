@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
+import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/models/banner_model.dart';
 import 'package:appwrite_user_app/app/modules/banners/domain/repository/banner_repo_interface.dart';
 
@@ -17,6 +18,8 @@ class BannerRepository implements BannerRepoInterface {
         tableId: AppwriteConfig.bannersCollection,
         queries: [
           Query.equal('is_active', true),
+          // 'both' banners show in every storefront.
+          Query.equal('module_type', [ModuleController.current, 'both']),
           Query.orderAsc('sort_order'),
         ],
       );

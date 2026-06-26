@@ -6,7 +6,7 @@ import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/screens/home_page.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/screens/home_module_view.dart';
 import 'package:appwrite_user_app/app/modules/cart/screens/cart_page.dart';
 import 'package:appwrite_user_app/app/modules/favorites/screens/favorites_screen.dart';
 import 'package:appwrite_user_app/app/modules/orders/screens/orders_page.dart';
@@ -36,7 +36,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // Pages
   final List<Widget> _pages = [
-    const HomePage(),
+    const HomeModuleView(),
     const FavoritesScreen(),
     const CartPage(),
     const OrdersPage(),

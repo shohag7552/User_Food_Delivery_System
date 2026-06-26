@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
+import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/products/domain/repository/product_repo_interface.dart';
@@ -21,6 +22,7 @@ class ProductRepository implements ProductRepoInterface {
     try {
       final queries = <String>[
         Query.equal('is_available', true),
+        Query.equal('module_type', ModuleController.current),
         Query.offset(offset),
         Query.limit(limit),
       ];
@@ -53,6 +55,7 @@ class ProductRepository implements ProductRepoInterface {
           Query.isNotNull('discount_type'),
           Query.greaterThan('discount_value', 5),
           Query.equal('is_available', true),
+          Query.equal('module_type', ModuleController.current),
         ],
       );
       return response.rows.map((row) {
@@ -76,6 +79,7 @@ class ProductRepository implements ProductRepoInterface {
           Query.isNotNull('order_count'),
           Query.greaterThan('order_count', 3),
           Query.equal('is_available', true),
+          Query.equal('module_type', ModuleController.current),
           Query.limit(10), // Limit to top 10 popular items
         ],
       );
@@ -97,6 +101,7 @@ class ProductRepository implements ProductRepoInterface {
         tableId: AppwriteConfig.productsCollection,
         queries: [
           Query.equal('is_available', true),
+          Query.equal('module_type', ModuleController.current),
           Query.orderDesc('\$createdAt'), // Sort by creation date, newest first
           Query.limit(10), // Limit to 10 newest items
         ],
@@ -123,6 +128,7 @@ class ProductRepository implements ProductRepoInterface {
         queries: [
           Query.equal('category_id', categoryId),
           Query.equal('is_available', true),
+          Query.equal('module_type', ModuleController.current),
           Query.offset(offset),
           Query.limit(limit),
         ],
@@ -172,6 +178,7 @@ class ProductRepository implements ProductRepoInterface {
         tableId: AppwriteConfig.productsCollection,
         queries: [
           Query.equal('is_available', true),
+          Query.equal('module_type', ModuleController.current),
           Query.offset(offset),
           Query.limit(_searchBatchSize),
         ],

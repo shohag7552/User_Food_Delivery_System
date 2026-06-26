@@ -49,6 +49,7 @@ class Constants {
   static const String theme = 'theme';
   static const String topic = 'loklagbe_topic';
   static const String categoryTopic = 'category_topic';
+  static const String activeModule = 'active_module';
 }
 
 class LanguageModel {

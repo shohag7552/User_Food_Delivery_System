@@ -19,6 +19,8 @@ abstract class OrderRepoInterface {
     String? deliveryType, // 'now' or 'scheduled'
     DateTime? scheduledDate,
     String? scheduledTimeSlot,
+    double? shippingCost, // ecommerce
+    String? shippingMethod, // ecommerce
   });
 
   /// Updates the payment status of an existing order.

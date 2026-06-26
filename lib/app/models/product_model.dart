@@ -17,6 +17,13 @@ class ProductModel {
   final double avgRating;
   final int ratingCount;
   final List<VariantGroup> variants;
+  final String moduleType; // 'food' | 'ecommerce'
+  // --- Ecommerce-specific (nullable; food ignores them) ---
+  final String? brandId;
+  final List<String> imageGallery;
+  final String? sku;
+  final double? weight;
+  final String? weightUnit;
 
   ProductModel({
     required this.id,
@@ -33,6 +40,12 @@ class ProductModel {
     required this.avgRating,
     required this.ratingCount,
     required this.variants,
+    this.moduleType = 'food',
+    this.brandId,
+    this.imageGallery = const [],
+    this.sku,
+    this.weight,
+    this.weightUnit,
   });
 
   // Check if out of stock
@@ -80,6 +93,14 @@ class ProductModel {
               .map((e) => VariantGroup.fromJson(e))
               .toList()
           : [],
+      moduleType: json['module_type'] as String? ?? 'food',
+      brandId: json['brand_id'] as String?,
+      imageGallery: json['image_gallery'] is List
+          ? (json['image_gallery'] as List).map((e) => e.toString()).toList()
+          : const [],
+      sku: json['sku'] as String?,
+      weight: (json['weight'] as num?)?.toDouble(),
+      weightUnit: json['weight_unit'] as String?,
     );
   }
 
@@ -99,6 +120,12 @@ class ProductModel {
       'avg_rating': avgRating,
       'rating_count': ratingCount,
       'variants': jsonEncode(variants.map((e) => e.toJson()).toList()),
+      'module_type': moduleType,
+      if (brandId != null) 'brand_id': brandId,
+      'image_gallery': imageGallery,
+      if (sku != null) 'sku': sku,
+      if (weight != null) 'weight': weight,
+      if (weightUnit != null) 'weight_unit': weightUnit,
     };
   }
 
@@ -117,6 +144,12 @@ class ProductModel {
     double? avgRating,
     int? ratingCount,
     List<VariantGroup>? variants,
+    String? moduleType,
+    String? brandId,
+    List<String>? imageGallery,
+    String? sku,
+    double? weight,
+    String? weightUnit,
     bool clearDiscountType = false,
     bool clearDiscountValue = false,
   }) {
@@ -139,6 +172,12 @@ class ProductModel {
       avgRating: avgRating ?? this.avgRating,
       ratingCount: ratingCount ?? this.ratingCount,
       variants: variants ?? this.variants,
+      moduleType: moduleType ?? this.moduleType,
+      brandId: brandId ?? this.brandId,
+      imageGallery: imageGallery ?? this.imageGallery,
+      sku: sku ?? this.sku,
+      weight: weight ?? this.weight,
+      weightUnit: weightUnit ?? this.weightUnit,
     );
   }
 }

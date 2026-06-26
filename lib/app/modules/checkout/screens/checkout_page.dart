@@ -4,8 +4,11 @@ import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/address_controller.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
+import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
+import 'package:appwrite_user_app/app/controllers/shipping_controller.dart';
+import 'package:appwrite_user_app/app/models/shipping_method_model.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/enums/payment_method_enum.dart';
@@ -53,6 +56,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
   DateTime? _selectedDate;
   String? _selectedTimeSlot;
 
+  // Ecommerce shipping
+  ShippingMethodModel? _selectedShipping;
+
+  bool get _isEcommerce => Get.find<ModuleController>().isEcommerce;
+
   @override
   void initState() {
     super.initState();
@@ -60,6 +68,18 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final addressController = Get.find<AddressController>();
     if (addressController.defaultAddress != null) {
       _selectedAddress = addressController.defaultAddress;
+    }
+
+    // Load shipping methods for the ecommerce checkout.
+    if (_isEcommerce) {
+      final shippingController = Get.find<ShippingController>();
+      shippingController.getShippingMethods().then((_) {
+        if (!mounted) return;
+        if (_selectedShipping == null &&
+            shippingController.methods.isNotEmpty) {
+          setState(() => _selectedShipping = shippingController.methods.first);
+        }
+      });
     }
   }
 
@@ -229,6 +249,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
     CartController cartController,
     SettingsController settingsController,
   ) {
+    // Ecommerce: fee comes from the selected shipping method.
+    if (_isEcommerce) {
+      return _selectedShipping?.feeFor(cartController.total) ?? 0;
+    }
+
     final businessSetup = settingsController.businessSetup;
     final orderAmount = cartController.total;
     final freeDeliveryAbove = businessSetup?.freeDeliveryAbove;
@@ -336,7 +361,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     children: [
                       _buildDeliveryAddress(),
                       const SizedBox(height: 20),
-                      _buildDeliverySchedule(),
+                      _isEcommerce
+                          ? _buildShippingSection()
+                          : _buildDeliverySchedule(),
                       const SizedBox(height: 20),
                       _buildCouponSection(controller),
                       const SizedBox(height: 20),
@@ -749,6 +776,135 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildShippingSection() {
+    return GetBuilder<ShippingController>(
+      builder: (shippingController) {
+        final methods = shippingController.methods;
+        final cartTotal = Get.find<CartController>().total;
+
+        return Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: ColorResource.cardBackground,
+            borderRadius: BorderRadius.circular(Constants.radiusLarge),
+            boxShadow: ColorResource.customShadow,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.local_shipping_outlined,
+                    color: ColorResource.primaryDark,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'shipping_method'.tr,
+                    style: poppinsBold.copyWith(
+                      fontSize: Constants.fontSizeLarge,
+                      color: ColorResource.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (shippingController.isLoading && methods.isEmpty)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              else if (methods.isEmpty)
+                Text(
+                  'no_shipping_methods'.tr,
+                  style: poppinsRegular.copyWith(
+                    fontSize: Constants.fontSizeSmall,
+                    color: ColorResource.textSecondary,
+                  ),
+                )
+              else
+                ...methods.map((m) => _buildShippingTile(m, cartTotal)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildShippingTile(ShippingMethodModel method, double cartTotal) {
+    final isSelected = _selectedShipping?.id == method.id;
+    final fee = method.feeFor(cartTotal);
+    return GestureDetector(
+      onTap: () => setState(() => _selectedShipping = method),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? ColorResource.primaryDark.withValues(alpha: 0.06)
+              : ColorResource.scaffoldBackground,
+          borderRadius: BorderRadius.circular(Constants.radiusDefault),
+          border: Border.all(
+            color: isSelected
+                ? ColorResource.primaryDark
+                : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              isSelected
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_off,
+              color: isSelected
+                  ? ColorResource.primaryDark
+                  : ColorResource.textLight,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    method.name,
+                    style: poppinsBold.copyWith(
+                      fontSize: Constants.fontSizeDefault,
+                      color: ColorResource.textPrimary,
+                    ),
+                  ),
+                  if ((method.estimatedDays ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      method.estimatedDays!,
+                      style: poppinsRegular.copyWith(
+                        fontSize: Constants.fontSizeSmall,
+                        color: ColorResource.textSecondary,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            Text(
+              fee <= 0 ? 'free'.tr : CurrencyHelper.formatAmount(fee),
+              style: poppinsBold.copyWith(
+                fontSize: Constants.fontSizeDefault,
+                color: fee <= 0
+                    ? ColorResource.success
+                    : ColorResource.primaryDark,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1181,7 +1337,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final storeStatus = _storeStatus();
     // Immediate orders are blocked while the store is closed; scheduled
     // orders for a future slot remain allowed.
-    final blockForClosed = _deliveryType == 'now' && !storeStatus.isOpenNow;
+    final blockForClosed =
+        !_isEcommerce && _deliveryType == 'now' && !storeStatus.isOpenNow;
     final total = controller.total + deliveryFee;
     
     return Container(
@@ -1213,7 +1370,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           _buildSummaryRow('item_discount'.tr, -controller.itemDiscountTotal, isDiscount: true),
                         ],
                         const SizedBox(height: 8),
-                        _buildSummaryRow('delivery_fee'.tr, deliveryFee),
+                        _buildSummaryRow(
+                          _isEcommerce ? 'shipping'.tr : 'delivery_fee'.tr,
+                          deliveryFee,
+                        ),
                         if (isOutsideRadius) ...[
                           const SizedBox(height: 8),
                           Align(
@@ -1411,14 +1571,20 @@ class _CheckoutPageState extends State<CheckoutPage> {
     }
 
     final settingsController = Get.find<SettingsController>();
-    if (_isOutsideDeliveryRadius(settingsController)) {
+    // Delivery radius + store hours only constrain the food module.
+    if (!_isEcommerce && _isOutsideDeliveryRadius(settingsController)) {
       customToster('Selected address is outside the delivery radius.', isSuccess: false);
       return;
     }
 
-    // Block immediate orders while the store is closed.
-    if (_deliveryType == 'now' && !_storeStatus().isOpenNow) {
+    if (!_isEcommerce && _deliveryType == 'now' && !_storeStatus().isOpenNow) {
       customToster('store_is_currently_closed'.tr, isSuccess: false);
+      return;
+    }
+
+    // Ecommerce requires a shipping method.
+    if (_isEcommerce && _selectedShipping == null) {
+      customToster('please_select_shipping_method'.tr, isSuccess: false);
       return;
     }
 
@@ -1491,9 +1657,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
         paymentMethod: _selectedPaymentMethod.name,
         paymentStatus: 'unpaid',
         deliveryInstructions: _instructionsController.text.trim(),
-        deliveryType: _deliveryType,
-        scheduledDate: _selectedDate,
-        scheduledTimeSlot: _selectedTimeSlot,
+        deliveryType: _isEcommerce ? null : _deliveryType,
+        scheduledDate: _isEcommerce ? null : _selectedDate,
+        scheduledTimeSlot: _isEcommerce ? null : _selectedTimeSlot,
+        shippingCost: _isEcommerce ? deliveryFee : null,
+        shippingMethod: _isEcommerce ? _selectedShipping?.name : null,
       );
 
       if (result['success'] != true) {

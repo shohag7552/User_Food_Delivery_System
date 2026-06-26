@@ -13,6 +13,7 @@ class CartItemModel {
   final List<SelectedVariant> selectedVariants;
   final int quantity;
   final double itemTotal;
+  final String moduleType; // 'food' | 'ecommerce'
 
   CartItemModel({
     required this.id,
@@ -27,6 +28,7 @@ class CartItemModel {
     required this.selectedVariants,
     required this.quantity,
     required this.itemTotal,
+    this.moduleType = 'food',
   });
 
   // Calculate variant price
@@ -57,6 +59,7 @@ class CartItemModel {
     List<SelectedVariant>? selectedVariants,
     int? quantity,
     double? itemTotal,
+    String? moduleType,
   }) {
     return CartItemModel(
       id: id ?? this.id,
@@ -71,6 +74,7 @@ class CartItemModel {
       selectedVariants: selectedVariants ?? this.selectedVariants,
       quantity: quantity ?? this.quantity,
       itemTotal: itemTotal ?? this.itemTotal,
+      moduleType: moduleType ?? this.moduleType,
     );
   }
 
@@ -95,6 +99,7 @@ class CartItemModel {
           : [],
       quantity: json['quantity'] as int,
       itemTotal: (json['item_total'] as num).toDouble(),
+      moduleType: json['module_type'] as String? ?? 'food',
     );
   }
 
@@ -112,6 +117,7 @@ class CartItemModel {
           jsonEncode(selectedVariants.map((e) => e.toJson()).toList()),
       'quantity': quantity,
       'item_total': itemTotal,
+      'module_type': moduleType,
     };
   }
 }

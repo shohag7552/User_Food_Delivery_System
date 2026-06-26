@@ -68,6 +68,8 @@ class OrderController extends GetxController implements GetxService {
     String? deliveryType,
     DateTime? scheduledDate,
     String? scheduledTimeSlot,
+    double? shippingCost,
+    String? shippingMethod,
   }) async {
     try {
       _isPlacingOrder = true;
@@ -116,6 +118,8 @@ class OrderController extends GetxController implements GetxService {
         deliveryType: deliveryType,
         scheduledDate: scheduledDate,
         scheduledTimeSlot: scheduledTimeSlot,
+        shippingCost: shippingCost,
+        shippingMethod: shippingMethod,
       );
 
       _isPlacingOrder = false;

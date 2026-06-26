@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:appwrite/models.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
+import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
 import 'package:appwrite_user_app/app/modules/checkout/domain/repository/order_repo_interface.dart';
 import 'package:dart_appwrite/dart_appwrite.dart';
@@ -44,6 +45,8 @@ class OrderRepository implements OrderRepoInterface {
     String? deliveryType,
     DateTime? scheduledDate,
     String? scheduledTimeSlot,
+    double? shippingCost,
+    String? shippingMethod,
   }) async {
     try {
       // Generate sequential readable order number
@@ -63,6 +66,7 @@ class OrderRepository implements OrderRepoInterface {
         'delivery_address': deliveryAddress,
         'order_items': orderItems,
         'created_at': DateTime.now().toIso8601String(),
+        'module_type': ModuleController.current,
       };
 
       // Add delivery schedule information if provided
@@ -77,6 +81,13 @@ class OrderRepository implements OrderRepoInterface {
       }
       if (deliveryInstructions != null && deliveryInstructions.isNotEmpty) {
         orderData['delivery_instructions'] = deliveryInstructions;
+      }
+      // Ecommerce shipping snapshot.
+      if (shippingCost != null) {
+        orderData['shipping_cost'] = shippingCost;
+      }
+      if (shippingMethod != null && shippingMethod.isNotEmpty) {
+        orderData['shipping_method'] = shippingMethod;
       }
 
       final row = await appwriteService.createRow(
@@ -127,6 +138,7 @@ class OrderRepository implements OrderRepoInterface {
       // Build queries dynamically
       List<String> queries = [
         Query.equal('customer_id', user.$id),
+        Query.equal('module_type', ModuleController.current),
         Query.orderDesc('\$createdAt'),
       ];
 

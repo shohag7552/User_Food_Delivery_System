@@ -17,6 +17,12 @@ class OrderModel {
   final DeliveryAddress address; // <--- Parsed from JSON
   final List<OrderItem> items; // <--- Parsed from JSON
   final DateTime createdAt;
+  final String moduleType; // 'food' | 'ecommerce'
+  // --- Ecommerce fulfillment (nullable; food ignores them) ---
+  final double shippingCost;
+  final String? shippingMethod;
+  final String? trackingNumber;
+  final String? courierName;
 
   OrderModel({
     required this.id,
@@ -35,6 +41,11 @@ class OrderModel {
     required this.address,
     required this.items,
     required this.createdAt,
+    this.moduleType = 'food',
+    this.shippingCost = 0.0,
+    this.shippingMethod,
+    this.trackingNumber,
+    this.courierName,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
@@ -60,6 +71,11 @@ class OrderModel {
       items: (jsonDecode(json['order_items']) as List)
           .map((e) => OrderItem.fromJson(e))
           .toList(),
+      moduleType: json['module_type'] as String? ?? 'food',
+      shippingCost: (json['shipping_cost'] as num?)?.toDouble() ?? 0.0,
+      shippingMethod: json['shipping_method'] as String?,
+      trackingNumber: json['tracking_number'] as String?,
+      courierName: json['courier_name'] as String?,
     );
   }
 
@@ -80,6 +96,11 @@ class OrderModel {
     DeliveryAddress? address,
     List<OrderItem>? items,
     DateTime? createdAt,
+    String? moduleType,
+    double? shippingCost,
+    String? shippingMethod,
+    String? trackingNumber,
+    String? courierName,
   }) {
     return OrderModel(
       id: id ?? this.id,
@@ -98,6 +119,11 @@ class OrderModel {
       address: address ?? this.address,
       items: items ?? this.items,
       createdAt: createdAt ?? this.createdAt,
+      moduleType: moduleType ?? this.moduleType,
+      shippingCost: shippingCost ?? this.shippingCost,
+      shippingMethod: shippingMethod ?? this.shippingMethod,
+      trackingNumber: trackingNumber ?? this.trackingNumber,
+      courierName: courierName ?? this.courierName,
     );
   }
 }

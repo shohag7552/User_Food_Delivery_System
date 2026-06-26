@@ -33,4 +33,9 @@ class AppwriteConfig {
   static const String privacyPolicyCollection = 'privacy_policy';
   static const String driversCollection = 'drivers';
   static const String loyaltyHistoryCollection = 'loyalty_history';
+
+  // Ecommerce module collections
+  static const String brandsCollection = 'brands';
+  static const String shippingMethodsCollection = 'shipping_methods';
+  static const String attributesCollection = 'product_attributes';
 }

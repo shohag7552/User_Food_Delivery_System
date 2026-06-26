@@ -40,7 +40,7 @@ void main() async {
     await _setupAddresses(databases);
     await _setupCoupons(databases);
     await _setupBusinessSetup(databases);
-    await _setupStoreSetup(databases);
+    await _setupStoreSetup(databases); 
     await _setupBanners(databases);
     await _setupCart(databases);
     await _setupFavorites(databases);
@@ -49,6 +49,10 @@ void main() async {
     await _setupPrivacyPolicy(databases);
     await _setupDrivers(databases);
     await _setupLoyaltyHistory(databases);
+    // Ecommerce module collections
+    await _setupBrands(databases);
+    await _setupShippingMethods(databases);
+    await _setupAttributes(databases);
 
     print("\n🎉 SETUP COMPLETE! Your Appwrite backend is ready.");
   } catch (e) {
@@ -148,6 +152,10 @@ Future<void> _setupBusinessSetup(Databases db) async {
         () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'is_wallet_active', xdefault: false, xrequired: false),
         () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'loyalty_point_earning_rate', xdefault: 1.0, xrequired: false),
         () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'loyalty_point_wallet_rate', xdefault: 0.10, xrequired: false),
+        // --- Module enablement (Food / Ecommerce master switch) ---
+        () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'is_food_module_enabled', xdefault: true, xrequired: false),
+        () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'is_ecommerce_module_enabled', xdefault: false, xrequired: false),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'default_module', elements: ['food', 'ecommerce'], xdefault: 'food', xrequired: false),
 
   ], [
     Permission.read(Role.any()),          // Everyone can see
@@ -187,6 +195,9 @@ Future<void> _setupCategories(Databases db) async {
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.categoriesCollection, key: 'image_path', size: 2000, xrequired: true),
         () => db.createIntegerAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.categoriesCollection, key: 'sort_order', xrequired: false),
         () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.categoriesCollection, key: 'is_active', xrequired: false, xdefault: true),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.categoriesCollection, key: 'module_type', elements: ['food', 'ecommerce'], xrequired: false, xdefault: 'food'),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.categoriesCollection, key: 'parent_id', size: 64, xrequired: false),
+        () => db.createIndex(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.categoriesCollection, key: 'idx_module_type', type: IndexType.key, attributes: ['module_type']),
   ], [
     Permission.read(Role.any()),          // Everyone can see
     Permission.create(Role.team('admin_team')),
@@ -212,6 +223,18 @@ Future<void> _setupProducts(Databases db) async {
         () => db.createIntegerAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'order_count', xrequired: false, xdefault: 0),
         () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'avg_rating', xrequired: false, xdefault: 0.0),
         () => db.createIntegerAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'rating_count', xrequired: false, xdefault: 0),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'module_type', elements: ['food', 'ecommerce'], xrequired: false, xdefault: 'food'),
+        // --- Ecommerce-specific columns (nullable; food ignores them) ---
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'brand_id', size: 64, xrequired: false),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'sku', size: 100, xrequired: false),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'barcode', size: 100, xrequired: false),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'weight', xrequired: false),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'weight_unit', elements: ['g', 'kg', 'lb'], xrequired: false),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'dimensions', size: 200, xrequired: false),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'image_gallery', size: 2000, xrequired: false, array: true),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'tax_rate', xrequired: false, xdefault: 0.0),
+        () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'requires_shipping', xrequired: false, xdefault: true),
+        () => db.createIndex(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.productsCollection, key: 'idx_module_type', type: IndexType.key, attributes: ['module_type']),
   ], [
     Permission.read(Role.any()),          // Everyone can see
     Permission.write(Role.team('admin')), // Only 'admin' team can edit
@@ -243,7 +266,8 @@ Future<void> _setupOrders(Databases db) async {
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'delivery_instructions', size: 500, xrequired: false),
         () => db.createDatetimeAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'scheduled_date', xrequired: false),
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'scheduled_time_slot', size: 64, xrequired: false),
-        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'status', elements: ['pending', 'cooking', 'ready', 'handover', 'on_way', 'delivered', 'cancelled'], xrequired: true),
+        // UNION of food + ecommerce status vocabularies (interpreted per module_type).
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'status', elements: ['pending', 'confirmed', 'cooking', 'ready', 'packing', 'handover', 'picked_up', 'shipped', 'on_way', 'out_for_delivery', 'delivered', 'cancelled', 'returned', 'refunded'], xrequired: true),
         () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'payment_method', elements: ['cod', 'online', 'wallet'], xrequired: true),
         () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'payment_status', elements: ['paid', 'unpaid'], xrequired: true),
         () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'total_amount', xrequired: true),
@@ -254,6 +278,13 @@ Future<void> _setupOrders(Databases db) async {
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'delivery_address', size: 2000, xrequired: true), // Snapshot JSON
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'order_items', size: 5000, xrequired: true), // Snapshot JSON
         () => db.createDatetimeAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'created_at', xrequired: true),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'module_type', elements: ['food', 'ecommerce'], xrequired: false, xdefault: 'food'),
+        // --- Ecommerce fulfillment (nullable; food uses delivery_fee + scheduling) ---
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'shipping_cost', xrequired: false, xdefault: 0.0),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'shipping_method', size: 100, xrequired: false),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'tracking_number', size: 128, xrequired: false),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'courier_name', size: 128, xrequired: false),
+        () => db.createIndex(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'idx_module_type', type: IndexType.key, attributes: ['module_type']),
   ], [
     Permission.create(Role.users()),      // Any logged-in user can add
     Permission.read(Role.users()), // Users can see their own addresses
@@ -356,6 +387,7 @@ Future<void> _setupCoupons(Databases db) async {
         () => db.createDatetimeAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.couponsCollection, key: 'valid_from', xrequired: true),
         () => db.createDatetimeAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.couponsCollection, key: 'valid_until', xrequired: true),
         () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.couponsCollection, key: 'is_active', xrequired: false, xdefault: true),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.couponsCollection, key: 'module_type', elements: ['food', 'ecommerce', 'both'], xrequired: false, xdefault: 'both'),
   ], [
     Permission.read(Role.users()),
     Permission.write(Role.team('admin_team')), // Only 'admin' team can edit
@@ -411,6 +443,7 @@ Future<void> _setupBanners(Databases db) async {
           onDelete: RelationMutate.restrict, // Don't let someone delete a User if they have active orders (Safe)
         ),
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.bannersCollection, key: 'url', size: 256, xrequired: false),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.bannersCollection, key: 'module_type', elements: ['food', 'ecommerce', 'both'], xrequired: false, xdefault: 'both'),
 
   ], [
     Permission.read(Role.any()),          // Everyone can see
@@ -434,6 +467,7 @@ Future<void> _setupCart(Databases db) async {
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.cartCollection, key: 'selected_variants', size: 1000, xrequired: false),
         () => db.createIntegerAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.cartCollection, key: 'quantity', xrequired: true),
         () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.cartCollection, key: 'item_total', xrequired: true),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.cartCollection, key: 'module_type', elements: ['food', 'ecommerce'], xrequired: false, xdefault: 'food'),
   ], [
     Permission.read(Role.users()),
     Permission.create(Role.users()),
@@ -838,6 +872,62 @@ Future<void> _setupDrivers(Databases db) async {
 
 // Import the additional services
 // import 'package:dart_appwrite/dart_appwrite.dart';
+
+// ============================================================================
+// ECOMMERCE MODULE COLLECTIONS (optional Ecommerce storefront)
+// ============================================================================
+
+Future<void> _setupBrands(Databases db) async {
+  await _createCollection(db, AppwriteConfig.brandsCollection, 'Brands', [
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.brandsCollection, key: 'name', size: 1000, xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.brandsCollection, key: 'description', size: 1000, xrequired: false),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.brandsCollection, key: 'logo_url', size: 2000, xrequired: false),
+        () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.brandsCollection, key: 'is_active', xrequired: false, xdefault: true),
+        () => db.createIntegerAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.brandsCollection, key: 'sort_order', xrequired: false, xdefault: 0),
+  ], [
+    Permission.read(Role.any()),
+    Permission.create(Role.team('admin_team')),
+    Permission.read(Role.team('admin_team')),
+    Permission.update(Role.team('admin_team')),
+    Permission.delete(Role.team('admin_team')),
+  ]);
+}
+
+Future<void> _setupShippingMethods(Databases db) async {
+  await _createCollection(db, AppwriteConfig.shippingMethodsCollection, 'Shipping Methods', [
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.shippingMethodsCollection, key: 'name', size: 256, xrequired: true),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.shippingMethodsCollection, key: 'type', elements: ['flat', 'free', 'weight_based'], xrequired: true),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.shippingMethodsCollection, key: 'cost', xrequired: true),
+        () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.shippingMethodsCollection, key: 'free_above', xrequired: false),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.shippingMethodsCollection, key: 'estimated_days', size: 64, xrequired: false),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.shippingMethodsCollection, key: 'zones', size: 2000, xrequired: false),
+        () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.shippingMethodsCollection, key: 'is_active', xrequired: false, xdefault: true),
+        () => db.createIntegerAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.shippingMethodsCollection, key: 'sort_order', xrequired: false, xdefault: 0),
+  ], [
+    Permission.read(Role.any()),
+    Permission.create(Role.team('admin_team')),
+    Permission.read(Role.team('admin_team')),
+    Permission.update(Role.team('admin_team')),
+    Permission.delete(Role.team('admin_team')),
+  ]);
+}
+
+Future<void> _setupAttributes(Databases db) async {
+  await _createCollection(db, AppwriteConfig.attributesCollection, 'Product Attributes', [
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.attributesCollection, key: 'name', size: 256, xrequired: true),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.attributesCollection, key: 'type', elements: ['text', 'color', 'select'], xrequired: true),
+        () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.attributesCollection, key: 'values', size: 2000, xrequired: true),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.attributesCollection, key: 'module_type', elements: ['food', 'ecommerce'], xrequired: false, xdefault: 'ecommerce'),
+        () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.attributesCollection, key: 'is_active', xrequired: false, xdefault: true),
+        () => db.createIntegerAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.attributesCollection, key: 'sort_order', xrequired: false, xdefault: 0),
+  ], [
+    Permission.read(Role.any()),
+    Permission.create(Role.team('admin_team')),
+    Permission.read(Role.team('admin_team')),
+    Permission.update(Role.team('admin_team')),
+    Permission.delete(Role.team('admin_team')),
+  ]);
+}
 
 Future<void> _setupAdminAccount(Client client) async {
   final users = Users(client);
