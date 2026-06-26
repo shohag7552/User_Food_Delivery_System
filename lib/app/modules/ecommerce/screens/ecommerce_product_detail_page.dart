@@ -1,4 +1,3 @@
-import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
@@ -120,209 +119,295 @@ class _EcommerceProductDetailPageState
 
   @override
   Widget build(BuildContext context) {
-    final hasDiscount = product.hasDiscount;
-    final description = product.descriptionMap.trLanguage.trim();
-
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
-      appBar: CustomAppbar(title: product.nameMap.trLanguage),
-      body: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          _buildGallery(),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildBrand(),
-                Text(
-                  product.nameMap.trLanguage,
-                  style: poppinsBold.copyWith(
-                    fontSize: Constants.fontSizeExtraLarge,
-                    color: ColorResource.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                RatingStars(
-                  rating: product.avgRating,
-                  reviewCount: product.ratingCount,
-                  size: 16,
-                  showRating: true,
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      PriceHelper.formatPrice(product.finalPrice),
-                      style: poppinsBold.copyWith(
-                        fontSize: Constants.fontSizeOverLarge,
-                        color: ColorResource.primaryDark,
-                      ),
-                    ),
-                    if (hasDiscount) ...[
-                      const SizedBox(width: 10),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 3),
-                        child: Text(
-                          PriceHelper.formatPrice(product.price),
-                          style: poppinsRegular.copyWith(
-                            fontSize: Constants.fontSizeDefault,
-                            color: ColorResource.textLight,
-                            decoration: TextDecoration.lineThrough,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 10),
-                _buildStockChip(),
-                if (_hasVariants) _buildVariantsSection(),
-                if (description.isNotEmpty) ...[
-                  const SizedBox(height: 20),
-                  Text(
-                    'description'.tr,
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeLarge,
-                      color: ColorResource.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    description,
-                    maxLines: _descExpanded ? null : 4,
-                    overflow: _descExpanded
-                        ? TextOverflow.visible
-                        : TextOverflow.ellipsis,
-                    style: poppinsRegular.copyWith(
-                      fontSize: Constants.fontSizeDefault,
-                      color: ColorResource.textSecondary,
-                      height: 1.5,
-                    ),
-                  ),
-                  if (description.length > 160)
-                    GestureDetector(
-                      onTap: () =>
-                          setState(() => _descExpanded = !_descExpanded),
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          _descExpanded ? 'see_less'.tr : 'see_more'.tr,
-                          style: poppinsBold.copyWith(
-                            fontSize: Constants.fontSizeSmall,
-                            color: ColorResource.primaryDark,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-                _buildSpecs(),
-                if (product.ratingCount > 0) ...[
-                  const SizedBox(height: 20),
-                  Divider(
-                    color: ColorResource.textLight.withValues(alpha: 0.2),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'customer_reviews'.tr,
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeLarge,
-                      color: ColorResource.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  FutureBuilder<String?>(
-                    future: Get.find<AuthController>().getUserId(),
-                    builder: (context, snapshot) => ReviewListSection(
-                      productId: product.id,
-                      currentUserId: snapshot.data,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          _buildSliverAppBar(context),
+          SliverToBoxAdapter(child: _buildContent()),
         ],
       ),
       bottomNavigationBar: _buildBottomBar(),
     );
   }
 
-  Widget _buildGallery() {
-    final images = _images;
-    return SizedBox(
-      height: 320,
-      child: Stack(
+  /// Collapsing image header. Expanded it shows the swipeable gallery; once
+  /// scrolled past it pins to a compact bar carrying the product name.
+  Widget _buildSliverAppBar(BuildContext context) {
+    const double expandedHeight = 340;
+
+    return SliverAppBar(
+      expandedHeight: expandedHeight,
+      pinned: true,
+      elevation: 0,
+      backgroundColor: ColorResource.cardBackground,
+      surfaceTintColor: ColorResource.cardBackground,
+      automaticallyImplyLeading: false,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 12),
+        child: _circleButton(
+          icon: Icons.arrow_back,
+          onTap: () => Get.back(),
+        ),
+      ),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: _circleButton(child: FavoriteButton(product: product, size: 22)),
+        ),
+      ],
+      flexibleSpace: LayoutBuilder(
+        builder: (context, constraints) {
+          final double appBarHeight = constraints.maxHeight;
+          final double statusBarHeight = MediaQuery.of(context).padding.top;
+          final double minHeight = kToolbarHeight + statusBarHeight;
+          final double collapseRatio =
+              ((appBarHeight - minHeight) / (expandedHeight - minHeight))
+                  .clamp(0.0, 1.0);
+          final bool isCollapsed = collapseRatio < 0.1;
+
+          return FlexibleSpaceBar(
+            centerTitle: false,
+            titlePadding: const EdgeInsetsDirectional.only(
+              start: 56,
+              end: 56,
+              bottom: 16,
+            ),
+            title: isCollapsed
+                ? Text(
+                    product.nameMap.trLanguage,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: poppinsBold.copyWith(
+                      fontSize: Constants.fontSizeLarge,
+                      color: ColorResource.textPrimary,
+                    ),
+                  )
+                : null,
+            background: _buildGallery(),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    final hasDiscount = product.hasDiscount;
+    final description = product.descriptionMap.trLanguage.trim();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PageView.builder(
-            controller: _galleryController,
-            itemCount: images.length,
-            onPageChanged: (i) => setState(() => _currentImage = i),
-            itemBuilder: (context, index) {
-              return GestureDetector(
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => FullScreenImageViewer(
-                      imageUrl: images[index],
-                      heroTag: 'ecom-${product.id}-$index',
+          _buildBrand(),
+          Text(
+            product.nameMap.trLanguage,
+            style: poppinsBold.copyWith(
+              fontSize: Constants.fontSizeExtraLarge,
+              color: ColorResource.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          RatingStars(
+            rating: product.avgRating,
+            reviewCount: product.ratingCount,
+            size: 16,
+            showRating: true,
+          ),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                PriceHelper.formatPrice(product.finalPrice),
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeOverLarge,
+                  color: ColorResource.primaryDark,
+                ),
+              ),
+              if (hasDiscount) ...[
+                const SizedBox(width: 10),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 3),
+                  child: Text(
+                    PriceHelper.formatPrice(product.price),
+                    style: poppinsRegular.copyWith(
+                      fontSize: Constants.fontSizeDefault,
+                      color: ColorResource.textLight,
+                      decoration: TextDecoration.lineThrough,
                     ),
                   ),
                 ),
-                child: CustomNetworkImage(
-                  image: images[index],
-                  width: double.infinity,
-                  height: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-              );
-            },
+              ],
+            ],
           ),
-          Positioned(
-            top: 12,
-            right: 12,
-            child: Container(
-              decoration: BoxDecoration(
-                color: ColorResource.cardBackground,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
+          const SizedBox(height: 10),
+          _buildStockChip(),
+          if (_hasVariants) _buildVariantsSection(),
+          if (description.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            Text(
+              'description'.tr,
+              style: poppinsBold.copyWith(
+                fontSize: Constants.fontSizeLarge,
+                color: ColorResource.textPrimary,
               ),
-              child: FavoriteButton(product: product, size: 22),
             ),
-          ),
-          if (images.length > 1)
-            Positioned(
-              bottom: 12,
-              left: 0,
-              right: 0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  images.length,
-                  (index) => AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    width: _currentImage == index ? 20 : 7,
-                    height: 7,
-                    decoration: BoxDecoration(
-                      color: _currentImage == index
-                          ? ColorResource.primaryDark
-                          : ColorResource.textLight.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(4),
+            const SizedBox(height: 8),
+            Text(
+              description,
+              maxLines: _descExpanded ? null : 4,
+              overflow: _descExpanded
+                  ? TextOverflow.visible
+                  : TextOverflow.ellipsis,
+              style: poppinsRegular.copyWith(
+                fontSize: Constants.fontSizeDefault,
+                color: ColorResource.textSecondary,
+                height: 1.5,
+              ),
+            ),
+            if (description.length > 160)
+              GestureDetector(
+                onTap: () => setState(() => _descExpanded = !_descExpanded),
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    _descExpanded ? 'see_less'.tr : 'see_more'.tr,
+                    style: poppinsBold.copyWith(
+                      fontSize: Constants.fontSizeSmall,
+                      color: ColorResource.primaryDark,
                     ),
                   ),
                 ),
               ),
+          ],
+          _buildSpecs(),
+          if (product.ratingCount > 0) ...[
+            const SizedBox(height: 20),
+            Divider(color: ColorResource.textLight.withValues(alpha: 0.2)),
+            const SizedBox(height: 12),
+            Text(
+              'customer_reviews'.tr,
+              style: poppinsBold.copyWith(
+                fontSize: Constants.fontSizeLarge,
+                color: ColorResource.textPrimary,
+              ),
             ),
+            const SizedBox(height: 12),
+            FutureBuilder<String?>(
+              future: Get.find<AuthController>().getUserId(),
+              builder: (context, snapshot) => ReviewListSection(
+                productId: product.id,
+                currentUserId: snapshot.data,
+              ),
+            ),
+          ],
         ],
       ),
+    );
+  }
+
+  Widget _circleButton({IconData? icon, VoidCallback? onTap, Widget? child}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 38,
+        height: 38,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: ColorResource.cardBackground.withValues(alpha: 0.92),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: child ??
+            Icon(icon, size: 20, color: ColorResource.textPrimary),
+      ),
+    );
+  }
+
+  Widget _buildGallery() {
+    final images = _images;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        PageView.builder(
+          controller: _galleryController,
+          itemCount: images.length,
+          onPageChanged: (i) => setState(() => _currentImage = i),
+          itemBuilder: (context, index) {
+            return GestureDetector(
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => FullScreenImageViewer(
+                    imageUrl: images[index],
+                    heroTag: 'ecom-${product.id}-$index',
+                  ),
+                ),
+              ),
+              child: CustomNetworkImage(
+                image: images[index],
+                width: double.infinity,
+                height: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            );
+          },
+        ),
+        // Subtle top scrim so the back/favorite buttons stay legible over
+        // bright product images.
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 110,
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.18),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (images.length > 1)
+          Positioned(
+            bottom: 16,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                images.length,
+                (index) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  width: _currentImage == index ? 20 : 7,
+                  height: 7,
+                  decoration: BoxDecoration(
+                    color: _currentImage == index
+                        ? ColorResource.primaryDark
+                        : ColorResource.cardBackground.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
