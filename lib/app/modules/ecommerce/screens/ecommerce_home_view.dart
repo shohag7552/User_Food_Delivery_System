@@ -2,6 +2,7 @@ import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:appwrite_user_app/app/controllers/brand_controller.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
+import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/modules/categories/screens/category_products_page.dart';
@@ -77,7 +78,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
         controller: _scrollController,
         physics: const BouncingScrollPhysics(),
         slivers: [
-          SliverToBoxAdapter(child: _buildHeader()),
+          _buildSliverAppBar(context),
           SliverToBoxAdapter(child: _buildBanners()),
           SliverToBoxAdapter(child: _buildCategories()),
           SliverToBoxAdapter(child: _buildBrands()),
@@ -92,50 +93,99 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      decoration: BoxDecoration(gradient: ColorResource.primaryGradient),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'shop'.tr,
-                style: poppinsBold.copyWith(
-                  fontSize: Constants.fontSizeExtraLarge,
-                  color: ColorResource.textWhite,
-                ),
-              ),
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: () => Get.to(() => const SearchPage()),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-                  decoration: BoxDecoration(
-                    color: ColorResource.cardBackground,
-                    borderRadius: BorderRadius.circular(Constants.radiusLarge),
-                  ),
-                  child: Row(
+  /// Sticky, collapsing storefront header. Expanded it shows the "Shop" title
+  /// over a gradient with a search bar; once scrolled past, it pins to the top
+  /// and keeps the search bar accessible as the toolbar title.
+  Widget _buildSliverAppBar(BuildContext context) {
+    const double expandedHeight = 156;
+
+    return SliverAppBar(
+      expandedHeight: expandedHeight,
+      pinned: true,
+      elevation: 0,
+      backgroundColor: ColorResource.primaryDark,
+      automaticallyImplyLeading: false,
+      flexibleSpace: LayoutBuilder(
+        builder: (context, constraints) {
+          final double appBarHeight = constraints.maxHeight;
+          final double statusBarHeight = MediaQuery.of(context).padding.top;
+          final double minHeight = kToolbarHeight + statusBarHeight;
+          final double collapseRatio =
+              ((appBarHeight - minHeight) / (expandedHeight - minHeight))
+                  .clamp(0.0, 1.0);
+          // Once nearly collapsed, surface the search bar as the pinned title so
+          // it never scrolls away.
+          final bool isCollapsed = collapseRatio < 0.1;
+
+          return FlexibleSpaceBar(
+            titlePadding: isCollapsed
+                ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8)
+                : EdgeInsets.zero,
+            title: isCollapsed ? _buildSearchBar() : null,
+            background: Container(
+              decoration: BoxDecoration(gradient: ColorResource.primaryGradient),
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Icon(Icons.search, color: ColorResource.textSecondary),
-                      const SizedBox(width: 12),
                       Text(
-                        'search_products'.tr,
-                        style: poppinsRegular.copyWith(
-                          fontSize: Constants.fontSizeDefault,
-                          color: ColorResource.textLight,
+                        'shop'.tr,
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeOverLarge,
+                          color: ColorResource.textWhite,
                         ),
+                      ),
+                      const SizedBox(height: 12),
+                      // Hidden while collapsed to avoid doubling with the title.
+                      Opacity(
+                        opacity: collapseRatio,
+                        child: _buildSearchBar(),
                       ),
                     ],
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return GestureDetector(
+      onTap: () => Get.to(() => const SearchPage()),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+        decoration: BoxDecoration(
+          color: ColorResource.cardBackground,
+          borderRadius: BorderRadius.circular(Constants.radiusLarge),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.search, color: ColorResource.textSecondary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'search_products'.tr,
+                style: poppinsRegular.copyWith(
+                  fontSize: Constants.fontSizeDefault,
+                  color: ColorResource.textLight,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -144,13 +194,19 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
   Widget _buildBanners() {
     return GetBuilder<BannerController>(
       builder: (bannerController) {
-        if (bannerController.banners.isEmpty && !bannerController.isLoading) {
+        // Shop storefront only: show strictly ecommerce-tagged banners,
+        // excluding food and shared ('both') banners.
+        final banners = bannerController.banners
+            .where((b) => b.moduleType == ModuleController.ecommerce)
+            .toList();
+
+        if (banners.isEmpty && !bannerController.isLoading) {
           return const SizedBox(height: 16);
         }
         return Padding(
           padding: const EdgeInsets.only(top: 16),
           child: PromotionalBanner(
-            banners: bannerController.banners,
+            banners: banners,
             isLoading: bannerController.isLoading,
             errorMessage: bannerController.errorMessage,
             onRetry: () => bannerController.getBanners(reload: true),
