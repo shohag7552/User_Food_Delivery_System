@@ -5,6 +5,7 @@ import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/brand_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
+import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/cart_helper.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
@@ -41,7 +42,12 @@ class _EcommerceProductDetailPageState
   int _qty = 1;
   bool _isAddingToCart = false;
 
-  ProductModel get product => widget.product;
+  // Seeded with the model passed from the list (instant render), then refreshed
+  // with the full record fetched by id from the Appwrite products table.
+  late ProductModel _product = widget.product;
+  bool _isRefreshing = false;
+
+  ProductModel get product => _product;
 
   bool get _hasVariants => product.variants.isNotEmpty;
 
@@ -112,6 +118,25 @@ class _EcommerceProductDetailPageState
       : [product.imageId];
 
   @override
+  void initState() {
+    super.initState();
+    _fetchProductDetails();
+  }
+
+  /// Loads the full, up-to-date product record by id from the Appwrite products
+  /// table. Keeps the seeded model on failure so the page never goes blank.
+  Future<void> _fetchProductDetails() async {
+    setState(() => _isRefreshing = true);
+    final fresh =
+        await Get.find<ProductController>().getProductById(widget.product.id);
+    if (!mounted) return;
+    setState(() {
+      if (fresh != null) _product = fresh;
+      _isRefreshing = false;
+    });
+  }
+
+  @override
   void dispose() {
     _galleryController.dispose();
     super.dispose();
@@ -144,6 +169,18 @@ class _EcommerceProductDetailPageState
       backgroundColor: ColorResource.cardBackground,
       surfaceTintColor: ColorResource.cardBackground,
       automaticallyImplyLeading: false,
+      // Thin progress bar while refreshing from the database; reserves a
+      // constant 2px so the bar height never jumps.
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(2),
+        child: _isRefreshing
+            ? const LinearProgressIndicator(
+                minHeight: 2,
+                color: ColorResource.primaryDark,
+                backgroundColor: Colors.transparent,
+              )
+            : const SizedBox(height: 2),
+      ),
       leading: Padding(
         padding: const EdgeInsets.only(left: 12),
         child: _circleButton(
