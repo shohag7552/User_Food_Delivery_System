@@ -12,6 +12,7 @@ class BannerModel {
   final bool isActive;
   final int sortOrder;
   final String moduleType; // 'food' | 'ecommerce' | 'both'
+  final String bannerType; // 'hero' (main slider) | 'promotional' (ecommerce only)
 
   BannerModel({
     required this.id,
@@ -23,7 +24,10 @@ class BannerModel {
     required this.isActive,
     required this.sortOrder,
     this.moduleType = 'both',
+    this.bannerType = 'hero',
   });
+
+  bool get isPromotional => bannerType == 'promotional';
 
   // Factory to convert Appwrite JSON -> Dart Object
   factory BannerModel.fromJson(Map<String, dynamic> json) {
@@ -37,6 +41,7 @@ class BannerModel {
       isActive: json['is_active'] ?? true,
       sortOrder: json['sort_order'] ?? 0,
       moduleType: json['module_type'] as String? ?? 'both',
+      bannerType: json['banner_type'] as String? ?? 'hero',
     );
   }
 
@@ -51,6 +56,7 @@ class BannerModel {
       'is_active': isActive,
       'sort_order': sortOrder,
       'module_type': moduleType,
+      'banner_type': bannerType,
     };
   }
 

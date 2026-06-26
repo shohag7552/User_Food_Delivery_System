@@ -81,6 +81,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
           _buildSliverAppBar(context),
           SliverToBoxAdapter(child: _buildBanners()),
           SliverToBoxAdapter(child: _buildCategories()),
+          SliverToBoxAdapter(child: _buildPromotionalBanners()),
           SliverToBoxAdapter(child: _buildBrands()),
           SliverToBoxAdapter(child: _buildPopular()),
           SliverToBoxAdapter(
@@ -194,10 +195,11 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
   Widget _buildBanners() {
     return GetBuilder<BannerController>(
       builder: (bannerController) {
-        // Shop storefront only: show strictly ecommerce-tagged banners,
-        // excluding food and shared ('both') banners.
+        // Shop hero slider: strictly ecommerce-tagged hero banners (promotional
+        // banners are shown separately in their own section below).
         final banners = bannerController.banners
-            .where((b) => b.moduleType == ModuleController.ecommerce)
+            .where((b) =>
+                b.moduleType == ModuleController.ecommerce && !b.isPromotional)
             .toList();
 
         if (banners.isEmpty && !bannerController.isLoading) {
@@ -211,6 +213,34 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
             errorMessage: bannerController.errorMessage,
             onRetry: () => bannerController.getBanners(reload: true),
           ),
+        );
+      },
+    );
+  }
+
+  /// Ecommerce-only promotional banners, shown in their own section beneath the
+  /// categories. Renders nothing when there are no promotional banners.
+  Widget _buildPromotionalBanners() {
+    return GetBuilder<BannerController>(
+      builder: (bannerController) {
+        final promos = bannerController.banners
+            .where((b) =>
+                b.moduleType == ModuleController.ecommerce && b.isPromotional)
+            .toList();
+
+        if (promos.isEmpty) return const SizedBox.shrink();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _sectionHeader('promotions'.tr),
+            PromotionalBanner(
+              banners: promos,
+              isLoading: false,
+              errorMessage: null,
+              onRetry: () => bannerController.getBanners(reload: true),
+            ),
+          ],
         );
       },
     );

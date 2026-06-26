@@ -459,6 +459,7 @@
   "search_products": "পণ্য খুঁজুন...",
   "brands": "ব্র্যান্ড",
   "popular": "জনপ্রিয়",
+  "promotions": "প্রমোশন",
   "no_products_available": "কোনো পণ্য নেই",
   "out_of_stock": "স্টক নেই",
   "in_stock": "স্টকে আছে",
@@ -573,5 +574,12 @@
   "location_unavailable": "লোকেশন উপলব্ধ নয়",
   "business_location_is_not_available_right_now": "এই মুহূর্তে ব্যবসা প্রতিষ্ঠানের লোকেশন উপলব্ধ নয়।",
   "user": "ব্যবহারকারী",
-  "close": "বন্ধ করুন"
+  "close": "বন্ধ করুন",
+  "customize_your_order": "আপনার অর্ডার কাস্টমাইজ করুন",
+  "groups": "গ্রুপ",
+  "choose_your_preferred_options_to_build_the_perfect_order": "নিখুঁত অর্ডার তৈরি করতে আপনার পছন্দের অপশনগুলো বেছে নিন।",
+  "select_one_option": "একটি অপশন নির্বাচন করুন",
+  "select_one_or_more_options": "এক বা একাধিক অপশন নির্বাচন করুন",
+  "included_no_extra_cost": "অতিরিক্ত খরচ ছাড়াই অন্তর্ভুক্ত",
+  "please_select_required_options": "অনুগ্রহ করে প্রয়োজনীয় অপশনগুলো নির্বাচন করুন"
 }

@@ -444,6 +444,7 @@ Future<void> _setupBanners(Databases db) async {
         ),
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.bannersCollection, key: 'url', size: 256, xrequired: false),
         () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.bannersCollection, key: 'module_type', elements: ['food', 'ecommerce', 'both'], xrequired: false, xdefault: 'both'),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.bannersCollection, key: 'banner_type', elements: ['hero', 'promotional'], xrequired: false, xdefault: 'hero'),
 
   ], [
     Permission.read(Role.any()),          // Everyone can see

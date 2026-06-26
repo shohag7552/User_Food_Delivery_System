@@ -459,6 +459,7 @@
   "search_products": "Search products...",
   "brands": "Brands",
   "popular": "Popular",
+  "promotions": "Promotions",
   "no_products_available": "No products available",
   "out_of_stock": "Out of stock",
   "in_stock": "in stock",
@@ -587,5 +588,9 @@
   "non_veg": "Non-Veg",
   "customize_your_order": "Customize your order",
   "groups": "groups",
-  "choose_your_preferred_options_to_build_the_perfect_order": "Choose your preferred options to build the perfect order."
+  "choose_your_preferred_options_to_build_the_perfect_order": "Choose your preferred options to build the perfect order.",
+  "select_one_option": "Select one option",
+  "select_one_or_more_options": "Select one or more options",
+  "included_no_extra_cost": "Included at no extra cost",
+  "please_select_required_options": "Please select the required options"
 }
