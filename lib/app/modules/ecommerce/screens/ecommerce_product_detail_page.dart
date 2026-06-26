@@ -12,6 +12,7 @@ import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/full_screen_image_viewer.dart';
+import 'package:appwrite_user_app/app/modules/ecommerce/widgets/ecommerce_product_card.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/review_list_section.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -46,6 +47,10 @@ class _EcommerceProductDetailPageState
   // with the full record fetched by id from the Appwrite products table.
   late ProductModel _product = widget.product;
   bool _isRefreshing = false;
+
+  // Suggested items from the same category.
+  List<ProductModel> _suggested = [];
+  bool _loadingSuggested = false;
 
   ProductModel get product => _product;
 
@@ -121,6 +126,7 @@ class _EcommerceProductDetailPageState
   void initState() {
     super.initState();
     _fetchProductDetails();
+    _loadSuggested(widget.product.categoryId);
   }
 
   /// Loads the full, up-to-date product record by id from the Appwrite products
@@ -134,6 +140,24 @@ class _EcommerceProductDetailPageState
       if (fresh != null) _product = fresh;
       _isRefreshing = false;
     });
+  }
+
+  /// Loads related products from the same category, excluding the current one.
+  Future<void> _loadSuggested(String categoryId) async {
+    if (categoryId.isEmpty) return;
+    setState(() => _loadingSuggested = true);
+    try {
+      final items = await Get.find<ProductController>()
+          .getProductsByCategory(categoryId, limit: 12);
+      if (!mounted) return;
+      setState(() {
+        _suggested =
+            items.where((p) => p.id != widget.product.id).toList();
+        _loadingSuggested = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _loadingSuggested = false);
+    }
   }
 
   @override
@@ -341,8 +365,49 @@ class _EcommerceProductDetailPageState
               ),
             ),
           ],
+          _buildSuggestedSection(),
         ],
       ),
+    );
+  }
+
+  /// Horizontal carousel of related products from the same category. Hidden
+  /// entirely once we know there are no suggestions.
+  Widget _buildSuggestedSection() {
+    if (!_loadingSuggested && _suggested.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 20),
+        Divider(color: ColorResource.textLight.withValues(alpha: 0.2)),
+        const SizedBox(height: 12),
+        Text(
+          'you_may_also_like'.tr,
+          style: poppinsBold.copyWith(
+            fontSize: Constants.fontSizeLarge,
+            color: ColorResource.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 280,
+          child: _loadingSuggested
+              ? const Center(child: CircularProgressIndicator())
+              : ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: _suggested.length,
+                  padding: EdgeInsets.only(bottom: Constants.paddingSizeSmall),
+                  separatorBuilder: (_, _) => const SizedBox(width: 14),
+                  itemBuilder: (context, index) => SizedBox(
+                    width: 170,
+                    child: EcommerceProductCard(product: _suggested[index]),
+                  ),
+                ),
+        ),
+      ],
     );
   }
 

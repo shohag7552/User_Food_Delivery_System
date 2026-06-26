@@ -581,5 +581,6 @@
   "select_one_option": "একটি অপশন নির্বাচন করুন",
   "select_one_or_more_options": "এক বা একাধিক অপশন নির্বাচন করুন",
   "included_no_extra_cost": "অতিরিক্ত খরচ ছাড়াই অন্তর্ভুক্ত",
-  "please_select_required_options": "অনুগ্রহ করে প্রয়োজনীয় অপশনগুলো নির্বাচন করুন"
+  "please_select_required_options": "অনুগ্রহ করে প্রয়োজনীয় অপশনগুলো নির্বাচন করুন",
+  "you_may_also_like": "আপনার পছন্দ হতে পারে"
 }
