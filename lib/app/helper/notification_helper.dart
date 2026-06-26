@@ -1,13 +1,14 @@
-import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 
 class NotificationHelper {
 
   static Future<void> initialize(FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin) async {
+    // Local notifications + FCM listeners are mobile-only; bail out on web.
+    if (kIsWeb) return;
     var androidInitialize = const AndroidInitializationSettings('notification_icon');
     var iOSInitialize = const DarwinInitializationSettings();
     var initializationsSettings = InitializationSettings(android: androidInitialize, iOS: iOSInitialize);
@@ -52,16 +53,8 @@ class NotificationHelper {
 
       print('==========message : $title ,  $image');
 
-      if(image != null && image.isNotEmpty) {
-        try{
-          await showBigPictureNotificationHiddenLargeIcon(title, body, orderID, null, image, fln);
-        }catch(e) {
-          await showBigTextNotification(title, body!, orderID, null, fln);
-        }
-      }else {
-        print('==========message 2: $title ,  $body');
-        await showBigTextNotification(title, body!, orderID, null, fln);
-      }
+      print('==========message 2: $title ,  $body');
+      await showBigTextNotification(title, body!, orderID, null, fln);
     }
   }
 
@@ -86,35 +79,6 @@ class NotificationHelper {
     );
     NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
     await fln.show(id: 0, title: title, body: body, notificationDetails: platformChannelSpecifics, payload: notificationBody != null ? null : null);
-  }
-
-  static Future<void> showBigPictureNotificationHiddenLargeIcon(
-      String? title, String? body, String? orderID, Map<String, String>? notificationBody, String image, FlutterLocalNotificationsPlugin fln,
-      ) async {
-    final String largeIconPath = await _downloadAndSaveFile(image, 'largeIcon');
-    final String bigPicturePath = await _downloadAndSaveFile(image, 'bigPicture');
-    final BigPictureStyleInformation bigPictureStyleInformation = BigPictureStyleInformation(
-      FilePathAndroidBitmap(bigPicturePath), hideExpandedLargeIcon: true,
-      contentTitle: title, htmlFormatContentTitle: true,
-      summaryText: body, htmlFormatSummaryText: true,
-    );
-    final AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      'stackfood', 'stackfood',
-      largeIcon: FilePathAndroidBitmap(largeIconPath), priority: Priority.max, playSound: true,
-      styleInformation: bigPictureStyleInformation, importance: Importance.max,
-      sound: const RawResourceAndroidNotificationSound('notification'),
-    );
-    final NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
-    await fln.show(id: 0, title: title, body: body, notificationDetails: platformChannelSpecifics, payload: notificationBody != null ? null : null);
-  }
-
-  static Future<String> _downloadAndSaveFile(String url, String fileName) async {
-    final Directory directory = Directory('print');//await getApplicationDocumentsDirectory();
-    final String filePath = '${directory.path}/$fileName';
-    final http.Response response = await http.get(Uri.parse(url));
-    final File file = File(filePath);
-    await file.writeAsBytes(response.bodyBytes);
-    return filePath;
   }
 
 }

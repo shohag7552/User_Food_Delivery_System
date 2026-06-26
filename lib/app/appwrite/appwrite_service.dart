@@ -6,6 +6,7 @@ import 'package:appwrite/enums.dart';
 import 'package:appwrite/models.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:image_picker/image_picker.dart';
 
 class AppwriteService {
@@ -353,14 +354,26 @@ class AppwriteService {
 
   Future<String?> uploadImage(XFile file) async {
     try {
+      // Web has no real filesystem path (XFile.path is a blob URL), so upload
+      // the picked bytes; native platforms upload straight from the file path.
+      final InputFile input;
+      if (kIsWeb) {
+        input = InputFile.fromBytes(
+          bytes: await file.readAsBytes(),
+          filename: file.name,
+        );
+      } else {
+        input = InputFile.fromPath(
+          path: file.path,
+          filename: file.name,
+        );
+      }
+
       final result = await storage.createFile(
         bucketId:
             AppwriteConfig.postsBucketId, // Create bucket in Appwrite console
         fileId: ID.unique(), // Auto-generate unique ID
-        file: InputFile.fromPath(
-          path: file.path,
-          filename: file.path.split('/').last,
-        ),
+        file: input,
         permissions: [Permission.read(Role.any())],
       );
 

@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:ui' show ImageFilter;
+
+import 'package:appwrite_user_app/app/helper/platform/app_exit.dart';
 
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
@@ -122,7 +123,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             if (GetPlatform.isAndroid) {
               SystemNavigator.pop();
             } else if (GetPlatform.isIOS) {
-              exit(0);
+              exitApp();
             }
           }else {
             customToster('back_press_again_to_exit'.tr, isSuccess: true);
