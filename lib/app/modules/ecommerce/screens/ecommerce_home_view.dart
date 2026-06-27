@@ -65,11 +65,27 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     super.dispose();
   }
 
+  /// Desktop content never grows past this; beyond it we letterbox with
+  /// symmetric gutters so the storefront stays centered and readable.
+  static const double _maxContentWidth = 1200;
+
+  /// Side gutter that centers content within [_maxContentWidth] on wide screens
+  /// and falls back to the standard 16px inset on phones/tablets.
+  double _sidePadding(double width) =>
+      width > _maxContentWidth + 32 ? (width - _maxContentWidth) / 2 : 16;
+
+  /// Columns for the product grid, derived from the available content width
+  /// (~210px target per card) so it scales from 2 on mobile up to 6 on desktop.
+  int _gridColumns(double contentWidth) =>
+      (contentWidth / 210).floor().clamp(2, 6);
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final size = MediaQuery.of(context).size;
-    final crossAxisCount = size.width > 600 ? 3 : 2;
+    final width = MediaQuery.of(context).size.width;
+    final hPad = _sidePadding(width);
+    final contentWidth = width - hPad * 2;
+    final crossAxisCount = _gridColumns(contentWidth);
 
     return RefreshIndicator(
       color: ColorResource.primaryDark,
@@ -78,16 +94,16 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
         controller: _scrollController,
         physics: const BouncingScrollPhysics(),
         slivers: [
-          _buildSliverAppBar(context),
-          SliverToBoxAdapter(child: _buildBanners()),
-          SliverToBoxAdapter(child: _buildCategories()),
-          SliverToBoxAdapter(child: _buildPromotionalBanners()),
-          SliverToBoxAdapter(child: _buildBrands()),
-          SliverToBoxAdapter(child: _buildPopular()),
+          _buildSliverAppBar(context, hPad),
+          SliverToBoxAdapter(child: _buildBanners(hPad)),
+          SliverToBoxAdapter(child: _buildCategories(hPad)),
+          SliverToBoxAdapter(child: _buildPromotionalBanners(hPad)),
+          SliverToBoxAdapter(child: _buildBrands(hPad)),
+          SliverToBoxAdapter(child: _buildPopular(hPad)),
           SliverToBoxAdapter(
-            child: _sectionHeader('all_products'.tr),
+            child: _sectionHeader('all_products'.tr, hPad),
           ),
-          _buildAllProductsGrid(crossAxisCount),
+          _buildAllProductsGrid(crossAxisCount, hPad),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
@@ -97,8 +113,11 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
   /// Sticky, collapsing storefront header. Expanded it shows the "Shop" title
   /// over a gradient with a search bar; once scrolled past, it pins to the top
   /// and keeps the search bar accessible as the toolbar title.
-  Widget _buildSliverAppBar(BuildContext context) {
+  Widget _buildSliverAppBar(BuildContext context, double hPad) {
     const double expandedHeight = 156;
+    // Keep the search field a comfortable reading width on desktop instead of
+    // stretching it across the whole content area.
+    const double searchMaxWidth = 560;
 
     return SliverAppBar(
       expandedHeight: expandedHeight,
@@ -120,15 +139,17 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
 
           return FlexibleSpaceBar(
             titlePadding: isCollapsed
-                ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8)
+                ? EdgeInsets.fromLTRB(hPad, 8, hPad, 8)
                 : EdgeInsets.zero,
-            title: isCollapsed ? _buildSearchBar() : null,
+            title: isCollapsed
+                ? _constrained(searchMaxWidth, _buildSearchBar())
+                : null,
             background: Container(
               decoration: BoxDecoration(gradient: ColorResource.primaryGradient),
               child: SafeArea(
                 bottom: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                  padding: EdgeInsets.fromLTRB(hPad, 14, hPad, 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -144,7 +165,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                       // Hidden while collapsed to avoid doubling with the title.
                       Opacity(
                         opacity: collapseRatio,
-                        child: _buildSearchBar(),
+                        child: _constrained(searchMaxWidth, _buildSearchBar()),
                       ),
                     ],
                   ),
@@ -153,6 +174,18 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
             ),
           );
         },
+      ),
+    );
+  }
+
+  /// Left-aligns [child] and caps its width — used to keep the search field
+  /// from stretching edge-to-edge on wide screens.
+  Widget _constrained(double maxWidth, Widget child) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: child,
       ),
     );
   }
@@ -192,7 +225,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     );
   }
 
-  Widget _buildBanners() {
+  Widget _buildBanners(double hPad) {
     return GetBuilder<BannerController>(
       builder: (bannerController) {
         // Shop hero slider: strictly ecommerce-tagged hero banners (promotional
@@ -205,8 +238,11 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
         if (banners.isEmpty && !bannerController.isLoading) {
           return const SizedBox(height: 16);
         }
+        // The carousel self-margins its slides, so on mobile it stays full-bleed
+        // (extra = 0); on desktop the extra gutter centers it with the content.
+        final extra = hPad - 16;
         return Padding(
-          padding: const EdgeInsets.only(top: 16),
+          padding: EdgeInsets.fromLTRB(extra, 16, extra, 0),
           child: PromotionalBanner(
             banners: banners,
             isLoading: bannerController.isLoading,
@@ -220,7 +256,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
 
   /// Ecommerce-only promotional banners, shown in their own section beneath the
   /// categories. Renders nothing when there are no promotional banners.
-  Widget _buildPromotionalBanners() {
+  Widget _buildPromotionalBanners(double hPad) {
     return GetBuilder<BannerController>(
       builder: (bannerController) {
         final promos = bannerController.banners
@@ -230,15 +266,19 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
 
         if (promos.isEmpty) return const SizedBox.shrink();
 
+        final extra = hPad - 16;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionHeader('promotions'.tr),
-            PromotionalBanner(
-              banners: promos,
-              isLoading: false,
-              errorMessage: null,
-              onRetry: () => bannerController.getBanners(reload: true),
+            _sectionHeader('promotions'.tr, hPad),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: extra),
+              child: PromotionalBanner(
+                banners: promos,
+                isLoading: false,
+                errorMessage: null,
+                onRetry: () => bannerController.getBanners(reload: true),
+              ),
             ),
           ],
         );
@@ -246,20 +286,20 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     );
   }
 
-  Widget _buildCategories() {
+  Widget _buildCategories(double hPad) {
     return GetBuilder<CategoryController>(
       builder: (controller) {
         if (controller.categories.isEmpty) return const SizedBox.shrink();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionHeader('categories'.tr),
+            _sectionHeader('categories'.tr, hPad),
             SizedBox(
               height: 96,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: hPad),
                 itemCount: controller.categories.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 14),
                 itemBuilder: (context, index) {
@@ -317,20 +357,20 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     );
   }
 
-  Widget _buildBrands() {
+  Widget _buildBrands(double hPad) {
     return GetBuilder<BrandController>(
       builder: (controller) {
         if (controller.brands.isEmpty) return const SizedBox.shrink();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionHeader('brands'.tr),
+            _sectionHeader('brands'.tr, hPad),
             SizedBox(
               height: 70,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: hPad),
                 itemCount: controller.brands.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 12),
                 itemBuilder: (context, index) {
@@ -382,20 +422,20 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     );
   }
 
-  Widget _buildPopular() {
+  Widget _buildPopular(double hPad) {
     return GetBuilder<ProductController>(
       builder: (controller) {
         if (controller.popularProducts.isEmpty) return const SizedBox.shrink();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionHeader('popular'.tr),
+            _sectionHeader('popular'.tr, hPad),
             SizedBox(
               height: 280,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                padding: EdgeInsets.fromLTRB(hPad, 4, hPad, 8),
                 itemCount: controller.popularProducts.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 14),
                 itemBuilder: (context, index) => SizedBox(
@@ -412,7 +452,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     );
   }
 
-  Widget _buildAllProductsGrid(int crossAxisCount) {
+  Widget _buildAllProductsGrid(int crossAxisCount, double hPad) {
     return GetBuilder<ProductController>(
       builder: (controller) {
         if (controller.products.isEmpty && controller.isLoading) {
@@ -439,7 +479,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
           );
         }
         return SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.symmetric(horizontal: hPad),
           sliver: SliverGrid(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: crossAxisCount,
@@ -459,9 +499,9 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     );
   }
 
-  Widget _sectionHeader(String title) {
+  Widget _sectionHeader(String title, double hPad) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+      padding: EdgeInsets.fromLTRB(hPad, 20, hPad, 12),
       child: Text(
         title,
         style: poppinsBold.copyWith(

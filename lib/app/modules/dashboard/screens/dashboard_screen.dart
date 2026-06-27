@@ -16,6 +16,7 @@ import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -137,14 +138,227 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Scaffold(
         backgroundColor: ColorResource.scaffoldBackground,
         extendBody: true,
+        // Web gets a top navigation header (like a website); mobile keeps the
+        // floating bottom navigation bar.
+        appBar: kIsWeb ? _buildWebTopNav() : null,
         body: PageView(
           controller: _pageController,
           onPageChanged: _onPageChanged,
-          physics: const BouncingScrollPhysics(),
+          // Disable swipe paging on web — navigation happens via the top bar.
+          physics: kIsWeb
+              ? const NeverScrollableScrollPhysics()
+              : const BouncingScrollPhysics(),
           children: _pages,
         ),
-        bottomNavigationBar: _buildBottomNavBar(),
+        bottomNavigationBar: kIsWeb ? null : _buildBottomNavBar(),
       ),
+    );
+  }
+
+  /// Top navigation header used on web: a centered, max-width bar carrying the
+  /// brand and the same destinations as the mobile bottom bar.
+  PreferredSizeWidget _buildWebTopNav() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(64),
+      child: Material(
+        color: ColorResource.cardBackground,
+        elevation: 0.5,
+        shadowColor: isDark
+            ? Colors.black.withValues(alpha: 0.4)
+            : Colors.black.withValues(alpha: 0.08),
+        child: SafeArea(
+          bottom: false,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1200),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // Drop the text labels on tight widths so the items never
+                  // overflow; keep them on roomy desktop layouts.
+                  final bool showLabels = constraints.maxWidth >= 720;
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: showLabels ? 20 : 12,
+                    ),
+                    child: SizedBox(
+                      height: 64,
+                      child: Row(
+                        children: [
+                          // Brand / logo — shrinks with ellipsis before it can
+                          // push the nav items off-screen.
+                          Flexible(
+                            child: ShaderMask(
+                              shaderCallback: (bounds) => ColorResource
+                                  .primaryGradient
+                                  .createShader(bounds),
+                              child: Text(
+                                Constants.appName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: poppinsBold.copyWith(
+                                  fontSize: Constants.fontSizeOverLarge,
+                                  color: ColorResource.textWhite,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          _webNavItem(
+                            Icons.home_rounded,
+                            'home'.tr,
+                            0,
+                            showLabels,
+                          ),
+                          _webNavItem(
+                            Icons.favorite_rounded,
+                            'favorites'.tr,
+                            1,
+                            showLabels,
+                          ),
+                          _webCartNavItem(showLabels),
+                          _webNavItem(
+                            Icons.receipt_long_rounded,
+                            'orders'.tr,
+                            3,
+                            showLabels,
+                          ),
+                          _webNavItem(
+                            Icons.person_rounded,
+                            'profile'.tr,
+                            4,
+                            showLabels,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _webNavItem(IconData icon, String label, int index, bool showLabel) {
+    final isSelected = _selectedIndex == index;
+    final color = isSelected
+        ? ColorResource.primaryDark
+        : ColorResource.textSecondary;
+
+    return Padding(
+      padding: EdgeInsets.only(left: showLabel ? 8 : 2),
+      child: Tooltip(
+        message: showLabel ? '' : label,
+        child: InkWell(
+          onTap: () => _onNavItemTapped(index),
+          borderRadius: BorderRadius.circular(Constants.radiusLarge),
+          hoverColor: ColorResource.primaryDark.withValues(alpha: 0.06),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: showLabel ? 14 : 10,
+              vertical: 10,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: color, size: 22),
+                if (showLabel) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    style: (isSelected ? poppinsBold : poppinsMedium).copyWith(
+                      fontSize: Constants.fontSizeDefault,
+                      color: color,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _webCartNavItem(bool showLabel) {
+    return GetBuilder<CartController>(
+      builder: (cartController) {
+        final itemCount = cartController.itemCount;
+        final isSelected = _selectedIndex == 2;
+        final color = isSelected
+            ? ColorResource.primaryDark
+            : ColorResource.textSecondary;
+
+        return Padding(
+          padding: EdgeInsets.only(left: showLabel ? 8 : 2),
+          child: Tooltip(
+            message: showLabel ? '' : 'cart'.tr,
+            child: InkWell(
+              onTap: () => _onNavItemTapped(2),
+              borderRadius: BorderRadius.circular(Constants.radiusLarge),
+              hoverColor: ColorResource.primaryDark.withValues(alpha: 0.06),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: showLabel ? 14 : 10,
+                  vertical: 10,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Icon(Icons.shopping_cart_rounded,
+                            color: color, size: 22),
+                        if (itemCount > 0)
+                          Positioned(
+                            right: -8,
+                            top: -8,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: ColorResource.error,
+                                shape: BoxShape.circle,
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 16,
+                                minHeight: 16,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  itemCount > 99 ? '99+' : '$itemCount',
+                                  style: poppinsBold.copyWith(
+                                    fontSize: 9,
+                                    color: ColorResource.textWhite,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    if (showLabel) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        'cart'.tr,
+                        style:
+                            (isSelected ? poppinsBold : poppinsMedium).copyWith(
+                          fontSize: Constants.fontSizeDefault,
+                          color: color,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
