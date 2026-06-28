@@ -51,6 +51,44 @@ assets/language/{en,bn}.json     # translation key/value maps
 
 **Data flow:** `View (screen/widget)` → `Controller` (business logic, state) → `RepoInterface` → `Repository` (Appwrite calls) → `AppwriteService`. Views never touch repositories or `AppwriteService` directly.
 
+### Data fetch flow — worked example (`getSpecialProducts`)
+
+Every list fetch follows the same four hops. **A view must only call a
+controller method and read the controller's exposed state — never call the
+repository / `AppwriteService`, and never import a `*_repo_interface.dart` or
+`*_repository.dart` from a screen/widget.**
+
+1. **Repository** (`modules/products/domain/repository/product_repository.dart`) — the *only* layer that talks to Appwrite. Returns models; throws on failure:
+   ```dart
+   @override
+   Future<List<ProductModel>> getSpecialProducts() async {
+     final res = await appwriteService.listTable(
+       tableId: AppwriteConfig.productsCollection,
+       queries: [Query.equal('module_type', ModuleController.current), /* … */],
+     );
+     return res.rows.map((r) => ProductModel.fromJson(r.data)).toList();
+   }
+   ```
+2. **Interface** (`product_repo_interface.dart`) — the controller depends on this abstraction, never the concrete class: `Future<List<ProductModel>> getSpecialProducts();`
+3. **Controller** (`controllers/product_controller.dart`) — owns the loading / error / data state, calls the interface, then `update()`:
+   ```dart
+   Future<void> getSpecialProducts({bool reload = false}) async {
+     _isLoadingSpecials = true; if (!reload) update();
+     try {
+       _specialProducts = await productRepoInterface.getSpecialProducts();
+     } catch (e) {
+       _specialsErrorMessage = 'Failed to load special products: $e';
+     }
+     _isLoadingSpecials = false; update();
+   }
+   ```
+4. **View** (`modules/dashboard/section_widget/todays_specials_widget.dart`) — inside a `GetBuilder<ProductController>`, triggers the controller method (from `initState` / pull-to-refresh / a retry button) and renders `controller.specialProducts`, `controller.isLoadingSpecials`, `controller.specialsErrorMessage`. It imports the controller only.
+
+When several lists load on one screen, orchestrate them from the view's load
+method by `await`-ing the **controller** methods (e.g. `_loadData()` →
+`Future.wait([controller.getSpecialProducts(), controller.getPopularProducts(), …])`)
+— never by calling repositories from the view.
+
 ## MANDATORY rules
 
 ### 1. Translate every user-facing string
