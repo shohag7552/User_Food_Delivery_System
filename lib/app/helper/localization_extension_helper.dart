@@ -1,14 +1,22 @@
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:get/get.dart';
 
-extension TranslatableMap on Map<String, dynamic> {
+extension TranslatableMap on Map<String, dynamic>? {
   /// Automatically gets the string for the current GetX language code.
-  /// Falls back to English ('en') if the translation is missing.
+  /// Falls back to the default language, then to any available value, then ''.
+  ///
+  /// Defined on a nullable map and coerces values with `toString()` so it
+  /// never throws — null maps, missing keys, or non-String values all resolve
+  /// to a safe String (this also avoids dynamic-cast failures on Flutter web).
   String get trLanguage {
-    // 1. Ask GetX what the current app language is right now
-    String currentLang = Get.locale?.languageCode ?? Constants.languages[0].languageCode;
+    final map = this;
+    if (map == null || map.isEmpty) return '';
 
-    // 2. Return the correct string from your database Map
-    return this[currentLang] ?? this[Constants.languages[0].languageCode] ?? '';
+    final String currentLang =
+        Get.locale?.languageCode ?? Constants.languages[0].languageCode;
+    final String fallbackLang = Constants.languages[0].languageCode;
+
+    final value = map[currentLang] ?? map[fallbackLang] ?? map.values.first;
+    return value?.toString() ?? '';
   }
 }

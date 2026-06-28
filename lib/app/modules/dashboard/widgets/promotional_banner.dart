@@ -117,7 +117,7 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
                             children: [
                               if (banner.titleMap != null)
                                 Text(
-                                  banner.titleMap!.trLanguage,
+                                  banner.titleMap.trLanguage,
                                   style: poppinsBold.copyWith(
                                     fontSize: Constants.fontSizeExtraLarge,
                                     color: ColorResource.textWhite,
@@ -128,7 +128,7 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
                               if (banner.subTitleMap != null) ...[
                                 const SizedBox(height: 4),
                                 Text(
-                                  banner.subTitleMap!.trLanguage,
+                                  banner.subTitleMap.trLanguage,
                                   style: poppinsRegular.copyWith(
                                     fontSize: Constants.fontSizeSmall,
                                     color: ColorResource.textWhite,

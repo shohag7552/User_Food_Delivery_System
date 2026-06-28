@@ -5,6 +5,7 @@ import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
+import 'package:appwrite_user_app/app/models/brand_model.dart';
 import 'package:appwrite_user_app/app/modules/categories/screens/category_products_page.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/promotional_banner.dart';
 import 'package:appwrite_user_app/app/modules/ecommerce/widgets/ecommerce_product_card.dart';
@@ -86,6 +87,9 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     final hPad = _sidePadding(width);
     final contentWidth = width - hPad * 2;
     final crossAxisCount = _gridColumns(contentWidth);
+    // On wide (web/desktop) layouts the Promotions and Brands sit side by side;
+    // narrow layouts keep them stacked.
+    final bool isWide = width >= 900;
 
     return RefreshIndicator(
       color: ColorResource.primaryDark,
@@ -97,14 +101,150 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
           _buildSliverAppBar(context, hPad),
           SliverToBoxAdapter(child: _buildBanners(hPad)),
           SliverToBoxAdapter(child: _buildCategories(hPad)),
-          SliverToBoxAdapter(child: _buildPromotionalBanners(hPad)),
-          SliverToBoxAdapter(child: _buildBrands(hPad)),
+          if (isWide)
+            SliverToBoxAdapter(child: _buildPromosBrandsRow(hPad))
+          else ...[
+            SliverToBoxAdapter(child: _buildPromotionalBanners(hPad)),
+            SliverToBoxAdapter(child: _buildBrands(hPad)),
+          ],
           SliverToBoxAdapter(child: _buildPopular(hPad)),
           SliverToBoxAdapter(
             child: _sectionHeader('all_products'.tr, hPad),
           ),
           _buildAllProductsGrid(crossAxisCount, hPad),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
+        ],
+      ),
+    );
+  }
+
+  /// Web/desktop layout: Promotions (left, wider) and Brands (right) in one row.
+  /// Falls back to a single full-width section when only one of them has data.
+  Widget _buildPromosBrandsRow(double hPad) {
+    return GetBuilder<BannerController>(
+      builder: (bannerController) {
+        final promos = bannerController.banners
+            .where((b) =>
+                b.moduleType == ModuleController.ecommerce && b.isPromotional)
+            .toList();
+        return GetBuilder<BrandController>(
+          builder: (brandController) {
+            final List<BrandModel> brands = brandController.brands;
+            final hasPromos = promos.isNotEmpty;
+            final hasBrands = brands.isNotEmpty;
+
+            if (!hasPromos && !hasBrands) return const SizedBox.shrink();
+            if (hasPromos && !hasBrands) return _buildPromotionalBanners(hPad);
+            if (!hasPromos && hasBrands) return _buildBrands(hPad);
+
+            return Padding(
+              padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Promotions — the visual focus, so it takes the larger share.
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _sectionHeader('promotions'.tr, 0),
+                        PromotionalBanner(
+                          banners: promos,
+                          isLoading: false,
+                          errorMessage: null,
+                          onRetry: () => bannerController.getBanners(reload: true),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 24),
+                  // Brands — a compact panel of chips beside the promotions.
+                  Expanded(
+                    flex: 5,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _sectionHeader('brands'.tr, 0),
+                        _brandsPanel(brands),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// Brands rendered as a responsive grid (web row layout). Columns auto-fit the
+  /// available width via [SliverGridDelegateWithMaxCrossAxisExtent], and the grid
+  /// sizes to its content so it sits inside the surrounding column.
+  Widget _brandsPanel(List<BrandModel> brands) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 220,
+        mainAxisExtent: 66,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
+      itemCount: brands.length,
+      itemBuilder: (context, index) => _brandTile(brands[index]),
+    );
+  }
+
+  Widget _brandTile(BrandModel brand) {
+    final hasLogo = (brand.logoUrl ?? '').isNotEmpty;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: ColorResource.cardBackground,
+        borderRadius: BorderRadius.circular(Constants.radiusLarge),
+        border: Border.all(
+          color: ColorResource.textLight.withValues(alpha: 0.15),
+        ),
+      ),
+      child: Row(
+        children: [
+          // Logo, or a branded placeholder when none is set.
+          Container(
+            width: 40,
+            height: 40,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: ColorResource.primaryDark.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: hasLogo
+                ? CustomNetworkImage(
+                    image: brand.logoUrl!,
+                    width: 40,
+                    height: 40,
+                    fit: BoxFit.cover,
+                  )
+                : Icon(
+                    Icons.storefront_outlined,
+                    size: 20,
+                    color: ColorResource.primaryDark,
+                  ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              brand.nameMap.trLanguage,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: poppinsMedium.copyWith(
+                fontSize: Constants.fontSizeDefault,
+                color: ColorResource.textPrimary,
+              ),
+            ),
+          ),
         ],
       ),
     );
