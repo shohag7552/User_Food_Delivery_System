@@ -9,6 +9,9 @@ abstract class ProductRepoInterface {
   Future<List<ProductModel>> getSpecialProducts();
   Future<List<ProductModel>> getPopularProducts();
   Future<List<ProductModel>> getNewProducts();
+
+  /// Highest-rated available products for the active module.
+  Future<List<ProductModel>> getTopProducts({int limit = 10});
   Future<List<ProductModel>> getProductsByCategory(
     String categoryId, {
     int offset = 0,

@@ -117,6 +117,29 @@ class ProductRepository implements ProductRepoInterface {
   }
 
   @override
+  Future<List<ProductModel>> getTopProducts({int limit = 10}) async {
+    try {
+      // Highest-rated available products for the active module.
+      final response = await appwriteService.listTable(
+        tableId: AppwriteConfig.productsCollection,
+        queries: [
+          Query.equal('is_available', true),
+          Query.equal('module_type', ModuleController.current),
+          Query.orderDesc('avg_rating'),
+          Query.orderDesc('rating_count'),
+          Query.limit(limit),
+        ],
+      );
+      return response.rows.map((row) {
+        return ProductModel.fromJson(row.data);
+      }).toList();
+    } catch (e) {
+      log('Error fetching top products: $e');
+      rethrow;
+    }
+  }
+
+  @override
   Future<List<ProductModel>> getProductsByCategory(
     String categoryId, {
     int offset = 0,

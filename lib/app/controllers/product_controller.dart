@@ -58,6 +58,15 @@ class ProductController extends GetxController implements GetxService {
   List<ProductModel> _newProducts = [];
   List<ProductModel> get newProducts => _newProducts;
 
+  List<ProductModel> _topProducts = [];
+  List<ProductModel> get topProducts => _topProducts;
+
+  bool _isLoadingTop = false;
+  bool get isLoadingTop => _isLoadingTop;
+
+  String? _topErrorMessage;
+  String? get topErrorMessage => _topErrorMessage;
+
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
@@ -77,6 +86,7 @@ class ProductController extends GetxController implements GetxService {
     _specialProducts = [];
     _popularProducts = [];
     _newProducts = [];
+    _topProducts = [];
     _currentPage = 0;
     _hasMore = true;
     update();
@@ -215,6 +225,28 @@ class ProductController extends GetxController implements GetxService {
     }
   }
 
+  /// Fetch top (highest-rated) products
+  Future<void> getTopProducts({bool reload = false}) async {
+    try {
+      _isLoadingTop = true;
+      _topErrorMessage = null;
+      if (!reload) {
+        update();
+      }
+
+      _topProducts = await productRepoInterface.getTopProducts();
+      log('====> Top products loaded: ${_topProducts.length}');
+
+      _isLoadingTop = false;
+      update();
+    } catch (e) {
+      _isLoadingTop = false;
+      _topErrorMessage = 'Failed to load top products: $e';
+      log('====> Error loading top products: $e');
+      update();
+    }
+  }
+
   /// Fetch products by category
   Future<List<ProductModel>> getProductsByCategory(
     String categoryId, {
@@ -287,6 +319,7 @@ class ProductController extends GetxController implements GetxService {
     hasChanges = updateList(_specialProducts) || hasChanges;
     hasChanges = updateList(_popularProducts) || hasChanges;
     hasChanges = updateList(_newProducts) || hasChanges;
+    hasChanges = updateList(_topProducts) || hasChanges;
 
     if (hasChanges) {
       update();
@@ -335,6 +368,7 @@ class ProductController extends GetxController implements GetxService {
     changed = updateList(_specialProducts) || changed;
     changed = updateList(_popularProducts) || changed;
     changed = updateList(_newProducts) || changed;
+    changed = updateList(_topProducts) || changed;
     return changed;
   }
 }

@@ -26,6 +26,8 @@ class EcommerceHomeView extends StatefulWidget {
 class _EcommerceHomeViewState extends State<EcommerceHomeView>
     with AutomaticKeepAliveClientMixin {
   final ScrollController _scrollController = ScrollController();
+  // Drives the Top Products carousel (used by the web scroll-arrow buttons).
+  final ScrollController _topScrollController = ScrollController();
 
   @override
   bool get wantKeepAlive => true;
@@ -48,6 +50,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
       categoryController.getCategories(reload: reload),
       brandController.getBrands(reload: reload),
       productController.getPopularProducts(reload: reload),
+      productController.getTopProducts(reload: reload),
       productController.getProducts(reload: reload),
     ]);
   }
@@ -63,6 +66,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    _topScrollController.dispose();
     super.dispose();
   }
 
@@ -101,6 +105,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
           _buildSliverAppBar(context, hPad),
           SliverToBoxAdapter(child: _buildBanners(hPad)),
           SliverToBoxAdapter(child: _buildCategories(hPad)),
+          SliverToBoxAdapter(child: _buildTopProducts(isWide)),
           if (isWide)
             SliverToBoxAdapter(child: _buildPromosBrandsRow(hPad))
           else ...[
@@ -589,6 +594,107 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
           ],
         );
       },
+    );
+  }
+
+  /// Top (highest-rated) products as a horizontal highlight strip. The whole
+  /// section is centered within [_maxContentWidth] so it never spans the full
+  /// screen width on web, and shows scroll-arrow buttons on wide layouts.
+  Widget _buildTopProducts(bool isWide) {
+    return GetBuilder<ProductController>(
+      builder: (controller) {
+        final bool loading =
+            controller.isLoadingTop && controller.topProducts.isEmpty;
+        if (!loading && controller.topProducts.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Center(
+          // maxContentWidth + 32 keeps the inner 16px padding aligned exactly
+          // with the other hPad-gutter sections, while capping the width so the
+          // carousel stays inside the content column (no full-bleed scrolling).
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _maxContentWidth + 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _sectionHeader('top_products'.tr, 16),
+                SizedBox(
+                  height: 280,
+                  child: loading
+                      ? const Center(child: CircularProgressIndicator())
+                      : Stack(
+                          children: [
+                            ListView.separated(
+                              controller: _topScrollController,
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(),
+                              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                              itemCount: controller.topProducts.length,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(width: 14),
+                              itemBuilder: (context, index) => SizedBox(
+                                width: 170,
+                                child: EcommerceProductCard(
+                                  product: controller.topProducts[index],
+                                ),
+                              ),
+                            ),
+                            // Scroll arrows — only useful with a pointer (web).
+                            if (isWide) ...[
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: _scrollArrow(isLeft: true),
+                              ),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: _scrollArrow(isLeft: false),
+                              ),
+                            ],
+                          ],
+                        ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Circular scroll button for the Top Products carousel.
+  Widget _scrollArrow({required bool isLeft}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Material(
+        color: ColorResource.cardBackground,
+        shape: const CircleBorder(),
+        elevation: 3,
+        shadowColor: Colors.black.withValues(alpha: 0.2),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: () => _scrollTopProductsBy(isLeft ? -380 : 380),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Icon(
+              isLeft ? Icons.chevron_left : Icons.chevron_right,
+              color: ColorResource.primaryDark,
+              size: 24,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _scrollTopProductsBy(double delta) {
+    if (!_topScrollController.hasClients) return;
+    final target = (_topScrollController.offset + delta)
+        .clamp(0.0, _topScrollController.position.maxScrollExtent);
+    _topScrollController.animateTo(
+      target,
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeInOut,
     );
   }
 
