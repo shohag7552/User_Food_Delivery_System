@@ -67,6 +67,7 @@ class CartHelper {
 
   /// Show cart animation
   static void _showCartAnimation(BuildContext context, ProductModel product) {
+    if (GetPlatform.isWeb) return;
     Get.find<CartAnimationController>().animateAddToCart(
       context: context,
       productImageUrl: product.imageId,

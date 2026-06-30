@@ -43,7 +43,9 @@ class Global {
       } catch (_) {}
     }
 
-    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    if (!kIsWeb) {
+      await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    }
 
     setSystemUi(isDarkMode: false);
 

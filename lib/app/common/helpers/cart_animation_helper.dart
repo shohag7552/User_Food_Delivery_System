@@ -15,7 +15,8 @@ class CartAnimationHelper {
     required String productImageUrl,
     GlobalKey? buttonKey,
   }) {
-   try {
+    if (GetPlatform.isWeb) return;
+    try {
       final controller = Get.find<CartAnimationController>();
       
       // Get button position

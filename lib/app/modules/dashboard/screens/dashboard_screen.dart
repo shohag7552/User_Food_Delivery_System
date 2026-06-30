@@ -8,6 +8,7 @@ import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/screens/home_module_view.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/modules/cart/screens/cart_page.dart';
 import 'package:appwrite_user_app/app/modules/favorites/screens/favorites_screen.dart';
 import 'package:appwrite_user_app/app/modules/orders/screens/orders_page.dart';
@@ -29,6 +30,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final Connectivity _connectivity = Connectivity();
   late PageController _pageController;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
@@ -49,7 +51,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
 
-    Get.lazyPut(() => CartAnimationController());
     _pageController = PageController(initialPage: 0);
     _listenToConnectivity();
 
@@ -136,11 +137,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }
       },
       child: Scaffold(
+        key: _scaffoldKey,
         backgroundColor: ColorResource.scaffoldBackground,
         extendBody: true,
-        // Web gets a top navigation header (like a website); mobile keeps the
-        // floating bottom navigation bar.
         appBar: kIsWeb ? _buildWebTopNav() : null,
+        endDrawer: kIsWeb ? const WebProfileDrawer() : null,
         body: PageView(
           controller: _pageController,
           onPageChanged: _onPageChanged,
@@ -155,8 +156,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// Top navigation header used on web: a centered, max-width bar carrying the
-  /// brand and the same destinations as the mobile bottom bar.
+  /// Top navigation header for web.
+  ///
+  /// Layout: [Brand] [Home] [Favorites] ──spacer── [Cart] [Orders] [Profile]
+  /// [│] [Menu ☰]
+  ///
+  /// Home and Favorites are the primary destinations shown with labels on wide
+  /// screens. Cart / Orders / Profile are utility icons placed on the right,
+  /// always icon-only with tooltips. The hamburger opens the profile drawer.
   PreferredSizeWidget _buildWebTopNav() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -175,19 +182,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               constraints: const BoxConstraints(maxWidth: 1200),
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  // Drop the text labels on tight widths so the items never
-                  // overflow; keep them on roomy desktop layouts.
                   final bool showLabels = constraints.maxWidth >= 720;
                   return Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: showLabels ? 20 : 12,
-                    ),
+                    padding: EdgeInsets.only(left: showLabels ? 20 : 12),
                     child: SizedBox(
                       height: 64,
                       child: Row(
                         children: [
-                          // Brand / logo — shrinks with ellipsis before it can
-                          // push the nav items off-screen.
+                          // Brand — shrinks with ellipsis before pushing nav items.
                           Flexible(
                             child: ShaderMask(
                               shaderCallback: (bounds) => ColorResource
@@ -204,7 +206,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 8),
+                          // Primary nav: Home and Favorites with labels on wide screens.
                           _webNavItem(
                             Icons.home_rounded,
                             'home'.tr,
@@ -217,19 +220,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             1,
                             showLabels,
                           ),
-                          _webCartNavItem(showLabels),
+                          // Push the utility actions to the right.
+                          const Spacer(),
+                          // Utility actions — icon-only with tooltips.
+                          _webCartNavItem(false),
                           _webNavItem(
                             Icons.receipt_long_rounded,
                             'orders'.tr,
                             3,
-                            showLabels,
+                            false,
                           ),
                           _webNavItem(
                             Icons.person_rounded,
                             'profile'.tr,
                             4,
-                            showLabels,
+                            false,
                           ),
+                          // Thin separator before the drawer toggle.
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 16,
+                            ),
+                            child: VerticalDivider(
+                              width: 1,
+                              color: ColorResource.textLight
+                                  .withValues(alpha: 0.25),
+                            ),
+                          ),
+                          // Hamburger — opens the right-side profile drawer.
+                          _webMenuButton(),
                         ],
                       ),
                     ),
@@ -237,6 +257,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 },
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Hamburger icon that opens the end (right-side) drawer.
+  Widget _webMenuButton() {
+    return Tooltip(
+      message: 'menu'.tr,
+      child: InkWell(
+        onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+        borderRadius: BorderRadius.circular(Constants.radiusLarge),
+        hoverColor: ColorResource.primaryDark.withValues(alpha: 0.06),
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Icon(
+            Icons.menu_rounded,
+            size: 22,
+            color: ColorResource.textSecondary,
           ),
         ),
       ),

@@ -105,7 +105,7 @@ class _MyAppState extends State<MyApp> {
           ),
           getPages: AppPages.routes,
           builder: (context, child) {
-            final appChild = child ?? const SizedBox.shrink();
+            final appChild = child  ?? const SizedBox.shrink();
 
             if (_isCheckingConnection) {
               return appChild;

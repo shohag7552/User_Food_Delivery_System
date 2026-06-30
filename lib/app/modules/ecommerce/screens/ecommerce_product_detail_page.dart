@@ -166,8 +166,22 @@ class _EcommerceProductDetailPageState
     super.dispose();
   }
 
+  /// Web/desktop two-column layout kicks in above this width.
+  static const double _webBreakpoint = 900;
+  static const double _maxContentWidth = 1100;
+
   @override
   Widget build(BuildContext context) {
+    final isWide = MediaQuery.of(context).size.width >= _webBreakpoint;
+    // Mobile is unchanged; web gets a dedicated responsive layout.
+    return isWide ? _buildWebScaffold(context) : _buildMobileScaffold(context);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Mobile (unchanged)
+  // ---------------------------------------------------------------------------
+
+  Widget _buildMobileScaffold(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
       body: CustomScrollView(
@@ -254,9 +268,6 @@ class _EcommerceProductDetailPageState
   }
 
   Widget _buildContent() {
-    final hasDiscount = product.hasDiscount;
-    final description = product.descriptionMap.trLanguage.trim();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -268,113 +279,337 @@ class _EcommerceProductDetailPageState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildBrand(),
-          Text(
-            product.nameMap.trLanguage,
-            style: poppinsBold.copyWith(
-              fontSize: Constants.fontSizeExtraLarge,
-              color: ColorResource.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          RatingStars(
-            rating: product.avgRating,
-            reviewCount: product.ratingCount,
-            size: 16,
-            showRating: true,
-          ),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                PriceHelper.formatPrice(product.finalPrice),
-                style: poppinsBold.copyWith(
-                  fontSize: Constants.fontSizeOverLarge,
-                  color: ColorResource.primaryDark,
-                ),
+              _buildTitle(Constants.fontSizeExtraLarge),
+              const SizedBox(height: 8),
+              RatingStars(
+                rating: product.avgRating,
+                reviewCount: product.ratingCount,
+                size: 16,
+                showRating: true,
               ),
-              if (hasDiscount) ...[
-                const SizedBox(width: 10),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
-                  child: Text(
-                    PriceHelper.formatPrice(product.price),
-                    style: poppinsRegular.copyWith(
-                      fontSize: Constants.fontSizeDefault,
-                      color: ColorResource.textLight,
-                      decoration: TextDecoration.lineThrough,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 10),
-          _buildStockChip(),
-          if (_hasVariants) _buildVariantsSection(),
-          if (description.isNotEmpty) ...[
-            const SizedBox(height: 20),
-            Text(
-              'description'.tr,
-              style: poppinsBold.copyWith(
-                fontSize: Constants.fontSizeLarge,
-                color: ColorResource.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              description,
-              maxLines: _descExpanded ? null : 4,
-              overflow: _descExpanded
-                  ? TextOverflow.visible
-                  : TextOverflow.ellipsis,
-              style: poppinsRegular.copyWith(
-                fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textSecondary,
-                height: 1.5,
-              ),
-            ),
-            if (description.length > 160)
-              GestureDetector(
-                onTap: () => setState(() => _descExpanded = !_descExpanded),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    _descExpanded ? 'see_less'.tr : 'see_more'.tr,
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeSmall,
-                      color: ColorResource.primaryDark,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-          _buildSpecs(),
-          if (product.ratingCount > 0) ...[
-            const SizedBox(height: 20),
-            Divider(color: ColorResource.textLight.withValues(alpha: 0.2)),
-            const SizedBox(height: 12),
-            Text(
-              'customer_reviews'.tr,
-              style: poppinsBold.copyWith(
-                fontSize: Constants.fontSizeLarge,
-                color: ColorResource.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 12),
-            FutureBuilder<String?>(
-              future: Get.find<AuthController>().getUserId(),
-              builder: (context, snapshot) => ReviewListSection(
-                productId: product.id,
-                currentUserId: snapshot.data,
-              ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              _buildPriceRow(),
+              const SizedBox(height: 10),
+              _buildStockChip(),
+              if (_hasVariants) _buildVariantsSection(),
+              _buildDescriptionBlock(),
+              _buildSpecs(),
+              _buildReviewsBlock(),
             ],
           ),
         ),
         _buildSuggestedSection(),
         const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Shared building blocks (used by both mobile and web)
+  // ---------------------------------------------------------------------------
+
+  Widget _buildTitle(double fontSize) {
+    return Text(
+      product.nameMap.trLanguage,
+      style: poppinsBold.copyWith(
+        fontSize: fontSize,
+        color: ColorResource.textPrimary,
+      ),
+    );
+  }
+
+  Widget _buildPriceRow() {
+    final hasDiscount = product.hasDiscount;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Text(
+          PriceHelper.formatPrice(product.finalPrice),
+          style: poppinsBold.copyWith(
+            fontSize: Constants.fontSizeOverLarge,
+            color: ColorResource.primaryDark,
+          ),
+        ),
+        if (hasDiscount) ...[
+          const SizedBox(width: 10),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 3),
+            child: Text(
+              PriceHelper.formatPrice(product.price),
+              style: poppinsRegular.copyWith(
+                fontSize: Constants.fontSizeDefault,
+                color: ColorResource.textLight,
+                decoration: TextDecoration.lineThrough,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildDescriptionBlock() {
+    final description = product.descriptionMap.trLanguage.trim();
+    if (description.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 20),
+        Text(
+          'description'.tr,
+          style: poppinsBold.copyWith(
+            fontSize: Constants.fontSizeLarge,
+            color: ColorResource.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          description,
+          maxLines: _descExpanded ? null : 4,
+          overflow:
+              _descExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+          style: poppinsRegular.copyWith(
+            fontSize: Constants.fontSizeDefault,
+            color: ColorResource.textSecondary,
+            height: 1.5,
+          ),
+        ),
+        if (description.length > 160)
+          GestureDetector(
+            onTap: () => setState(() => _descExpanded = !_descExpanded),
+            child: Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                _descExpanded ? 'see_less'.tr : 'see_more'.tr,
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeSmall,
+                  color: ColorResource.primaryDark,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildReviewsBlock() {
+    if (product.ratingCount <= 0) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 20),
+        Divider(color: ColorResource.textLight.withValues(alpha: 0.2)),
+        const SizedBox(height: 12),
+        Text(
+          'customer_reviews'.tr,
+          style: poppinsBold.copyWith(
+            fontSize: Constants.fontSizeLarge,
+            color: ColorResource.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        FutureBuilder<String?>(
+          future: Get.find<AuthController>().getUserId(),
+          builder: (context, snapshot) => ReviewListSection(
+            productId: product.id,
+            currentUserId: snapshot.data,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Web / desktop layout
+  // ---------------------------------------------------------------------------
+
+  Widget _buildWebScaffold(BuildContext context) {
+    return Scaffold(
+      backgroundColor: ColorResource.scaffoldBackground,
+      appBar: _buildWebAppBar(),
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Top: gallery (left) + buy panel (right).
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(flex: 5, child: _buildWebGallery()),
+                      const SizedBox(width: 36),
+                      Expanded(flex: 6, child: _buildWebInfoColumn()),
+                    ],
+                  ),
+                  // Full-width details below the two columns.
+                  _buildDescriptionBlock(),
+                  _buildSpecs(),
+                  _buildReviewsBlock(),
+                  // Suggested carousel constrained to the same content width.
+                  _buildSuggestedSection(),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildWebAppBar() {
+    return AppBar(
+      backgroundColor: ColorResource.cardBackground,
+      surfaceTintColor: ColorResource.cardBackground,
+      elevation: 0.5,
+      automaticallyImplyLeading: false,
+      titleSpacing: 0,
+      leadingWidth: 60,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 12),
+        child: _circleButton(icon: Icons.arrow_back, onTap: () => Get.back()),
+      ),
+      title: Text(
+        product.nameMap.trLanguage,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: poppinsBold.copyWith(
+          fontSize: Constants.fontSizeLarge,
+          color: ColorResource.textPrimary,
+        ),
+      ),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(2),
+        child: _isRefreshing
+            ? const LinearProgressIndicator(
+                minHeight: 2,
+                color: ColorResource.primaryDark,
+                backgroundColor: Colors.transparent,
+              )
+            : const SizedBox(height: 2),
+      ),
+    );
+  }
+
+  /// Web gallery: a large square main image with a thumbnail strip beneath it.
+  Widget _buildWebGallery() {
+    final images = _images;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AspectRatio(
+          aspectRatio: 1,
+          child: Stack(
+            children: [
+              GestureDetector(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => FullScreenImageViewer(
+                      imageUrl: images[_currentImage],
+                      heroTag: 'ecom-web-${product.id}-$_currentImage',
+                    ),
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(Constants.radiusLarge),
+                  child: CustomNetworkImage(
+                    image: images[_currentImage],
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 12,
+                right: 12,
+                child: _circleButton(
+                  child: FavoriteButton(product: product, size: 22),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (images.length > 1) ...[
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 72,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: images.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 10),
+              itemBuilder: (context, index) {
+                final selected = index == _currentImage;
+                return GestureDetector(
+                  onTap: () => setState(() => _currentImage = index),
+                  child: Container(
+                    width: 72,
+                    height: 72,
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: selected
+                            ? ColorResource.primaryDark
+                            : ColorResource.textLight.withValues(alpha: 0.3),
+                        width: selected ? 2 : 1,
+                      ),
+                    ),
+                    child: CustomNetworkImage(
+                      image: images[index],
+                      width: 72,
+                      height: 72,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// Web right column: brand, title, rating, price, stock, variants and the
+  /// purchase controls grouped in a card.
+  Widget _buildWebInfoColumn() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildBrand(),
+        _buildTitle(Constants.fontSizeOverLarge),
+        const SizedBox(height: 10),
+        RatingStars(
+          rating: product.avgRating,
+          reviewCount: product.ratingCount,
+          size: 16,
+          showRating: true,
+        ),
+        const SizedBox(height: 16),
+        _buildPriceRow(),
+        const SizedBox(height: 14),
+        _buildStockChip(),
+        if (_hasVariants) _buildVariantsSection(),
+        const SizedBox(height: 24),
+        // Purchase controls in a subtle card (replaces the mobile bottom bar).
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: ColorResource.cardBackground,
+            borderRadius: BorderRadius.circular(Constants.radiusLarge),
+            border: Border.all(
+              color: ColorResource.textLight.withValues(alpha: 0.15),
+            ),
+          ),
+          child: product.isOutOfStock
+              ? _disabledButton('out_of_stock'.tr)
+              : _buildPurchaseBar(),
+        ),
       ],
     );
   }
