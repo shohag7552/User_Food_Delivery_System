@@ -12,6 +12,7 @@ import 'package:appwrite_user_app/app/modules/ecommerce/widgets/ecommerce_produc
 import 'package:appwrite_user_app/app/modules/search/screens/search_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
+import 'package:appwrite_user_app/app/resources/images.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -102,9 +103,10 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
         controller: _scrollController,
         physics: const BouncingScrollPhysics(),
         slivers: [
-          _buildSliverAppBar(context, hPad),
-          SliverToBoxAdapter(child: _buildBanners(hPad)),
-          SliverToBoxAdapter(child: _buildCategories(hPad)),
+          _buildSliverAppBar(context, hPad, isWide),
+          // On web the hero already embeds both the banner and category sidebar.
+          if (!isWide) SliverToBoxAdapter(child: _buildBanners(hPad)),
+          if (!isWide) SliverToBoxAdapter(child: _buildCategories(hPad)),
           SliverToBoxAdapter(child: _buildTopProducts(isWide)),
           if (isWide)
             SliverToBoxAdapter(child: _buildPromosBrandsRow(hPad))
@@ -255,18 +257,271 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     );
   }
 
-  /// Sticky, collapsing storefront header. Expanded it shows the "Shop" title
-  /// over a gradient with a search bar; once scrolled past, it pins to the top
-  /// and keeps the search bar accessible as the toolbar title.
-  Widget _buildSliverAppBar(BuildContext context, double hPad) {
-    const double expandedHeight = 156;
-    // Keep the search field a comfortable reading width on desktop instead of
-    // stretching it across the whole content area.
+  /// Dispatches to a platform-appropriate hero: a static two-column layout on
+  /// web (editorial, image-right) and a collapsing SliverAppBar on mobile.
+  Widget _buildSliverAppBar(BuildContext context, double hPad, bool isWide) {
+    return isWide
+        ? _buildWebHero(hPad)
+        : _buildMobileAppBar(hPad);
+  }
+
+  static const double _heroHeight = 300.0;
+  static const double _categoryPanelWidth = 220.0;
+
+  /// Web hero — category sidebar (left) + full-height banner carousel (right).
+  Widget _buildWebHero(double hPad) {
+    return SliverToBoxAdapter(
+      child: ColoredBox(
+        color: ColorResource.scaffoldBackground,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: double.infinity),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 8),
+              child: SizedBox(
+                height: _heroHeight,
+                child: GetBuilder<CategoryController>(
+                  builder: (catController) {
+                    final showPanel = catController.categories.isNotEmpty ||
+                        catController.isLoading;
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (showPanel) ...[
+                          SizedBox(
+                            width: _categoryPanelWidth,
+                            child: _buildWebCategoryList(catController),
+                          ),
+                          const SizedBox(width: 12),
+                        ],
+                        Expanded(child: _buildWebBannerPanel()),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Left panel: category list or loading skeleton.
+  Widget _buildWebCategoryList(CategoryController controller) {
+    return Container(
+      decoration: BoxDecoration(
+        color: ColorResource.cardBackground,
+        borderRadius: BorderRadius.circular(Constants.radiusLarge),
+        border: Border.all(
+          color: ColorResource.textLight.withValues(alpha: 0.15),
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: controller.isLoading && controller.categories.isEmpty
+          ? _buildCategoryLoadingSkeleton()
+          : _buildCategoryListView(controller),
+    );
+  }
+
+  Widget _buildCategoryLoadingSkeleton() {
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: 9,
+      separatorBuilder: (_, _) => Divider(
+        height: 1,
+        indent: 14,
+        endIndent: 14,
+        color: ColorResource.textLight.withValues(alpha: 0.10),
+      ),
+      itemBuilder: (_, _) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        child: Row(
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: ColorResource.textLight.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Container(
+                height: 12,
+                decoration: BoxDecoration(
+                  color: ColorResource.textLight.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Container(
+              width: 14,
+              height: 14,
+              decoration: BoxDecoration(
+                color: ColorResource.textLight.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryListView(CategoryController controller) {
+    final cats = controller.categories;
+    final visibleCount = cats.length.clamp(0, 9);
+    final hasMore = cats.length > 9;
+    return Column(
+      children: [
+        Expanded(
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: visibleCount,
+            separatorBuilder: (_, _) => Divider(
+              height: 1,
+              indent: 14,
+              endIndent: 14,
+              color: ColorResource.textLight.withValues(alpha: 0.10),
+            ),
+            itemBuilder: (context, index) {
+              final category = cats[index];
+              return InkWell(
+                onTap: () => Get.to(
+                  () => CategoryProductsPage(category: category),
+                ),
+                hoverColor: ColorResource.primaryDark.withValues(alpha: 0.04),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 10),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 30,
+                        height: 30,
+                        clipBehavior: Clip.antiAlias,
+                        decoration: BoxDecoration(
+                          color:
+                              ColorResource.primaryDark.withValues(alpha: 0.07),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: (category.imagePath?.isNotEmpty ?? false)
+                            ? CustomNetworkImage(
+                                image: category.imagePath!,
+                                width: 30,
+                                height: 30,
+                                fit: BoxFit.cover,
+                              )
+                            : Icon(
+                                Icons.category_outlined,
+                                size: 16,
+                                color: ColorResource.primaryDark,
+                              ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          category.nameMap.trLanguage,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: poppinsMedium.copyWith(
+                            fontSize: Constants.fontSizeDefault,
+                            color: ColorResource.textPrimary,
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 18,
+                        color: ColorResource.textLight,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        if (hasMore) ...[
+          Divider(
+            height: 1,
+            color: ColorResource.textLight.withValues(alpha: 0.10),
+          ),
+          InkWell(
+            onTap: () {},
+            hoverColor: ColorResource.primaryDark.withValues(alpha: 0.04),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'all_categories'.tr,
+                    style: poppinsMedium.copyWith(
+                      fontSize: Constants.fontSizeDefault,
+                      color: ColorResource.primaryDark,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.keyboard_arrow_right_rounded,
+                    size: 16,
+                    color: ColorResource.primaryDark,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// Right panel: full-height banner carousel with shopping-image fallback.
+  Widget _buildWebBannerPanel() {
+    return GetBuilder<BannerController>(
+      builder: (bannerController) {
+        final banners = bannerController.banners
+            .where((b) =>
+                b.moduleType == ModuleController.ecommerce && !b.isPromotional)
+            .toList();
+
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(Constants.radiusLarge),
+          child: (banners.isEmpty && !bannerController.isLoading)
+              ? Image.asset(
+                  Images.shoppingBanner,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: _heroHeight,
+                )
+              : PromotionalBanner(
+                  banners: banners,
+                  isLoading: bannerController.isLoading,
+                  errorMessage: bannerController.errorMessage,
+                  onRetry: () => bannerController.getBanners(reload: true),
+                  height: _heroHeight,
+                ),
+        );
+      },
+    );
+  }
+
+  /// Mobile — collapsing SliverAppBar: banner image with gradient scrim,
+  /// title, tagline and search bar. Pinned with the search field in the toolbar.
+  Widget _buildMobileAppBar(double hPad) {
+    const double expandedHeight = 210;
     const double searchMaxWidth = 560;
 
     return SliverAppBar(
       expandedHeight: expandedHeight,
       pinned: true,
+      stretch: true,
       elevation: 0,
       backgroundColor: ColorResource.primaryDark,
       automaticallyImplyLeading: false,
@@ -274,12 +529,11 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
         builder: (context, constraints) {
           final double appBarHeight = constraints.maxHeight;
           final double statusBarHeight = MediaQuery.of(context).padding.top;
-          final double minHeight = kToolbarHeight + statusBarHeight;
+          const double minHeight = kToolbarHeight;
           final double collapseRatio =
-              ((appBarHeight - minHeight) / (expandedHeight - minHeight))
+              ((appBarHeight - minHeight - statusBarHeight) /
+                      (expandedHeight - minHeight - statusBarHeight))
                   .clamp(0.0, 1.0);
-          // Once nearly collapsed, surface the search bar as the pinned title so
-          // it never scrolls away.
           final bool isCollapsed = collapseRatio < 0.1;
 
           return FlexibleSpaceBar(
@@ -289,33 +543,64 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
             title: isCollapsed
                 ? _constrained(searchMaxWidth, _buildSearchBar())
                 : null,
-            background: Container(
-              decoration: BoxDecoration(gradient: ColorResource.primaryGradient),
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(hPad, 14, hPad, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        'shop'.tr,
-                        style: poppinsBold.copyWith(
-                          fontSize: Constants.fontSizeOverLarge,
-                          color: ColorResource.textWhite,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      // Hidden while collapsed to avoid doubling with the title.
-                      Opacity(
-                        opacity: collapseRatio,
-                        child: _constrained(searchMaxWidth, _buildSearchBar()),
-                      ),
-                    ],
+            stretchModes: const [
+              StretchMode.zoomBackground,
+              StretchMode.blurBackground,
+            ],
+            background: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset(Images.shoppingBanner, fit: BoxFit.cover),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.22),
+                        ColorResource.primaryDark.withValues(alpha: 0.84),
+                      ],
+                    ),
                   ),
                 ),
-              ),
+                SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(hPad, 14, hPad, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          'shop'.tr,
+                          style: poppinsBold.copyWith(
+                            fontSize: Constants.fontSizeOverLarge,
+                            color: ColorResource.textWhite,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Opacity(
+                          opacity: collapseRatio,
+                          child: Text(
+                            'shop_tagline'.tr,
+                            style: poppinsRegular.copyWith(
+                              fontSize: Constants.fontSizeSmall,
+                              color: ColorResource.textWhite
+                                  .withValues(alpha: 0.80),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Opacity(
+                          opacity: collapseRatio,
+                          child:
+                              _constrained(searchMaxWidth, _buildSearchBar()),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           );
         },
@@ -620,7 +905,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
               children: [
                 _sectionHeader('top_products'.tr, 16),
                 SizedBox(
-                  height: 280,
+                  height: isWide ? 350 : 280,
                   child: loading
                       ? const Center(child: CircularProgressIndicator())
                       : Stack(
@@ -634,7 +919,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                               separatorBuilder: (_, _) =>
                                   const SizedBox(width: 14),
                               itemBuilder: (context, index) => SizedBox(
-                                width: 170,
+                                width: isWide ? 230 : 170,
                                 child: EcommerceProductCard(
                                   product: controller.topProducts[index],
                                 ),

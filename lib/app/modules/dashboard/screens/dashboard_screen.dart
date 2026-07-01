@@ -13,6 +13,7 @@ import 'package:appwrite_user_app/app/modules/cart/screens/cart_page.dart';
 import 'package:appwrite_user_app/app/modules/favorites/screens/favorites_screen.dart';
 import 'package:appwrite_user_app/app/modules/orders/screens/orders_page.dart';
 import 'package:appwrite_user_app/app/modules/profile/screens/profile_page.dart';
+import 'package:appwrite_user_app/app/modules/search/screens/search_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -189,8 +190,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       height: 64,
                       child: Row(
                         children: [
-                          // Brand — shrinks with ellipsis before pushing nav items.
-                          Flexible(
+                          // Brand — capped width so it never crowds the nav
+                          // items; the Expanded search pill is the only flex
+                          // child and pushes utility icons to the far right.
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 160),
                             child: ShaderMask(
                               shaderCallback: (bounds) => ColorResource
                                   .primaryGradient
@@ -220,8 +224,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             1,
                             showLabels,
                           ),
-                          // Push the utility actions to the right.
-                          const Spacer(),
+                          // Centered search pill — Expanded fills all remaining
+                          // space so the pill is centered and utility icons
+                          // land flush against the right edge of the bar.
+                          Expanded(
+                            child: Center(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 400),
+                                child: GestureDetector(
+                                  onTap: () =>
+                                      Get.to(() => const SearchPage()),
+                                  child: Container(
+                                    height: 38,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14),
+                                    decoration: BoxDecoration(
+                                      color: ColorResource.scaffoldBackground,
+                                      borderRadius: BorderRadius.circular(999),
+                                      border: Border.all(
+                                        color: ColorResource.textLight
+                                            .withValues(alpha: 0.25),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.search_rounded,
+                                          size: 18,
+                                          color: ColorResource.textSecondary,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'search_products'.tr,
+                                            style: poppinsRegular.copyWith(
+                                              fontSize:
+                                                  Constants.fontSizeDefault,
+                                              color: ColorResource.textLight,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
                           // Utility actions — icon-only with tooltips.
                           _webCartNavItem(false),
                           _webNavItem(

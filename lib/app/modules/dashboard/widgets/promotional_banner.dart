@@ -14,6 +14,9 @@ class PromotionalBanner extends StatefulWidget {
   final String? errorMessage;
   final VoidCallback? onRetry;
   final Duration autoScrollDuration;
+  /// When provided, the widget renders in exactly this height and the dot
+  /// indicators become an in-banner overlay rather than appearing below.
+  final double? height;
 
   const PromotionalBanner({
     super.key,
@@ -22,6 +25,7 @@ class PromotionalBanner extends StatefulWidget {
     this.errorMessage,
     this.onRetry,
     this.autoScrollDuration = const Duration(seconds: 4),
+    this.height,
   });
 
   @override
@@ -40,155 +44,153 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
 
   @override
   Widget build(BuildContext context) {
-    // Loading state
-    if (widget.isLoading) {
-      return _buildLoadingState();
-    }
+    final width = MediaQuery.of(context).size.width;
+    final bool isWide = width >= 900;
+    final double carouselHeight = widget.height ?? (isWide ? 200 : 160);
 
-    // Error state
-    if (widget.errorMessage != null) {
-      return _buildErrorState();
-    }
+    if (widget.isLoading) return _buildLoadingState();
+    if (widget.errorMessage != null) return _buildErrorState();
+    if (widget.banners.isEmpty) return const SizedBox.shrink();
 
-    // Empty state
-    if (widget.banners.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      children: [
-        CarouselSlider.builder(
-          carouselController: _carouselController,
-          itemCount: widget.banners.length,
-          itemBuilder: (context, index, realIndex) {
-            final banner = widget.banners[index];
-            return GestureDetector(
-              onTap: () {
-                // Handle banner tap based on action type
-                if (banner.hasAction) {
-                  _handleBannerTap(banner);
-                }
-              },
-              child: Container(
-                width: MediaQuery.of(context).size.width,
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(Constants.radiusLarge),
-                  boxShadow: [
-                    BoxShadow(
-                      color: ColorResource.shadowMedium,
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(Constants.radiusLarge),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Banner image with custom network image
-                      CustomNetworkImage(
-                        image: banner.imageUrl,
-                        width: double.infinity,
-                        height: double.infinity,
-                      ),
-                      // Gradient overlay
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withValues(alpha: 0.5),
-                            ],
-                          ),
-                        ),
-                      ),
-                      // Banner text
-                      if (banner.titleMap != null || banner.subTitleMap != null)
-                        Positioned(
-                          bottom: 16,
-                          left: 16,
-                          right: 16,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (banner.titleMap != null)
-                                Text(
-                                  banner.titleMap.trLanguage,
-                                  style: poppinsBold.copyWith(
-                                    fontSize: Constants.fontSizeExtraLarge,
-                                    color: ColorResource.textWhite,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              if (banner.subTitleMap != null) ...[
-                                const SizedBox(height: 4),
-                                Text(
-                                  banner.subTitleMap.trLanguage,
-                                  style: poppinsRegular.copyWith(
-                                    fontSize: Constants.fontSizeSmall,
-                                    color: ColorResource.textWhite,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-          options: CarouselOptions(
-            height: 160,
-            viewportFraction: 0.9,
-            initialPage: 0,
-            enableInfiniteScroll: widget.banners.length > 1,
-            reverse: false,
-            autoPlay: widget.banners.length > 1,
-            autoPlayInterval: widget.autoScrollDuration,
-            autoPlayAnimationDuration: const Duration(milliseconds: 1000),
-            autoPlayCurve: Curves.fastOutSlowIn,
-            enlargeCenterPage: true,
-            enlargeFactor: 0.15,
-            scrollDirection: Axis.horizontal,
-            onPageChanged: (index, reason) {
-              setState(() {
-                _currentPage = index;
-              });
-            },
-          ),
-        ),
-        // Dot indicators
-        if (widget.banners.length > 1) ...[
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              widget.banners.length,
-              (index) => AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                width: _currentPage == index ? 24 : 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: _currentPage == index
-                      ? ColorResource.primaryDark
-                      : ColorResource.textLight.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(4),
-                ),
+    final dots = widget.banners.length > 1
+        ? List.generate(
+            widget.banners.length,
+            (index) => AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              width: _currentPage == index ? 24 : 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: _currentPage == index
+                    ? Colors.white
+                    : Colors.white.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(4),
               ),
             ),
+          )
+        : <Widget>[];
+
+    return SizedBox(
+      height: carouselHeight,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          CarouselSlider.builder(
+            carouselController: _carouselController,
+            itemCount: widget.banners.length,
+            itemBuilder: (context, index, realIndex) {
+              final banner = widget.banners[index];
+              return GestureDetector(
+                onTap: () {
+                  if (banner.hasAction) _handleBannerTap(banner);
+                },
+                child: Container(
+                  width: double.infinity,
+                  margin: widget.height != null
+                      ? EdgeInsets.zero
+                      : (isWide ? null : const EdgeInsets.symmetric(horizontal: 8)),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(Constants.radiusLarge),
+                    boxShadow: [
+                      BoxShadow(
+                        color: ColorResource.shadowMedium,
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(Constants.radiusLarge),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        CustomNetworkImage(
+                          image: banner.imageUrl,
+                          width: double.infinity,
+                          height: double.infinity,
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withValues(alpha: 0.5),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (banner.titleMap != null || banner.subTitleMap != null)
+                          Positioned(
+                            bottom: dots.isNotEmpty ? 36 : 16,
+                            left: 16,
+                            right: 16,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (banner.titleMap != null)
+                                  Text(
+                                    banner.titleMap.trLanguage,
+                                    style: poppinsBold.copyWith(
+                                      fontSize: Constants.fontSizeExtraLarge,
+                                      color: ColorResource.textWhite,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                if (banner.subTitleMap != null) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    banner.subTitleMap.trLanguage,
+                                    style: poppinsRegular.copyWith(
+                                      fontSize: Constants.fontSizeSmall,
+                                      color: ColorResource.textWhite,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+            options: CarouselOptions(
+              height: carouselHeight,
+              viewportFraction: widget.height != null ? 1.0 : (isWide ? 1 : 0.9),
+              initialPage: 0,
+              enableInfiniteScroll: widget.banners.length > 1,
+              reverse: false,
+              autoPlay: widget.banners.length > 1,
+              autoPlayInterval: widget.autoScrollDuration,
+              autoPlayAnimationDuration: const Duration(milliseconds: 1000),
+              autoPlayCurve: Curves.fastOutSlowIn,
+              enlargeCenterPage: widget.height == null,
+              enlargeFactor: 0.15,
+              scrollDirection: Axis.horizontal,
+              onPageChanged: (index, reason) {
+                setState(() => _currentPage = index);
+              },
+            ),
           ),
+          // Dot indicators as an in-banner overlay
+          if (dots.isNotEmpty)
+            Positioned(
+              bottom: 12,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: dots,
+              ),
+            ),
         ],
-      ],
+      ),
     );
   }
 
