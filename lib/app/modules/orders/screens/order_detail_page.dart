@@ -33,7 +33,10 @@ class OrderDetailPage extends StatefulWidget {
 class _OrderDetailPageState extends State<OrderDetailPage> {
   // Web/desktop layout kicks in above this width.
   static const double _webBreakpoint = 900;
-  static const double _maxContentWidth = 820;
+  // Wide two-column layout is used above this; between the breakpoint and this
+  // width the web layout falls back to a single centered column.
+  static const double _twoColumnWidth = 1000;
+  static const double _maxContentWidth = 1160;
 
   final GlobalKey<ScaffoldState> _webScaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -68,7 +71,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isWide = MediaQuery.of(context).size.width >= _webBreakpoint;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWide = screenWidth >= _webBreakpoint;
+    final twoColumn = screenWidth >= _twoColumnWidth;
 
     return Scaffold(
       key: _webScaffoldKey,
@@ -176,7 +181,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: isWide
-                  ? _buildWebContent(order)
+                  ? _buildWebContent(order, twoColumn)
                   : _buildMobileContent(order),
             ),
           );
@@ -224,16 +229,43 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     );
   }
 
-  // ── Web/desktop: constrained, centered single column ──
-  // Structurally identical to the proven mobile stack (so it always renders),
-  // just width-capped for readability and using the rounded gradient header
-  // card instead of the full-bleed banner.
-  Widget _buildWebContent(OrderModel order) {
+  // ── Web/desktop: constrained layout with a rounded gradient header. ──
+  // Wide screens get a two-column split (order contents on the left, a summary
+  // rail on the right); narrower web widths fall back to a single column.
+  Widget _buildWebContent(OrderModel order, bool twoColumn) {
     final isEcom = order.moduleType == 'ecommerce';
     final showTimeline = isEcom &&
         !['cancelled', 'returned', 'refunded']
             .contains(order.status.toLowerCase());
     final hasTracking = isEcom && (order.trackingNumber ?? '').isNotEmpty;
+
+    // Left / primary column: what was ordered and where it's going.
+    final primary = <Widget>[
+      _buildItemsList(order),
+      const SizedBox(height: 16),
+      _buildDeliveryInfo(order),
+      if (_hasDeliveryman(order)) ...[
+        const SizedBox(height: 16),
+        _buildDeliverymanSection(order),
+      ],
+    ];
+
+    // Right / summary column: status, meta and money.
+    final summary = <Widget>[
+      if (showTimeline) ...[
+        _buildStatusTimeline(order),
+        const SizedBox(height: 16),
+      ],
+      if (hasTracking) ...[
+        _buildTrackingInfo(order),
+        const SizedBox(height: 16),
+      ],
+      _buildOrderInfo(order),
+      const SizedBox(height: 16),
+      _buildPaymentInfo(order),
+      const SizedBox(height: 16),
+      _buildPricingBreakdown(order),
+    ];
 
     return Align(
       alignment: Alignment.topCenter,
@@ -242,30 +274,35 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         child: Padding(
           padding: const EdgeInsets.only(top: 20, bottom: 32),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildWebHeaderCard(order),
-              if (showTimeline) ...[
+              const SizedBox(height: 20),
+              if (twoColumn)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 62,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: primary,
+                      ),
+                    ),
+                    Expanded(
+                      flex: 38,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: summary,
+                      ),
+                    ),
+                  ],
+                )
+              else ...[
+                ...summary,
                 const SizedBox(height: 16),
-                _buildStatusTimeline(order),
+                ...primary,
               ],
-              if (hasTracking) ...[
-                const SizedBox(height: 16),
-                _buildTrackingInfo(order),
-              ],
-              const SizedBox(height: 16),
-              _buildOrderInfo(order),
-              const SizedBox(height: 16),
-              _buildItemsList(order),
-              const SizedBox(height: 16),
-              _buildDeliveryInfo(order),
-              const SizedBox(height: 16),
-              _buildPaymentInfo(order),
-              if (_hasDeliveryman(order)) ...[
-                const SizedBox(height: 16),
-                _buildDeliverymanSection(order),
-              ],
-              const SizedBox(height: 16),
-              _buildPricingBreakdown(order),
             ],
           ),
         ),
