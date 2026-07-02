@@ -16,35 +16,80 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// Grid card for the ecommerce storefront: brand + name + rating + price.
-class EcommerceProductCard extends StatelessWidget {
+class EcommerceProductCard extends StatefulWidget {
   final ProductModel product;
 
   const EcommerceProductCard({super.key, required this.product});
 
   @override
+  State<EcommerceProductCard> createState() => _EcommerceProductCardState();
+}
+
+class _EcommerceProductCardState extends State<EcommerceProductCard> {
+  // Pointer hover only fires on web/desktop; touch devices never set this,
+  // so the mobile experience is byte-for-byte unchanged.
+  bool _hovered = false;
+
+  ProductModel get product => widget.product;
+
+  void _setHover(bool value) {
+    if (_hovered != value) setState(() => _hovered = value);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final hasDiscount = product.hasDiscount;
 
-    return CustomClickableWidget(
-      onTap: () => Get.to(() => EcommerceProductDetailPage(product: product)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image with badges
-          Expanded(
-            child: Stack(
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => _setHover(true),
+      onExit: (_) => _setHover(false),
+      child: AnimatedScale(
+        scale: _hovered ? 1.02 : 1.0,
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(Constants.radiusLarge + 4),
+            boxShadow: _hovered
+                ? [
+                    BoxShadow(
+                      color: ColorResource.primaryDark.withValues(alpha: 0.18),
+                      blurRadius: 22,
+                      spreadRadius: 1,
+                      offset: const Offset(0, 12),
+                    ),
+                  ]
+                : const [],
+          ),
+          child: CustomClickableWidget(
+            onTap: () =>
+                Get.to(() => EcommerceProductDetailPage(product: product)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(Constants.radiusLarge),
-                  ),
-                  child: CustomNetworkImage(
-                    image: product.imageId,
-                    width: double.infinity,
-                    height: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                ),
+                // Image with badges
+                Expanded(
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(Constants.radiusLarge),
+                        ),
+                        child: AnimatedScale(
+                          scale: _hovered ? 1.06 : 1.0,
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeOut,
+                          child: CustomNetworkImage(
+                            image: product.imageId,
+                            width: double.infinity,
+                            height: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
                 if (hasDiscount)
                   Positioned(
                     top: 8,
@@ -163,8 +208,11 @@ class EcommerceProductCard extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
+              ),
+            ),
+          ),
+        ),
+      );
   }
 
   Widget _buildCartControl(BuildContext context) {

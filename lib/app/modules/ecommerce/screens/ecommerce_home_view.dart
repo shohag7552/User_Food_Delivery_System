@@ -29,6 +29,8 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
   final ScrollController _scrollController = ScrollController();
   // Drives the Top Products carousel (used by the web scroll-arrow buttons).
   final ScrollController _topScrollController = ScrollController();
+  // Scroll arrows only reveal while a pointer hovers the Top Products strip.
+  bool _topHovered = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -904,46 +906,74 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _sectionHeader('top_products'.tr, 16),
-                SizedBox(
-                  height: isWide ? 350 : 280,
-                  child: loading
-                      ? const Center(child: CircularProgressIndicator())
-                      : Stack(
-                          children: [
-                            ListView.separated(
-                              controller: _topScrollController,
-                              scrollDirection: Axis.horizontal,
-                              physics: const BouncingScrollPhysics(),
-                              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-                              itemCount: controller.topProducts.length,
-                              separatorBuilder: (_, _) =>
-                                  const SizedBox(width: 14),
-                              itemBuilder: (context, index) => SizedBox(
-                                width: isWide ? 230 : 170,
-                                child: EcommerceProductCard(
-                                  product: controller.topProducts[index],
+                MouseRegion(
+                  onEnter: (_) {
+                    if (!_topHovered) setState(() => _topHovered = true);
+                  },
+                  onExit: (_) {
+                    if (_topHovered) setState(() => _topHovered = false);
+                  },
+                  child: SizedBox(
+                    height: isWide ? 350 : 280,
+                    child: loading
+                        ? const Center(child: CircularProgressIndicator())
+                        : Stack(
+                            children: [
+                              ListView.separated(
+                                controller: _topScrollController,
+                                scrollDirection: Axis.horizontal,
+                                physics: const BouncingScrollPhysics(),
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                                itemCount: controller.topProducts.length,
+                                separatorBuilder: (_, _) =>
+                                    const SizedBox(width: 14),
+                                itemBuilder: (context, index) => SizedBox(
+                                  width: isWide ? 230 : 170,
+                                  child: EcommerceProductCard(
+                                    product: controller.topProducts[index],
+                                  ),
                                 ),
                               ),
-                            ),
-                            // Scroll arrows — only useful with a pointer (web).
-                            if (isWide) ...[
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: _scrollArrow(isLeft: true),
-                              ),
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: _scrollArrow(isLeft: false),
-                              ),
+                              // Scroll arrows — reveal only while hovered (web).
+                              if (isWide) ...[
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: _animatedArrow(isLeft: true),
+                                ),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: _animatedArrow(isLeft: false),
+                                ),
+                              ],
                             ],
-                          ],
-                        ),
+                          ),
+                  ),
                 ),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  /// Fades + slides the scroll arrow in while the strip is hovered, and out
+  /// (non-interactive) otherwise.
+  Widget _animatedArrow({required bool isLeft}) {
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+      opacity: _topHovered ? 1 : 0,
+      child: AnimatedSlide(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+        offset: _topHovered ? Offset.zero : Offset(isLeft ? -0.4 : 0.4, 0),
+        child: IgnorePointer(
+          ignoring: !_topHovered,
+          child: _scrollArrow(isLeft: isLeft),
+        ),
+      ),
     );
   }
 
