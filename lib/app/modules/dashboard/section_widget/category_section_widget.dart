@@ -2,14 +2,14 @@ import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dar
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
-import 'package:appwrite_user_app/app/modules/categories/screens/category_screen.dart';
-import 'package:appwrite_user_app/app/modules/categories/screens/category_products_page.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/dashboard_shimmer.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class CategorySectionWidget extends StatelessWidget {
   static const int _maxHomeCategorySlots = 10;
@@ -38,12 +38,7 @@ class CategorySectionWidget extends StatelessWidget {
                   TextButton(
                     onPressed: () {
                       // Navigate to all categories
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CategoryScreen(),
-                        ),
-                      );
+                      context.pushNamed(RouteNames.categories);
                     },
                     child: Text(
                       'see_all'.tr,
@@ -127,7 +122,11 @@ class CategorySectionWidget extends StatelessWidget {
             label: category.nameMap.trLanguage,
             imagePath: category.imagePath,
             onTap: () {
-              Get.to(() => CategoryProductsPage(category: category));
+              context.pushNamed(
+                RouteNames.category,
+                pathParameters: {'id': category.id},
+                extra: category,
+              );
             },
           );
         },
@@ -206,12 +205,7 @@ class CategorySectionWidget extends StatelessWidget {
   Widget _buildMoreCategoriesTile(BuildContext context, int totalCategories) {
     return CustomClickableWidget(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const CategoryScreen(),
-          ),
-        );
+        context.pushNamed(RouteNames.categories);
       },
       isBackgroundTransparent: true,
       margin: const EdgeInsets.only(right: Constants.paddingSizeLarge),

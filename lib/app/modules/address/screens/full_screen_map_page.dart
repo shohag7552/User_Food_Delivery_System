@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geocoding/geocoding.dart' hide Location;
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
 
@@ -194,7 +195,7 @@ class _FullScreenMapPageState extends State<FullScreenMapPage> {
             child: ElevatedButton(
               onPressed: () {
                 // Return selected location to previous screen
-                Get.back(result: _selectedLocation);
+                context.pop(_selectedLocation);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: ColorResource.primaryDark,

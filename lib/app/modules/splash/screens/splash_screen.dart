@@ -2,8 +2,7 @@ import 'dart:async';
 
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/splash_controller.dart';
-import 'package:appwrite_user_app/app/modules/auth/screens/login_screen.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/screens/dashboard_screen.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/images.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -86,9 +85,9 @@ class _SplashScreenState extends State<SplashScreen> {
     _hasNavigated = true;
 
     if (isLoggedIn) {
-      Get.offAll(() => DashboardScreen());
+      AppRouter.router.goNamed(RouteNames.dashboard);
     } else {
-      Get.offAll(() => LoginScreen());
+      AppRouter.router.goNamed(RouteNames.login);
     }
   }
 

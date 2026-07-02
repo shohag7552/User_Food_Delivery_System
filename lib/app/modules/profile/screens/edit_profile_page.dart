@@ -5,6 +5,7 @@ import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class EditProfilePage extends StatelessWidget {
   const EditProfilePage({super.key});
@@ -113,7 +114,7 @@ class EditProfilePage extends StatelessWidget {
       backgroundColor: ColorResource.primaryDark,
       leading: IconButton(
         icon: Icon(Icons.arrow_back, color: ColorResource.textWhite),
-        onPressed: () => Get.back(),
+        onPressed: () => context.pop(),
       ),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
@@ -324,7 +325,7 @@ class EditProfilePage extends StatelessWidget {
                         icon: Icons.photo_library_outlined,
                         label: 'gallery'.tr,
                         onTap: () {
-                          Get.back();
+                          Navigator.pop(context);
                           controller.uploadProfileImage();
                         },
                       ),
@@ -336,7 +337,7 @@ class EditProfilePage extends StatelessWidget {
                         icon: Icons.camera_alt_outlined,
                         label: 'camera'.tr,
                         onTap: () {
-                          Get.back();
+                          Navigator.pop(context);
                           controller.takePhoto();
                         },
                       ),

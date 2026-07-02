@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
 import 'package:appwrite_user_app/app/modules/address/domain/repository/address_repo_interface.dart';
 import 'package:get/get.dart';
@@ -62,7 +63,7 @@ class AddressController extends GetxController implements GetxService {
     try {
       await addressRepoInterface.addAddress(address);
       await fetchAddresses(); // Refresh list
-      Get.back(); // Close add address page
+      AppRouter.router.pop(); // Close add address page
       customToster('Address added successfully');
     } catch (e) {
       log('Error adding address: $e');

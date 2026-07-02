@@ -3,21 +3,13 @@ import 'package:appwrite_user_app/app/controllers/localization_controller.dart';
 import 'package:appwrite_user_app/app/controllers/policy_controller.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
-import 'package:appwrite_user_app/app/modules/address/screens/addresses_page.dart';
-import 'package:appwrite_user_app/app/modules/auth/screens/login_screen.dart';
-import 'package:appwrite_user_app/app/modules/coupons/screens/coupons_screen.dart';
-import 'package:appwrite_user_app/app/modules/favorites/screens/favorites_screen.dart';
-import 'package:appwrite_user_app/app/modules/language/screens/language_screen.dart';
-import 'package:appwrite_user_app/app/modules/loyalty_point/screens/loyalty_points_page.dart';
-import 'package:appwrite_user_app/app/modules/notification/screens/notification_screen.dart';
-import 'package:appwrite_user_app/app/modules/orders/screens/order_history_page.dart';
-import 'package:appwrite_user_app/app/modules/policies/screens/policy_content_screen.dart';
-import 'package:appwrite_user_app/app/modules/profile/screens/edit_profile_page.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 /// Right-side drawer shown on web. Mirrors the profile page menu sections so
 /// users can reach every account/settings destination without leaving the
@@ -61,7 +53,7 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                   subtitle: 'my_profile_subtitle'.tr,
                   onTap: () {
                     _close();
-                    Get.to(() => const EditProfilePage());
+                    context.pushNamed(RouteNames.editProfile);
                   },
                 ),
                 _item(
@@ -70,7 +62,7 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                   subtitle: 'manage_delivery_addresses'.tr,
                   onTap: () {
                     _close();
-                    Get.to(AddressesPage());
+                    context.pushNamed(RouteNames.addresses);
                   },
                 ),
                 _item(
@@ -91,7 +83,7 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                   subtitle: 'order_history_subtitle'.tr,
                   onTap: () {
                     _close();
-                    Get.to(() => const OrderHistoryPage());
+                    context.pushNamed(RouteNames.orderHistory);
                   },
                 ),
                 _item(
@@ -100,7 +92,10 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                   subtitle: 'favorites_subtitle'.tr,
                   onTap: () {
                     _close();
-                    Get.to(() => FavoritesScreen(isFromMenu: true));
+                    context.pushNamed(
+                      RouteNames.favorites,
+                      queryParameters: {'fromMenu': 'true'},
+                    );
                   },
                 ),
                 _item(
@@ -121,7 +116,7 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                   subtitle: 'view_and_apply_promo_codes'.tr,
                   onTap: () {
                     _close();
-                    Get.to(() => CouponsScreen());
+                    context.pushNamed(RouteNames.coupons);
                   },
                 ),
                 _item(
@@ -130,7 +125,7 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                   subtitle: 'earn_and_redeem_points'.tr,
                   onTap: () {
                     _close();
-                    Get.to(() => const LoyaltyPointsPage());
+                    context.pushNamed(RouteNames.loyalty);
                   },
                 ),
                 _item(
@@ -151,7 +146,7 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                   subtitle: 'manage_notification_preferences'.tr,
                   onTap: () {
                     _close();
-                    Get.to(() => const NotificationScreen());
+                    context.pushNamed(RouteNames.notifications);
                   },
                 ),
                 // Dark mode toggle mirrors the profile page control exactly.
@@ -179,7 +174,7 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                       subtitle: lang,
                       onTap: () {
                         _close();
-                        Get.to(() => const LanguageScreen());
+                        context.pushNamed(RouteNames.language);
                       },
                     );
                   },
@@ -202,10 +197,13 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                         subtitle: 'learn_more_about_us'.tr,
                         onTap: () {
                           _close();
-                          Get.to(() => PolicyContentScreen(
-                                title: 'about_us'.tr,
-                                htmlContent: pc.policies?.aboutUsHtml ?? '',
-                              ));
+                          context.pushNamed(
+                            RouteNames.policy,
+                            extra: PolicyArgs(
+                              title: 'about_us'.tr,
+                              htmlContent: pc.policies?.aboutUsHtml ?? '',
+                            ),
+                          );
                         },
                       ),
                       _item(
@@ -214,11 +212,14 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                         subtitle: 'read_our_terms'.tr,
                         onTap: () {
                           _close();
-                          Get.to(() => PolicyContentScreen(
-                                title: 'terms_and_conditions_title'.tr,
-                                htmlContent:
-                                    pc.policies?.termsAndConditionsHtml ?? '',
-                              ));
+                          context.pushNamed(
+                            RouteNames.policy,
+                            extra: PolicyArgs(
+                              title: 'terms_and_conditions_title'.tr,
+                              htmlContent:
+                                  pc.policies?.termsAndConditionsHtml ?? '',
+                            ),
+                          );
                         },
                       ),
                       _item(
@@ -227,11 +228,13 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                         subtitle: 'read_our_privacy_policy'.tr,
                         onTap: () {
                           _close();
-                          Get.to(() => PolicyContentScreen(
-                                title: 'privacy_policy_title'.tr,
-                                htmlContent:
-                                    pc.policies?.privacyPolicyHtml ?? '',
-                              ));
+                          context.pushNamed(
+                            RouteNames.policy,
+                            extra: PolicyArgs(
+                              title: 'privacy_policy_title'.tr,
+                              htmlContent: pc.policies?.privacyPolicyHtml ?? '',
+                            ),
+                          );
                         },
                       ),
                     ],
@@ -486,7 +489,7 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
             onPressed: () async {
               Navigator.pop(ctx);
               await Get.find<AuthController>().logout();
-              Get.offAll(() => const LoginScreen());
+              if (mounted) context.goNamed(RouteNames.login);
             },
             child: Text(
               'logout'.tr,

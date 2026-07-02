@@ -588,5 +588,6 @@
   "update_cart": "কার্ট আপডেট করুন",
   "cart_updated": "কার্ট আপডেট হয়েছে",
   "shop_tagline": "অসাধারণ পণ্য আবিষ্কার করুন",
-  "new_arrivals": "নতুন পণ্য"
+  "new_arrivals": "নতুন পণ্য",
+  "product_not_found": "পণ্য খুঁজে পাওয়া যায়নি"
 }

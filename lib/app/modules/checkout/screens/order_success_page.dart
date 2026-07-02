@@ -1,10 +1,11 @@
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
-import 'package:appwrite_user_app/app/modules/orders/screens/orders_page.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class OrderSuccessPage extends StatelessWidget {
   final String orderNumber;
@@ -53,7 +54,7 @@ class OrderSuccessPage extends StatelessWidget {
                     // const SizedBox(height: 18),
                     // _buildStatusCard(),
                     const SizedBox(height: 28),
-                    _buildActionButtons(),
+                    _buildActionButtons(context),
                   ],
                 ),
               ),
@@ -402,15 +403,15 @@ class OrderSuccessPage extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(BuildContext context) {
     return Column(
       children: [
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () {
-              // Push orders page so the default app bar back button remains available
-              Get.off(() => const OrdersPage());
+              // Replace with the orders page so the success page is removed from the stack
+              context.goNamed(RouteNames.orders);
             },
             icon: const Icon(Icons.receipt_long),
             label: Text(
@@ -437,7 +438,7 @@ class OrderSuccessPage extends StatelessWidget {
           child: OutlinedButton.icon(
             onPressed: () {
               // Go back to home/dashboard, clear navigation stack
-              Get.until((route) => route.isFirst);
+              context.goNamed(RouteNames.dashboard);
             },
             icon: const Icon(Icons.shopping_bag_outlined),
             label: Text(

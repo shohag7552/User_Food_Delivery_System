@@ -12,6 +12,7 @@ import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SearchPage extends StatefulWidget {
@@ -235,7 +236,7 @@ class _SearchPageState extends State<SearchPage> {
               color: ColorResource.textLight,
             ),
             prefixIcon: IconButton(
-              onPressed: () => Get.back(),
+              onPressed: () => context.pop(),
               icon: Icon(
                 Icons.arrow_back,
               ),

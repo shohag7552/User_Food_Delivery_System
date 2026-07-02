@@ -3,21 +3,13 @@ import 'package:appwrite_user_app/app/controllers/localization_controller.dart';
 import 'package:appwrite_user_app/app/controllers/policy_controller.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
-import 'package:appwrite_user_app/app/modules/address/screens/addresses_page.dart';
-import 'package:appwrite_user_app/app/modules/coupons/screens/coupons_screen.dart';
-import 'package:appwrite_user_app/app/modules/favorites/screens/favorites_screen.dart';
-import 'package:appwrite_user_app/app/modules/language/screens/language_screen.dart';
-import 'package:appwrite_user_app/app/modules/loyalty_point/screens/loyalty_points_page.dart';
-import 'package:appwrite_user_app/app/modules/notification/screens/notification_screen.dart';
-import 'package:appwrite_user_app/app/modules/orders/screens/order_history_page.dart';
-import 'package:appwrite_user_app/app/modules/auth/screens/login_screen.dart';
-import 'package:appwrite_user_app/app/modules/policies/screens/policy_content_screen.dart';
-import 'package:appwrite_user_app/app/modules/profile/screens/edit_profile_page.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 
 class ProfilePage extends StatefulWidget {
@@ -72,7 +64,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               title: 'my_profile'.tr,
                               subtitle: 'my_profile_subtitle'.tr,
                               onTap: () {
-                                Get.to(() => const EditProfilePage());
+                                context.pushNamed(RouteNames.editProfile);
                               },
                             ),
                             _ProfileOption(
@@ -80,7 +72,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               title: 'saved_addresses'.tr,
                               subtitle: 'manage_delivery_addresses'.tr,
                               onTap: () {
-                                Get.to(AddressesPage());
+                                context.pushNamed(RouteNames.addresses);
                               },
                             ),
                             _ProfileOption(
@@ -104,7 +96,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               title: 'order_history'.tr,
                               subtitle: 'order_history_subtitle'.tr,
                               onTap: () {
-                                Get.to(() => const OrderHistoryPage());
+                                context.pushNamed(RouteNames.orderHistory);
                               },
                             ),
                             _ProfileOption(
@@ -112,7 +104,10 @@ class _ProfilePageState extends State<ProfilePage> {
                               title: 'favorites'.tr,
                               subtitle: 'favorites_subtitle'.tr,
                               onTap: () {
-                                Get.to(() => FavoritesScreen(isFromMenu: true));
+                                context.pushNamed(
+                                  RouteNames.favorites,
+                                  queryParameters: {'fromMenu': 'true'},
+                                );
                               },
                             ),
                             _ProfileOption(
@@ -137,7 +132,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               subtitle: 'view_and_apply_promo_codes'.tr,
                               trailing: _buildBadge('3'),
                               onTap: () {
-                                Get.to(()=> CouponsScreen());
+                                context.pushNamed(RouteNames.coupons);
                               },
                             ),
                             _ProfileOption(
@@ -145,7 +140,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               title: 'loyalty_points'.tr,
                               subtitle: 'earn_and_redeem_points'.tr,
                               onTap: () {
-                                Get.to(() => const LoyaltyPointsPage());
+                                context.pushNamed(RouteNames.loyalty);
                               },
                             ),
                             _ProfileOption(
@@ -169,7 +164,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               title: 'notifications_title'.tr,
                               subtitle: 'manage_notification_preferences'.tr,
                               onTap: () {
-                                Get.to(() => const NotificationScreen());
+                                context.pushNamed(RouteNames.notifications);
                               },
                             ),
                             GetBuilder<LocalizationController>(
@@ -194,7 +189,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                    title: 'language'.tr,
                                   subtitle: selectedLang?.languageName ?? 'English',
                                   onTap: () {
-                                    Get.to(() => const LanguageScreen());
+                                    context.pushNamed(RouteNames.language);
                                   },
                                 );
                               },
@@ -213,8 +208,9 @@ class _ProfilePageState extends State<ProfilePage> {
                               subtitle: 'learn_more_about_us'.tr,
                               onTap: () {
                                 final policyController = Get.find<PolicyController>();
-                                Get.to(
-                                  () => PolicyContentScreen(
+                                context.pushNamed(
+                                  RouteNames.policy,
+                                  extra: PolicyArgs(
                                     title: 'about_us'.tr,
                                     htmlContent: policyController.policies?.aboutUsHtml ?? '',
                                   ),
@@ -227,8 +223,9 @@ class _ProfilePageState extends State<ProfilePage> {
                               subtitle: 'read_our_terms'.tr,
                               onTap: () {
                                 final policyController = Get.find<PolicyController>();
-                                Get.to(
-                                  () => PolicyContentScreen(
+                                context.pushNamed(
+                                  RouteNames.policy,
+                                  extra: PolicyArgs(
                                     title: 'terms_and_conditions_title'.tr,
                                     htmlContent: policyController.policies?.termsAndConditionsHtml ?? '',
                                   ),
@@ -241,8 +238,9 @@ class _ProfilePageState extends State<ProfilePage> {
                               subtitle: 'read_our_privacy_policy'.tr,
                               onTap: () {
                                 final policyController = Get.find<PolicyController>();
-                                Get.to(
-                                  () => PolicyContentScreen(
+                                context.pushNamed(
+                                  RouteNames.policy,
+                                  extra: PolicyArgs(
                                     title: 'privacy_policy_title'.tr,
                                     htmlContent: policyController.policies?.privacyPolicyHtml ?? '',
                                   ),
@@ -505,7 +503,7 @@ class _ProfilePageState extends State<ProfilePage> {
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(
           'logout'.tr,
           style: poppinsBold.copyWith(fontSize: Constants.fontSizeLarge),
@@ -516,7 +514,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'cancel'.tr,
               style: poppinsMedium.copyWith(color: ColorResource.textSecondary),
@@ -524,13 +522,13 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               // Get AuthController and call logout
               final authController = Get.find<AuthController>();
               await authController.logout();
 
               // Navigate to login screen and clear navigation stack
-              Get.offAll(() => const LoginScreen());
+              if (context.mounted) context.goNamed(RouteNames.login);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: ColorResource.error,

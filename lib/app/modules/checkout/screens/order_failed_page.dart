@@ -1,8 +1,10 @@
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class OrderFailedPage extends StatelessWidget {
   final String errorMessage;
@@ -58,7 +60,7 @@ class OrderFailedPage extends StatelessWidget {
                     const SizedBox(height: 40),
 
                     // Action Buttons
-                    _buildActionButtons(),
+                    _buildActionButtons(context),
                   ],
                 ),
               ),
@@ -143,7 +145,7 @@ class OrderFailedPage extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(BuildContext context) {
     return Column(
       children: [
         // Retry Button
@@ -152,7 +154,7 @@ class OrderFailedPage extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: () {
-                Get.back(); // Go back to checkout
+                context.pop(); // Go back to checkout
                 onRetry?.call(); // Trigger retry
               },
               icon: const Icon(Icons.refresh),
@@ -179,7 +181,7 @@ class OrderFailedPage extends StatelessWidget {
           width: double.infinity,
           child: OutlinedButton.icon(
             onPressed: () {
-              Get.back(); // Go back to checkout
+              context.pop(); // Go back to checkout
             },
             icon: const Icon(Icons.arrow_back),
             label: Text(
@@ -206,7 +208,7 @@ class OrderFailedPage extends StatelessWidget {
         // Home Button
         TextButton.icon(
           onPressed: () {
-            Get.until((route) => route.isFirst); // Go to home
+            context.goNamed(RouteNames.dashboard); // Go to home
           },
           icon: const Icon(Icons.home_outlined),
           label: Text(

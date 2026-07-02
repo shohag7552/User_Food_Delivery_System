@@ -1,12 +1,13 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/controllers/address_controller.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
-import 'package:appwrite_user_app/app/modules/address/screens/add_edit_address_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 enum _AddressCardAction { setDefault, edit, delete }
 
@@ -46,7 +47,7 @@ class AddressesPage extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          Get.to(() => const AddEditAddressPage());
+          context.pushNamed(RouteNames.addEditAddress);
         },
         backgroundColor: ColorResource.primaryDark,
         label: Text(
@@ -297,7 +298,7 @@ class AddressesPage extends StatelessWidget {
         controller.setDefaultAddress(address.id);
         break;
       case _AddressCardAction.edit:
-        Get.to(() => AddEditAddressPage(address: address));
+        context.pushNamed(RouteNames.addEditAddress, extra: address);
         break;
       case _AddressCardAction.delete:
         _showDeleteConfirmation(context, address, controller);

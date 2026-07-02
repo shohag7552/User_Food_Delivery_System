@@ -16,6 +16,7 @@ import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class FavoritesScreen extends StatefulWidget {
   final bool? isFromMenu;
@@ -302,7 +303,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
-              onPressed: () => Get.back(),
+              onPressed: () => context.pop(),
               icon: Icon(Icons.arrow_back, color: ColorResource.textWhite),
               label: Text(
                 'browse_products'.tr,

@@ -1,12 +1,13 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/address_controller.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
-import 'package:appwrite_user_app/app/modules/address/screens/add_edit_address_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class AddressSelectionBottomSheet extends StatefulWidget {
   final AddressModel? initialAddress;
@@ -298,7 +299,7 @@ class _AddressSelectionBottomSheetState
   Widget _buildAddNewButton() {
     return GestureDetector(
       onTap: () async {
-        final result = await Get.to(() => const AddEditAddressPage());
+        final result = await context.pushNamed(RouteNames.addEditAddress);
         if (result == true) {
           // Address was added, refresh the controller
           Get.find<AddressController>().fetchAddresses();
@@ -376,7 +377,7 @@ class _AddressSelectionBottomSheetState
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () async {
-                final result = await Get.to(() => const AddEditAddressPage());
+                final result = await context.pushNamed(RouteNames.addEditAddress);
                 if (result == true) {
                   Get.find<AddressController>().fetchAddresses();
                 }

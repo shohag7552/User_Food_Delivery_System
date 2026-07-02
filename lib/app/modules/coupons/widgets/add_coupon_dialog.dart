@@ -100,8 +100,8 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
           validFrom: _validFrom!,
           validUntil: _validUntil!,
         ).then((success) {
-          if (success) {
-            Get.back();
+          if (success && mounted) {
+            Navigator.pop(context);
           }
         });
       } else {
@@ -124,8 +124,8 @@ class _AddCouponDialogState extends State<AddCouponDialog> {
           validUntil: _validUntil!,
           usedCount: widget.coupon!.usedCount,
         ).then((success) {
-          if (success) {
-            Get.back();
+          if (success && mounted) {
+            Navigator.pop(context);
           }
         });
       }

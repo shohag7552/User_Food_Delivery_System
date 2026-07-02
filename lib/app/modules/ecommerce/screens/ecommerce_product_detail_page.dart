@@ -9,10 +9,10 @@ import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/widgets/full_screen_image_viewer.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/modules/ecommerce/widgets/ecommerce_product_card.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/review_list_section.dart';
@@ -21,6 +21,7 @@ import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class EcommerceProductDetailPage extends StatefulWidget {
   final ProductModel product;
@@ -228,7 +229,7 @@ class _EcommerceProductDetailPageState
         padding: const EdgeInsets.only(left: 12),
         child: _circleButton(
           icon: Icons.arrow_back,
-          onTap: () => Get.back(),
+          onTap: () => context.pop(),
         ),
       ),
       actions: [
@@ -439,7 +440,7 @@ class _EcommerceProductDetailPageState
         // Tapping a destination returns to the dashboard and opens that tab.
         onDestinationSelected: (index) {
           DashboardTabBus.open(index);
-          Get.until((route) => route.isFirst);
+          context.goNamed(RouteNames.dashboard);
         },
         onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
       ),
@@ -488,12 +489,11 @@ class _EcommerceProductDetailPageState
           child: Stack(
             children: [
               GestureDetector(
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => FullScreenImageViewer(
-                      imageUrl: images[_currentImage],
-                      heroTag: 'ecom-web-${product.id}-$_currentImage',
-                    ),
+                onTap: () => context.pushNamed(
+                  RouteNames.imageViewer,
+                  extra: ImageViewerArgs(
+                    imageUrl: images[_currentImage],
+                    heroTag: 'ecom-web-${product.id}-$_currentImage',
                   ),
                 ),
                 child: ClipRRect(
@@ -680,12 +680,11 @@ class _EcommerceProductDetailPageState
           onPageChanged: (i) => setState(() => _currentImage = i),
           itemBuilder: (context, index) {
             return GestureDetector(
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => FullScreenImageViewer(
-                    imageUrl: images[index],
-                    heroTag: 'ecom-${product.id}-$index',
-                  ),
+              onTap: () => context.pushNamed(
+                RouteNames.imageViewer,
+                extra: ImageViewerArgs(
+                  imageUrl: images[index],
+                  heroTag: 'ecom-${product.id}-$index',
                 ),
               ),
               child: CustomNetworkImage(

@@ -8,8 +8,7 @@ import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
-import 'package:appwrite_user_app/app/modules/cart/screens/cart_page.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/widgets/full_screen_image_viewer.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/review_list_section.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -17,6 +16,7 @@ import 'package:appwrite_user_app/app/resources/images.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class ProductDetailBottomSheet extends StatefulWidget {
   final ProductModel product;
@@ -487,7 +487,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                     ),
                     const SizedBox(width: 8),
                     GestureDetector(
-                      onTap: () => Get.back(),
+                      onTap: () => Navigator.pop(context),
                       child: Container(
                         width: 30,
                         height: 30,
@@ -525,12 +525,11 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
 
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => FullScreenImageViewer(
-              imageUrl: widget.product.imageId,
-              heroTag: _imageHeroTag,
-            ),
+        context.pushNamed(
+          RouteNames.imageViewer,
+          extra: ImageViewerArgs(
+            imageUrl: widget.product.imageId,
+            heroTag: _imageHeroTag,
           ),
         );
       },
@@ -1271,7 +1270,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                           });
                         }
 
-                        Get.back();
+                        Navigator.pop(this.context);
 
                         if (_matchingCartItem == null && widget.cartItem == null) {
                           ScaffoldMessenger.of(this.context).showSnackBar(
@@ -1290,7 +1289,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                                 label: 'View Cart',
                                 textColor: ColorResource.textWhite,
                                 onPressed: () {
-                                  Get.to(() => const CartPage());
+                                  this.context.pushNamed(RouteNames.cart);
                                 },
                               ),
                             ),
@@ -1304,7 +1303,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                             _isAddingToCart = false;
                           });
                         }
-                        Get.back();
+                        Navigator.pop(this.context);
                         customToster('Failed to add to cart');
                       }
                     },

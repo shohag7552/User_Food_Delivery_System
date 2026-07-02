@@ -13,12 +13,9 @@ import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/enums/payment_method_enum.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
 import 'package:appwrite_user_app/app/models/business_hours_model.dart';
-import 'package:appwrite_user_app/app/modules/address/screens/add_edit_address_page.dart';
-import 'package:appwrite_user_app/app/modules/address/screens/full_screen_map_page.dart';
-import 'package:appwrite_user_app/app/modules/checkout/screens/order_failed_page.dart';
-import 'package:appwrite_user_app/app/modules/checkout/screens/order_success_page.dart';
 import 'package:appwrite_user_app/app/modules/checkout/widgets/address_selection_bottomsheet.dart';
 import 'package:appwrite_user_app/app/modules/checkout/widgets/edit_address_info_bottomsheet.dart';
 import 'package:appwrite_user_app/app/modules/checkout/widgets/delivery_schedule_bottomsheet.dart';
@@ -31,6 +28,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 class CheckoutPage extends StatefulWidget {
@@ -115,8 +113,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
         ? LatLng(base.latitude!, base.longitude!)
         : const LatLng(23.8103, 90.4125); // Dhaka fallback
 
-    final picked = await Get.to<LatLng?>(
-      () => FullScreenMapPage(initialLocation: initial),
+    final picked = await context.pushNamed<LatLng?>(
+      RouteNames.mapPicker,
+      extra: initial,
     );
     if (picked == null || !mounted) return;
 
@@ -187,7 +186,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final addressController = Get.find<AddressController>();
     final previousIds = addressController.addresses.map((address) => address.id).toSet();
 
-    await Get.to(() => const AddEditAddressPage());
+    await context.pushNamed(RouteNames.addEditAddress);
     await addressController.fetchAddresses();
 
     AddressModel? nextSelection;
@@ -343,7 +342,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: () => Get.back(),
+                    onPressed: () => context.pop(),
                     child: Text('go_back'.tr),
                   ),
                 ],
@@ -1721,13 +1720,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
         }
 
         // Open WebView for user to complete payment
-        final webViewResult = await Navigator.push<PaymentResult>(
-          context,
-          MaterialPageRoute(
-            builder: (_) => PaymentWebViewScreen(
-              paymentURL: paymentURL,
-              gatewayName: _selectedGateway.displayName,
-            ),
+        if (!mounted) return;
+        final webViewResult = await context.pushNamed<PaymentResult?>(
+          RouteNames.payment,
+          extra: PaymentArgs(
+            paymentURL: paymentURL,
+            gatewayName: _selectedGateway.displayName,
           ),
         );
 
@@ -1767,18 +1765,24 @@ class _CheckoutPageState extends State<CheckoutPage> {
       cartController.removeCoupon();
 
       if (mounted) {
-        Get.off(() => OrderSuccessPage(
-          orderNumber: orderNumber,
-          totalAmount: total,
-        ));
+        context.goNamed(
+          RouteNames.orderSuccess,
+          extra: OrderSuccessArgs(
+            orderNumber: orderNumber,
+            totalAmount: total,
+          ),
+        );
       }
     } catch (e) {
       // Navigate to failed page
       if (mounted) {
-        Get.to(() => OrderFailedPage(
-          errorMessage: e.toString().replaceAll('Exception: ', ''),
-          onRetry: () => _placeOrder(cartController, total, deliveryFee, taxAmount),
-        ));
+        context.pushNamed(
+          RouteNames.orderFailed,
+          extra: OrderFailedArgs(
+            errorMessage: e.toString().replaceAll('Exception: ', ''),
+            onRetry: () => _placeOrder(cartController, total, deliveryFee, taxAmount),
+          ),
+        );
       }
     }
   }

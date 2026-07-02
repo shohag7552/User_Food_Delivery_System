@@ -4,6 +4,7 @@ import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class LanguageScreen extends StatefulWidget {
   const LanguageScreen({super.key});
@@ -124,7 +125,7 @@ class _LanguageScreenState extends State<LanguageScreen> with SingleTickerProvid
       Locale(language.languageCode!, language.countryCode),
     );
     Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) Get.back();
+      if (mounted) context.pop();
     });
   }
 }

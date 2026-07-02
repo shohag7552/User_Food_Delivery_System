@@ -599,5 +599,6 @@
   "update_cart": "Update cart",
   "cart_updated": "Cart updated",
   "shop_tagline": "Discover amazing products",
-  "new_arrivals": "New Arrivals"
+  "new_arrivals": "New Arrivals",
+  "product_not_found": "Product not found"
 }

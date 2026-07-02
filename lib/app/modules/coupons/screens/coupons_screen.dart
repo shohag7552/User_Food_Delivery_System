@@ -1,13 +1,14 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/controllers/coupon_controller.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/coupon_model.dart';
-import 'package:appwrite_user_app/app/modules/coupons/screens/coupon_details_screen.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class CouponsScreen extends StatefulWidget {
   final bool isSelectionMode;
@@ -127,9 +128,9 @@ class _CouponCard extends StatelessWidget {
   }
 
   void _handleTap(BuildContext context) {
-    // Import the details screen at the top of the file
-    Get.to(
-      () => CouponDetailsScreen(
+    context.pushNamed(
+      RouteNames.couponDetails,
+      extra: CouponDetailsArgs(
         coupon: coupon,
         isSelectionMode: isSelectionMode,
         onSelect: onSelect,

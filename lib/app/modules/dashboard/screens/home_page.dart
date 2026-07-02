@@ -11,14 +11,14 @@ import 'package:appwrite_user_app/app/modules/dashboard/section_widget/new_items
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/popular_dishes_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/todays_specials_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/promotional_banner.dart';
-import 'package:appwrite_user_app/app/modules/notification/screens/notification_screen.dart';
-import 'package:appwrite_user_app/app/modules/search/screens/search_page.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -361,9 +361,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                                 borderRadius: BorderRadius.circular(
                                   Constants.radiusDefault,
                                 ),
-                                onTap: () => Get.to(
-                                  () => const NotificationScreen(),
-                                ),
+                                onTap: () =>
+                                    context.pushNamed(RouteNames.notifications),
                                 child: Stack(
                                   children: [
                                     Material(
@@ -427,7 +426,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
-      onTap: () => Get.to(() => const SearchPage()),
+      onTap: () => context.pushNamed(RouteNames.search),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(

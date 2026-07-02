@@ -9,7 +9,8 @@ import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
 import 'package:appwrite_user_app/app/models/review_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
-import 'package:appwrite_user_app/app/modules/orders/screens/order_delivery_map_page.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
+import 'package:go_router/go_router.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/submit_review_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
@@ -85,7 +86,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               selectedIndex: null,
               onDestinationSelected: (index) {
                 DashboardTabBus.open(index);
-                Get.until((route) => route.isFirst);
+                context.goNamed(RouteNames.dashboard);
               },
               onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
             )
@@ -1668,8 +1669,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       return;
     }
 
-    Get.to(
-      () => OrderDeliveryMapPage(
+    AppRouter.router.pushNamed(
+      RouteNames.deliveryMap,
+      extra: DeliveryMapArgs(
         deliveryman: deliveryman,
         businessName: businessSetup?.businessName ?? '',
         businessAddress: businessSetup?.storeLocation ?? '',

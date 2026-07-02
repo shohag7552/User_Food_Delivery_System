@@ -5,6 +5,7 @@ import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -107,7 +108,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
 
     if (success) {
       customToster('Password updated successfully. Please sign in.');
-      Get.back();
+      context.pop();
     }
   }
 
@@ -134,7 +135,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                   children: [
                     const SizedBox(height: 32),
                     IconButton(
-                      onPressed: Get.back,
+                      onPressed: () => context.pop(),
                       icon: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(

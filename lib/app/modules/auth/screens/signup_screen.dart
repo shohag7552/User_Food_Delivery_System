@@ -2,11 +2,12 @@ import 'package:appwrite_user_app/app/common/widgets/custom_button.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_text_field.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/screens/dashboard_screen.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -86,7 +87,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
 
         if (success) {
           // Navigate to dashboard after successful signup
-          Get.offAll(() => const DashboardScreen());
+          context.goNamed(RouteNames.dashboard);
         }
       }
     }
@@ -119,7 +120,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                       
                       // Back Button
                       IconButton(
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () => context.pop(),
                         icon: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
@@ -482,7 +483,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                             ),
                             GestureDetector(
                               onTap: () {
-                                Navigator.pop(context);
+                                context.pop();
                               },
                               child: Text(
                                 'sign_in'.tr,

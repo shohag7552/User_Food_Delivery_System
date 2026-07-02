@@ -171,3 +171,50 @@ ThemeData _buildTheme({required Brightness brightness}) {
     ),
   );
 }
+
+/// Page transition used on web/desktop only.
+///
+/// A quick fade with a subtle upward slide — the default Material push
+/// (bottom-up slide) feels heavy in a browser. Applied via `Theme`'s
+/// `pageTransitionsTheme`, which go_router's `MaterialPage` respects, so every
+/// route animates the same way without per-route wiring. Mobile builds keep
+/// their native transitions (this is only wired in on `kIsWeb`).
+const PageTransitionsTheme webPageTransitionsTheme = PageTransitionsTheme(
+  builders: {
+    TargetPlatform.android: _WebFadePageTransitionsBuilder(),
+    TargetPlatform.iOS: _WebFadePageTransitionsBuilder(),
+    TargetPlatform.macOS: _WebFadePageTransitionsBuilder(),
+    TargetPlatform.windows: _WebFadePageTransitionsBuilder(),
+    TargetPlatform.linux: _WebFadePageTransitionsBuilder(),
+    TargetPlatform.fuchsia: _WebFadePageTransitionsBuilder(),
+  },
+);
+
+class _WebFadePageTransitionsBuilder extends PageTransitionsBuilder {
+  const _WebFadePageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    final Animation<double> curved = CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
+    return FadeTransition(
+      opacity: curved,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.015),
+          end: Offset.zero,
+        ).animate(curved),
+        child: child,
+      ),
+    );
+  }
+}

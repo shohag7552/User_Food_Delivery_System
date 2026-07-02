@@ -2,14 +2,15 @@ import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
-import 'package:appwrite_user_app/app/modules/cart/screens/cart_page.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 /// Centralized helper function for handling add to cart functionality
 /// 
@@ -94,7 +95,7 @@ class CartHelper {
         action: SnackBarAction(
           label: 'View Cart',
           textColor: ColorResource.textWhite,
-          onPressed: () => Get.to(() => const CartPage()),
+          onPressed: () => context.pushNamed(RouteNames.cart),
         ),
       ),
     );

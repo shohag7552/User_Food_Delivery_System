@@ -50,9 +50,9 @@ class _CouponSelectionBottomSheetState
     );
   }
 
-  void _selectCoupon(CouponModel coupon) {
+  void _selectCoupon(BuildContext context, CouponModel coupon) {
     // Navigate to details first
-    Get.back(result: coupon);
+    Navigator.pop(context, coupon);
     // Get.to(
     //   () => CouponDetailsScreen(
     //     coupon: coupon,
@@ -227,7 +227,7 @@ class _CouponSelectionBottomSheetState
                           final coupon = controller.coupons![index];
                           return _CouponCard(
                             coupon: coupon,
-                            onTap: () => _selectCoupon(coupon),
+                            onTap: () => _selectCoupon(context, coupon),
                             onCopy: () => _copyCouponCode(context, coupon.code),
                           );
                         },

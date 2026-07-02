@@ -3,6 +3,7 @@ import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:go_router/go_router.dart';
 
 class PolicyContentScreen extends StatelessWidget {
   final String title;
@@ -30,7 +31,7 @@ class PolicyContentScreen extends StatelessWidget {
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded,
                   color: Colors.white),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => context.pop(),
             ),
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,

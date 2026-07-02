@@ -1,12 +1,11 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_button.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
-import 'package:appwrite_user_app/app/modules/auth/screens/forgot_password_screen.dart';
-import 'package:appwrite_user_app/app/modules/auth/screens/signup_screen.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/screens/dashboard_screen.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -46,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
+  Future<void> _handleLogin(BuildContext context) async {
     print('------------Login button pressed');
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -62,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen>
               });
 
               if (v) {
-                Get.off(() => DashboardScreen());
+                context.goNamed(RouteNames.dashboard);
               }
             }
           });
@@ -320,7 +319,7 @@ class _LoginScreenState extends State<LoginScreen>
                               alignment: Alignment.centerRight,
                               child: TextButton(
                                 onPressed: () {
-                                  Get.to(() => const ForgotPasswordScreen());
+                                  context.pushNamed(RouteNames.forgotPassword);
                                 },
                                 child: Text(
                                   'forgot_password_q'.tr,
@@ -336,7 +335,7 @@ class _LoginScreenState extends State<LoginScreen>
                             // Login Button
                             CustomButton(
                               buttonText: 'sign_in'.tr,
-                              onPressed: _handleLogin,
+                              onPressed: () => _handleLogin(context),
                               isLoading: _isLoading,
                             ),
                           ],
@@ -419,7 +418,7 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                           GestureDetector(
                             onTap: () {
-                              Get.to(() => SignupScreen());
+                              context.pushNamed(RouteNames.signup);
                             },
                             child: Text(
                               'sign_up'.tr,

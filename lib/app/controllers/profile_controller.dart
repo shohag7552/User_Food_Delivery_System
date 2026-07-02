@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/user_model.dart';
 import 'package:appwrite_user_app/app/modules/profile/domain/repository/profile_repo_interface.dart';
 import 'package:flutter/material.dart';
@@ -101,7 +102,7 @@ class ProfileController extends GetxController implements GetxService {
       update();
 
       customToster('Profile updated successfully');
-      Get.back(); // Return to profile page
+      AppRouter.router.pop(); // Return to profile page
     } catch (e) {
       _isUpdating = false;
       update();

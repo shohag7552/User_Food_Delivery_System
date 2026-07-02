@@ -7,13 +7,14 @@ import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/helper/cart_helper.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
-import 'package:appwrite_user_app/app/modules/ecommerce/screens/ecommerce_product_detail_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 /// Grid card for the ecommerce storefront: brand + name + rating + price.
 class EcommerceProductCard extends StatefulWidget {
@@ -65,8 +66,11 @@ class _EcommerceProductCardState extends State<EcommerceProductCard> {
                 : const [],
           ),
           child: CustomClickableWidget(
-            onTap: () =>
-                Get.to(() => EcommerceProductDetailPage(product: product)),
+            onTap: () => context.pushNamed(
+              RouteNames.productDetail,
+              pathParameters: {'id': product.id},
+              extra: product,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

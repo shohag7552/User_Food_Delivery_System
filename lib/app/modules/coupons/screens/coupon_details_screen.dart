@@ -5,6 +5,7 @@ import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class CouponDetailsScreen extends StatelessWidget {
   final CouponModel coupon;
@@ -36,10 +37,10 @@ class CouponDetailsScreen extends StatelessWidget {
     );
   }
 
-  void _selectCoupon() {
+  void _selectCoupon(BuildContext context) {
     if (onSelect != null) {
       onSelect!(coupon);
-      Get.back(result: coupon);
+      context.pop(coupon);
     }
   }
 
@@ -388,7 +389,7 @@ class CouponDetailsScreen extends StatelessWidget {
               ),
               child: SafeArea(
                 child: ElevatedButton(
-                  onPressed: _selectCoupon,
+                  onPressed: () => _selectCoupon(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).primaryColor,
                     padding: const EdgeInsets.symmetric(vertical: 16),

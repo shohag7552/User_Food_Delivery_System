@@ -1,12 +1,13 @@
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
-import 'package:appwrite_user_app/app/modules/orders/screens/order_detail_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class OrderHistoryPage extends StatefulWidget {
@@ -67,7 +68,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: ColorResource.textWhite),
-          onPressed: () => Get.back(),
+          onPressed: () => context.pop(),
         ),
         title: Text(
           'Order History',
@@ -270,7 +271,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
-              onPressed: () => Get.back(),
+              onPressed: () => context.pop(),
               icon: const Icon(Icons.restaurant_menu),
               label: Text('browse_menu'.tr),
               style: ElevatedButton.styleFrom(
@@ -294,13 +295,10 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
       child: InkWell(
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
         onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => OrderDetailPage(
-                orderId: order.id,
-                initialOrder: order,
-              ),
-            ),
+          context.pushNamed(
+            RouteNames.orderDetail,
+            pathParameters: {'id': order.id},
+            extra: order,
           );
         },
       child: Container(

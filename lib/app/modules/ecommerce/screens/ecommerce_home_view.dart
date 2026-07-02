@@ -5,17 +5,17 @@ import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/brand_model.dart';
-import 'package:appwrite_user_app/app/modules/categories/screens/category_products_page.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/promotional_banner.dart';
 import 'package:appwrite_user_app/app/modules/ecommerce/widgets/ecommerce_product_card.dart';
-import 'package:appwrite_user_app/app/modules/search/screens/search_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/images.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class EcommerceHomeView extends StatefulWidget {
   const EcommerceHomeView({super.key});
@@ -394,8 +394,10 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
             itemBuilder: (context, index) {
               final category = cats[index];
               return InkWell(
-                onTap: () => Get.to(
-                  () => CategoryProductsPage(category: category),
+                onTap: () => context.pushNamed(
+                  RouteNames.category,
+                  pathParameters: {'id': category.id},
+                  extra: category,
                 ),
                 hoverColor: ColorResource.primaryDark.withValues(alpha: 0.04),
                 child: Padding(
@@ -624,7 +626,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
 
   Widget _buildSearchBar() {
     return GestureDetector(
-      onTap: () => Get.to(() => const SearchPage()),
+      onTap: () => context.pushNamed(RouteNames.search),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         decoration: BoxDecoration(
@@ -737,8 +739,10 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                 itemBuilder: (context, index) {
                   final category = controller.categories[index];
                   return GestureDetector(
-                    onTap: () => Get.to(
-                      () => CategoryProductsPage(category: category),
+                    onTap: () => context.pushNamed(
+                      RouteNames.category,
+                      pathParameters: {'id': category.id},
+                      extra: category,
                     ),
                     child: SizedBox(
                       width: 68,

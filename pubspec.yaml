@@ -35,6 +35,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   get: ^4.7.3
+  go_router: ^14.6.2
   appwrite: ^20.3.2
   dart_appwrite: ^20.1.0
   shared_preferences: ^2.2.2

@@ -2,14 +2,15 @@ import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dar
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/category_model.dart';
-import 'package:appwrite_user_app/app/modules/categories/screens/category_products_page.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/dashboard_shimmer.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class CategoryScreen extends StatefulWidget {
   const CategoryScreen({super.key});
@@ -124,7 +125,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
   Widget _buildCategoryCard(BuildContext context, CategoryModel category) {
     return CustomClickableWidget(
       onTap: () {
-        Get.to(() => CategoryProductsPage(category: category));
+        context.pushNamed(
+          RouteNames.category,
+          pathParameters: {'id': category.id},
+          extra: category,
+        );
       },
       isBackgroundTransparent: true,
       child: Column(

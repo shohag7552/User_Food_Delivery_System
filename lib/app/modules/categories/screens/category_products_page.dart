@@ -14,8 +14,10 @@ import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_draw
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class CategoryProductsPage extends StatefulWidget {
   final CategoryModel category;
@@ -282,7 +284,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
         selectedIndex: null,
         onDestinationSelected: (index) {
           DashboardTabBus.open(index);
-          Get.until((route) => route.isFirst);
+          context.goNamed(RouteNames.dashboard);
         },
         onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
       ),
@@ -317,7 +319,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
               InkWell(
                 onTap: () {
                   DashboardTabBus.open(0);
-                  Get.until((route) => route.isFirst);
+                  context.goNamed(RouteNames.dashboard);
                 },
                 child: Text(
                   'home'.tr,
@@ -432,7 +434,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
       backgroundColor: ColorResource.primaryDark,
       leading: IconButton(
         icon: Icon(Icons.arrow_back, color: ColorResource.textWhite),
-        onPressed: () => Get.back(),
+        onPressed: () => context.pop(),
       ),
       flexibleSpace: FlexibleSpaceBar(
         title: Text(
@@ -584,7 +586,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
-              onPressed: () => Get.back(),
+              onPressed: () => context.pop(),
               icon: const Icon(Icons.arrow_back),
               label: Text('go_back'.tr),
               style: ElevatedButton.styleFrom(

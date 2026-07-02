@@ -5,6 +5,7 @@ import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:go_router/go_router.dart';
 
 enum PaymentResult { success, failed, cancelled }
 
@@ -34,13 +35,13 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
 
     if (urlString.startsWith(PaymentService.successURL)) {
       _resultHandled = true;
-      Navigator.pop(context, PaymentResult.success);
+      context.pop(PaymentResult.success);
     } else if (urlString.startsWith(PaymentService.failURL)) {
       _resultHandled = true;
-      Navigator.pop(context, PaymentResult.failed);
+      context.pop(PaymentResult.failed);
     } else if (urlString.startsWith(PaymentService.cancelURL)) {
       _resultHandled = true;
-      Navigator.pop(context, PaymentResult.cancelled);
+      context.pop(PaymentResult.cancelled);
     }
   }
 
@@ -84,7 +85,7 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
         if (didPop) return;
         final shouldPop = await _onBackPressed();
         if (shouldPop && context.mounted) {
-          Navigator.pop(context, PaymentResult.cancelled);
+          context.pop(PaymentResult.cancelled);
         }
       },
       child: Scaffold(
@@ -94,7 +95,7 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
           onBackButtonPressed: () async {
             final shouldLeave = await _onBackPressed();
             if (shouldLeave && context.mounted) {
-              Navigator.pop(context, PaymentResult.cancelled);
+              context.pop(PaymentResult.cancelled);
             }
           },
         ),
@@ -203,8 +204,7 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
             ),
             const SizedBox(height: 12),
             TextButton(
-              onPressed: () =>
-                  Navigator.pop(context, PaymentResult.cancelled),
+              onPressed: () => context.pop(PaymentResult.cancelled),
               child: const Text('Cancel Payment'),
             ),
           ],

@@ -1,12 +1,13 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/controllers/address_controller.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
-import 'package:appwrite_user_app/app/modules/address/screens/full_screen_map_page.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
@@ -114,9 +115,10 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
   }
 
   Future<void> _openFullScreenMap() async {
-    final selectedLocation = await Get.to<LatLng?>(() => FullScreenMapPage(
-          initialLocation: _selectedLocation ?? _defaultLocation,
-        ));
+    final selectedLocation = await context.pushNamed<LatLng?>(
+      RouteNames.mapPicker,
+      extra: _selectedLocation ?? _defaultLocation,
+    );
 
     if (selectedLocation != null) {
       setState(() {

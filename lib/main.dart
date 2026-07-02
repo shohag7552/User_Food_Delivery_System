@@ -2,11 +2,12 @@ import 'dart:async';
 
 import 'package:appwrite_user_app/app/common/widgets/no_internet_screen.dart';
 import 'package:appwrite_user_app/app/controllers/localization_controller.dart';
-import 'package:appwrite_user_app/app/helper/routes/app_pages.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/messages.dart';
 import 'package:appwrite_user_app/global.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -92,10 +93,17 @@ class _MyAppState extends State<MyApp> {
       builder: (localizeController) {
         Global.setSystemUi(isDarkMode: localizeController.darkTheme);
 
-        return GetMaterialApp(
+        final baseTheme = localizeController.darkTheme ? darkTheme : lightTheme;
+
+        return GetMaterialApp.router(
           title: Constants.appName,
           debugShowCheckedModeBanner: false,
-          theme: localizeController.darkTheme ? darkTheme : lightTheme,
+          // On web, swap the heavy default page push for a subtle fade+slide.
+          theme: kIsWeb
+              ? baseTheme.copyWith(
+                  pageTransitionsTheme: webPageTransitionsTheme,
+                )
+              : baseTheme,
           // theme: darkTheme,
           locale: localizeController.locale,
           translations: Messages(languages: widget.languages),
@@ -103,7 +111,10 @@ class _MyAppState extends State<MyApp> {
             Constants.languages[0].languageCode,
             Constants.languages[0].countryCode,
           ),
-          getPages: AppPages.routes,
+          routeInformationParser: AppRouter.router.routeInformationParser,
+          routerDelegate: AppRouter.router.routerDelegate,
+          routeInformationProvider: AppRouter.router.routeInformationProvider,
+          backButtonDispatcher: AppRouter.router.backButtonDispatcher,
           builder: (context, child) {
             final appChild = child  ?? const SizedBox.shrink();
 
@@ -124,8 +135,6 @@ class _MyAppState extends State<MyApp> {
               ],
             );
           },
-          // home: VerificationScreen(tempToken: '', registrationModel: null),
-          initialRoute: AppPages.goToSplashPage(),
         );
       },
     );
