@@ -1,12 +1,16 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
 import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/models/category_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -24,7 +28,11 @@ class CategoryProductsPage extends StatefulWidget {
 
 class _CategoryProductsPageState extends State<CategoryProductsPage> {
   static const int _pageSize = 10;
+  // Web/desktop layout kicks in above this width.
+  static const double _webBreakpoint = 900;
+  static const double _maxContentWidth = 1100;
 
+  final GlobalKey<ScaffoldState> _webScaffoldKey = GlobalKey<ScaffoldState>();
   final ScrollController _scrollController = ScrollController();
   List<ProductModel> _products = [];
   bool _isLoading = false;
@@ -135,6 +143,15 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isWide = MediaQuery.of(context).size.width >= _webBreakpoint;
+    return isWide ? _buildWebScaffold(context) : _buildMobileScaffold(context);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Mobile (unchanged)
+  // ---------------------------------------------------------------------------
+
+  Widget _buildMobileScaffold(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
       body: CustomScrollView(
@@ -190,6 +207,219 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                   ),
               ],
             ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Web
+  // ---------------------------------------------------------------------------
+
+  Widget _buildWebScaffold(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final crossAxisCount = width >= 1400
+        ? 5
+        : width >= 1100
+            ? 4
+            : 3;
+
+    late final Widget contentSliver;
+    if (_isLoading) {
+      contentSliver = SliverFillRemaining(
+        hasScrollBody: false,
+        child: _buildLoadingState(),
+      );
+    } else if (_errorMessage != null) {
+      contentSliver = SliverFillRemaining(
+        hasScrollBody: false,
+        child: _buildErrorState(),
+      );
+    } else if (_products.isEmpty) {
+      contentSliver = SliverFillRemaining(
+        hasScrollBody: false,
+        child: _buildEmptyState(),
+      );
+    } else {
+      contentSliver = SliverMainAxisGroup(
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+            sliver: SliverGrid(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: 20,
+                mainAxisSpacing: 20,
+                childAspectRatio: 0.72,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) =>
+                    HoverLift(child: _buildProductCard(_products[index])),
+                childCount: _products.length,
+              ),
+            ),
+          ),
+          if (_isLoadingMore)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: ColorResource.primaryDark,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      );
+    }
+
+    return Scaffold(
+      key: _webScaffoldKey,
+      backgroundColor: ColorResource.scaffoldBackground,
+      endDrawer: const WebProfileDrawer(),
+      appBar: WebTopNav(
+        selectedIndex: null,
+        onDestinationSelected: (index) {
+          DashboardTabBus.open(index);
+          Get.until((route) => route.isFirst);
+        },
+        onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
+      ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+          child: CustomScrollView(
+            controller: _scrollController,
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(child: _buildWebHeader()),
+              contentSliver,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWebHeader() {
+    final description = widget.category.descriptionMap.trLanguage.trim();
+    final hasImage = widget.category.imagePath?.isNotEmpty ?? false;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Breadcrumb: Home / <category>
+          Row(
+            children: [
+              InkWell(
+                onTap: () {
+                  DashboardTabBus.open(0);
+                  Get.until((route) => route.isFirst);
+                },
+                child: Text(
+                  'home'.tr,
+                  style: poppinsMedium.copyWith(
+                    fontSize: Constants.fontSizeSmall,
+                    color: ColorResource.primaryDark,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: Icon(
+                  Icons.chevron_right,
+                  size: 16,
+                  color: ColorResource.textLight,
+                ),
+              ),
+              Flexible(
+                child: Text(
+                  widget.category.nameMap.trLanguage,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: poppinsMedium.copyWith(
+                    fontSize: Constants.fontSizeSmall,
+                    color: ColorResource.textSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Hero banner
+          ClipRRect(
+            borderRadius: BorderRadius.circular(Constants.radiusLarge),
+            child: SizedBox(
+              height: 180,
+              width: double.infinity,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (hasImage)
+                    CustomNetworkImage(
+                      image: widget.category.imagePath!,
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.cover,
+                    )
+                  else
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: ColorResource.primaryGradient,
+                      ),
+                    ),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.55),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 24,
+                    right: 24,
+                    bottom: 20,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          widget.category.nameMap.trLanguage,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: poppinsBold.copyWith(
+                            fontSize: Constants.fontSizeOverLarge,
+                            color: ColorResource.textWhite,
+                          ),
+                        ),
+                        if (description.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            description,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: poppinsRegular.copyWith(
+                              fontSize: Constants.fontSizeSmall,
+                              color: ColorResource.textWhite
+                                  .withValues(alpha: 0.9),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

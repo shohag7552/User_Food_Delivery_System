@@ -1,6 +1,7 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
 import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
 import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
@@ -12,6 +13,7 @@ import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -24,6 +26,9 @@ class FavoritesScreen extends StatefulWidget {
 }
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
+  // Web/desktop layout kicks in above this width.
+  static const double _webBreakpoint = 900;
+  static const double _maxContentWidth = 1100;
 
   @override
   void initState() {
@@ -32,19 +37,31 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     Get.find<FavoritesController>().fetchFavorites(canUpdate: false, loadWithProduct: true);
   }
 
+  // As a dashboard tab on web, the shared web top-nav is already shown, so this
+  // screen drops its own app bar (and adds an inline title instead).
+  bool get _hideOwnAppBar => kIsWeb && widget.isFromMenu != true;
+
+  int _crossAxisCount(double width) {
+    if (width < _webBreakpoint) return 2;
+    if (width >= 1400) return 5;
+    if (width >= 1100) return 4;
+    return 3;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
-      appBar: CustomAppbar(
-        title: 'my_favorites'.tr,
-        showBackButton: widget.isFromMenu == true,
-      ),
+      appBar: _hideOwnAppBar
+          ? null
+          : CustomAppbar(
+              title: 'my_favorites'.tr,
+              showBackButton: widget.isFromMenu == true,
+            ),
       body: GetBuilder<FavoritesController>(
         builder: (controller) {
-
           if (controller.isLoading) {
-            return _buildLoadingState();
+            return _buildLoadingState(context);
           }
 
           // Scope favorites to the active storefront so Food and Shop each show
@@ -59,52 +76,139 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             return _buildEmptyState();
           }
 
-          return RefreshIndicator(
-            onRefresh: () => controller.fetchFavorites(),
-            color: ColorResource.primaryDark,
-            child: GridView.builder(
-              padding: const EdgeInsets.fromLTRB(
-                16,
-                16,
-                16,
-                Constants.bottomNavSpace,
-              ),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                mainAxisExtent: 240,
-                // childAspectRatio: 0.75,
-              ),
-              itemCount: favorites.length,
-              itemBuilder: (context, index) {
-                final favorite = favorites[index];
-                final product = favorite.product!;
-                // Ecommerce products use the storefront card (detail page nav,
-                // favorite toggle, cart controls); food keeps its own card.
-                if (product.moduleType == ModuleController.ecommerce) {
-                  return EcommerceProductCard(product: product);
-                }
-                return _buildProductCard(context, product, favorite.id, controller);
-              },
-            ),
-          );
+          return _buildFavoritesBody(context, controller, favorites);
         },
       ),
     );
   }
 
-  Widget _buildLoadingState() {
-    return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, Constants.bottomNavSpace),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 0.75,
+  Widget _buildFavoritesBody(
+    BuildContext context,
+    FavoritesController controller,
+    List favorites,
+  ) {
+    final width = MediaQuery.of(context).size.width;
+    final isWide = width >= _webBreakpoint;
+    final crossAxisCount = _crossAxisCount(width);
+
+    final grid = GridView.builder(
+      padding: EdgeInsets.fromLTRB(
+        isWide ? 24 : 16,
+        _hideOwnAppBar ? 8 : 16,
+        isWide ? 24 : 16,
+        Constants.bottomNavSpace,
       ),
-      itemCount: 6,
+      gridDelegate: isWide
+          ? SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              crossAxisSpacing: 20,
+              mainAxisSpacing: 20,
+              childAspectRatio: 0.66,
+            )
+          : const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              mainAxisExtent: 240,
+            ),
+      itemCount: favorites.length,
+      itemBuilder: (context, index) {
+        final favorite = favorites[index];
+        final product = favorite.product!;
+        // Ecommerce products use the storefront card (has its own hover);
+        // food keeps its own card, wrapped with hover on web.
+        if (product.moduleType == ModuleController.ecommerce) {
+          return EcommerceProductCard(product: product);
+        }
+        final card =
+            _buildProductCard(context, product, favorite.id, controller);
+        return kIsWeb ? HoverLift(child: card) : card;
+      },
+    );
+
+    final refreshable = RefreshIndicator(
+      onRefresh: () => controller.fetchFavorites(),
+      color: ColorResource.primaryDark,
+      child: grid,
+    );
+
+    if (!isWide) return refreshable;
+
+    // Web: centre + cap the content width, with an inline page title.
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+        child: Column(
+          children: [
+            if (_hideOwnAppBar) _buildInlineTitle(favorites.length),
+            Expanded(child: refreshable),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInlineTitle(int count) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Text(
+            'my_favorites'.tr,
+            style: poppinsBold.copyWith(
+              fontSize: Constants.fontSizeOverLarge,
+              color: ColorResource.textPrimary,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            '($count)',
+            style: poppinsMedium.copyWith(
+              fontSize: Constants.fontSizeLarge,
+              color: ColorResource.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingState(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final isWide = width >= _webBreakpoint;
+
+    final grid = GridView.builder(
+      padding: EdgeInsets.fromLTRB(
+        isWide ? 24 : 16,
+        _hideOwnAppBar ? 8 : 16,
+        isWide ? 24 : 16,
+        Constants.bottomNavSpace,
+      ),
+      gridDelegate: isWide
+          ? SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: _crossAxisCount(width),
+              crossAxisSpacing: 20,
+              mainAxisSpacing: 20,
+              childAspectRatio: 0.66,
+            )
+          : const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 0.75,
+            ),
+      itemCount: isWide ? 10 : 6,
       itemBuilder: (context, index) => _buildSkeletonCard(),
+    );
+
+    if (!isWide) return grid;
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+        child: grid,
+      ),
     );
   }
 

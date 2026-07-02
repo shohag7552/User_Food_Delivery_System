@@ -1,17 +1,21 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
 import 'package:appwrite_user_app/app/controllers/review_controller.dart';
 import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
 import 'package:appwrite_user_app/app/models/review_model.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/modules/orders/screens/order_delivery_map_page.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/submit_review_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -27,6 +31,12 @@ class OrderDetailPage extends StatefulWidget {
 }
 
 class _OrderDetailPageState extends State<OrderDetailPage> {
+  // Web/desktop layout kicks in above this width.
+  static const double _webBreakpoint = 900;
+  static const double _maxContentWidth = 820;
+
+  final GlobalKey<ScaffoldState> _webScaffoldKey = GlobalKey<ScaffoldState>();
+
   late final OrderController _orderController;
   late final ReviewController _reviewController;
   OrderModel? _fallbackOrder;
@@ -58,9 +68,23 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isWide = MediaQuery.of(context).size.width >= _webBreakpoint;
+
     return Scaffold(
+      key: _webScaffoldKey,
       backgroundColor: ColorResource.scaffoldBackground,
-      appBar: CustomAppbar(title: 'order_details'.tr),
+      endDrawer: kIsWeb ? const WebProfileDrawer() : null,
+      // On web use the shared site top-nav instead of a plain back-button bar.
+      appBar: kIsWeb
+          ? WebTopNav(
+              selectedIndex: null,
+              onDestinationSelected: (index) {
+                DashboardTabBus.open(index);
+                Get.until((route) => route.isFirst);
+              },
+              onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
+            )
+          : CustomAppbar(title: 'order_details'.tr),
       bottomNavigationBar: GetBuilder<OrderController>(
         builder: (controller) {
           final order = controller.selectedOrder?.id == widget.orderId
@@ -71,7 +95,22 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             return const SizedBox.shrink();
           }
 
-          return _buildBottomActionBar(order, controller);
+          final bar = _buildBottomActionBar(order, controller);
+          // Centre the action bar with the content column on web.
+          // heightFactor: 1.0 makes the Align shrink-wrap the bar's height —
+          // without it, a Scaffold gives bottomNavigationBar a bounded height
+          // and a plain Center would expand to fill the whole screen.
+          return kIsWeb
+              ? Align(
+                  alignment: Alignment.center,
+                  heightFactor: 1.0,
+                  child: ConstrainedBox(
+                    constraints:
+                        const BoxConstraints(maxWidth: _maxContentWidth),
+                    child: bar,
+                  ),
+                )
+              : bar;
         },
       ),
       body: GetBuilder<OrderController>(
@@ -136,41 +175,154 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             color: ColorResource.primaryDark,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                children: [
-                  _buildHeader(order),
-                  if (order.moduleType == 'ecommerce') ...[
-                    if (!['cancelled', 'returned', 'refunded']
-                        .contains(order.status.toLowerCase())) ...[
-                      const SizedBox(height: 16),
-                      _buildStatusTimeline(order),
-                    ],
-                    if ((order.trackingNumber ?? '').isNotEmpty) ...[
-                      const SizedBox(height: 16),
-                      _buildTrackingInfo(order),
-                    ],
-                  ],
-                  const SizedBox(height: 16),
-                  _buildOrderInfo(order),
-                  const SizedBox(height: 16),
-                  _buildItemsList(order),
-                  const SizedBox(height: 16),
-                  _buildDeliveryInfo(order),
-                  const SizedBox(height: 16),
-                  _buildPaymentInfo(order),
-                  if (_hasDeliveryman(order)) ...[
-                    const SizedBox(height: 16),
-                    _buildDeliverymanSection(order),
-                  ],
-                  const SizedBox(height: 16),
-                  _buildPricingBreakdown(order),
-                  const SizedBox(height: 24),
-                  const SizedBox(height: 90),
-                ],
-              ),
+              child: isWide
+                  ? _buildWebContent(order)
+                  : _buildMobileContent(order),
             ),
           );
         },
+      ),
+    );
+  }
+
+  // ── Mobile: single stacked column (unchanged from the original design) ──
+  Widget _buildMobileContent(OrderModel order) {
+    final isEcom = order.moduleType == 'ecommerce';
+    final showTimeline = isEcom &&
+        !['cancelled', 'returned', 'refunded']
+            .contains(order.status.toLowerCase());
+    final hasTracking = isEcom && (order.trackingNumber ?? '').isNotEmpty;
+
+    return Column(
+      children: [
+        _buildHeader(order),
+        if (showTimeline) ...[
+          const SizedBox(height: 16),
+          _buildStatusTimeline(order),
+        ],
+        if (hasTracking) ...[
+          const SizedBox(height: 16),
+          _buildTrackingInfo(order),
+        ],
+        const SizedBox(height: 16),
+        _buildOrderInfo(order),
+        const SizedBox(height: 16),
+        _buildItemsList(order),
+        const SizedBox(height: 16),
+        _buildDeliveryInfo(order),
+        const SizedBox(height: 16),
+        _buildPaymentInfo(order),
+        if (_hasDeliveryman(order)) ...[
+          const SizedBox(height: 16),
+          _buildDeliverymanSection(order),
+        ],
+        const SizedBox(height: 16),
+        _buildPricingBreakdown(order),
+        const SizedBox(height: 24),
+        const SizedBox(height: 90),
+      ],
+    );
+  }
+
+  // ── Web/desktop: constrained, centered single column ──
+  // Structurally identical to the proven mobile stack (so it always renders),
+  // just width-capped for readability and using the rounded gradient header
+  // card instead of the full-bleed banner.
+  Widget _buildWebContent(OrderModel order) {
+    final isEcom = order.moduleType == 'ecommerce';
+    final showTimeline = isEcom &&
+        !['cancelled', 'returned', 'refunded']
+            .contains(order.status.toLowerCase());
+    final hasTracking = isEcom && (order.trackingNumber ?? '').isNotEmpty;
+
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 20, bottom: 32),
+          child: Column(
+            children: [
+              _buildWebHeaderCard(order),
+              if (showTimeline) ...[
+                const SizedBox(height: 16),
+                _buildStatusTimeline(order),
+              ],
+              if (hasTracking) ...[
+                const SizedBox(height: 16),
+                _buildTrackingInfo(order),
+              ],
+              const SizedBox(height: 16),
+              _buildOrderInfo(order),
+              const SizedBox(height: 16),
+              _buildItemsList(order),
+              const SizedBox(height: 16),
+              _buildDeliveryInfo(order),
+              const SizedBox(height: 16),
+              _buildPaymentInfo(order),
+              if (_hasDeliveryman(order)) ...[
+                const SizedBox(height: 16),
+                _buildDeliverymanSection(order),
+              ],
+              const SizedBox(height: 16),
+              _buildPricingBreakdown(order),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Premium gradient header card used on the web layout (rounded, not
+  // full-bleed) — shows the order number, date and current status badge.
+  Widget _buildWebHeaderCard(OrderModel order) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: ColorResource.primaryGradient,
+        borderRadius: BorderRadius.circular(Constants.radiusLarge),
+        boxShadow: ColorResource.customShadow,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '#${order.orderNumber}',
+                  style: poppinsBold.copyWith(
+                    fontSize: Constants.fontSizeExtraLarge,
+                    color: ColorResource.textWhite,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.event_outlined,
+                      size: 15,
+                      color: ColorResource.textWhite.withValues(alpha: 0.9),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      DateFormat('EEEE, MMMM dd, yyyy • hh:mm a')
+                          .format(order.createdAt),
+                      style: poppinsRegular.copyWith(
+                        fontSize: Constants.fontSizeDefault,
+                        color: ColorResource.textWhite.withValues(alpha: 0.9),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          _buildStatusBadge(order.status),
+        ],
       ),
     );
   }

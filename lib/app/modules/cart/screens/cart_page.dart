@@ -8,6 +8,7 @@ import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -21,24 +22,36 @@ class CartPage extends StatefulWidget {
 class _CartPageState extends State<CartPage> {
   bool _isPriceExpanded = false;
 
+  // Web/desktop layout kicks in above this width.
+  static const double _webBreakpoint = 900;
+  static const double _maxContentWidth = 1100;
+
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final isWide = width >= _webBreakpoint;
+    // As a dashboard tab on web the shared top-nav is already shown, so drop the
+    // page's own app bar — unless this cart was pushed as a standalone route.
+    final hideAppBar = kIsWeb && !Navigator.of(context).canPop();
+
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
-      appBar: AppBar(
-        title: GetBuilder<CartController>(
-          builder: (controller) => Text(
-            '${'cart'.tr} (${controller.itemCount})',
-            style: poppinsBold.copyWith(
-              fontSize: Constants.fontSizeLarge,
-              color: ColorResource.textWhite,
+      appBar: hideAppBar
+          ? null
+          : AppBar(
+              title: GetBuilder<CartController>(
+                builder: (controller) => Text(
+                  '${'cart'.tr} (${controller.itemCount})',
+                  style: poppinsBold.copyWith(
+                    fontSize: Constants.fontSizeLarge,
+                    color: ColorResource.textWhite,
+                  ),
+                ),
+              ),
+              backgroundColor: ColorResource.primaryDark,
+              elevation: 0,
+              iconTheme: const IconThemeData(color: Colors.white),
             ),
-          ),
-        ),
-        backgroundColor: ColorResource.primaryDark,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
       body: GetBuilder<CartController>(
         builder: (controller) {
           if (controller.isLoading) {
@@ -50,52 +63,225 @@ class _CartPageState extends State<CartPage> {
           }
 
           if (controller.cartItems.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.shopping_cart_outlined,
-                    size: 100,
-                    color: ColorResource.textLight,
-                  ),
-                  const SizedBox(height: 20),
-                    Text(
-                      'your_cart_is_empty'.tr,
-                      style: poppinsBold.copyWith(
-                        fontSize: 24,
-                        color: ColorResource.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'add_items_to_get_started'.tr,
-                    style: poppinsRegular.copyWith(
-                      fontSize: Constants.fontSizeDefault,
-                      color: ColorResource.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            );
+            return _buildEmptyState();
           }
 
-          return Column(
+          return isWide
+              ? _buildWebBody(context, controller, hideAppBar)
+              : _buildMobileBody(context, controller);
+        },
+      ),
+    );
+  }
+
+  Widget _buildMobileBody(BuildContext context, CartController controller) {
+    return Column(
+      children: [
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            itemCount: controller.cartItems.length,
+            itemBuilder: (context, index) {
+              CartItemModel item = controller.cartItems[index];
+              return _buildCartItem(context, item, controller, index);
+            },
+          ),
+        ),
+        _buildBottomSummary(controller),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.shopping_cart_outlined,
+            size: 100,
+            color: ColorResource.textLight,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'your_cart_is_empty'.tr,
+            style: poppinsBold.copyWith(
+              fontSize: 24,
+              color: ColorResource.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'add_items_to_get_started'.tr,
+            style: poppinsRegular.copyWith(
+              fontSize: Constants.fontSizeDefault,
+              color: ColorResource.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Web: items list (left) + sticky order-summary card (right).
+  // ---------------------------------------------------------------------------
+
+  Widget _buildWebBody(
+    BuildContext context,
+    CartController controller,
+    bool showInlineTitle,
+  ) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(24, showInlineTitle ? 8 : 20, 24, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (showInlineTitle) ...[
+                _buildInlineTitle(controller.itemCount),
+                const SizedBox(height: 12),
+              ],
               Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  itemCount: controller.cartItems.length,
-                  itemBuilder: (context, index) {
-                    CartItemModel item = controller.cartItems[index];
-                    return _buildCartItem(context, item, controller, index);
-                  },
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.only(bottom: 24),
+                        itemCount: controller.cartItems.length,
+                        itemBuilder: (context, index) {
+                          final item = controller.cartItems[index];
+                          return _buildCartItem(
+                              context, item, controller, index);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    SizedBox(
+                      width: 360,
+                      child: SingleChildScrollView(
+                        child: _buildWebSummaryCard(controller),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              _buildBottomSummary(controller),
             ],
-          );
-        },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInlineTitle(int count) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        Text(
+          'cart'.tr,
+          style: poppinsBold.copyWith(
+            fontSize: Constants.fontSizeOverLarge,
+            color: ColorResource.textPrimary,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          '($count)',
+          style: poppinsMedium.copyWith(
+            fontSize: Constants.fontSizeLarge,
+            color: ColorResource.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWebSummaryCard(CartController controller) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: ColorResource.cardBackground,
+        borderRadius: BorderRadius.circular(Constants.radiusLarge),
+        boxShadow: ColorResource.customShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'order_summary'.tr,
+            style: poppinsBold.copyWith(
+              fontSize: Constants.fontSizeLarge,
+              color: ColorResource.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (controller.appliedCoupon != null) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: ColorResource.success.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: ColorResource.success.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    controller.appliedCoupon!.code,
+                    style: poppinsBold.copyWith(
+                      color: Colors.green.shade700,
+                      fontSize: Constants.fontSizeSmall,
+                    ),
+                  ),
+                  Icon(Icons.check_circle,
+                      color: ColorResource.success, size: 16),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
+          _buildSummaryRow('subtotal'.tr, controller.originalSubtotal),
+          if (controller.itemDiscountTotal > 0) ...[
+            const SizedBox(height: 10),
+            _buildDiscountRow('item_discount'.tr, controller.itemDiscountTotal),
+          ],
+          const SizedBox(height: 10),
+          _buildSummaryRow('tax_10'.tr, controller.tax),
+          if (controller.discountAmount > 0) ...[
+            const SizedBox(height: 10),
+            _buildDiscountRow('coupon_discount'.tr, controller.discountAmount),
+          ],
+          const Divider(height: 28),
+          _buildSummaryRow('total'.tr, controller.total, isTotal: true),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Get.to(() => const CheckoutPage()),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ColorResource.primaryDark,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(Constants.radiusLarge),
+                ),
+              ),
+              child: Text(
+                'proceed_to_checkout'.tr,
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeLarge,
+                  color: ColorResource.textWhite,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

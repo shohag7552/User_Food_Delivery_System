@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
@@ -5,6 +6,7 @@ import 'package:appwrite_user_app/app/modules/orders/screens/order_detail_page.d
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -45,65 +47,145 @@ class _OrdersPageState extends State<OrdersPage> {
     }
   }
 
+  // Web/desktop layout kicks in above this width.
+  static const double _webBreakpoint = 900;
+  static const double _maxContentWidth = 1200;
+
   @override
   Widget build(BuildContext context) {
+    final isWide = MediaQuery.of(context).size.width >= _webBreakpoint;
+    // As a dashboard tab on web the shared top-nav is already shown, so drop the
+    // page's own app bar — unless this page was pushed as a standalone route.
+    final hideAppBar = kIsWeb && !Navigator.of(context).canPop();
+
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
-      appBar: AppBar(
-        title: Text(
-          'my_orders'.tr,
-          style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeLarge,
-            color: ColorResource.textWhite,
-          ),
-        ),
-        backgroundColor: ColorResource.primaryDark,
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
+      appBar: hideAppBar
+          ? null
+          : AppBar(
+              title: Text(
+                'my_orders'.tr,
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeLarge,
+                  color: ColorResource.textWhite,
+                ),
+              ),
+              backgroundColor: ColorResource.primaryDark,
+              elevation: 0,
+            ),
+      body: isWide
+          ? _buildWebBody(hideAppBar)
+          : Column(
+              children: [
+                _buildFilterChips(),
+                Expanded(child: _buildOrdersList(false)),
+              ],
+            ),
+    );
+  }
 
-          // Filter Chips
-          _buildFilterChips(),
-
-          // Orders List
-          Expanded(
-            child: GetBuilder<OrderController>(
-              builder: (controller) {
-                if (controller.isLoading && controller.orders.isEmpty) {
-                  return _buildLoadingState();
-                }
-
-                if (controller.orders.isEmpty) {
-                  return _buildEmptyState();
-                }
-
-                return RefreshIndicator(
-                  onRefresh: controller.refreshOrders,
-                  color: ColorResource.primaryDark,
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.fromLTRB(
-                      16,
-                      16,
-                      16,
-                      Constants.bottomNavSpace,
-                    ),
-                    itemCount: controller.orders.length + (controller.hasMore ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index == controller.orders.length) {
-                        // Loading indicator at bottom
-                        return _buildLoadMoreIndicator(controller);
-                      }
-                      final order = controller.orders[index];
-                      return _buildOrderCard(order);
-                    },
+  Widget _buildWebBody(bool showInlineTitle) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (showInlineTitle)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                child: Text(
+                  'my_orders'.tr,
+                  style: poppinsBold.copyWith(
+                    fontSize: Constants.fontSizeOverLarge,
+                    color: ColorResource.textPrimary,
                   ),
+                ),
+              ),
+            _buildFilterChips(),
+            Expanded(child: _buildOrdersList(true)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOrdersList(bool isWide) {
+    return GetBuilder<OrderController>(
+      builder: (controller) {
+        if (controller.isLoading && controller.orders.isEmpty) {
+          return _buildLoadingState();
+        }
+
+        if (controller.orders.isEmpty) {
+          return _buildEmptyState();
+        }
+
+        return isWide
+            ? _buildOrdersGrid(controller)
+            : _buildOrdersListView(controller);
+      },
+    );
+  }
+
+  // Mobile: single-column list.
+  Widget _buildOrdersListView(OrderController controller) {
+    return RefreshIndicator(
+      onRefresh: controller.refreshOrders,
+      color: ColorResource.primaryDark,
+      child: ListView.builder(
+        controller: _scrollController,
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, Constants.bottomNavSpace),
+        itemCount: controller.orders.length + (controller.hasMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index == controller.orders.length) {
+            return _buildLoadMoreIndicator(controller);
+          }
+          return _buildOrderCard(controller.orders[index]);
+        },
+      ),
+    );
+  }
+
+  // Web: responsive grid. A Wrap lets each card keep its natural height (no
+  // overflow), while the column count adapts to the available width.
+  Widget _buildOrdersGrid(OrderController controller) {
+    return RefreshIndicator(
+      onRefresh: controller.refreshOrders,
+      color: ColorResource.primaryDark,
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        padding: const EdgeInsets.fromLTRB(8, 16, 8, Constants.bottomNavSpace),
+        child: Column(
+          children: [
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                final columns = width >= 1080
+                    ? 3
+                    : width >= 680
+                        ? 2
+                        : 1;
+                const spacing = 16.0;
+                final itemWidth =
+                    (width - (columns - 1) * spacing) / columns;
+
+                return Wrap(
+                  spacing: spacing,
+                  runSpacing: 0, // each card carries its own bottom margin
+                  children: [
+                    for (final order in controller.orders)
+                      SizedBox(
+                        width: itemWidth,
+                        child: HoverLift(child: _buildOrderCard(order)),
+                      ),
+                  ],
                 );
               },
             ),
-          ),
-        ],
+            _buildLoadMoreIndicator(controller),
+          ],
+        ),
       ),
     );
   }
