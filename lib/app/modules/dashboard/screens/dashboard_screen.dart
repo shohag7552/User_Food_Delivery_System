@@ -4,16 +4,17 @@ import 'dart:ui' show ImageFilter;
 import 'package:appwrite_user_app/app/helper/platform/app_exit.dart';
 
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/screens/home_module_view.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/modules/cart/screens/cart_page.dart';
 import 'package:appwrite_user_app/app/modules/favorites/screens/favorites_screen.dart';
 import 'package:appwrite_user_app/app/modules/orders/screens/orders_page.dart';
 import 'package:appwrite_user_app/app/modules/profile/screens/profile_page.dart';
-import 'package:appwrite_user_app/app/modules/search/screens/search_page.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -53,6 +54,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
 
     _pageController = PageController(initialPage: 0);
+    // Let pushed routes (e.g. product detail) open a tab via the web top nav.
+    DashboardTabBus.register(_onNavItemTapped);
     _listenToConnectivity();
 
     // Load favorites
@@ -93,6 +96,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   void dispose() {
+    DashboardTabBus.clear(_onNavItemTapped);
     _connectivitySubscription?.cancel();
     _pageController.dispose();
     super.dispose();
@@ -141,7 +145,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         key: _scaffoldKey,
         backgroundColor: ColorResource.scaffoldBackground,
         extendBody: true,
-        appBar: kIsWeb ? _buildWebTopNav() : null,
+        appBar: kIsWeb
+            ? WebTopNav(
+                selectedIndex: _selectedIndex,
+                onDestinationSelected: _onNavItemTapped,
+                onMenuTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+              )
+            : null,
         endDrawer: kIsWeb ? const WebProfileDrawer() : null,
         body: PageView(
           controller: _pageController,
@@ -154,301 +164,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         bottomNavigationBar: kIsWeb ? null : _buildBottomNavBar(),
       ),
-    );
-  }
-
-  /// Top navigation header for web.
-  ///
-  /// Layout: [Brand] [Home] [Favorites] ──spacer── [Cart] [Orders] [Profile]
-  /// [│] [Menu ☰]
-  ///
-  /// Home and Favorites are the primary destinations shown with labels on wide
-  /// screens. Cart / Orders / Profile are utility icons placed on the right,
-  /// always icon-only with tooltips. The hamburger opens the profile drawer.
-  PreferredSizeWidget _buildWebTopNav() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return PreferredSize(
-      preferredSize: const Size.fromHeight(64),
-      child: Material(
-        color: ColorResource.cardBackground,
-        elevation: 0.5,
-        shadowColor: isDark
-            ? Colors.black.withValues(alpha: 0.4)
-            : Colors.black.withValues(alpha: 0.08),
-        child: SafeArea(
-          bottom: false,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1200),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final bool showLabels = constraints.maxWidth >= 720;
-                  return Padding(
-                    padding: EdgeInsets.only(left: showLabels ? 20 : 12),
-                    child: SizedBox(
-                      height: 64,
-                      child: Row(
-                        children: [
-                          // Brand — capped width so it never crowds the nav
-                          // items; the Expanded search pill is the only flex
-                          // child and pushes utility icons to the far right.
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 160),
-                            child: ShaderMask(
-                              shaderCallback: (bounds) => ColorResource
-                                  .primaryGradient
-                                  .createShader(bounds),
-                              child: Text(
-                                Constants.appName,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: poppinsBold.copyWith(
-                                  fontSize: Constants.fontSizeOverLarge,
-                                  color: ColorResource.textWhite,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          // Primary nav: Home and Favorites with labels on wide screens.
-                          _webNavItem(
-                            Icons.home_rounded,
-                            'home'.tr,
-                            0,
-                            showLabels,
-                          ),
-                          _webNavItem(
-                            Icons.favorite_rounded,
-                            'favorites'.tr,
-                            1,
-                            showLabels,
-                          ),
-                          // Centered search pill — Expanded fills all remaining
-                          // space so the pill is centered and utility icons
-                          // land flush against the right edge of the bar.
-                          Expanded(
-                            child: Center(
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: 400),
-                                child: GestureDetector(
-                                  onTap: () =>
-                                      Get.to(() => const SearchPage()),
-                                  child: Container(
-                                    height: 38,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 14),
-                                    decoration: BoxDecoration(
-                                      color: ColorResource.scaffoldBackground,
-                                      borderRadius: BorderRadius.circular(999),
-                                      border: Border.all(
-                                        color: ColorResource.textLight
-                                            .withValues(alpha: 0.25),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.search_rounded,
-                                          size: 18,
-                                          color: ColorResource.textSecondary,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            'search_products'.tr,
-                                            style: poppinsRegular.copyWith(
-                                              fontSize:
-                                                  Constants.fontSizeDefault,
-                                              color: ColorResource.textLight,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          // Utility actions — icon-only with tooltips.
-                          _webCartNavItem(false),
-                          _webNavItem(
-                            Icons.receipt_long_rounded,
-                            'orders'.tr,
-                            3,
-                            false,
-                          ),
-                          _webNavItem(
-                            Icons.person_rounded,
-                            'profile'.tr,
-                            4,
-                            false,
-                          ),
-                          // Thin separator before the drawer toggle.
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 16,
-                            ),
-                            child: VerticalDivider(
-                              width: 1,
-                              color: ColorResource.textLight
-                                  .withValues(alpha: 0.25),
-                            ),
-                          ),
-                          // Hamburger — opens the right-side profile drawer.
-                          _webMenuButton(),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Hamburger icon that opens the end (right-side) drawer.
-  Widget _webMenuButton() {
-    return Tooltip(
-      message: 'menu'.tr,
-      child: InkWell(
-        onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
-        borderRadius: BorderRadius.circular(Constants.radiusLarge),
-        hoverColor: ColorResource.primaryDark.withValues(alpha: 0.06),
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Icon(
-            Icons.menu_rounded,
-            size: 22,
-            color: ColorResource.textSecondary,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _webNavItem(IconData icon, String label, int index, bool showLabel) {
-    final isSelected = _selectedIndex == index;
-    final color = isSelected
-        ? ColorResource.primaryDark
-        : ColorResource.textSecondary;
-
-    return Padding(
-      padding: EdgeInsets.only(left: showLabel ? 8 : 2),
-      child: Tooltip(
-        message: showLabel ? '' : label,
-        child: InkWell(
-          onTap: () => _onNavItemTapped(index),
-          borderRadius: BorderRadius.circular(Constants.radiusLarge),
-          hoverColor: ColorResource.primaryDark.withValues(alpha: 0.06),
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: showLabel ? 14 : 10,
-              vertical: 10,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, color: color, size: 22),
-                if (showLabel) ...[
-                  const SizedBox(width: 8),
-                  Text(
-                    label,
-                    style: (isSelected ? poppinsBold : poppinsMedium).copyWith(
-                      fontSize: Constants.fontSizeDefault,
-                      color: color,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _webCartNavItem(bool showLabel) {
-    return GetBuilder<CartController>(
-      builder: (cartController) {
-        final itemCount = cartController.itemCount;
-        final isSelected = _selectedIndex == 2;
-        final color = isSelected
-            ? ColorResource.primaryDark
-            : ColorResource.textSecondary;
-
-        return Padding(
-          padding: EdgeInsets.only(left: showLabel ? 8 : 2),
-          child: Tooltip(
-            message: showLabel ? '' : 'cart'.tr,
-            child: InkWell(
-              onTap: () => _onNavItemTapped(2),
-              borderRadius: BorderRadius.circular(Constants.radiusLarge),
-              hoverColor: ColorResource.primaryDark.withValues(alpha: 0.06),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: showLabel ? 14 : 10,
-                  vertical: 10,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Icon(Icons.shopping_cart_rounded,
-                            color: color, size: 22),
-                        if (itemCount > 0)
-                          Positioned(
-                            right: -8,
-                            top: -8,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: ColorResource.error,
-                                shape: BoxShape.circle,
-                              ),
-                              constraints: const BoxConstraints(
-                                minWidth: 16,
-                                minHeight: 16,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  itemCount > 99 ? '99+' : '$itemCount',
-                                  style: poppinsBold.copyWith(
-                                    fontSize: 9,
-                                    color: ColorResource.textWhite,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    if (showLabel) ...[
-                      const SizedBox(width: 8),
-                      Text(
-                        'cart'.tr,
-                        style:
-                            (isSelected ? poppinsBold : poppinsMedium).copyWith(
-                          fontSize: Constants.fontSizeDefault,
-                          color: color,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 

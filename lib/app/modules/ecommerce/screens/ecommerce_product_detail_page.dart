@@ -2,6 +2,7 @@ import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
 import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/brand_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
@@ -10,7 +11,9 @@ import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart'
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/full_screen_image_viewer.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/modules/ecommerce/widgets/ecommerce_product_card.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/review_list_section.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -32,6 +35,8 @@ class EcommerceProductDetailPage extends StatefulWidget {
 class _EcommerceProductDetailPageState
     extends State<EcommerceProductDetailPage> {
   final PageController _galleryController = PageController();
+  // Web scaffold key so the top-nav menu button can open the profile drawer.
+  final GlobalKey<ScaffoldState> _webScaffoldKey = GlobalKey<ScaffoldState>();
   int _currentImage = 0;
   bool _descExpanded = false;
 
@@ -425,8 +430,19 @@ class _EcommerceProductDetailPageState
 
   Widget _buildWebScaffold(BuildContext context) {
     return Scaffold(
+      key: _webScaffoldKey,
       backgroundColor: ColorResource.scaffoldBackground,
-      appBar: _buildWebAppBar(),
+      endDrawer: const WebProfileDrawer(),
+      appBar: WebTopNav(
+        // No tab is "active" on a sub-page.
+        selectedIndex: null,
+        // Tapping a destination returns to the dashboard and opens that tab.
+        onDestinationSelected: (index) {
+          DashboardTabBus.open(index);
+          Get.until((route) => route.isFirst);
+        },
+        onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
+      ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Center(
@@ -457,40 +473,6 @@ class _EcommerceProductDetailPageState
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  PreferredSizeWidget _buildWebAppBar() {
-    return AppBar(
-      backgroundColor: ColorResource.cardBackground,
-      surfaceTintColor: ColorResource.cardBackground,
-      elevation: 0.5,
-      automaticallyImplyLeading: false,
-      titleSpacing: 0,
-      leadingWidth: 60,
-      leading: Padding(
-        padding: const EdgeInsets.only(left: 12),
-        child: _circleButton(icon: Icons.arrow_back, onTap: () => Get.back()),
-      ),
-      title: Text(
-        product.nameMap.trLanguage,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: poppinsBold.copyWith(
-          fontSize: Constants.fontSizeLarge,
-          color: ColorResource.textPrimary,
-        ),
-      ),
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(2),
-        child: _isRefreshing
-            ? const LinearProgressIndicator(
-                minHeight: 2,
-                color: ColorResource.primaryDark,
-                backgroundColor: Colors.transparent,
-              )
-            : const SizedBox(height: 2),
       ),
     );
   }
