@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -16,7 +17,8 @@ class EditProfilePage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: GetBuilder<ProfileController>(
+      body: AuthGate(
+        child: GetBuilder<ProfileController>(
         builder: (controller) {
           if (controller.isLoading) {
             return Center(
@@ -98,6 +100,7 @@ class EditProfilePage extends StatelessWidget {
             ],
           );
         },
+      ),
       ),
     );
   }

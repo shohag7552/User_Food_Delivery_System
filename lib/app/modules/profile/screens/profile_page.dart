@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/localization_controller.dart';
 import 'package:appwrite_user_app/app/controllers/policy_controller.dart';
@@ -34,7 +35,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: GetBuilder<ProfileController>(
+      body: AuthGate(
+        child: GetBuilder<ProfileController>(
         builder: (controller) {
           return RefreshIndicator(
             onRefresh: controller.fetchUserProfile,
@@ -301,6 +303,7 @@ class _ProfilePageState extends State<ProfilePage> {
           );
         },
       ),
+      ),
     );
   }
 
@@ -527,8 +530,8 @@ class _ProfilePageState extends State<ProfilePage> {
               final authController = Get.find<AuthController>();
               await authController.logout();
 
-              // Navigate to login screen and clear navigation stack
-              if (context.mounted) context.goNamed(RouteNames.login);
+              // Return to the dashboard as a guest (login is offered on demand).
+              if (context.mounted) context.goNamed(RouteNames.dashboard);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: ColorResource.error,

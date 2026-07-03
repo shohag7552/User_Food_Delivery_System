@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/controllers/address_controller.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
@@ -21,7 +22,8 @@ class AddressesPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: CustomAppbar(title: 'saved_addresses'.tr),
-      body: GetBuilder<AddressController>(
+      body: AuthGate(
+        child: GetBuilder<AddressController>(
         builder: (controller) {
           if (controller.isLoading) {
             return Center(
@@ -44,6 +46,7 @@ class AddressesPage extends StatelessWidget {
             },
           );
         },
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {

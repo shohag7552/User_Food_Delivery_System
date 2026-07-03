@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/controllers/notification_controller.dart';
 import 'package:appwrite_user_app/app/models/notification_model.dart';
@@ -51,7 +52,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
           ),
         ],
       ),
-      body: GetBuilder<NotificationController>(
+      body: AuthGate(
+        child: GetBuilder<NotificationController>(
         builder: (controller) {
           if (controller.isLoading) {
             return _buildLoadingState();
@@ -75,6 +77,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             ),
           );
         },
+        ),
       ),
     );
   }

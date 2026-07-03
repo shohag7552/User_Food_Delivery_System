@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
@@ -119,7 +120,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               : bar;
         },
       ),
-      body: GetBuilder<OrderController>(
+      body: AuthGate(
+        child: GetBuilder<OrderController>(
         builder: (controller) {
           final order = controller.selectedOrder?.id == widget.orderId
               ? controller.selectedOrder
@@ -187,6 +189,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             ),
           );
         },
+      ),
       ),
     );
   }

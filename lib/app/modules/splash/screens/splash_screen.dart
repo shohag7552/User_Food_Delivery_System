@@ -73,7 +73,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
     _isBootstrapping = true;
 
-    final isLoggedIn = await Get.find<AuthController>().isAlreadyLoggedIn();
+    // Prime the cached auth state so login-gated pages render correctly.
+    await Get.find<AuthController>().isAlreadyLoggedIn();
     final settingsFetched = await Get.find<SplashController>().fetchSettings();
 
     if (!mounted) return;
@@ -84,11 +85,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
     _hasNavigated = true;
 
-    if (isLoggedIn) {
-      AppRouter.router.goNamed(RouteNames.dashboard);
-    } else {
-      AppRouter.router.goNamed(RouteNames.login);
-    }
+    // Always open on the dashboard so guests can browse products. Signing in is
+    // requested only when an action requires it (checkout, favorites, profile…).
+    AppRouter.router.goNamed(RouteNames.dashboard);
   }
 
   @override

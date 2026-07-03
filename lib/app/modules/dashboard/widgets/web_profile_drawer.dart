@@ -489,7 +489,8 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
             onPressed: () async {
               Navigator.pop(ctx);
               await Get.find<AuthController>().logout();
-              if (mounted) context.goNamed(RouteNames.login);
+              // Return to the dashboard as a guest (login is offered on demand).
+              if (mounted) context.goNamed(RouteNames.dashboard);
             },
             child: Text(
               'logout'.tr,

@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
@@ -74,14 +75,16 @@ class _OrdersPageState extends State<OrdersPage> {
               backgroundColor: ColorResource.primaryDark,
               elevation: 0,
             ),
-      body: isWide
-          ? _buildWebBody(hideAppBar)
-          : Column(
-              children: [
-                _buildFilterChips(),
-                Expanded(child: _buildOrdersList(false)),
-              ],
-            ),
+      body: AuthGate(
+        child: isWide
+            ? _buildWebBody(hideAppBar)
+            : Column(
+                children: [
+                  _buildFilterChips(),
+                  Expanded(child: _buildOrdersList(false)),
+                ],
+              ),
+      ),
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
@@ -80,7 +81,8 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
         backgroundColor: ColorResource.primaryDark,
         elevation: 0,
       ),
-      body: Column(
+      body: AuthGate(
+        child: Column(
         children: [
           // Filter Chips
           _buildFilterChips(),
@@ -130,6 +132,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

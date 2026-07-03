@@ -10,6 +10,12 @@ class AuthController extends GetxController implements GetxService {
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+
+  // Cached auth state so widgets (via GetBuilder) can synchronously gate
+  // login-only content. Primed at startup by [isAlreadyLoggedIn] and kept in
+  // sync by [login] / [signup] / [logout].
+  bool _isLoggedIn = false;
+  bool get isLoggedIn => _isLoggedIn;
   //
   // List<String> districtNameList = [];
   // List<Locations>? _districtList;
@@ -116,6 +122,7 @@ class AuthController extends GetxController implements GetxService {
 
     try {
       isSuccess = await authRepoInterface.loginUser(email, password);
+      if (isSuccess) _isLoggedIn = true;
 
       // if (isSuccess) {
       //   customToster('Login successful! Welcome back.');
@@ -143,7 +150,9 @@ class AuthController extends GetxController implements GetxService {
   }
 
   Future<bool> isAlreadyLoggedIn() async {
-    return await authRepoInterface.isLoggedIn();
+    _isLoggedIn = await authRepoInterface.isLoggedIn();
+    update();
+    return _isLoggedIn;
   }
 
   Future<bool> signup({
@@ -165,6 +174,7 @@ class AuthController extends GetxController implements GetxService {
       );
 
       if (isSuccess) {
+        _isLoggedIn = true;
         customToster('Account created successfully!');
       } else {
         customToster('Failed to create account. Please try again.');
@@ -443,5 +453,7 @@ class AuthController extends GetxController implements GetxService {
 
   Future<void> logout() async {
     await authRepoInterface.logout();
+    _isLoggedIn = false;
+    update();
   }
 }

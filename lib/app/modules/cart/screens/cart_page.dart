@@ -1,4 +1,5 @@
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
+import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
@@ -53,24 +54,26 @@ class _CartPageState extends State<CartPage> {
               elevation: 0,
               iconTheme: const IconThemeData(color: Colors.white),
             ),
-      body: GetBuilder<CartController>(
-        builder: (controller) {
-          if (controller.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(
-                color: ColorResource.primaryDark,
-              ),
-            );
-          }
+      body: AuthGate(
+        child: GetBuilder<CartController>(
+          builder: (controller) {
+            if (controller.isLoading) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: ColorResource.primaryDark,
+                ),
+              );
+            }
 
-          if (controller.cartItems.isEmpty) {
-            return _buildEmptyState();
-          }
+            if (controller.cartItems.isEmpty) {
+              return _buildEmptyState();
+            }
 
-          return isWide
-              ? _buildWebBody(context, controller, hideAppBar)
-              : _buildMobileBody(context, controller);
-        },
+            return isWide
+                ? _buildWebBody(context, controller, hideAppBar)
+                : _buildMobileBody(context, controller);
+          },
+        ),
       ),
     );
   }

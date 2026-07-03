@@ -1,4 +1,5 @@
 import 'package:appwrite_user_app/app/appwrite/payment_service.dart';
+import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/address_controller.dart';
@@ -327,7 +328,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
       appBar: CustomAppbar(title: 'checkout'.tr),
-      body: GetBuilder<CartController>(
+      body: AuthGate(
+        child: GetBuilder<CartController>(
         builder: (controller) {
           if (controller.cartItems.isEmpty) {
             return Center(
@@ -379,6 +381,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ],
           );
         },
+        ),
       ),
     );
   }

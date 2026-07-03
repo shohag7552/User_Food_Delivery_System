@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_button.dart';
 import 'package:appwrite_user_app/app/controllers/loyalty_controller.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
@@ -44,7 +45,8 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: GetBuilder<LoyaltyController>(
+      body: AuthGate(
+        child: GetBuilder<LoyaltyController>(
         builder: (loyaltyController) {
           return GetBuilder<ProfileController>(
             builder: (profileController) {
@@ -106,6 +108,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
             },
           );
         },
+        ),
       ),
     );
   }

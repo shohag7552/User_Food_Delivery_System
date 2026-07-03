@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/controllers/coupon_controller.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
@@ -42,7 +43,8 @@ class _CouponsScreenState extends State<CouponsScreen> {
       appBar: CustomAppbar(
         title: widget.isSelectionMode ? 'select_coupon'.tr : 'coupons'.tr,
       ),
-      body: GetBuilder<CouponController>(
+      body: AuthGate(
+        child: GetBuilder<CouponController>(
         builder: (controller) {
           if (controller.isLoading && controller.coupons == null) {
             return const Center(child: CircularProgressIndicator());
@@ -95,6 +97,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
             ),
           );
         },
+        ),
       ),
     );
   }

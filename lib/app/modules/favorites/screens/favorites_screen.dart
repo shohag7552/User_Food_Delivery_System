@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
@@ -59,26 +60,28 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               title: 'my_favorites'.tr,
               showBackButton: widget.isFromMenu == true,
             ),
-      body: GetBuilder<FavoritesController>(
-        builder: (controller) {
-          if (controller.isLoading) {
-            return _buildLoadingState(context);
-          }
+      body: AuthGate(
+        child: GetBuilder<FavoritesController>(
+          builder: (controller) {
+            if (controller.isLoading) {
+              return _buildLoadingState(context);
+            }
 
-          // Scope favorites to the active storefront so Food and Shop each show
-          // only their own saved items.
-          final activeModule = Get.find<ModuleController>().activeModule;
-          final favorites = controller.favorites
-              .where((f) =>
-                  f.product != null && f.product!.moduleType == activeModule)
-              .toList();
+            // Scope favorites to the active storefront so Food and Shop each show
+            // only their own saved items.
+            final activeModule = Get.find<ModuleController>().activeModule;
+            final favorites = controller.favorites
+                .where((f) =>
+                    f.product != null && f.product!.moduleType == activeModule)
+                .toList();
 
-          if (favorites.isEmpty) {
-            return _buildEmptyState();
-          }
+            if (favorites.isEmpty) {
+              return _buildEmptyState();
+            }
 
-          return _buildFavoritesBody(context, controller, favorites);
-        },
+            return _buildFavoritesBody(context, controller, favorites);
+          },
+        ),
       ),
     );
   }

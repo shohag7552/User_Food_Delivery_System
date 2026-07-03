@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/controllers/address_controller.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
@@ -138,7 +139,8 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
       appBar: CustomAppbar(
         title: isEditing ? 'edit_address'.tr : 'add_address'.tr,
       ),
-      body: Form(
+      body: AuthGate(
+        child: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -397,6 +399,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

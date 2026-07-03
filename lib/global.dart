@@ -71,11 +71,13 @@ class Global {
   /// which has its own offline/retry handling as a fallback.
   static Future<void> _bootstrapWebStartLocation() async {
     try {
-      final isLoggedIn = await Get.find<AuthController>().isAlreadyLoggedIn();
+      // Prime the cached auth state so login-gated pages render correctly.
+      await Get.find<AuthController>().isAlreadyLoggedIn();
       final settingsOk = await Get.find<SplashController>().fetchSettings();
       if (settingsOk) {
-        AppRouter.startLocation =
-            isLoggedIn ? AppRouter.dashboard : AppRouter.login;
+        // Always open on the dashboard — guests browse products and are asked
+        // to sign in only when an action requires it.
+        AppRouter.startLocation = AppRouter.dashboard;
       }
     } catch (e) {
       debugPrint('Web bootstrap failed, falling back to splash: $e');
