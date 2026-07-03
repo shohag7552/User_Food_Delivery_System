@@ -30,8 +30,6 @@ class CategoryProductsPage extends StatefulWidget {
 
 class _CategoryProductsPageState extends State<CategoryProductsPage> {
   static const int _pageSize = 10;
-  // Web/desktop layout kicks in above this width.
-  static const double _webBreakpoint = 900;
   static const double _maxContentWidth = 1100;
 
   final GlobalKey<ScaffoldState> _webScaffoldKey = GlobalKey<ScaffoldState>();
@@ -145,8 +143,12 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isWide = MediaQuery.of(context).size.width >= _webBreakpoint;
-    return isWide ? _buildWebScaffold(context) : _buildMobileScaffold(context);
+    // Web shell (with the shared top-nav) only on desktop web — mobile,
+    // tablets and narrow browser windows use the regular mobile scaffold.
+    final useWebShell = WebTopNav.isEnabled(context);
+    return useWebShell
+        ? _buildWebScaffold(context)
+        : _buildMobileScaffold(context);
   }
 
   // ---------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
@@ -7,7 +8,6 @@ import 'package:appwrite_user_app/app/models/order_model.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -58,7 +58,8 @@ class _OrdersPageState extends State<OrdersPage> {
     final isWide = MediaQuery.of(context).size.width >= _webBreakpoint;
     // As a dashboard tab on web the shared top-nav is already shown, so drop the
     // page's own app bar — unless this page was pushed as a standalone route.
-    final hideAppBar = kIsWeb && !Navigator.of(context).canPop();
+    final hideAppBar =
+        WebTopNav.isEnabled(context) && !Navigator.of(context).canPop();
 
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,

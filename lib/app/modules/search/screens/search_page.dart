@@ -226,8 +226,10 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isWide = MediaQuery.of(context).size.width >= _webBreakpoint;
-    return isWide ? _buildWebScaffold() : _buildMobileScaffold();
+    // Web shell (with the shared top-nav) only on desktop web — mobile,
+    // tablets and narrow browser windows use the regular mobile scaffold.
+    final useWebShell = WebTopNav.isEnabled(context);
+    return useWebShell ? _buildWebScaffold() : _buildMobileScaffold();
   }
 
   Widget _buildMobileScaffold() {

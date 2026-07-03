@@ -4,6 +4,7 @@ import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dar
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
 import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
@@ -39,9 +40,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     Get.find<FavoritesController>().fetchFavorites(canUpdate: false, loadWithProduct: true);
   }
 
-  // As a dashboard tab on web, the shared web top-nav is already shown, so this
-  // screen drops its own app bar (and adds an inline title instead).
-  bool get _hideOwnAppBar => kIsWeb && widget.isFromMenu != true;
+  // As a dashboard tab on desktop web, the shared web top-nav is already shown,
+  // so this screen drops its own app bar (and adds an inline title instead).
+  bool get _hideOwnAppBar =>
+      WebTopNav.isEnabled(context) && widget.isFromMenu != true;
 
   int _crossAxisCount(double width) {
     if (width < _webBreakpoint) return 2;

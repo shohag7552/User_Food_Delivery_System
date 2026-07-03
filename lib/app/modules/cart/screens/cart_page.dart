@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
@@ -9,7 +10,6 @@ import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -32,9 +32,10 @@ class _CartPageState extends State<CartPage> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isWide = width >= _webBreakpoint;
-    // As a dashboard tab on web the shared top-nav is already shown, so drop the
-    // page's own app bar — unless this cart was pushed as a standalone route.
-    final hideAppBar = kIsWeb && !Navigator.of(context).canPop();
+    // As a dashboard tab on desktop web the shared top-nav is already shown, so
+    // drop the page's own app bar — unless pushed as a standalone route.
+    final hideAppBar =
+        WebTopNav.isEnabled(context) && !Navigator.of(context).canPop();
 
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,

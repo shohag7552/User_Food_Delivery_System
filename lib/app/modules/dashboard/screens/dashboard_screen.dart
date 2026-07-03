@@ -19,7 +19,6 @@ import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -141,29 +140,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
           }
         }
       },
-      child: Scaffold(
-        key: _scaffoldKey,
-        backgroundColor: ColorResource.scaffoldBackground,
-        extendBody: true,
-        appBar: kIsWeb
-            ? WebTopNav(
-                selectedIndex: _selectedIndex,
-                onDestinationSelected: _onNavItemTapped,
-                onMenuTap: () => _scaffoldKey.currentState?.openEndDrawer(),
-              )
-            : null,
-        endDrawer: kIsWeb ? const WebProfileDrawer() : null,
-        body: PageView(
-          controller: _pageController,
-          onPageChanged: _onPageChanged,
-          // Disable swipe paging on web — navigation happens via the top bar.
-          physics: kIsWeb
-              ? const NeverScrollableScrollPhysics()
-              : const BouncingScrollPhysics(),
-          children: _pages,
-        ),
-        bottomNavigationBar: kIsWeb ? null : _buildBottomNavBar(),
-      ),
+      child: Builder(builder: (context) {
+        // Desktop-web only — mobile/tablet (and narrow browser windows) keep
+        // the regular mobile chrome (bottom nav, no top bar).
+        final showWebNav = WebTopNav.isEnabled(context);
+
+        return Scaffold(
+          key: _scaffoldKey,
+          backgroundColor: ColorResource.scaffoldBackground,
+          extendBody: true,
+          appBar: showWebNav
+              ? WebTopNav(
+                  selectedIndex: _selectedIndex,
+                  onDestinationSelected: _onNavItemTapped,
+                  onMenuTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+                )
+              : null,
+          endDrawer: showWebNav ? const WebProfileDrawer() : null,
+          body: PageView(
+            controller: _pageController,
+            onPageChanged: _onPageChanged,
+            // Disable swipe paging under the top bar — navigation happens there.
+            physics: showWebNav
+                ? const NeverScrollableScrollPhysics()
+                : const BouncingScrollPhysics(),
+            children: _pages,
+          ),
+          bottomNavigationBar: showWebNav ? null : _buildBottomNavBar(),
+        );
+      }),
     );
   }
 

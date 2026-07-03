@@ -9,6 +9,7 @@ import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/helper/web_search_bus.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +34,12 @@ class WebTopNav extends StatelessWidget implements PreferredSizeWidget {
     required this.onDestinationSelected,
     required this.onMenuTap,
   });
+
+  /// Whether the web top-nav shell should be shown: the web platform at
+  /// desktop width only. Mobile, tablets and narrow browser windows keep the
+  /// app's regular mobile chrome (own app bars + bottom navigation).
+  static bool isEnabled(BuildContext context) =>
+      kIsWeb && MediaQuery.of(context).size.width >= 900;
 
   @override
   Size get preferredSize => const Size.fromHeight(64);

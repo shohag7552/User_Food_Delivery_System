@@ -76,13 +76,15 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isWide = screenWidth >= _webBreakpoint;
     final twoColumn = screenWidth >= _twoColumnWidth;
+    // Shared site top-nav only on desktop web; mobile/tablet keep the
+    // regular back-button app bar.
+    final showWebNav = WebTopNav.isEnabled(context);
 
     return Scaffold(
       key: _webScaffoldKey,
       backgroundColor: ColorResource.scaffoldBackground,
-      endDrawer: kIsWeb ? const WebProfileDrawer() : null,
-      // On web use the shared site top-nav instead of a plain back-button bar.
-      appBar: kIsWeb
+      endDrawer: showWebNav ? const WebProfileDrawer() : null,
+      appBar: showWebNav
           ? WebTopNav(
               selectedIndex: null,
               onDestinationSelected: (index) {
