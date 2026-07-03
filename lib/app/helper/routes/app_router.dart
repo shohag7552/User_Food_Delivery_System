@@ -165,6 +165,13 @@ abstract class AppRouter {
   // Get.bottomSheet) resolve against the same navigator go_router drives.
   static final GlobalKey<NavigatorState> rootNavigatorKey = Get.key;
 
+  /// Where the app opens. Defaults to the splash route (used on mobile). On web
+  /// `Global.init` runs the bootstrap (auth + settings/module resolution) up
+  /// front and overrides this to [dashboard] or [login] so the browser lands
+  /// there directly, skipping the splash. Must be set before [router] is first
+  /// accessed.
+  static String startLocation = splash;
+
   // Concrete paths (templates for the ones with parameters).
   static const String splash = '/splash';
   static const String login = '/login';
@@ -199,7 +206,7 @@ abstract class AppRouter {
 
   static final GoRouter router = GoRouter(
     navigatorKey: rootNavigatorKey,
-    initialLocation: splash,
+    initialLocation: startLocation,
     routes: [
       GoRoute(
         path: splash,

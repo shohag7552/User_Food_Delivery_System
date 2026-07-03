@@ -1,5 +1,8 @@
+import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
+import 'package:appwrite_user_app/app/controllers/splash_controller.dart';
 import 'package:appwrite_user_app/app/helper/dependencies.dart';
 import 'package:appwrite_user_app/app/helper/notification_helper.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -49,7 +52,34 @@ class Global {
 
     setSystemUi(isDarkMode: false);
 
-    return await initializeDependencies();
+    final languages = await initializeDependencies();
+
+    // On web there is no native splash and the index.html loader already covers
+    // engine boot, so run the splash's bootstrap (auth check + settings/module
+    // resolution) here and point the router straight at the dashboard/login.
+    // The first Flutter frame then lands on the real screen — no splash. Mobile
+    // keeps its splash flow (startLocation stays at the splash route).
+    if (kIsWeb) {
+      await _bootstrapWebStartLocation();
+    }
+
+    return languages;
+  }
+
+  /// Resolves the web start location by doing the splash bootstrap up front.
+  /// On any failure it leaves [AppRouter.startLocation] as the splash route,
+  /// which has its own offline/retry handling as a fallback.
+  static Future<void> _bootstrapWebStartLocation() async {
+    try {
+      final isLoggedIn = await Get.find<AuthController>().isAlreadyLoggedIn();
+      final settingsOk = await Get.find<SplashController>().fetchSettings();
+      if (settingsOk) {
+        AppRouter.startLocation =
+            isLoggedIn ? AppRouter.dashboard : AppRouter.login;
+      }
+    } catch (e) {
+      debugPrint('Web bootstrap failed, falling back to splash: $e');
+    }
   }
 
   static void setSystemUi({required bool isDarkMode}) {
