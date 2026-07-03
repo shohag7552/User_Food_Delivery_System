@@ -67,6 +67,15 @@ class ProductController extends GetxController implements GetxService {
   String? _topErrorMessage;
   String? get topErrorMessage => _topErrorMessage;
 
+  List<ProductModel> _offerProducts = [];
+  List<ProductModel> get offerProducts => _offerProducts;
+
+  bool _isLoadingOffers = false;
+  bool get isLoadingOffers => _isLoadingOffers;
+
+  String? _offersErrorMessage;
+  String? get offersErrorMessage => _offersErrorMessage;
+
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
@@ -87,6 +96,7 @@ class ProductController extends GetxController implements GetxService {
     _popularProducts = [];
     _newProducts = [];
     _topProducts = [];
+    _offerProducts = [];
     _currentPage = 0;
     _hasMore = true;
     update();
@@ -247,6 +257,28 @@ class ProductController extends GetxController implements GetxService {
     }
   }
 
+  /// Fetch offer (discounted) products
+  Future<void> getOfferProducts({bool reload = false}) async {
+    try {
+      _isLoadingOffers = true;
+      _offersErrorMessage = null;
+      if (!reload) {
+        update();
+      }
+
+      _offerProducts = await productRepoInterface.getOfferProducts();
+      log('====> Offer products loaded: ${_offerProducts.length}');
+
+      _isLoadingOffers = false;
+      update();
+    } catch (e) {
+      _isLoadingOffers = false;
+      _offersErrorMessage = 'Failed to load offer products: $e';
+      log('====> Error loading offer products: $e');
+      update();
+    }
+  }
+
   /// Fetch products by category
   Future<List<ProductModel>> getProductsByCategory(
     String categoryId, {
@@ -320,6 +352,7 @@ class ProductController extends GetxController implements GetxService {
     hasChanges = updateList(_popularProducts) || hasChanges;
     hasChanges = updateList(_newProducts) || hasChanges;
     hasChanges = updateList(_topProducts) || hasChanges;
+    hasChanges = updateList(_offerProducts) || hasChanges;
 
     if (hasChanges) {
       update();
@@ -369,6 +402,7 @@ class ProductController extends GetxController implements GetxService {
     changed = updateList(_popularProducts) || changed;
     changed = updateList(_newProducts) || changed;
     changed = updateList(_topProducts) || changed;
+    changed = updateList(_offerProducts) || changed;
     return changed;
   }
 }

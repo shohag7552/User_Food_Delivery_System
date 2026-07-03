@@ -140,6 +140,30 @@ class ProductRepository implements ProductRepoInterface {
   }
 
   @override
+  Future<List<ProductModel>> getOfferProducts({int limit = 10}) async {
+    try {
+      // Discounted available products for the active module, biggest offer
+      // first (null discount_value rows are excluded by the > 0 filter).
+      final response = await appwriteService.listTable(
+        tableId: AppwriteConfig.productsCollection,
+        queries: [
+          Query.equal('is_available', true),
+          Query.equal('module_type', ModuleController.current),
+          Query.greaterThan('discount_value', 0),
+          Query.orderDesc('discount_value'),
+          Query.limit(limit),
+        ],
+      );
+      return response.rows.map((row) {
+        return ProductModel.fromJson(row.data);
+      }).toList();
+    } catch (e) {
+      log('Error fetching offer products: $e');
+      rethrow;
+    }
+  }
+
+  @override
   Future<List<ProductModel>> getProductsByCategory(
     String categoryId, {
     int offset = 0,

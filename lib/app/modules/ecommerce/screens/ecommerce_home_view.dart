@@ -7,6 +7,7 @@ import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/brand_model.dart';
+import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/promotional_banner.dart';
 import 'package:appwrite_user_app/app/modules/ecommerce/widgets/ecommerce_product_card.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -31,6 +32,9 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
   final ScrollController _topScrollController = ScrollController();
   // Scroll arrows only reveal while a pointer hovers the Top Products strip.
   bool _topHovered = false;
+  // Same pair for the Offer Products carousel.
+  final ScrollController _offerScrollController = ScrollController();
+  bool _offerHovered = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -54,6 +58,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
       brandController.getBrands(reload: reload),
       productController.getPopularProducts(reload: reload),
       productController.getTopProducts(reload: reload),
+      productController.getOfferProducts(reload: reload),
       productController.getProducts(reload: reload),
     ]);
   }
@@ -70,6 +75,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _topScrollController.dispose();
+    _offerScrollController.dispose();
     super.dispose();
   }
 
@@ -110,6 +116,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
           if (!isWide) SliverToBoxAdapter(child: _buildBanners(hPad)),
           if (!isWide) SliverToBoxAdapter(child: _buildCategories(hPad)),
           SliverToBoxAdapter(child: _buildTopProducts(isWide)),
+          SliverToBoxAdapter(child: _buildOfferProducts(isWide)),
           if (isWide)
             SliverToBoxAdapter(child: _buildPromosBrandsRow(hPad))
           else ...[
@@ -894,95 +901,149 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
   Widget _buildTopProducts(bool isWide) {
     return GetBuilder<ProductController>(
       builder: (controller) {
-        final bool loading =
-            controller.isLoadingTop && controller.topProducts.isEmpty;
-        if (!loading && controller.topProducts.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        return Center(
-          // maxContentWidth + 32 keeps the inner 16px padding aligned exactly
-          // with the other hPad-gutter sections, while capping the width so the
-          // carousel stays inside the content column (no full-bleed scrolling).
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: _maxContentWidth + 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _sectionHeader('top_products'.tr, 16),
-                MouseRegion(
-                  onEnter: (_) {
-                    if (!_topHovered) setState(() => _topHovered = true);
-                  },
-                  onExit: (_) {
-                    if (_topHovered) setState(() => _topHovered = false);
-                  },
-                  child: SizedBox(
-                    height: isWide ? 350 : 280,
-                    child: loading
-                        ? const Center(child: CircularProgressIndicator())
-                        : Stack(
-                            children: [
-                              ListView.separated(
-                                controller: _topScrollController,
-                                scrollDirection: Axis.horizontal,
-                                physics: const BouncingScrollPhysics(),
-                                padding:
-                                    const EdgeInsets.fromLTRB(16, 4, 16, 8),
-                                itemCount: controller.topProducts.length,
-                                separatorBuilder: (_, _) =>
-                                    const SizedBox(width: 14),
-                                itemBuilder: (context, index) => SizedBox(
-                                  width: isWide ? 230 : 170,
-                                  child: EcommerceProductCard(
-                                    product: controller.topProducts[index],
-                                  ),
-                                ),
-                              ),
-                              // Scroll arrows — reveal only while hovered (web).
-                              if (isWide) ...[
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: _animatedArrow(isLeft: true),
-                                ),
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: _animatedArrow(isLeft: false),
-                                ),
-                              ],
-                            ],
-                          ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+        return _buildProductCarousel(
+          isWide: isWide,
+          title: 'top_products'.tr,
+          loading: controller.isLoadingTop && controller.topProducts.isEmpty,
+          products: controller.topProducts,
+          scrollController: _topScrollController,
+          hovered: _topHovered,
+          onHoverChanged: (value) => setState(() => _topHovered = value),
         );
       },
     );
   }
 
-  /// Fades + slides the scroll arrow in while the strip is hovered, and out
-  /// (non-interactive) otherwise.
-  Widget _animatedArrow({required bool isLeft}) {
-    return AnimatedOpacity(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOut,
-      opacity: _topHovered ? 1 : 0,
-      child: AnimatedSlide(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOut,
-        offset: _topHovered ? Offset.zero : Offset(isLeft ? -0.4 : 0.4, 0),
-        child: IgnorePointer(
-          ignoring: !_topHovered,
-          child: _scrollArrow(isLeft: isLeft),
+  Widget _buildOfferProducts(bool isWide) {
+    return GetBuilder<ProductController>(
+      builder: (controller) {
+        return _buildProductCarousel(
+          isWide: isWide,
+          title: 'offer_products'.tr,
+          loading:
+              controller.isLoadingOffers && controller.offerProducts.isEmpty,
+          products: controller.offerProducts,
+          scrollController: _offerScrollController,
+          hovered: _offerHovered,
+          onHoverChanged: (value) => setState(() => _offerHovered = value),
+        );
+      },
+    );
+  }
+
+  /// Shared horizontal product carousel (Top / Offer sections): a centered,
+  /// width-capped strip with hover-revealed scroll arrows on web.
+  Widget _buildProductCarousel({
+    required bool isWide,
+    required String title,
+    required bool loading,
+    required List<ProductModel> products,
+    required ScrollController scrollController,
+    required bool hovered,
+    required ValueChanged<bool> onHoverChanged,
+  }) {
+    if (!loading && products.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Center(
+      // maxContentWidth + 32 keeps the inner 16px padding aligned exactly
+      // with the other hPad-gutter sections, while capping the width so the
+      // carousel stays inside the content column (no full-bleed scrolling).
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: _maxContentWidth + 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _sectionHeader(title, 16),
+            MouseRegion(
+              onEnter: (_) {
+                if (!hovered) onHoverChanged(true);
+              },
+              onExit: (_) {
+                if (hovered) onHoverChanged(false);
+              },
+              child: SizedBox(
+                height: isWide ? 350 : 280,
+                child: loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : Stack(
+                        children: [
+                          ListView.separated(
+                            controller: scrollController,
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                            itemCount: products.length,
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(width: 14),
+                            itemBuilder: (context, index) => SizedBox(
+                              width: isWide ? 230 : 170,
+                              child: EcommerceProductCard(
+                                product: products[index],
+                              ),
+                            ),
+                          ),
+                          // Scroll arrows — reveal only while hovered (web).
+                          if (isWide) ...[
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: _animatedArrow(
+                                isLeft: true,
+                                hovered: hovered,
+                                scrollController: scrollController,
+                              ),
+                            ),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: _animatedArrow(
+                                isLeft: false,
+                                hovered: hovered,
+                                scrollController: scrollController,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  /// Circular scroll button for the Top Products carousel.
-  Widget _scrollArrow({required bool isLeft}) {
+  /// Fades + slides the scroll arrow in while the strip is hovered, and out
+  /// (non-interactive) otherwise.
+  Widget _animatedArrow({
+    required bool isLeft,
+    required bool hovered,
+    required ScrollController scrollController,
+  }) {
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+      opacity: hovered ? 1 : 0,
+      child: AnimatedSlide(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+        offset: hovered ? Offset.zero : Offset(isLeft ? -0.4 : 0.4, 0),
+        child: IgnorePointer(
+          ignoring: !hovered,
+          child: _scrollArrow(
+            isLeft: isLeft,
+            scrollController: scrollController,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Circular scroll button for a product carousel.
+  Widget _scrollArrow({
+    required bool isLeft,
+    required ScrollController scrollController,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Material(
@@ -992,7 +1053,8 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
         shadowColor: Colors.black.withValues(alpha: 0.2),
         child: InkWell(
           customBorder: const CircleBorder(),
-          onTap: () => _scrollTopProductsBy(isLeft ? -380 : 380),
+          onTap: () =>
+              _scrollCarouselBy(scrollController, isLeft ? -380 : 380),
           child: Padding(
             padding: const EdgeInsets.all(8),
             child: Icon(
@@ -1006,11 +1068,11 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     );
   }
 
-  void _scrollTopProductsBy(double delta) {
-    if (!_topScrollController.hasClients) return;
-    final target = (_topScrollController.offset + delta)
-        .clamp(0.0, _topScrollController.position.maxScrollExtent);
-    _topScrollController.animateTo(
+  void _scrollCarouselBy(ScrollController controller, double delta) {
+    if (!controller.hasClients) return;
+    final target = (controller.offset + delta)
+        .clamp(0.0, controller.position.maxScrollExtent);
+    controller.animateTo(
       target,
       duration: const Duration(milliseconds: 350),
       curve: Curves.easeInOut,

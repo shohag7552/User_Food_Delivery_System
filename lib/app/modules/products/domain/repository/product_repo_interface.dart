@@ -12,6 +12,9 @@ abstract class ProductRepoInterface {
 
   /// Highest-rated available products for the active module.
   Future<List<ProductModel>> getTopProducts({int limit = 10});
+
+  /// Discounted (offer) available products for the active module.
+  Future<List<ProductModel>> getOfferProducts({int limit = 10});
   Future<List<ProductModel>> getProductsByCategory(
     String categoryId, {
     int offset = 0,
