@@ -12,7 +12,9 @@ class DashboardTabBus {
       _handler = handler;
 
   static void clear(void Function(int index) handler) {
-    if (identical(_handler, handler)) _handler = null;
+    // == rather than identical(): instance-method tear-offs are equal but not
+    // guaranteed identical, so identical() can fail to clear a dead handler.
+    if (_handler == handler) _handler = null;
   }
 
   static bool get isReady => _handler != null;

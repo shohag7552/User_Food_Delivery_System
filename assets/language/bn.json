@@ -594,5 +594,11 @@
   "dont_have_an_account": "অ্যাকাউন্ট নেই?",
   "please_enter_your_phone": "অনুগ্রহ করে আপনার ফোন নম্বর লিখুন",
   "login_to_your_account": "আপনার অ্যাকাউন্টে লগইন করুন",
-  "sign_up_to_get_started": "শুরু করতে সাইন আপ করুন"
+  "sign_up_to_get_started": "শুরু করতে সাইন আপ করুন",
+  "recent_searches": "সাম্প্রতিক অনুসন্ধান",
+  "clear_all": "সব মুছুন",
+  "results_found": "টি ফলাফল পাওয়া গেছে",
+  "showing_matches_for": "মিল দেখানো হচ্ছে",
+  "no_matches_for_query": "এর সাথে মিলে এমন কিছু খুঁজে পাওয়া যায়নি",
+  "see_all_results_for": "সব ফলাফল দেখুন"
 }

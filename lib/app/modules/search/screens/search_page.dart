@@ -1,15 +1,22 @@
 import 'dart:async';
 import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
 import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
+import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
+import 'package:appwrite_user_app/app/helper/web_search_bus.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -25,6 +32,12 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   static const String _searchHistoryKey = 'search_history';
   static const int _maxSearchHistoryItems = 8;
+
+  // Web/desktop layout kicks in above this width.
+  static const double _webBreakpoint = 900;
+  static const double _maxContentWidth = 1100;
+  final GlobalKey<ScaffoldState> _webScaffoldKey = GlobalKey<ScaffoldState>();
+  final ScrollController _webScrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   Timer? _debounce;
@@ -38,18 +51,42 @@ class _SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
     _loadSearchHistory();
-    // Auto-focus on search field
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _searchFocusNode.requestFocus();
-    });
+
+    if (kIsWeb) {
+      // The top-nav field owns the query on web — listen for what's typed
+      // there and adopt any text entered before this page opened.
+      WebSearchBus.register(_handleWebQuery);
+      final pendingQuery = WebSearchBus.controller.text;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        WebSearchBus.requestFocus();
+        if (pendingQuery.trim().isNotEmpty) {
+          _handleWebQuery(pendingQuery);
+        }
+      });
+    } else {
+      // Auto-focus on search field
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _searchFocusNode.requestFocus();
+      });
+    }
   }
 
   @override
   void dispose() {
+    if (kIsWeb) WebSearchBus.clear(_handleWebQuery);
     _searchController.dispose();
     _searchFocusNode.dispose();
+    _webScrollController.dispose();
     _debounce?.cancel();
     super.dispose();
+  }
+
+  /// Query submitted from the web top-nav search field.
+  void _handleWebQuery(String query) {
+    // Defensive: never act on a stale call after this page is disposed.
+    if (!mounted) return;
+    _searchController.text = query;
+    _onSearchChanged(query);
   }
 
   void _onSearchChanged(String query) {
@@ -178,11 +215,21 @@ class _SearchPageState extends State<SearchPage> {
       _isSearching = false;
       _activeQuery = '';
     });
-    _searchFocusNode.requestFocus();
+    if (kIsWeb) {
+      WebSearchBus.controller.clear();
+      WebSearchBus.requestFocus();
+    } else {
+      _searchFocusNode.requestFocus();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isWide = MediaQuery.of(context).size.width >= _webBreakpoint;
+    return isWide ? _buildWebScaffold() : _buildMobileScaffold();
+  }
+
+  Widget _buildMobileScaffold() {
     return Scaffold(
       backgroundColor: ColorResource.scaffoldBackground,
       body: Column(
@@ -197,6 +244,129 @@ class _SearchPageState extends State<SearchPage> {
         ],
       ),
     );
+  }
+
+  // ── Web/desktop: shared top-nav + centered, width-capped content. ──
+  Widget _buildWebScaffold() {
+    return Scaffold(
+      key: _webScaffoldKey,
+      backgroundColor: ColorResource.scaffoldBackground,
+      appBar: WebTopNav(
+        selectedIndex: null,
+        onDestinationSelected: (index) {
+          DashboardTabBus.open(index);
+          context.goNamed(RouteNames.dashboard);
+        },
+        onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
+      ),
+      endDrawer: const WebProfileDrawer(),
+      // One scroll view for the whole page (the top-nav search field drives
+      // the query on web — no in-page search box).
+      body: _buildWebBody(),
+    );
+  }
+
+  Widget _buildWebBody() {
+    Widget content;
+    if (_isSearching) {
+      content = SizedBox(height: 420, child: _buildLoadingState());
+    } else if (!_hasSearched) {
+      content = _buildInitialContent();
+    } else if (_searchResults.isEmpty) {
+      content = SizedBox(height: 480, child: _buildEmptyState());
+    } else {
+      content = _buildWebResults();
+    }
+
+    return Scrollbar(
+      controller: _webScrollController,
+      thumbVisibility: true,
+      child: SingleChildScrollView(
+        controller: _webScrollController,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 28, 20, 48),
+              child: content,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Results header + grid laid out inline so the whole page scrolls together.
+  Widget _buildWebResults() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: '${_searchResults.length} ',
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeOverLarge,
+                  color: ColorResource.primaryDark,
+                ),
+              ),
+              TextSpan(
+                text: 'results_found'.tr,
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeExtraLarge,
+                  color: ColorResource.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (_activeQuery.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(
+            '${'showing_matches_for'.tr} "$_activeQuery"',
+            style: poppinsRegular.copyWith(
+              fontSize: Constants.fontSizeDefault,
+              color: ColorResource.textSecondary,
+            ),
+          ),
+        ],
+        const SizedBox(height: 20),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: _gridCrossAxisCount(),
+            childAspectRatio: 0.7,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+          ),
+          itemCount: _searchResults.length,
+          itemBuilder: (context, index) {
+            return _buildResultCard(_searchResults[index]);
+          },
+        ),
+      ],
+    );
+  }
+
+  /// Responsive grid column count — 2 on phones, up to 5 on wide desktop.
+  int _gridCrossAxisCount() {
+    final width = MediaQuery.of(context).size.width;
+    if (width >= 1400) return 5;
+    if (width >= 1100) return 4;
+    if (width >= _webBreakpoint) return 3;
+    return 2;
+  }
+
+  /// Product card, lifted on hover for web (pointer-only, no effect on touch).
+  Widget _buildResultCard(ProductModel product) {
+    final card = _buildProductCard(
+      product: product,
+      onTap: () => ProductDetailBottomSheet.show(context, product),
+    );
+    return kIsWeb ? HoverLift(child: card) : card;
   }
 
   Widget _buildSearchHeader() {
@@ -342,12 +512,17 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget _buildInitialState() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+      child: _buildInitialContent(),
+    );
+  }
+
+  Widget _buildInitialContent() {
     final productController = Get.find<ProductController>();
     final recentProducts = productController.products.take(6).toList();
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
-      child: Column(
+    return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
 
@@ -356,7 +531,7 @@ class _SearchPageState extends State<SearchPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Recent searches',
+                  'recent_searches'.tr,
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeLarge,
                     color: ColorResource.textPrimary,
@@ -365,7 +540,7 @@ class _SearchPageState extends State<SearchPage> {
                 TextButton(
                   onPressed: _clearSearchHistory,
                   child: Text(
-                    'Clear all',
+                    'clear_all'.tr,
                     style: poppinsMedium.copyWith(
                       fontSize: Constants.fontSizeSmall,
                       color: ColorResource.primaryDark,
@@ -451,23 +626,19 @@ class _SearchPageState extends State<SearchPage> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               padding: EdgeInsets.zero,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: _gridCrossAxisCount(),
                 childAspectRatio: 0.75,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
               ),
               itemCount: recentProducts.length,
               itemBuilder: (context, index) {
-                return _buildProductCard(
-                  product: recentProducts[index],
-                  onTap: () => ProductDetailBottomSheet.show(context, recentProducts[index]),
-                );
+                return _buildResultCard(recentProducts[index]);
               },
             ),
           ],
         ],
-      ),
     );
   }
 
@@ -493,7 +664,7 @@ class _SearchPageState extends State<SearchPage> {
             ),
             const SizedBox(height: 12),
             Text(
-              'We couldn\'t find any dishes matching "$_activeQuery"',
+              '${'no_matches_for_query'.tr} "$_activeQuery"',
               textAlign: TextAlign.center,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,
@@ -534,7 +705,7 @@ class _SearchPageState extends State<SearchPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${_searchResults.length} ${_searchResults.length == 1 ? 'Result' : 'Results'} Found',
+                '${_searchResults.length} ${'results_found'.tr}',
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeLarge,
                   color: ColorResource.textPrimary,
@@ -543,7 +714,7 @@ class _SearchPageState extends State<SearchPage> {
               if (_activeQuery.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
-                  'Showing matches for "$_activeQuery"',
+                  '${'showing_matches_for'.tr} "$_activeQuery"',
                   style: poppinsRegular.copyWith(
                     fontSize: Constants.fontSizeSmall,
                     color: ColorResource.textSecondary,
@@ -557,19 +728,16 @@ class _SearchPageState extends State<SearchPage> {
           child: _searchResults.isEmpty
               ? const SizedBox()
               : GridView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: _gridCrossAxisCount(),
                     childAspectRatio: 0.65,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),
                   itemCount: _searchResults.length,
                   itemBuilder: (context, index) {
-                    return _buildProductCard(
-                      product: _searchResults[index],
-                      onTap: () => ProductDetailBottomSheet.show(context, _searchResults[index]),
-                    );
+                    return _buildResultCard(_searchResults[index]);
                   },
                 ),
         ),

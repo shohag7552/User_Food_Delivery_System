@@ -605,5 +605,11 @@
   "dont_have_an_account": "Don't have an account?",
   "please_enter_your_phone": "Please enter your phone number",
   "login_to_your_account": "Login to your account",
-  "sign_up_to_get_started": "Sign up to get started"
+  "sign_up_to_get_started": "Sign up to get started",
+  "recent_searches": "Recent Searches",
+  "clear_all": "Clear All",
+  "results_found": "results found",
+  "showing_matches_for": "Showing matches for",
+  "no_matches_for_query": "We couldn't find anything matching",
+  "see_all_results_for": "See all results for"
 }
