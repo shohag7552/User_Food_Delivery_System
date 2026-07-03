@@ -136,6 +136,14 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
 
   /// Web/desktop layout: Promotions (left, wider) and Brands (right) in one row.
   /// Falls back to a single full-width section when only one of them has data.
+  /// Shared content height for the promotions + brands row — exactly three
+  /// 66px brand rows plus the two 12px gaps (3×66 + 2×12), so the promo
+  /// banner and the 2×3 brands grid align top and bottom like the hero row.
+  static const double _promosBrandsHeight = 222;
+
+  /// Max brand tiles shown in the web brands panel (2 columns × 3 rows).
+  static const int _maxBrandTiles = 6;
+
   Widget _buildPromosBrandsRow(double hPad) {
     return GetBuilder<BannerController>(
       builder: (bannerController) {
@@ -158,15 +166,18 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Promotions — the visual focus, so it takes the larger share.
+                  // Promotions — the visual focus, so it takes the larger
+                  // share; its banner is sized to exactly match the brands
+                  // panel so the two align top and bottom (hero-style row).
                   Expanded(
-                    flex: 2,
+                    flex: 5,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _sectionHeader('promotions'.tr, 0),
                         PromotionalBanner(
                           banners: promos,
+                          height: _promosBrandsHeight,
                           isLoading: false,
                           errorMessage: null,
                           onRetry: () => bannerController.getBanners(reload: true),
@@ -175,14 +186,18 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                     ),
                   ),
                   const SizedBox(width: 24),
-                  // Brands — a compact panel of chips beside the promotions.
+                  // Brands — a compact 2-column panel beside the promotions,
+                  // capped at 6 entries.
                   Expanded(
-                    flex: 5,
+                    flex: 2,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _sectionHeader('brands'.tr, 0),
-                        _brandsPanel(brands),
+                        SizedBox(
+                          height: _promosBrandsHeight,
+                          child: _brandsPanel(brands),
+                        ),
                       ],
                     ),
                   ),
@@ -198,19 +213,23 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
   /// Brands rendered as a responsive grid (web row layout). Columns auto-fit the
   /// available width via [SliverGridDelegateWithMaxCrossAxisExtent], and the grid
   /// sizes to its content so it sits inside the surrounding column.
+  /// Brands rendered as a fixed 2-column grid, capped at [_maxBrandTiles]
+  /// entries (2×3) so the panel height always matches [_promosBrandsHeight].
   Widget _brandsPanel(List<BrandModel> brands) {
+    final visibleBrands = brands.take(_maxBrandTiles).toList();
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       padding: EdgeInsets.zero,
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 220,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
         mainAxisExtent: 66,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
       ),
-      itemCount: brands.length,
-      itemBuilder: (context, index) => _brandTile(brands[index]),
+      itemCount: visibleBrands.length,
+      itemBuilder: (context, index) => _brandTile(visibleBrands[index]),
     );
   }
 
