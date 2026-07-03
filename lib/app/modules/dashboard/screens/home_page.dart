@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/controllers/notification_controller.dart';
@@ -157,11 +158,39 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     super.dispose();
   }
 
+  /// Desktop-web content never grows past this width; sections are centered
+  /// with symmetric gutters beyond it (same treatment as the ecommerce home).
+  static const double _maxContentWidth = 1200;
+
+  /// Promo banner height on desktop web. With the content cap this yields a
+  /// ~3.5:1 hero strip (like the ecommerce hero) instead of the thin 200px
+  /// band the widget's mobile-oriented default produces at full cap width.
+  static const double _webBannerHeight = 320;
+
+  /// Centers [child] within [_maxContentWidth]. A no-op below that width, so
+  /// mobile/tablet layouts are unaffected.
+  Widget _capped(Widget child) => Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+          child: child,
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
     final size = MediaQuery.of(context).size;
     final isTablet = size.width > 600;
+    // Desktop web gets a hero card + width-capped sections; the shared
+    // WebTopNav above owns search, so no in-page search bar there.
+    final isWebShell = WebTopNav.isEnabled(context);
+    // Grid: 2 columns on phones, 3 on tablets, 4 on wide desktop web.
+    final int? gridColumns =
+        isWebShell ? (size.width >= _maxContentWidth ? 4 : 3) : null;
+    // Side gutters that center the all-products grid within the content cap.
+    final double gridPadding = isWebShell && size.width > _maxContentWidth
+        ? (size.width - _maxContentWidth) / 2 + 20
+        : 20;
 
     return RefreshIndicator(
       onRefresh: () async => _initApiDataCall(canReload: true),
@@ -169,39 +198,41 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
         controller: _scrollController,
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // Custom Sliver App Bar with gradient
-          _buildSliverAppBar(context),
+          // Web: rounded greeting hero. Mobile: collapsing gradient app bar.
+          if (isWebShell) _buildWebHero() else _buildSliverAppBar(context),
 
           // Main Content
           SliverToBoxAdapter(
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
+            child: _capped(
+              Column(
+                children: [
+                  const SizedBox(height: 20),
 
-                _buildPromotionalBanners(),
+                  _buildPromotionalBanners(),
 
-                const SizedBox(height: Constants.spaceSection),
+                  const SizedBox(height: Constants.spaceSection),
 
-                // Categories
-                CategorySectionWidget(),
+                  // Categories
+                  CategorySectionWidget(),
 
-                const SizedBox(height: Constants.spaceSection),
+                  const SizedBox(height: Constants.spaceSection),
 
-                // Today's Specials
-                const TodaysSpecialsWidget(),
+                  // Today's Specials
+                  const TodaysSpecialsWidget(),
 
-                const SizedBox(height: Constants.spaceSection),
+                  const SizedBox(height: Constants.spaceSection),
 
-                // Popular Dishes
-                const PopularDishesWidget(),
+                  // Popular Dishes
+                  const PopularDishesWidget(),
 
-                const SizedBox(height: Constants.spaceSection),
+                  const SizedBox(height: Constants.spaceSection),
 
-                // New Items
-                const NewItemsWidget(),
+                  // New Items
+                  const NewItemsWidget(),
 
-                const SizedBox(height: 20),
-              ],
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
 
@@ -213,7 +244,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
             toolbarHeight: 0,
             flexibleSpace: GetBuilder<ProductController>(
               builder: (productController) {
-                return Padding(
+                return _capped(
+                  Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -266,12 +298,18 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                       ),
                     ],
                   ),
+                  ),
                 );
               },
             ),
           ),
 
-          AllProductsWidget(isTablet: isTablet, scrollController: _scrollController),
+          AllProductsWidget(
+            isTablet: isTablet,
+            scrollController: _scrollController,
+            crossAxisCount: gridColumns,
+            horizontalPadding: gridPadding,
+          ),
         ],
       ),
     );
@@ -313,99 +351,11 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                         children: [
                           // Greeting
                           Expanded(
-                            child: GetBuilder<ProfileController>(
-                              builder: (profileController) {
-                                final greeting = _greetingContent();
-                                final firstName = _resolveFirstName(
-                                  profileController.userProfile?.name,
-                                );
-                                final greetingLine = firstName.isEmpty
-                                    ? '${greeting.greetingKey.tr} 👋'
-                                    : '${greeting.greetingKey.tr}, $firstName 👋';
-
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      greetingLine,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: poppinsRegular.copyWith(
-                                        fontSize: Constants.fontSizeDefault,
-                                        color: ColorResource.textWhite
-                                            .withValues(alpha: 0.9),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      greeting.taglineKey.tr,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: poppinsBold.copyWith(
-                                        fontSize: Constants.fontSizeExtraLarge,
-                                        color: ColorResource.textWhite,
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
+                            child: _buildGreetingTexts(
+                              Constants.fontSizeExtraLarge,
                             ),
                           ),
-
-                          GetBuilder<NotificationController>(
-                            builder: (notificationController) {
-                              final hasUnreadNotifications =
-                                  notificationController.unreadCount > 0;
-
-                              return InkWell(
-                                borderRadius: BorderRadius.circular(
-                                  Constants.radiusDefault,
-                                ),
-                                onTap: () =>
-                                    context.pushNamed(RouteNames.notifications),
-                                child: Stack(
-                                  children: [
-                                    Material(
-                                      color: Colors.transparent,
-                                      child: Container(
-                                        padding: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          color: ColorResource.overlayMedium,
-                                          borderRadius: BorderRadius.circular(
-                                            Constants.radiusDefault,
-                                          ),
-                                        ),
-                                        child: Icon(
-                                          Icons.notifications_outlined,
-                                          color: ColorResource.textWhite,
-                                          size: 24,
-                                        ),
-                                      ),
-                                    ),
-                                    if (hasUnreadNotifications)
-                                      Positioned(
-                                        top: 6,
-                                        right: 6,
-                                        child: IgnorePointer(
-                                          child: Container(
-                                            width: 10,
-                                            height: 10,
-                                            decoration: BoxDecoration(
-                                              color: ColorResource.error,
-                                              shape: BoxShape.circle,
-                                              border: Border.all(
-                                                color: ColorResource.primaryDark,
-                                                width: 2,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
+                          _buildNotificationBell(),
                         ],
                       ),
                       const SizedBox(height: 20),
@@ -419,6 +369,130 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
           );
         },
       ),
+    );
+  }
+
+  /// Desktop-web hero: a rounded gradient card with the time-aware greeting
+  /// and the notification bell. No in-page search bar — the shared WebTopNav
+  /// above owns search on web.
+  Widget _buildWebHero() {
+    return SliverToBoxAdapter(
+      child: _capped(
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 30),
+            decoration: BoxDecoration(
+              gradient: ColorResource.primaryGradient,
+              borderRadius: BorderRadius.circular(Constants.radiusLarge),
+              boxShadow: ColorResource.customShadow,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildGreetingTexts(Constants.fontSizeOverLarge),
+                ),
+                _buildNotificationBell(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Time-aware greeting + tagline (shared by the mobile app bar and web hero;
+  /// only the tagline size differs).
+  Widget _buildGreetingTexts(double taglineFontSize) {
+    return GetBuilder<ProfileController>(
+      builder: (profileController) {
+        final greeting = _greetingContent();
+        final firstName = _resolveFirstName(
+          profileController.userProfile?.name,
+        );
+        final greetingLine = firstName.isEmpty
+            ? '${greeting.greetingKey.tr} 👋'
+            : '${greeting.greetingKey.tr}, $firstName 👋';
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              greetingLine,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: poppinsRegular.copyWith(
+                fontSize: Constants.fontSizeDefault,
+                color: ColorResource.textWhite.withValues(alpha: 0.9),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              greeting.taglineKey.tr,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: poppinsBold.copyWith(
+                fontSize: taglineFontSize,
+                color: ColorResource.textWhite,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Notification bell with the unread indicator (shared by both headers).
+  Widget _buildNotificationBell() {
+    return GetBuilder<NotificationController>(
+      builder: (notificationController) {
+        final hasUnreadNotifications = notificationController.unreadCount > 0;
+
+        return InkWell(
+          borderRadius: BorderRadius.circular(Constants.radiusDefault),
+          onTap: () => context.pushNamed(RouteNames.notifications),
+          child: Stack(
+            children: [
+              Material(
+                color: Colors.transparent,
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: ColorResource.overlayMedium,
+                    borderRadius: BorderRadius.circular(
+                      Constants.radiusDefault,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.notifications_outlined,
+                    color: ColorResource.textWhite,
+                    size: 24,
+                  ),
+                ),
+              ),
+              if (hasUnreadNotifications)
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: IgnorePointer(
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: ColorResource.error,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: ColorResource.primaryDark,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -471,13 +545,26 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   }
 
   Widget _buildPromotionalBanners() {
+    // On desktop web: a fixed hero-scale height and 20px side gutters so the
+    // banner aligns with the other capped sections. Mobile keeps the widget's
+    // own carousel sizing (enlarged center page, peeking neighbours).
+    final isWebShell = WebTopNav.isEnabled(context);
+
     return GetBuilder<BannerController>(
       builder: (bannerController) {
-        return PromotionalBanner(
+        final banner = PromotionalBanner(
           banners: bannerController.banners,
           isLoading: bannerController.isLoading,
           errorMessage: bannerController.errorMessage,
           onRetry: () => bannerController.getBanners(),
+          height: isWebShell ? _webBannerHeight : null,
+        );
+
+        if (!isWebShell) return banner;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: banner,
         );
       },
     );

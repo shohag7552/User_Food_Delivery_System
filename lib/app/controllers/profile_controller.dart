@@ -67,7 +67,6 @@ class ProfileController extends GetxController implements GetxService {
     // Auth-required: never hit Appwrite for a guest.
     if (!isUserLoggedIn()) {
       _userProfile = null;
-      update();
       return;
     }
     try {

@@ -20,10 +20,19 @@ class AllProductsWidget extends StatelessWidget {
   final bool isTablet;
   final ScrollController scrollController;
 
+  /// Overrides the phone/tablet column count (used by the web layout).
+  final int? crossAxisCount;
+
+  /// Side padding around the grid — the web layout passes computed gutters
+  /// that center the grid within its max content width.
+  final double horizontalPadding;
+
   const AllProductsWidget({
     super.key,
     this.isTablet = false,
     required this.scrollController,
+    this.crossAxisCount,
+    this.horizontalPadding = 20,
   });
 
   @override
@@ -103,11 +112,13 @@ class AllProductsWidget extends StatelessWidget {
           slivers: [
             // Products Grid
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+              padding:
+                  EdgeInsets.symmetric(horizontal: horizontalPadding),
               sliver: SliverGrid(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: isTablet ? 3 : 2,
-                  childAspectRatio: isTablet ? 0.75 : 0.65,
+                  crossAxisCount: crossAxisCount ?? (isTablet ? 3 : 2),
+                  childAspectRatio:
+                      (crossAxisCount ?? (isTablet ? 3 : 2)) >= 3 ? 0.75 : 0.65,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
                 ),
