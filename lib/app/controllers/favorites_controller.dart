@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
+import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/models/favorite_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/favorites/domain/repository/favorites_repo_interface.dart';
@@ -34,8 +35,24 @@ class FavoritesController extends GetxController implements GetxService {
     return _toggleLoadingStates[productId] ?? false;
   }
 
+  /// Clears the in-memory favourites (used on logout; leaves the server data).
+  void clearLocal() {
+    _favorites = [];
+    _favoriteProductIds = {};
+    _favoriteProducts = null;
+    update();
+  }
+
   /// Fetch all favorites
   Future<void> fetchFavorites({bool canUpdate = true, bool loadWithProduct = false}) async {
+    // Auth-required: never hit Appwrite for a guest.
+
+    if (!isUserLoggedIn()) {
+      _favorites = [];
+      _favoriteProductIds = {};
+      _favoriteProducts = null;
+      return;
+    }
     try {
       _isLoading = true;
       if(canUpdate) {
@@ -59,6 +76,8 @@ class FavoritesController extends GetxController implements GetxService {
 
   /// Toggle favorite status (add or remove)
   Future<void> toggleFavorite(ProductModel product) async {
+    // Auth-required write: never hit Appwrite for a guest.
+    if (!isUserLoggedIn()) return;
     try {
       final productId = product.id;
       

@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:appwrite/models.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
+import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
 import 'package:get/get.dart';
 
@@ -122,7 +123,10 @@ class AuthController extends GetxController implements GetxService {
 
     try {
       isSuccess = await authRepoInterface.loginUser(email, password);
-      if (isSuccess) _isLoggedIn = true;
+      if (isSuccess) {
+        _isLoggedIn = true;
+        SessionManager.loadUserData();
+      }
 
       // if (isSuccess) {
       //   customToster('Login successful! Welcome back.');
@@ -175,6 +179,7 @@ class AuthController extends GetxController implements GetxService {
 
       if (isSuccess) {
         _isLoggedIn = true;
+        SessionManager.loadUserData();
         customToster('Account created successfully!');
       } else {
         customToster('Failed to create account. Please try again.');
@@ -455,5 +460,6 @@ class AuthController extends GetxController implements GetxService {
     await authRepoInterface.logout();
     _isLoggedIn = false;
     update();
+    SessionManager.clearUserData();
   }
 }

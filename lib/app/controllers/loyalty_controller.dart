@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
+import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/models/loyalty_history_model.dart';
 import 'package:appwrite_user_app/app/modules/loyalty_point/domain/repository/loyalty_repo_interface.dart';
 import 'package:get/get.dart';
@@ -31,6 +32,12 @@ class LoyaltyController extends GetxController implements GetxService {
   }
 
   Future<void> fetchHistory() async {
+    // Auth-required: never hit Appwrite for a guest.
+    if (!isUserLoggedIn()) {
+      _history = [];
+      update();
+      return;
+    }
     try {
       _isLoading = true;
       update();

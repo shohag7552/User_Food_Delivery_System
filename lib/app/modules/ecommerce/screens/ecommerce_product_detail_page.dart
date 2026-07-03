@@ -1,4 +1,6 @@
+import 'package:appwrite_user_app/app/common/widgets/auth_dialog.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
 import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
@@ -1082,6 +1084,12 @@ class _EcommerceProductDetailPageState
   }
 
   Future<void> _submitCart(CartItemModel? matching) async {
+    // Adding to cart requires an account — prompt guests to sign in first.
+    if (!isUserLoggedIn()) {
+      AuthFlow.openLogin(context);
+      return;
+    }
+
     final missing = _firstUnselectedRequiredVariant();
     if (missing != null) {
       _guideToRequiredVariant(missing.title);

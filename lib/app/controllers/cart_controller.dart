@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
+import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/models/coupon_model.dart';
 import 'package:appwrite_user_app/app/modules/cart/domain/repository/cart_repo_interface.dart';
@@ -52,8 +53,21 @@ class CartController extends GetxController implements GetxService {
 
   double get total => subtotal + tax - discountAmount;
 
+  /// Clears the in-memory cart (used on logout; leaves the server cart intact).
+  void clearLocal() {
+    _cartItems = [];
+    _productStocks.clear();
+    update();
+  }
+
   /// Fetch cart items for user
   Future<void> getCartItems() async {
+    // Auth-required: never hit Appwrite for a guest.
+    if (!isUserLoggedIn()) {
+      _cartItems = [];
+      update();
+      return;
+    }
     try {
       _isLoading = true;
       _errorMessage = null;
@@ -86,6 +100,8 @@ class CartController extends GetxController implements GetxService {
 
   /// Add item to cart
   Future<void> addToCart(CartItemModel item) async {
+    // Auth-required write: never hit Appwrite for a guest.
+    if (!isUserLoggedIn()) return;
     try {
       // Check if an identical item already exists
       final existingItemIndex = _cartItems.indexWhere((existing) => 

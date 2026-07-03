@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
+import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/models/user_model.dart';
 import 'package:appwrite_user_app/app/modules/profile/domain/repository/profile_repo_interface.dart';
 import 'package:flutter/material.dart';
@@ -52,8 +53,23 @@ class ProfileController extends GetxController implements GetxService {
     super.onClose();
   }
 
+  /// Clears the in-memory profile (used on logout).
+  void clearLocal() {
+    _userProfile = null;
+    nameController.clear();
+    emailController.clear();
+    phoneController.clear();
+    update();
+  }
+
   /// Fetch user profile from database
   Future<void> fetchUserProfile() async {
+    // Auth-required: never hit Appwrite for a guest.
+    if (!isUserLoggedIn()) {
+      _userProfile = null;
+      update();
+      return;
+    }
     try {
       _isLoading = true;
       update();

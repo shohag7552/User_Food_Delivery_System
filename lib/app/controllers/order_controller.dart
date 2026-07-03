@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
@@ -150,6 +151,12 @@ class OrderController extends GetxController implements GetxService {
 
   /// Fetch user's orders with current filters
   Future<void> fetchUserOrders({bool refresh = false}) async {
+    // Auth-required: never hit Appwrite for a guest.
+    if (!isUserLoggedIn()) {
+      _orders = [];
+      update();
+      return;
+    }
     try {
       if (refresh) {
         _currentPage = 0;
@@ -186,6 +193,7 @@ class OrderController extends GetxController implements GetxService {
 
   /// Load more orders (pagination)
   Future<void> loadMoreOrders() async {
+    if (!isUserLoggedIn()) return;
     if (_isLoadingMore || !_hasMore) return;
 
     try {
@@ -250,6 +258,8 @@ class OrderController extends GetxController implements GetxService {
     String orderId, {
     bool showLoader = true,
   }) async {
+    // Auth-required: never hit Appwrite for a guest.
+    if (!isUserLoggedIn()) return null;
     try {
       if (showLoader) {
         _isOrderDetailsLoading = true;

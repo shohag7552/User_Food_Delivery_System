@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
+import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
 import 'package:appwrite_user_app/app/modules/address/domain/repository/address_repo_interface.dart';
 import 'package:get/get.dart';
@@ -37,6 +38,12 @@ class AddressController extends GetxController implements GetxService {
 
   /// Fetch all addresses for current user
   Future<void> fetchAddresses() async {
+    // Auth-required: never hit Appwrite for a guest.
+    if (!isUserLoggedIn()) {
+      _addresses = [];
+      update();
+      return;
+    }
     try {
       _isLoading = true;
       update();

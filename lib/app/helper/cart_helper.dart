@@ -1,8 +1,10 @@
+import 'package:appwrite_user_app/app/common/widgets/auth_dialog.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
+import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
@@ -26,6 +28,12 @@ class CartHelper {
     ProductModel product,
     BuildContext context,
   ) async {
+    // Adding to cart requires an account — prompt guests to sign in first.
+    if (!isUserLoggedIn()) {
+      AuthFlow.openLogin(context);
+      return;
+    }
+
     // Check if product has variants
     if (product.variants.isNotEmpty) {
       // Has variants - open bottom sheet for customization

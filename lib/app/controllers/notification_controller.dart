@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/models/notification_model.dart';
 import 'package:appwrite_user_app/app/modules/notification/domain/repository/notification_repo_interface.dart';
 import 'package:get/get.dart';
@@ -27,6 +28,12 @@ class NotificationController extends GetxController implements GetxService {
 
   /// Fetch all notifications for the current user
   Future<void> getNotifications() async {
+    // Auth-required: never hit Appwrite for a guest.
+    if (!isUserLoggedIn()) {
+      _notifications = [];
+      update();
+      return;
+    }
     try {
       _isLoading = true;
       _errorMessage = null;

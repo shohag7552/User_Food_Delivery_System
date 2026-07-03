@@ -1,4 +1,6 @@
+import 'package:appwrite_user_app/app/common/widgets/auth_dialog.dart';
 import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
+import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +30,16 @@ class FavoriteButton extends StatelessWidget {
         final isLoading = controller.isToggleLoading(product.id);
 
         return GestureDetector(
-          onTap: isLoading ? null : () => controller.toggleFavorite(product),
+          onTap: isLoading
+              ? null
+              : () {
+                  // Favouriting requires an account — prompt guests to sign in.
+                  if (!isUserLoggedIn()) {
+                    AuthFlow.openLogin(context);
+                    return;
+                  }
+                  controller.toggleFavorite(product);
+                },
           child: Container(
             padding: EdgeInsets.all(size * 0.4),
             decoration: BoxDecoration(

@@ -1,4 +1,6 @@
+import 'package:appwrite_user_app/app/common/widgets/auth_dialog.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
@@ -1209,6 +1211,11 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
               onTap: (outOfStock || _isAddingToCart)
                   ? null
                   : () async {
+                      // Adding to cart requires an account — prompt guests.
+                      if (!isUserLoggedIn()) {
+                        AuthFlow.openLogin(context);
+                        return;
+                      }
                       if (!_canAddToCart) {
                         // Required choices still missing — guide the user to
                         // the next required variant instead of adding.
