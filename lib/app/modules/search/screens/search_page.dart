@@ -4,6 +4,7 @@ import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
 import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
+import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
@@ -364,9 +365,23 @@ class _SearchPageState extends State<SearchPage> {
   Widget _buildResultCard(ProductModel product) {
     final card = _buildProductCard(
       product: product,
-      onTap: () => ProductDetailBottomSheet.show(context, product),
+      onTap: () => _openProduct(product),
     );
     return kIsWeb ? HoverLift(child: card) : card;
+  }
+
+  /// Ecommerce items open their full detail page; food items keep the
+  /// quick-view bottom sheet.
+  void _openProduct(ProductModel product) {
+    if (product.moduleType == ModuleController.ecommerce) {
+      context.pushNamed(
+        RouteNames.productDetail,
+        pathParameters: {'id': product.id},
+        extra: product,
+      );
+    } else {
+      ProductDetailBottomSheet.show(context, product);
+    }
   }
 
   Widget _buildSearchHeader() {
