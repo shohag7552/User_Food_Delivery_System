@@ -74,9 +74,9 @@ class CartHelper {
     }
   }
 
-  /// Show cart animation
+  /// Show cart animation (Android/iOS only)
   static void _showCartAnimation(BuildContext context, ProductModel product) {
-    if (GetPlatform.isWeb) return;
+    if (!CartAnimationController.isSupported) return;
     Get.find<CartAnimationController>().animateAddToCart(
       context: context,
       productImageUrl: product.imageId,

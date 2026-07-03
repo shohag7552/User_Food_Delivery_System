@@ -164,7 +164,10 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   Get.lazyPut(() => loyaltyRepoInterface);
 
   /// Controller Initialization
-  if (!GetPlatform.isWeb) Get.lazyPut(() => CartAnimationController());
+  // Fly-to-cart animation exists on Android/iOS only (never on web).
+  if (CartAnimationController.isSupported) {
+    Get.lazyPut(() => CartAnimationController());
+  }
   Get.lazyPut(() => AuthController(authRepoInterface: Get.find()));
   Get.lazyPut(() => CategoryController(categoryRepoInterface: Get.find()));
   Get.lazyPut(() => CouponController(couponRepoInterface: Get.find()));

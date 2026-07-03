@@ -309,7 +309,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Stack(
-                  key: Get.find<CartAnimationController>().cartIconKey,
+                  // Animation target — only exists on Android/iOS; on web the
+                  // controller isn't registered, so no key is attached.
+                  key: CartAnimationController.isSupported
+                      ? Get.find<CartAnimationController>().cartIconKey
+                      : null,
                   clipBehavior: Clip.none,
                   children: [
                     Icon(

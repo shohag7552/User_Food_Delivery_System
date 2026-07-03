@@ -15,7 +15,7 @@ class CartAnimationHelper {
     required String productImageUrl,
     GlobalKey? buttonKey,
   }) {
-    if (GetPlatform.isWeb) return;
+    if (!CartAnimationController.isSupported) return;
     try {
       final controller = Get.find<CartAnimationController>();
       

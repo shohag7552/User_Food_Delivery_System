@@ -1262,7 +1262,9 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                           _isAddingToCart = false;
                         });
 
-                        if (_matchingCartItem == null && widget.cartItem == null && !GetPlatform.isWeb) {
+                        if (_matchingCartItem == null &&
+                            widget.cartItem == null &&
+                            CartAnimationController.isSupported) {
                           Future.delayed(const Duration(milliseconds: 100), () {
                             if (mounted) {
                               Get.find<CartAnimationController>().animateAddToCart(

@@ -3,9 +3,16 @@ import 'package:get/get.dart';
 import 'package:appwrite_user_app/app/common/widgets/add_to_cart_animation.dart';
 
 class CartAnimationController extends GetxController {
+  /// Single source of truth for where the fly-to-cart animation runs:
+  /// Android and iOS only. On web (and any other platform) the controller is
+  /// not registered in DI, so call sites must guard with this before
+  /// Get.find'ing it.
+  static bool get isSupported =>
+      !GetPlatform.isWeb && (GetPlatform.isAndroid || GetPlatform.isIOS);
+
   // GlobalKey to track cart icon position
   final GlobalKey cartIconKey = GlobalKey();
-  
+
   // Overlay entry for animation
   OverlayEntry? _overlayEntry;
 
@@ -15,6 +22,9 @@ class CartAnimationController extends GetxController {
     required String productImageUrl,
     required Offset buttonPosition,
   }) {
+    // Defense in depth — never animate on unsupported platforms.
+    if (!isSupported) return;
+
     // Get cart icon position
     final cartPosition = _getCartIconPosition();
     if (cartPosition == null) {
