@@ -10,6 +10,7 @@ import 'package:appwrite_user_app/app/modules/dashboard/section_widget/all_produ
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/category_section_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/food_card_metrics.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/new_items_widget.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/section_widget/offer_products_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/popular_dishes_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/todays_specials_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/promotional_banner.dart';
@@ -103,6 +104,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       bannerController.getBanners(reload: canReload),
       productController.getSpecialProducts(reload: canReload),
       productController.getPopularProducts(reload: canReload),
+      productController.getOfferProducts(reload: canReload),
       productController.getNewProducts(reload: canReload),
       productController.getProducts(reload: canReload),
     ]);
@@ -147,6 +149,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
         productController.errorMessage != null ||
         productController.specialsErrorMessage != null ||
         productController.popularErrorMessage != null ||
+        productController.offersErrorMessage != null ||
         productController.newErrorMessage != null;
   }
 
@@ -226,6 +229,10 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
 
                   // Popular Dishes
                   const PopularDishesWidget(),
+
+                  // Offer Products — spaces itself and disappears entirely
+                  // when there are no discounted items.
+                  const OfferProductsWidget(),
 
                   const SizedBox(height: Constants.spaceSection),
 
