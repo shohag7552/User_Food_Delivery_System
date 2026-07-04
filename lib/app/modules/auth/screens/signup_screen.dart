@@ -187,11 +187,12 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                       
                       const SizedBox(height: 40),
                       
-                      // Signup Form Card
+                      // Signup Form Card — theme-aware (dark card in dark mode).
                       Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.95),
+                          color: ColorResource.cardBackground
+                              .withValues(alpha: 0.97),
                           borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(

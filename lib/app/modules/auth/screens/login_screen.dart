@@ -150,11 +150,12 @@ class _LoginScreenState extends State<LoginScreen>
 
                     const SizedBox(height: 50),
 
-                    // Login Form Card
+                    // Login Form Card — theme-aware (dark card in dark mode).
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.95),
+                        color: ColorResource.cardBackground
+                            .withValues(alpha: 0.97),
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
@@ -181,19 +182,23 @@ class _LoginScreenState extends State<LoginScreen>
                             TextFormField(
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
-                              style: poppinsRegular.copyWith(fontSize: 16),
+                              style: poppinsRegular.copyWith(
+                                fontSize: 16,
+                                color: ColorResource.textPrimary,
+                              ),
                               decoration: InputDecoration(
                                 hintText: 'enter_your_email'.tr,
                                 hintStyle: poppinsRegular.copyWith(
                                   fontSize: 14,
-                                  color: Colors.grey[400],
+                                  color: ColorResource.textLight,
                                 ),
                                 prefixIcon: const Icon(
                                   Icons.email_outlined,
                                   color: ColorResource.primaryDark,
                                 ),
                                 filled: true,
-                                fillColor: Colors.grey[100],
+                                // Dark surface in dark mode, light grey in light.
+                                fillColor: ColorResource.scaffoldBackground,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide.none,
@@ -248,12 +253,15 @@ class _LoginScreenState extends State<LoginScreen>
                             TextFormField(
                               controller: _passwordController,
                               obscureText: _obscurePassword,
-                              style: poppinsRegular.copyWith(fontSize: 16),
+                              style: poppinsRegular.copyWith(
+                                fontSize: 16,
+                                color: ColorResource.textPrimary,
+                              ),
                               decoration: InputDecoration(
                                 hintText: 'enter_your_password'.tr,
                                 hintStyle: poppinsRegular.copyWith(
                                   fontSize: 14,
-                                  color: Colors.grey[400],
+                                  color: ColorResource.textLight,
                                 ),
                                 prefixIcon: const Icon(
                                   Icons.lock_outline,
@@ -273,7 +281,8 @@ class _LoginScreenState extends State<LoginScreen>
                                   },
                                 ),
                                 filled: true,
-                                fillColor: Colors.grey[100],
+                                // Dark surface in dark mode, light grey in light.
+                                fillColor: ColorResource.scaffoldBackground,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide.none,

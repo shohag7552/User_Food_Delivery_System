@@ -202,7 +202,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.96),
+                        // Theme-aware (dark card in dark mode).
+                        color: ColorResource.cardBackground
+                            .withValues(alpha: 0.97),
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
@@ -226,7 +228,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                                   controller: _emailController,
                                   keyboardType: TextInputType.emailAddress,
                                   readOnly: _otpRequested,
-                                  style: poppinsRegular.copyWith(fontSize: 16),
+                                  style: poppinsRegular.copyWith(
+                                    fontSize: 16,
+                                    color: ColorResource.textPrimary,
+                                  ),
                                   decoration: _inputDecoration(
                                     hintText: 'Enter your email',
                                     icon: Icons.email_outlined,
@@ -282,7 +287,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                                     controller: _otpController,
                                     keyboardType: TextInputType.number,
                                     maxLength: 6,
-                                    style: poppinsRegular.copyWith(fontSize: 16),
+                                    style: poppinsRegular.copyWith(
+                                    fontSize: 16,
+                                    color: ColorResource.textPrimary,
+                                  ),
                                     decoration: _inputDecoration(
                                       hintText: 'Enter 6-digit OTP',
                                       icon: Icons.password_outlined,
@@ -304,7 +312,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                                   TextFormField(
                                     controller: _passwordController,
                                     obscureText: _obscurePassword,
-                                    style: poppinsRegular.copyWith(fontSize: 16),
+                                    style: poppinsRegular.copyWith(
+                                    fontSize: 16,
+                                    color: ColorResource.textPrimary,
+                                  ),
                                     decoration: _passwordDecoration(
                                       hintText: 'Enter your new password',
                                       obscureText: _obscurePassword,
@@ -330,7 +341,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                                   TextFormField(
                                     controller: _confirmPasswordController,
                                     obscureText: _obscureConfirmPassword,
-                                    style: poppinsRegular.copyWith(fontSize: 16),
+                                    style: poppinsRegular.copyWith(
+                                    fontSize: 16,
+                                    color: ColorResource.textPrimary,
+                                  ),
                                     decoration: _passwordDecoration(
                                       hintText: 'Re-enter your new password',
                                       obscureText: _obscureConfirmPassword,
@@ -401,9 +415,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     return InputDecoration(
       hintText: hintText,
       counterText: counterText,
+      hintStyle: poppinsRegular.copyWith(
+        fontSize: 14,
+        color: ColorResource.textLight,
+      ),
       prefixIcon: Icon(icon, color: ColorResource.primaryDark),
       filled: true,
-      fillColor: Colors.grey[100],
+      // Dark surface in dark mode, light grey in light.
+      fillColor: ColorResource.scaffoldBackground,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,

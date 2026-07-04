@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 
@@ -53,36 +54,48 @@ class CustomTextField extends StatelessWidget {
       onChanged: onChanged,
       onTap: onTap,
       readOnly: readOnly,
-      style: poppinsRegular.copyWith(fontSize: 15),
+      // Theme-aware colors (ColorResource resolves per light/dark mode).
+      style: poppinsRegular.copyWith(
+        fontSize: 15,
+        color: ColorResource.textPrimary,
+      ),
       textCapitalization: textCapitalization!,
       decoration: InputDecoration(
         labelText: label,
         hintText: hintText,
         labelStyle: poppinsRegular.copyWith(
-          color: Colors.grey[600],
+          color: ColorResource.textSecondary,
           fontSize: 14,
         ),
         hintStyle: poppinsRegular.copyWith(
-          color: Colors.grey[400],
+          color: ColorResource.textLight,
           fontSize: 14,
         ),
-        prefixIcon: icon != null 
+        prefixIcon: icon != null
             ? Icon(icon, color: Theme.of(context).primaryColor)
             : null,
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: enabled ? Colors.white : Colors.grey[100],
+        fillColor: enabled
+            ? ColorResource.cardBackground
+            : ColorResource.scaffoldBackground,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
+          borderSide: BorderSide(
+            color: ColorResource.textLight.withValues(alpha: 0.35),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
+          borderSide: BorderSide(
+            color: ColorResource.textLight.withValues(alpha: 0.35),
+          ),
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[200]!),
+          borderSide: BorderSide(
+            color: ColorResource.textLight.withValues(alpha: 0.2),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
