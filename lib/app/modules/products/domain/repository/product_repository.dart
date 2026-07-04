@@ -56,6 +56,9 @@ class ProductRepository implements ProductRepoInterface {
           Query.greaterThan('discount_value', 5),
           Query.equal('is_available', true),
           Query.equal('module_type', ModuleController.current),
+          // Biggest discounts first, capped at 20 for the home carousel.
+          Query.orderDesc('discount_value'),
+          Query.limit(20),
         ],
       );
       return response.rows.map((row) {
@@ -80,7 +83,9 @@ class ProductRepository implements ProductRepoInterface {
           Query.greaterThan('order_count', 3),
           Query.equal('is_available', true),
           Query.equal('module_type', ModuleController.current),
-          Query.limit(10), // Limit to top 10 popular items
+          // Most-ordered first, capped at 20 for the home carousel.
+          Query.orderDesc('order_count'),
+          Query.limit(20),
         ],
       );
       return response.rows.map((row) {
@@ -103,7 +108,7 @@ class ProductRepository implements ProductRepoInterface {
           Query.equal('is_available', true),
           Query.equal('module_type', ModuleController.current),
           Query.orderDesc('\$createdAt'), // Sort by creation date, newest first
-          Query.limit(10), // Limit to 10 newest items
+          Query.limit(20), // Cap at 20 newest items for the home carousel
         ],
       );
       return response.rows.map((row) {

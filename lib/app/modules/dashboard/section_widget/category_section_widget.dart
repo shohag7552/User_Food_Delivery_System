@@ -200,6 +200,7 @@ class CategorySectionWidget extends StatelessWidget {
           }
           return HoverLift(
             borderRadius: Constants.radiusExtraLarge,
+            showShadow: false,
             child: tile,
           );
         },

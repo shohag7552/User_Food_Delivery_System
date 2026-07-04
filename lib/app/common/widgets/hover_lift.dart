@@ -7,8 +7,9 @@ import 'package:flutter/material.dart';
 class HoverLift extends StatefulWidget {
   final Widget child;
   final double? borderRadius;
+  final bool showShadow;
 
-  const HoverLift({super.key, required this.child, this.borderRadius});
+  const HoverLift({super.key, required this.child, this.borderRadius, this.showShadow = true});
 
   @override
   State<HoverLift> createState() => _HoverLiftState();
@@ -37,7 +38,7 @@ class _HoverLiftState extends State<HoverLift> {
           curve: Curves.easeOut,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(radius),
-            boxShadow: _hovered
+            boxShadow: _hovered && widget.showShadow
                 ? [
                     BoxShadow(
                       color: ColorResource.primaryDark.withValues(alpha: 0.18),
