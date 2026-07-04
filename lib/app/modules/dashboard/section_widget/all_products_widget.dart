@@ -1,6 +1,8 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
+import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
@@ -8,6 +10,7 @@ import 'package:appwrite_user_app/app/helper/cart_helper.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/section_widget/food_card_metrics.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/dashboard_shimmer.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -117,6 +120,11 @@ class AllProductsWidget extends StatelessWidget {
               sliver: SliverGrid(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount ?? (isTablet ? 3 : 2),
+                  // Web (explicit column count): fixed card height = ~4:3
+                  // image of the real column width + the details block, so
+                  // cards keep the same proportions as the carousel sections
+                  // at any width. Mobile/tablet keep their original ratios.
+                  mainAxisExtent: _webMainAxisExtent(context),
                   childAspectRatio:
                       (crossAxisCount ?? (isTablet ? 3 : 2)) >= 3 ? 0.75 : 0.65,
                   crossAxisSpacing: 16,
@@ -129,7 +137,7 @@ class AllProductsWidget extends StatelessWidget {
                       final cartQuantity = CartHelper.getProductCartQuantity(
                         product.id,
                       );
-                      return _buildProductCard(
+                      final card = _buildProductCard(
                         product: product,
                         cartQuantity: cartQuantity,
                         onTap: () {
@@ -145,6 +153,10 @@ class AllProductsWidget extends StatelessWidget {
                           }
                         },
                       );
+                      // Web-only hover lift; touch layouts get the bare card.
+                      return WebTopNav.isEnabled(context)
+                          ? HoverLift(child: card)
+                          : card;
                     },
                   );
                 }, childCount: controller.products.length),
@@ -170,6 +182,16 @@ class AllProductsWidget extends StatelessWidget {
     );
   }
 
+  /// Fixed card height for the web grid: a ~4:3 image of the actual column
+  /// width plus the details block (see [FoodCardMetrics] — shared with the
+  /// home carousel sections so all food cards match). Returns null off-web so
+  /// [SliverGridDelegate]'s childAspectRatio keeps sizing mobile/tablet cards
+  /// exactly as before.
+  double? _webMainAxisExtent(BuildContext context) {
+    if (crossAxisCount == null) return null;
+    return FoodCardMetrics.webCardHeight(MediaQuery.of(context).size.width);
+  }
+
   Widget _buildProductCard({
     required ProductModel product,
     required VoidCallback onTap,
@@ -188,15 +210,21 @@ class AllProductsWidget extends StatelessWidget {
           Expanded(
             child: Stack(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(Constants.radiusLarge),
-                    topRight: Radius.circular(Constants.radiusLarge),
-                  ),
-                  child: CustomNetworkImage(
-                    image: product.imageId,
-                    height: 160,
-                    width: double.infinity,
+                // Fills whatever height the grid extent leaves for the image
+                // (a fixed 160 left a dead gap under the image on the larger
+                // web cards and got clipped on small ones).
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(Constants.radiusLarge),
+                      topRight: Radius.circular(Constants.radiusLarge),
+                    ),
+                    child: CustomNetworkImage(
+                      image: product.imageId,
+                      height: double.infinity,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
 

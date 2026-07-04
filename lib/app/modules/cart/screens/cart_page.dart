@@ -314,16 +314,9 @@ class _CartPageState extends State<CartPage> {
         }
 
         if (product != null && context.mounted) {
-          // Open the product bottom sheet and use the full product model
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            builder: (context) => ProductDetailBottomSheet(
-              product: product,
-              cartItem: item, // Pass the existing cart item in
-            ),
-          );
+          // Open the product details (dialog on desktop web, bottom sheet on
+          // mobile) with the existing cart item passed in.
+          ProductDetailBottomSheet.show(context, product, cartItem: item);
         } else if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('failed_to_load_product_details'.tr)),

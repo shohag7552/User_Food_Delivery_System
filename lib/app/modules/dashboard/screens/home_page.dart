@@ -8,6 +8,7 @@ import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/all_products_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/category_section_widget.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/section_widget/food_card_metrics.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/new_items_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/popular_dishes_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/todays_specials_widget.dart';
@@ -184,9 +185,10 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     // Desktop web gets a hero card + width-capped sections; the shared
     // WebTopNav above owns search, so no in-page search bar there.
     final isWebShell = WebTopNav.isEnabled(context);
-    // Grid: 2 columns on phones, 3 on tablets, 4 on wide desktop web.
+    // Grid: 2 columns on phones, 3 on tablets; web derives its count from
+    // FoodCardMetrics so the cards match the carousel sections.
     final int? gridColumns =
-        isWebShell ? (size.width >= _maxContentWidth ? 4 : 3) : null;
+        isWebShell ? FoodCardMetrics.webColumns(size.width) : null;
     // Side gutters that center the all-products grid within the content cap.
     final double gridPadding = isWebShell && size.width > _maxContentWidth
         ? (size.width - _maxContentWidth) / 2 + 20
@@ -236,73 +238,14 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
             ),
           ),
 
-          SliverAppBar(
-            automaticallyImplyLeading: false,
-            pinned: true,
-            backgroundColor: ColorResource.scaffoldBackground,
-            elevation: 0,
-            toolbarHeight: 0,
-            flexibleSpace: GetBuilder<ProductController>(
-              builder: (productController) {
-                return _capped(
-                  Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'all_products'.tr,
-                        style: poppinsBold.copyWith(
-                          fontSize: Constants.fontSizeExtraLarge,
-                          color: ColorResource.textPrimary,
-                        ),
-                      ),
-                      PopupMenuButton<ProductListFilter>(
-                        tooltip: 'Filter products',
-                        onSelected: (filter) async {
-                          await productController.setProductFilter(filter);
-                        },
-                        itemBuilder: (context) => [
-                          PopupMenuItem(
-                            value: ProductListFilter.all,
-                            child: _buildFilterMenuItem(
-                              label: 'all'.tr,
-                              isSelected:
-                                  productController.selectedProductFilter ==
-                                  ProductListFilter.all,
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: ProductListFilter.veg,
-                            child: _buildFilterMenuItem(
-                              label: 'veg'.tr,
-                              isSelected: productController.selectedProductFilter == ProductListFilter.veg,
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: ProductListFilter.nonVeg,
-                            child: _buildFilterMenuItem(
-                              label: 'non_veg'.tr,
-                              isSelected: productController.selectedProductFilter == ProductListFilter.nonVeg,
-                            ),
-                          ),
-                        ],
-                        icon: Icon(
-                          Icons.filter_list,
-                          color:
-                              productController.selectedProductFilter ==
-                                  ProductListFilter.all
-                              ? ColorResource.textPrimary
-                              : ColorResource.primaryDark,
-                        ),
-                      ),
-                    ],
-                  ),
-                  ),
-                );
-              },
-            ),
-          ),
+          // All-products header. The mobile variant relies on the status-bar
+          // padding for its paint area (toolbarHeight 0), which is 0 on web —
+          // so web gets its own pinned header with a real height and inline
+          // filter chips instead of the hidden popup.
+          if (isWebShell)
+            _buildWebProductsHeader()
+          else
+            _buildMobileProductsHeader(),
 
           AllProductsWidget(
             isTablet: isTablet,
@@ -311,6 +254,170 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
             horizontalPadding: gridPadding,
           ),
         ],
+      ),
+    );
+  }
+
+  /// Mobile pinned products header — title + filter popup painted within the
+  /// status-bar padding area (toolbarHeight 0), exactly as before.
+  Widget _buildMobileProductsHeader() {
+    return SliverAppBar(
+      automaticallyImplyLeading: false,
+      pinned: true,
+      backgroundColor: ColorResource.scaffoldBackground,
+      elevation: 0,
+      toolbarHeight: 0,
+      flexibleSpace: GetBuilder<ProductController>(
+        builder: (productController) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'all_products'.tr,
+                  style: poppinsBold.copyWith(
+                    fontSize: Constants.fontSizeExtraLarge,
+                    color: ColorResource.textPrimary,
+                  ),
+                ),
+                PopupMenuButton<ProductListFilter>(
+                  tooltip: 'Filter products',
+                  onSelected: (filter) async {
+                    await productController.setProductFilter(filter);
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: ProductListFilter.all,
+                      child: _buildFilterMenuItem(
+                        label: 'all'.tr,
+                        isSelected: productController.selectedProductFilter ==
+                            ProductListFilter.all,
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: ProductListFilter.veg,
+                      child: _buildFilterMenuItem(
+                        label: 'veg'.tr,
+                        isSelected: productController.selectedProductFilter ==
+                            ProductListFilter.veg,
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: ProductListFilter.nonVeg,
+                      child: _buildFilterMenuItem(
+                        label: 'non_veg'.tr,
+                        isSelected: productController.selectedProductFilter ==
+                            ProductListFilter.nonVeg,
+                      ),
+                    ),
+                  ],
+                  icon: Icon(
+                    Icons.filter_list,
+                    color: productController.selectedProductFilter ==
+                            ProductListFilter.all
+                        ? ColorResource.textPrimary
+                        : ColorResource.primaryDark,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Desktop-web pinned products header: an explicit 64px bar (web has no
+  /// status-bar padding for the mobile variant to paint in) with the section
+  /// title and always-visible filter chips.
+  Widget _buildWebProductsHeader() {
+    return SliverAppBar(
+      automaticallyImplyLeading: false,
+      pinned: true,
+      primary: false,
+      toolbarHeight: 64,
+      titleSpacing: 0,
+      backgroundColor: ColorResource.scaffoldBackground,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      title: GetBuilder<ProductController>(
+        builder: (productController) {
+          return _capped(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'all_products'.tr,
+                      style: poppinsBold.copyWith(
+                        fontSize: Constants.fontSizeExtraLarge,
+                        color: ColorResource.textPrimary,
+                      ),
+                    ),
+                  ),
+                  _webFilterChip(
+                    productController,
+                    ProductListFilter.all,
+                    'all'.tr,
+                  ),
+                  _webFilterChip(
+                    productController,
+                    ProductListFilter.veg,
+                    'veg'.tr,
+                  ),
+                  _webFilterChip(
+                    productController,
+                    ProductListFilter.nonVeg,
+                    'non_veg'.tr,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Pill-style veg/non-veg filter chip for the web products header.
+  Widget _webFilterChip(
+    ProductController controller,
+    ProductListFilter filter,
+    String label,
+  ) {
+    final bool selected = controller.selectedProductFilter == filter;
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 8),
+      child: InkWell(
+        onTap: () => controller.setProductFilter(filter),
+        borderRadius: BorderRadius.circular(999),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            gradient: selected ? ColorResource.primaryGradient : null,
+            color: selected ? null : ColorResource.cardBackground,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: selected
+                  ? Colors.transparent
+                  : ColorResource.textLight.withValues(alpha: 0.3),
+            ),
+          ),
+          child: Text(
+            label,
+            style: (selected ? poppinsBold : poppinsMedium).copyWith(
+              fontSize: Constants.fontSizeSmall,
+              color: selected
+                  ? ColorResource.textWhite
+                  : ColorResource.textSecondary,
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/auth_dialog.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
@@ -24,10 +25,15 @@ class ProductDetailBottomSheet extends StatefulWidget {
   final ProductModel product;
   final CartItemModel? cartItem; // Add cartItem to constructor
 
+  /// Renders as a centered dialog body (desktop web) instead of a draggable
+  /// bottom sheet. Set by [show]; don't pass manually.
+  final bool isDialog;
+
   const ProductDetailBottomSheet({
     super.key,
     required this.product,
     this.cartItem,
+    this.isDialog = false,
   });
 
   @override
@@ -35,12 +41,40 @@ class ProductDetailBottomSheet extends StatefulWidget {
       _ProductDetailBottomSheetState();
 
   static void show(BuildContext context, ProductModel product, {CartItemModel? cartItem}) {
+    // Desktop web: product details open as a centered dialog — a bottom
+    // sheet is a touch idiom. Mobile/tablet keep the draggable sheet.
+    if (WebTopNav.isEnabled(context)) {
+      showDialog(
+        context: context,
+        barrierColor: Colors.black.withValues(alpha: 0.55),
+        builder: (context) => Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 480,
+              maxHeight: MediaQuery.of(context).size.height * 0.85,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
+              child: ProductDetailBottomSheet(
+                product: product,
+                cartItem: cartItem,
+                isDialog: true,
+              ),
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => ProductDetailBottomSheet(
-        product: product, 
+        product: product,
         cartItem: cartItem,
       ),
     );
@@ -342,6 +376,8 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
 
   @override
   Widget build(BuildContext context) {
+    if (widget.isDialog) return _buildDialogBody(context);
+
     return NotificationListener<DraggableScrollableNotification>(
       onNotification: (notification) {
         // Considered "fully expanded" when the drag extent reaches the top.
@@ -373,50 +409,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                       child: SingleChildScrollView(
                         controller: scrollController,
                         padding: const EdgeInsets.all(0),
-                        child: Column(
-                          key: _sheetContentKey,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Product Image with badges
-                            _buildProductImage(),
-
-                            // Product Details
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  _buildProductInfo(),
-                                  const SizedBox(
-                                    height: Constants.paddingSizeDefault,
-                                  ),
-
-                                  // Variants
-                                  if (widget.product.variants.isNotEmpty) ...[
-                                    _buildVariantsSection(),
-                                    const SizedBox(
-                                      height: Constants.paddingSizeDefault,
-                                    ),
-                                  ],
-
-                                  // Reviews Section — only when the product
-                                  // has reviews.
-                                  if (_hasReviews) ...[
-                                    Divider(
-                                      color: ColorResource.textLight.withValues(
-                                        alpha: 0.2,
-                                      ),
-                                      thickness: 1,
-                                    ),
-                                    const SizedBox(height: 18),
-                                    _buildReviewsSection(),
-                                  ],
-                                  const SizedBox(height: 10), // Space for button
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                        child: _buildSheetContent(),
                       ),
                     ),
 
@@ -434,6 +427,106 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
             ],
           );
         },
+      ),
+    );
+  }
+
+  /// Scrollable detail content — shared verbatim by the mobile draggable
+  /// sheet and the desktop-web dialog.
+  Widget _buildSheetContent() {
+    return Column(
+      key: _sheetContentKey,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Product Image with badges
+        _buildProductImage(),
+
+        // Product Details
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildProductInfo(),
+              const SizedBox(height: Constants.paddingSizeDefault),
+
+              // Variants
+              if (widget.product.variants.isNotEmpty) ...[
+                _buildVariantsSection(),
+                const SizedBox(height: Constants.paddingSizeDefault),
+              ],
+
+              // Reviews Section — only when the product has reviews.
+              if (_hasReviews) ...[
+                Divider(
+                  color: ColorResource.textLight.withValues(alpha: 0.2),
+                  thickness: 1,
+                ),
+                const SizedBox(height: 18),
+                _buildReviewsSection(),
+              ],
+              const SizedBox(height: 10), // Space for button
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Desktop-web dialog body: close-button header + scrollable content +
+  /// the same pinned add-to-cart bar. No drag affordances — dialogs don't
+  /// expand; they scroll.
+  Widget _buildDialogBody(BuildContext context) {
+    return Container(
+      color: ColorResource.cardBackground,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header: product name + close.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 10, 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.product.nameMap.trLanguage,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: poppinsBold.copyWith(
+                      fontSize: Constants.fontSizeLarge,
+                      color: ColorResource.textPrimary,
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () => Navigator.pop(context),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: ColorResource.scaffoldBackground,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.close_rounded,
+                      size: 20,
+                      color: ColorResource.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Flexible(
+            child: SingleChildScrollView(
+              child: _buildSheetContent(),
+            ),
+          ),
+          KeyedSubtree(
+            key: _bottomBarKey,
+            child: _buildAddToCartButton(context),
+          ),
+        ],
       ),
     );
   }

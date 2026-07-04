@@ -1,7 +1,11 @@
+import 'package:appwrite_user_app/app/common/widgets/hover_arrow_carousel.dart';
+import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/cart_helper.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/section_widget/food_card_metrics.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/food_item_card.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/dashboard_shimmer.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
@@ -20,6 +24,10 @@ class PopularDishesWidget extends StatefulWidget {
 }
 
 class _PopularDishesWidgetState extends State<PopularDishesWidget> {
+  // Lets the web hover arrows page the auto-playing carousel.
+  final CarouselSliderController _carouselController =
+      CarouselSliderController();
+
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ProductController>(
@@ -119,13 +127,30 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
                 builder: (context, constraints) {
                   final products = controller.popularProducts;
                   final width = constraints.maxWidth;
-                  final viewportFraction = width >= 900
+                  final isWebShell = WebTopNav.isEnabled(context);
+                  final screenWidth = MediaQuery.of(context).size.width;
+                  // Web: cards match the All Products grid size (the item's
+                  // 6px side paddings make the card = fraction·width − 12).
+                  final double viewportFraction = isWebShell
+                      ? ((FoodCardMetrics.webCardWidth(screenWidth) + 12) /
+                              width)
+                          .clamp(0.15, 0.95)
+                      : width >= 900
                       ? 0.30
                       : width >= 600
                       ? 0.40
                       : 0.56;
+                  // +8 covers the item's vertical padding (4 top + 4 bottom).
+                  final double carouselHeight = isWebShell
+                      ? FoodCardMetrics.webCardHeight(screenWidth) + 8
+                      : 250;
 
-                  return CarouselSlider.builder(
+                  // Hover-revealed arrows page the carousel on desktop web.
+                  return HoverArrows(
+                    onLeft: () => _carouselController.previousPage(),
+                    onRight: () => _carouselController.nextPage(),
+                    child: CarouselSlider.builder(
+                    carouselController: _carouselController,
                     itemCount: products.length,
                     itemBuilder: (context, index, realIndex) {
                       final product = products[index];
@@ -134,12 +159,7 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
                         builder: (cartController) {
                           final cartQuantity = CartHelper.getProductCartQuantity(product.id);
 
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 4,
-                            ),
-                            child: FoodItemCard(
+                          final card = FoodItemCard(
                               name: product.nameMap.trLanguage,
                               isPopular: true,
                               imageUrl: product.imageId,
@@ -162,16 +182,26 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
                                   CartHelper.decrementQuantity(product, context);
                                 }
                               },
+                            );
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 4,
                             ),
+                            // Web-only hover lift; touch gets the bare card.
+                            child: isWebShell ? HoverLift(child: card) : card,
                           );
                         },
                       );
                     },
                     options: CarouselOptions(
-                      height: 250,
+                      height: carouselHeight,
                       viewportFraction: viewportFraction,
                       padEnds: true,
-                      enlargeCenterPage: true,
+                      // The center-zoom is a touch affordance; on web the
+                      // cards stay uniform so they match the grid size.
+                      enlargeCenterPage: !isWebShell,
                       enlargeFactor: 0.2,
                       enlargeStrategy: CenterPageEnlargeStrategy.zoom,
                       enableInfiniteScroll: products.length > 1,
@@ -184,6 +214,7 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
                       pauseAutoPlayOnTouch: true,
                       pauseAutoPlayOnManualNavigate: true,
                       pauseAutoPlayInFiniteScroll: false,
+                    ),
                     ),
                   );
                 },

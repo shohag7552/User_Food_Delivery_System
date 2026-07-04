@@ -1,7 +1,11 @@
+import 'package:appwrite_user_app/app/common/widgets/hover_arrow_carousel.dart';
+import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/cart_helper.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/section_widget/food_card_metrics.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/food_item_card.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/dashboard_shimmer.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
@@ -107,11 +111,25 @@ class TodaysSpecialsWidget extends StatelessWidget {
                   ),
                 ),
               )
-            // Products List
+            // Products List — hover-revealed scroll arrows on desktop web,
+            // with cards sized exactly like the All Products grid cards
+            // (see FoodCardMetrics). Mobile keeps the original 180×250 strip.
             else
-              SizedBox(
-                height: 250,
-                child: ListView.separated(
+              Builder(builder: (context) {
+                final isWebShell = WebTopNav.isEnabled(context);
+                final screenWidth = MediaQuery.of(context).size.width;
+                final double cardWidth = isWebShell
+                    ? FoodCardMetrics.webCardWidth(screenWidth)
+                    : 180;
+                // +12 covers the list's vertical padding (4 top + 8 bottom).
+                final double stripHeight = isWebShell
+                    ? FoodCardMetrics.webCardHeight(screenWidth) + 12
+                    : 250;
+
+                return HoverArrowCarousel(
+                height: stripHeight,
+                builder: (context, carouselController) => ListView.separated(
+                  controller: carouselController,
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
@@ -126,9 +144,7 @@ class TodaysSpecialsWidget extends StatelessWidget {
                           product.id,
                         );
 
-                        return SizedBox(
-                          width: 180,
-                          child: FoodItemCard(
+                        final card = FoodItemCard(
                             name: product.nameMap.trLanguage,
                             imageUrl: product.imageId,
                             description: product.descriptionMap.trLanguage,
@@ -151,13 +167,19 @@ class TodaysSpecialsWidget extends StatelessWidget {
                                 CartHelper.decrementQuantity(product, context);
                               }
                             },
-                          ),
+                          );
+
+                        return SizedBox(
+                          width: cardWidth,
+                          // Web-only hover lift; touch gets the bare card.
+                          child: isWebShell ? HoverLift(child: card) : card,
                         );
                       },
                     );
                   },
                 ),
-              ),
+              );
+              }),
           ],
         );
       },
