@@ -132,6 +132,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                       itemBuilder: (context, index) {
                         final category = controller.categories[index];
                         return HoverLift(
+                          showShadow: false,
                           borderRadius: Constants.radiusExtraLarge,
                           child: _buildCategoryCard(context, category),
                         );
