@@ -1,6 +1,7 @@
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
+import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
@@ -196,16 +197,32 @@ class _OrdersPageState extends State<OrdersPage> {
   }
 
   Widget _buildFilterChips() {
-    final filters = [
-      {'label': 'all'.tr, 'value': 'all'},
-      {'label': 'pending'.tr, 'value': 'pending'},
-      {'label': 'cooking'.tr, 'value': 'cooking'},
-      {'label': 'ready'.tr, 'value': 'ready'},
-      {'label': 'handover'.tr, 'value': 'handover'},
-      {'label': 'on_the_way'.tr, 'value': 'on_way'},
-      {'label': 'delivered'.tr, 'value': 'delivered'},
-      {'label': 'cancelled'.tr, 'value': 'cancelled'},
-    ];
+    // The orders fetch is scoped to the active module, so the status filters
+    // must speak that module's vocabulary: food preparation stages vs the
+    // ecommerce fulfilment pipeline.
+    final filters = ModuleController.current == ModuleController.ecommerce
+        ? [
+            {'label': 'all'.tr, 'value': 'all'},
+            {'label': 'pending'.tr, 'value': 'pending'},
+            {'label': 'confirmed'.tr, 'value': 'confirmed'},
+            {'label': 'packing'.tr, 'value': 'packing'},
+            {'label': 'shipped'.tr, 'value': 'shipped'},
+            {'label': 'out_for_delivery'.tr, 'value': 'out_for_delivery'},
+            {'label': 'delivered'.tr, 'value': 'delivered'},
+            {'label': 'cancelled'.tr, 'value': 'cancelled'},
+            {'label': 'returned'.tr, 'value': 'returned'},
+            {'label': 'refunded'.tr, 'value': 'refunded'},
+          ]
+        : [
+            {'label': 'all'.tr, 'value': 'all'},
+            {'label': 'pending'.tr, 'value': 'pending'},
+            {'label': 'cooking'.tr, 'value': 'cooking'},
+            {'label': 'ready'.tr, 'value': 'ready'},
+            {'label': 'handover'.tr, 'value': 'handover'},
+            {'label': 'on_the_way'.tr, 'value': 'on_way'},
+            {'label': 'delivered'.tr, 'value': 'delivered'},
+            {'label': 'cancelled'.tr, 'value': 'cancelled'},
+          ];
 
     return GetBuilder<OrderController>(
       builder: (controller) {
@@ -578,6 +595,43 @@ class _OrdersPageState extends State<OrdersPage> {
         textColor = Colors.red.shade700;
         icon = Icons.cancel;
         label = 'cancelled'.tr;
+        break;
+      // --- Ecommerce statuses (same vocabulary as the order detail page) ---
+      case 'confirmed':
+        backgroundColor = Colors.teal.shade100;
+        textColor = Colors.teal.shade700;
+        icon = Icons.verified_outlined;
+        label = 'confirmed'.tr;
+        break;
+      case 'packing':
+        backgroundColor = Colors.amber.shade100;
+        textColor = Colors.amber.shade800;
+        icon = Icons.inventory_2_outlined;
+        label = 'packing'.tr;
+        break;
+      case 'shipped':
+        backgroundColor = Colors.blue.shade100;
+        textColor = Colors.blue.shade700;
+        icon = Icons.local_shipping_outlined;
+        label = 'shipped'.tr;
+        break;
+      case 'out_for_delivery':
+        backgroundColor = Colors.purple.shade100;
+        textColor = Colors.purple.shade700;
+        icon = Icons.delivery_dining;
+        label = 'out_for_delivery'.tr;
+        break;
+      case 'returned':
+        backgroundColor = Colors.orange.shade100;
+        textColor = Colors.orange.shade800;
+        icon = Icons.assignment_return_outlined;
+        label = 'returned'.tr;
+        break;
+      case 'refunded':
+        backgroundColor = Colors.blueGrey.shade100;
+        textColor = Colors.blueGrey.shade700;
+        icon = Icons.replay_circle_filled_outlined;
+        label = 'refunded'.tr;
         break;
       default:
         backgroundColor = Colors.grey.shade100;
