@@ -5,6 +5,24 @@ import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
 import 'package:dart_appwrite/dart_appwrite.dart';
 import 'package:dart_appwrite/enums.dart';
 
+// Union of the food + ecommerce order-status vocabularies.
+const List<String> _orderStatusElements = [
+  'pending',
+  'confirmed',
+  'cooking',
+  'ready',
+  'packing',
+  'handover',
+  'picked_up',
+  'shipped',
+  'on_way',
+  'out_for_delivery',
+  'delivered',
+  'cancelled',
+  'returned',
+  'refunded',
+];
+
 // --- Run the script ---
 // dart lib/scripts/seed_database.dart
 
@@ -267,7 +285,11 @@ Future<void> _setupOrders(Databases db) async {
         () => db.createDatetimeAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'scheduled_date', xrequired: false),
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'scheduled_time_slot', size: 64, xrequired: false),
         // UNION of food + ecommerce status vocabularies (interpreted per module_type).
-        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'status', elements: ['pending', 'confirmed', 'cooking', 'ready', 'packing', 'handover', 'picked_up', 'shipped', 'on_way', 'out_for_delivery', 'delivered', 'cancelled', 'returned', 'refunded'], xrequired: true),
+        () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'status', elements: _orderStatusElements, xrequired: true),
+        // The create above is a no-op (409) once the column exists, so it never
+        // gains new enum values. This update reconciles the element list on an
+        // EXISTING orders collection (run again if it was still "processing").
+        () => db.updateEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'status', elements: _orderStatusElements, xrequired: true, xdefault: null),
         () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'payment_method', elements: ['cod', 'online', 'wallet'], xrequired: true),
         () => db.createEnumAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'payment_status', elements: ['paid', 'unpaid'], xrequired: true),
         () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.ordersCollection, key: 'total_amount', xrequired: true),

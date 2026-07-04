@@ -547,9 +547,14 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
   Widget _buildMobileAppBar(double hPad) {
     const double expandedHeight = 210;
     const double searchMaxWidth = 560;
+    // Pinned strip height (below the status bar). Tall enough for the
+    // full-size search field (~50px) + 8px bottom padding + ~12px of top
+    // clearance, so the collapsed field sits comfortably under the status bar.
+    const double collapsedBarHeight = 70;
 
     return SliverAppBar(
       expandedHeight: expandedHeight,
+      collapsedHeight: collapsedBarHeight,
       pinned: true,
       stretch: true,
       elevation: 0,
@@ -559,25 +564,48 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
         builder: (context, constraints) {
           final double appBarHeight = constraints.maxHeight;
           final double statusBarHeight = MediaQuery.of(context).padding.top;
-          const double minHeight = kToolbarHeight;
+          const double minHeight = collapsedBarHeight;
           final double collapseRatio =
               ((appBarHeight - minHeight - statusBarHeight) /
                       (expandedHeight - minHeight - statusBarHeight))
                   .clamp(0.0, 1.0);
           final bool isCollapsed = collapseRatio < 0.1;
 
-          return FlexibleSpaceBar(
-            titlePadding: isCollapsed
-                ? EdgeInsets.fromLTRB(hPad, 8, hPad, 8)
-                : EdgeInsets.zero,
-            title: isCollapsed
-                ? _constrained(searchMaxWidth, _buildSearchBar())
-                : null,
-            stretchModes: const [
-              StretchMode.zoomBackground,
-              StretchMode.blurBackground,
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              FlexibleSpaceBar(
+                stretchModes: const [
+                  StretchMode.zoomBackground,
+                  StretchMode.blurBackground,
+                ],
+                background: _buildMobileAppBarBackground(hPad, collapseRatio,
+                    searchMaxWidth),
+              ),
+              // Collapsed search — anchored to the bottom edge of the pinned
+              // bar (FlexibleSpaceBar's title metrics float it mid-bar).
+              if (isCollapsed)
+                Positioned(
+                  left: hPad,
+                  right: hPad,
+                  bottom: 10,
+                  child: _constrained(searchMaxWidth, _buildSearchBar()),
+                ),
             ],
-            background: Stack(
+          );
+        },
+      ),
+    );
+  }
+
+  /// Expanded-state background of the mobile app bar: banner image, gradient
+  /// scrim, title/tagline and the in-banner search field.
+  Widget _buildMobileAppBarBackground(
+    double hPad,
+    double collapseRatio,
+    double searchMaxWidth,
+  ) {
+    return Stack(
               fit: StackFit.expand,
               children: [
                 Image.asset(Images.shoppingBanner, fit: BoxFit.cover),
@@ -631,10 +659,6 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                   ),
                 ),
               ],
-            ),
-          );
-        },
-      ),
     );
   }
 
