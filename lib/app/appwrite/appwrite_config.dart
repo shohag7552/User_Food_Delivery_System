@@ -38,4 +38,6 @@ class AppwriteConfig {
   static const String brandsCollection = 'brands';
   static const String shippingMethodsCollection = 'shipping_methods';
   static const String attributesCollection = 'product_attributes';
+  static const String flashSalesCollection = 'flash_sales';
+  static const String flashSaleItemsCollection = 'flash_sale_items';
 }

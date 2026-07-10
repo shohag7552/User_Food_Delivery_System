@@ -613,5 +613,13 @@
   "no_matches_for_query": "We couldn't find anything matching",
   "see_all_results_for": "See all results for",
   "offer_products": "Offer Products",
-  "failed_to_load_offers": "Failed to load offers"
+  "failed_to_load_offers": "Failed to load offers",
+  "flash_sale": "Flash Sale",
+  "ends_in": "Ends in",
+  "sold": "Sold",
+  "left": "left",
+  "sold_out": "Sold out",
+  "failed_to_load_flash_sale": "Failed to load flash sale",
+  "flash_sale_limit_reached": "Flash sale limit reached for this item",
+  "flash_sale_ended": "This flash sale has ended"
 }

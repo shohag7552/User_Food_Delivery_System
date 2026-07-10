@@ -602,5 +602,13 @@
   "no_matches_for_query": "এর সাথে মিলে এমন কিছু খুঁজে পাওয়া যায়নি",
   "see_all_results_for": "সব ফলাফল দেখুন",
   "offer_products": "অফার পণ্য",
-  "failed_to_load_offers": "অফার লোড করা যায়নি"
+  "failed_to_load_offers": "অফার লোড করা যায়নি",
+  "flash_sale": "ফ্ল্যাশ সেল",
+  "ends_in": "শেষ হবে",
+  "sold": "বিক্রি হয়েছে",
+  "left": "বাকি",
+  "sold_out": "শেষ",
+  "failed_to_load_flash_sale": "ফ্ল্যাশ সেল লোড করা যায়নি",
+  "flash_sale_limit_reached": "এই পণ্যের ফ্ল্যাশ সেল সীমা শেষ",
+  "flash_sale_ended": "এই ফ্ল্যাশ সেল শেষ হয়ে গেছে"
 }

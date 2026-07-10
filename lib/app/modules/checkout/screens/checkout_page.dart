@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:appwrite_user_app/app/appwrite/payment_service.dart';
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
@@ -5,6 +7,7 @@ import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/address_controller.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
+import 'package:appwrite_user_app/app/controllers/flash_sale_controller.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
@@ -1764,6 +1767,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
       // Capture items before the cart is cleared.
       await Get.find<ProductController>()
           .reduceStockForItems(cartController.cartItems);
+      // Flash sale sold counters (best effort — no-op when no sale is live).
+      if (Get.isRegistered<FlashSaleController>()) {
+        unawaited(
+          Get.find<FlashSaleController>()
+              .recordSoldItems(List.of(cartController.cartItems)),
+        );
+      }
       await cartController.clearCart();
       cartController.removeCoupon();
 

@@ -8,11 +8,13 @@ import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/brand_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
+import 'package:appwrite_user_app/app/controllers/flash_sale_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
+import 'package:appwrite_user_app/app/models/flash_sale_item_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
@@ -63,7 +65,19 @@ class _EcommerceProductDetailPageState
 
   bool get _hasVariants => product.variants.isNotEmpty;
 
-  /// Per-unit price = discounted base price + the additions of every selected
+  /// This product's entry in the currently running flash sale, or null.
+  /// While non-null, the flash price overrides the product's own pricing
+  /// everywhere on this page (display, totals, add-to-cart).
+  FlashSaleItemModel? get _flashItem {
+    if (!Get.isRegistered<FlashSaleController>()) return null;
+    return Get.find<FlashSaleController>().itemForProduct(product.id);
+  }
+
+  /// Effective per-unit base: flash price during a live sale, else the
+  /// product's own discounted price.
+  double get _baseUnitPrice => _flashItem?.flashPrice ?? product.finalPrice;
+
+  /// Per-unit price = effective base price + the additions of every selected
   /// variant option (radio adds one, checkbox adds each chosen option).
   double get _unitPrice {
     double extra = 0;
@@ -78,7 +92,7 @@ class _EcommerceProductDetailPageState
         }
       }
     }
-    return product.finalPrice + extra;
+    return _baseUnitPrice + extra;
   }
 
   double get _totalPrice => _unitPrice * _qty;
@@ -327,33 +341,71 @@ class _EcommerceProductDetailPageState
     );
   }
 
+  /// Price row. During a live flash sale it shows the flash price with the
+  /// original struck through and a ⚡ badge; rebuilt with the flash controller
+  /// so pricing reverts the moment the sale's countdown expires.
   Widget _buildPriceRow() {
-    final hasDiscount = product.hasDiscount;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Text(
-          PriceHelper.formatPrice(product.finalPrice),
-          style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeOverLarge,
-            color: ColorResource.primaryDark,
-          ),
-        ),
-        if (hasDiscount) ...[
-          const SizedBox(width: 10),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 3),
-            child: Text(
-              PriceHelper.formatPrice(product.price),
-              style: poppinsRegular.copyWith(
-                fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textLight,
-                decoration: TextDecoration.lineThrough,
+    return GetBuilder<FlashSaleController>(
+      builder: (_) {
+        final flashItem = _flashItem;
+        final bool onFlashSale = flashItem != null;
+        final double shownPrice =
+            onFlashSale ? flashItem.flashPrice : product.finalPrice;
+        final bool showOriginal = onFlashSale
+            ? flashItem.flashPrice < product.price
+            : product.hasDiscount;
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              PriceHelper.formatPrice(shownPrice),
+              style: poppinsBold.copyWith(
+                fontSize: Constants.fontSizeOverLarge,
+                color: ColorResource.primaryDark,
               ),
             ),
-          ),
-        ],
-      ],
+            if (showOriginal) ...[
+              const SizedBox(width: 10),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 3),
+                child: Text(
+                  PriceHelper.formatPrice(product.price),
+                  style: poppinsRegular.copyWith(
+                    fontSize: Constants.fontSizeDefault,
+                    color: ColorResource.textLight,
+                    decoration: TextDecoration.lineThrough,
+                  ),
+                ),
+              ),
+            ],
+            if (onFlashSale) ...[
+              const SizedBox(width: 10),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 3),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: ColorResource.primaryGradient,
+                    borderRadius:
+                        BorderRadius.circular(Constants.radiusLarge),
+                  ),
+                  child: Text(
+                    '⚡ ${'flash_sale'.tr}',
+                    style: poppinsBold.copyWith(
+                      fontSize: Constants.fontSizeExtraSmall,
+                      color: ColorResource.textWhite,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 
@@ -1098,15 +1150,38 @@ class _EcommerceProductDetailPageState
       return;
     }
 
+    // During a live flash sale the line is priced at the flash price, written
+    // as a fixed discount so cart/checkout/order records track the saving.
+    final flashItem = _flashItem;
+    if (flashItem != null && _qty > flashItem.remainingStock) {
+      customToster('flash_sale_limit_reached'.tr, isSuccess: false);
+      return;
+    }
+    final String? lineDiscountType =
+        flashItem != null ? 'fixed' : product.discountType;
+    final double? lineDiscountValue = flashItem != null
+        ? (product.price > flashItem.flashPrice
+            ? product.price - flashItem.flashPrice
+            : 0)
+        : product.discountValue;
+    final double lineFinalPrice =
+        flashItem != null ? flashItem.flashPrice : product.finalPrice;
+
     setState(() => _isAddingToCart = true);
     try {
       final userId = await Get.find<AuthController>().getUserId();
       if (matching != null) {
-        // Already in cart — update the existing line to the chosen quantity.
+        // Already in cart — update the existing line to the chosen quantity
+        // (and to the current pricing, so a flash price replaces a regular
+        // one added earlier, and vice versa once the sale ends).
         final updated = matching.copyWith(
           selectedVariants: _buildSelectedVariants(),
           quantity: _qty,
           itemTotal: _totalPrice,
+          basePrice: product.price,
+          discountType: lineDiscountType,
+          discountValue: lineDiscountValue,
+          finalPrice: lineFinalPrice,
         );
         await Get.find<CartController>().updateCartItemDetails(updated);
         if (!mounted) return;
@@ -1119,9 +1194,9 @@ class _EcommerceProductDetailPageState
           productName: product.nameMap.trLanguage,
           productImage: product.imageId,
           basePrice: product.price,
-          discountType: product.discountType,
-          discountValue: product.discountValue,
-          finalPrice: product.finalPrice,
+          discountType: lineDiscountType,
+          discountValue: lineDiscountValue,
+          finalPrice: lineFinalPrice,
           selectedVariants: _buildSelectedVariants(),
           quantity: _qty,
           itemTotal: _totalPrice,
@@ -1141,7 +1216,14 @@ class _EcommerceProductDetailPageState
   /// Purchase bar for every product: live total + quantity stepper + add/update.
   /// Rebuilds with the cart so it always reflects the current cart state.
   Widget _buildPurchaseBar() {
-    final maxQty = product.stock;
+    // During a live flash sale the stepper is capped at the sale's remaining
+    // allocation as well as the product's own stock.
+    final flashItem = _flashItem;
+    final maxQty = flashItem == null
+        ? product.stock
+        : (flashItem.remainingStock < product.stock
+            ? flashItem.remainingStock
+            : product.stock);
     return GetBuilder<CartController>(
       builder: (_) {
         final matching = _matchingCartItem();

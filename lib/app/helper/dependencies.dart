@@ -7,7 +7,10 @@ import 'package:appwrite_user_app/app/controllers/coupon_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:appwrite_user_app/app/controllers/brand_controller.dart';
+import 'package:appwrite_user_app/app/controllers/flash_sale_controller.dart';
 import 'package:appwrite_user_app/app/controllers/shipping_controller.dart';
+import 'package:appwrite_user_app/app/modules/flash_sale/domain/repository/flash_sale_repo_interface.dart';
+import 'package:appwrite_user_app/app/modules/flash_sale/domain/repository/flash_sale_repository.dart';
 import 'package:appwrite_user_app/app/modules/brands/domain/repository/brand_repo_interface.dart';
 import 'package:appwrite_user_app/app/modules/brands/domain/repository/brand_repository.dart';
 import 'package:appwrite_user_app/app/modules/shipping/domain/repository/shipping_repo_interface.dart';
@@ -108,6 +111,11 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   );
   Get.lazyPut(() => shippingRepoInterface);
 
+  FlashSaleRepoInterface flashSaleRepoInterface = FlashSaleRepository(
+    appwriteService: Get.find(),
+  );
+  Get.lazyPut(() => flashSaleRepoInterface);
+
   CartRepoInterface cartRepoInterface = CartRepository(
     appwriteService: Get.find(),
   );
@@ -175,6 +183,7 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   Get.lazyPut(() => BannerController(bannerRepoInterface: Get.find()));
   Get.lazyPut(() => BrandController(brandRepoInterface: Get.find()));
   Get.lazyPut(() => ShippingController(shippingRepoInterface: Get.find()));
+  Get.lazyPut(() => FlashSaleController(flashSaleRepoInterface: Get.find()));
   Get.lazyPut(() => CartController(cartRepoInterface: Get.find()));
   Get.lazyPut(() => AddressController(addressRepoInterface: Get.find()));
   Get.lazyPut(() => OrderController(orderRepoInterface: Get.find()));

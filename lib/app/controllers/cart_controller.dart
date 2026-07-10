@@ -112,7 +112,7 @@ class CartController extends GetxController implements GetxService {
       if (existingItemIndex != -1) {
         final existingItem = _cartItems[existingItemIndex];
         final newTotalQuantity = existingItem.quantity + item.quantity;
-        
+
         // Ensure stock limit before updating
         final stock = _productStocks[item.productId];
         if (stock != null && newTotalQuantity > stock) {
@@ -121,7 +121,26 @@ class CartController extends GetxController implements GetxService {
         }
 
         customToster('Updated quantity of identical item in cart.');
-        await updateQuantity(existingItem.id, newTotalQuantity);
+        if (existingItem.finalPrice != item.finalPrice) {
+          // Same product but new pricing (e.g. a flash sale started or ended
+          // since the line was added) — merge quantities AND adopt the
+          // incoming pricing so the line charges the current price.
+          final unitTotal = item.quantity > 0
+              ? item.itemTotal / item.quantity
+              : item.finalPrice;
+          await updateCartItemDetails(
+            existingItem.copyWith(
+              quantity: newTotalQuantity,
+              basePrice: item.basePrice,
+              discountType: item.discountType,
+              discountValue: item.discountValue,
+              finalPrice: item.finalPrice,
+              itemTotal: unitTotal * newTotalQuantity,
+            ),
+          );
+        } else {
+          await updateQuantity(existingItem.id, newTotalQuantity);
+        }
         return;
       }
 

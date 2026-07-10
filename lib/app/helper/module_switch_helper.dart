@@ -2,6 +2,7 @@ import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:appwrite_user_app/app/controllers/brand_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
+import 'package:appwrite_user_app/app/controllers/flash_sale_controller.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
@@ -24,6 +25,9 @@ class ModuleSwitchHelper {
     Get.find<BannerController>().clearForModuleSwitch();
     if (Get.isRegistered<BrandController>()) {
       Get.find<BrandController>().clearForModuleSwitch();
+    }
+    if (Get.isRegistered<FlashSaleController>()) {
+      Get.find<FlashSaleController>().clearForModuleSwitch();
     }
 
     // Flip the module — HomeModuleView swaps to the other storefront, which

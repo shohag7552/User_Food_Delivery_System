@@ -22,6 +22,7 @@ import 'package:appwrite_user_app/app/modules/dashboard/screens/dashboard_screen
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/full_screen_image_viewer.dart';
 import 'package:appwrite_user_app/app/modules/ecommerce/screens/ecommerce_product_detail_page.dart';
 import 'package:appwrite_user_app/app/modules/favorites/screens/favorites_screen.dart';
+import 'package:appwrite_user_app/app/modules/flash_sale/screens/flash_sale_screen.dart';
 import 'package:appwrite_user_app/app/modules/language/screens/language_screen.dart';
 import 'package:appwrite_user_app/app/modules/loyalty_point/screens/loyalty_points_page.dart';
 import 'package:appwrite_user_app/app/modules/notification/screens/notification_screen.dart';
@@ -56,6 +57,7 @@ abstract class RouteNames {
   static const search = 'search';
   static const categories = 'categories';
   static const category = 'category';
+  static const flashSale = 'flash-sale';
   static const productDetail = 'product-detail';
   static const cart = 'cart';
   static const checkout = 'checkout';
@@ -181,6 +183,7 @@ abstract class AppRouter {
   static const String search = '/search';
   static const String categories = '/categories';
   static const String categoryPath = '/category/:id';
+  static const String flashSale = '/flash-sale';
   static const String productDetailPath = '/product/:id';
   static const String cart = '/cart';
   static const String checkout = '/checkout';
@@ -242,6 +245,11 @@ abstract class AppRouter {
         path: categories,
         name: RouteNames.categories,
         builder: (context, state) => const CategoryScreen(),
+      ),
+      GoRoute(
+        path: flashSale,
+        name: RouteNames.flashSale,
+        builder: (context, state) => const FlashSaleScreen(),
       ),
       GoRoute(
         path: categoryPath,

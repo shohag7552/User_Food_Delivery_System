@@ -2,6 +2,7 @@ import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:appwrite_user_app/app/controllers/brand_controller.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
+import 'package:appwrite_user_app/app/controllers/flash_sale_controller.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
@@ -10,6 +11,7 @@ import 'package:appwrite_user_app/app/models/brand_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/promotional_banner.dart';
 import 'package:appwrite_user_app/app/modules/ecommerce/widgets/ecommerce_product_card.dart';
+import 'package:appwrite_user_app/app/modules/flash_sale/widgets/flash_sale_section.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/images.dart';
@@ -56,6 +58,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
       bannerController.getBanners(reload: reload),
       categoryController.getCategories(reload: reload),
       brandController.getBrands(reload: reload),
+      Get.find<FlashSaleController>().getFlashSale(reload: reload),
       productController.getPopularProducts(reload: reload),
       productController.getTopProducts(reload: reload),
       productController.getOfferProducts(reload: reload),
@@ -115,6 +118,8 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
           // On web the hero already embeds both the banner and category sidebar.
           if (!isWide) SliverToBoxAdapter(child: _buildBanners(hPad)),
           if (!isWide) SliverToBoxAdapter(child: _buildCategories(hPad)),
+          // Flash sale — renders only while a sale is live.
+          SliverToBoxAdapter(child: FlashSaleSection(isWide: isWide)),
           SliverToBoxAdapter(child: _buildTopProducts(isWide)),
           SliverToBoxAdapter(child: _buildOfferProducts(isWide)),
           if (isWide)

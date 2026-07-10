@@ -162,6 +162,7 @@ Future<void> _setupBusinessSetup(Databases db) async {
         () => db.createFloatAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'store_longitude', xrequired: false),
         () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'is_store_open', xdefault: true, xrequired: false),
         () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'is_maintenance_mode_on', xdefault: false, xrequired: false),
+        () => db.createBooleanAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'is_self_delivery', xdefault: false, xrequired: false),
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'business_name', size: 1000, xrequired: true),
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'registration_number', size: 500, xrequired: false),
         () => db.createStringAttribute(databaseId: AppwriteConfig.dbId, collectionId: AppwriteConfig.businessSetup, key: 'tax_number', size: 100, xrequired: true),
