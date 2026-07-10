@@ -3,6 +3,7 @@ import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
+import 'package:appwrite_user_app/app/common/widgets/hover_arrow_carousel.dart';
 import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
@@ -651,12 +652,19 @@ class _EcommerceProductDetailPageState
     );
   }
 
-  /// Horizontal carousel of related products from the same category. Hidden
-  /// entirely once we know there are no suggestions.
+  /// Horizontal carousel of related products from the same category, styled
+  /// like the home carousels: larger cards on desktop web with hover-revealed
+  /// scroll arrows that page the strip (hidden when everything already fits).
+  /// Hidden entirely once we know there are no suggestions.
   Widget _buildSuggestedSection() {
     if (!_loadingSuggested && _suggested.isEmpty) {
       return const SizedBox.shrink();
     }
+
+    final bool isWide = WebTopNav.isEnabled(context);
+    final double cardWidth = isWide ? 230 : 170;
+    final double stripHeight = isWide ? 350 : 280;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -671,31 +679,36 @@ class _EcommerceProductDetailPageState
           child: Text(
             'you_may_also_like'.tr,
             style: poppinsBold.copyWith(
-              fontSize: Constants.fontSizeLarge,
+              fontSize: Constants.fontSizeExtraLarge,
               color: ColorResource.textPrimary,
             ),
           ),
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          height: 280,
-          child: _loadingSuggested
-              ? const Center(child: CircularProgressIndicator())
-              : ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: _suggested.length,
-                  // Full-bleed list: the inset lives inside the scroll view so
-                  // the first/last cards clear the screen edges while the list
-                  // itself spans the full width.
-                  padding: const EdgeInsets.only(left: Constants.paddingSizeDefault, right: Constants.paddingSizeDefault, bottom: Constants.paddingSizeSmall),
-                  separatorBuilder: (_, _) => const SizedBox(width: 14),
-                  itemBuilder: (context, index) => SizedBox(
-                    width: 170,
-                    child: EcommerceProductCard(product: _suggested[index]),
-                  ),
-                ),
-        ),
+        if (_loadingSuggested)
+          SizedBox(
+            height: stripHeight,
+            child: const Center(child: CircularProgressIndicator()),
+          )
+        else
+          HoverArrowCarousel(
+            height: stripHeight,
+            builder: (context, carouselController) => ListView.separated(
+              controller: carouselController,
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: _suggested.length,
+              // Full-bleed list: the inset lives inside the scroll view so
+              // the first/last cards clear the edges while the list itself
+              // spans the full section width.
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+              separatorBuilder: (_, _) => const SizedBox(width: 14),
+              itemBuilder: (context, index) => SizedBox(
+                width: cardWidth,
+                child: EcommerceProductCard(product: _suggested[index]),
+              ),
+            ),
+          ),
       ],
     );
   }
