@@ -155,8 +155,10 @@ class _CountdownChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Days folded into hours so long sales still read as a timer.
-    final hours = remaining.inHours;
+    // DD : HH : MM : SS — the day chip only appears while a day or more
+    // remains, then the timer continues as HH : MM : SS.
+    final days = remaining.inDays;
+    final hours = remaining.inHours.remainder(24);
     final minutes = remaining.inMinutes.remainder(60);
     final seconds = remaining.inSeconds.remainder(60);
 
@@ -189,6 +191,10 @@ class _CountdownChips extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        if (days > 0) ...[
+          chip('${_two(days)}${'day_short'.tr}'),
+          colon(),
+        ],
         chip(_two(hours)),
         colon(),
         chip(_two(minutes)),

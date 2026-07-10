@@ -236,8 +236,15 @@ class _FlashSaleScreenState extends State<FlashSaleScreen> {
     );
   }
 
+  /// DD d HH:MM:SS — the day part only appears while a day or more remains.
   String _formatRemaining(Duration remaining) {
     String two(int v) => v.toString().padLeft(2, '0');
-    return '${two(remaining.inHours)}:${two(remaining.inMinutes.remainder(60))}:${two(remaining.inSeconds.remainder(60))}';
+    final days = remaining.inDays;
+    final clock =
+        '${two(remaining.inHours.remainder(24))}:${two(remaining.inMinutes.remainder(60))}:${two(remaining.inSeconds.remainder(60))}';
+    if (days > 0) {
+      return '${two(days)}${'day_short'.tr} $clock';
+    }
+    return clock;
   }
 }

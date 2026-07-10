@@ -610,5 +610,6 @@
   "sold_out": "শেষ",
   "failed_to_load_flash_sale": "ফ্ল্যাশ সেল লোড করা যায়নি",
   "flash_sale_limit_reached": "এই পণ্যের ফ্ল্যাশ সেল সীমা শেষ",
-  "flash_sale_ended": "এই ফ্ল্যাশ সেল শেষ হয়ে গেছে"
+  "flash_sale_ended": "এই ফ্ল্যাশ সেল শেষ হয়ে গেছে",
+  "day_short": "দিন"
 }

@@ -621,5 +621,6 @@
   "sold_out": "Sold out",
   "failed_to_load_flash_sale": "Failed to load flash sale",
   "flash_sale_limit_reached": "Flash sale limit reached for this item",
-  "flash_sale_ended": "This flash sale has ended"
+  "flash_sale_ended": "This flash sale has ended",
+  "day_short": "d"
 }
