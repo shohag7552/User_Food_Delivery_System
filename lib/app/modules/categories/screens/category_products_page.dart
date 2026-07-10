@@ -4,7 +4,9 @@ import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
 import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
+import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
+import 'package:appwrite_user_app/app/helper/cart_helper.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/models/category_model.dart';
@@ -278,6 +280,12 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
       );
     }
 
+    // Full-bleed scroll view (wheel and scrollbar work across the whole
+    // screen, not just the middle column) — the content itself stays centered
+    // within the cap via symmetric sliver gutters.
+    final double gutter =
+        width > _maxContentWidth ? (width - _maxContentWidth) / 2 : 0;
+
     return Scaffold(
       key: _webScaffoldKey,
       backgroundColor: ColorResource.scaffoldBackground,
@@ -290,18 +298,19 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
         },
         onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-          child: CustomScrollView(
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              SliverToBoxAdapter(child: _buildWebHeader()),
-              contentSliver,
-            ],
+      body: CustomScrollView(
+        controller: _scrollController,
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: gutter),
+            sliver: SliverToBoxAdapter(child: _buildWebHeader()),
           ),
-        ),
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: gutter),
+            sliver: contentSliver,
+          ),
+        ],
       ),
     );
   }
@@ -606,14 +615,26 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
     );
   }
 
+  /// Ecommerce items open their full detail page; food items keep the
+  /// quick-view bottom sheet (dialog on desktop web).
+  void _openProduct(ProductModel product) {
+    if (product.moduleType == ModuleController.ecommerce) {
+      context.pushNamed(
+        RouteNames.productDetail,
+        pathParameters: {'id': product.id},
+        extra: product,
+      );
+    } else {
+      ProductDetailBottomSheet.show(context, product);
+    }
+  }
+
   Widget _buildProductCard(ProductModel product) {
     final hasDiscount = product.discountValue != null && product.discountValue! > 0;
     final discountPercentage = hasDiscount ? product.discountValue!.toInt() : 0;
 
     return CustomClickableWidget(
-      onTap: () {
-        ProductDetailBottomSheet.show(context, product);
-      },
+      onTap: () => _openProduct(product),
       isBackgroundTransparent: true,
       child: Container(
         decoration: BoxDecoration(
@@ -727,18 +748,17 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                           ],
                         ),
                       ),
-                      // Add Button
+                      // Add Button — real add-to-cart (the old handler only
+                      // showed a snackbar without adding anything). Ecommerce
+                      // items with variants open the detail page to pick them.
                       GestureDetector(
                         onTap: () {
-                          // Get.find<CartController>().addItemToCart(product);
-                          Get.snackbar(
-                            'Added to Cart',
-                            '${product.nameMap.trLanguage} has been added to your cart',
-                            snackPosition: SnackPosition.BOTTOM,
-                            duration: const Duration(seconds: 2),
-                            backgroundColor: ColorResource.success.withValues(alpha: 0.9),
-                            colorText: ColorResource.textWhite,
-                          );
+                          if (product.moduleType == ModuleController.ecommerce &&
+                              product.variants.isNotEmpty) {
+                            _openProduct(product);
+                          } else {
+                            CartHelper.handleAddToCart(product, context);
+                          }
                         },
                         child: Container(
                           padding: const EdgeInsets.all(8),

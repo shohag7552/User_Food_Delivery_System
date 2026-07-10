@@ -192,14 +192,14 @@ class _CountdownChips extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (days > 0) ...[
-          chip('${_two(days)}${'day_short'.tr}'),
+          chip('${_two(days)} ${'day_short'.tr}'),
           colon(),
         ],
-        chip(_two(hours)),
+        chip('${_two(hours)} h'),
         colon(),
-        chip(_two(minutes)),
+        chip('${_two(minutes)} m'),
         colon(),
-        chip(_two(seconds)),
+        chip('${_two(seconds)} s'),
       ],
     );
   }
