@@ -1,5 +1,8 @@
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -7,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
-class OrderSuccessPage extends StatelessWidget {
+class OrderSuccessPage extends StatefulWidget {
   final String orderNumber;
   final double totalAmount;
 
@@ -18,13 +21,42 @@ class OrderSuccessPage extends StatelessWidget {
   });
 
   @override
+  State<OrderSuccessPage> createState() => _OrderSuccessPageState();
+}
+
+class _OrderSuccessPageState extends State<OrderSuccessPage> {
+  /// Confirmation content reads like a receipt — keep it a narrow centered
+  /// column on desktop web instead of stretching edge to edge.
+  static const double _maxContentWidth = 520;
+  final GlobalKey<ScaffoldState> _webScaffoldKey = GlobalKey<ScaffoldState>();
+
+  String get orderNumber => widget.orderNumber;
+  double get totalAmount => widget.totalAmount;
+
+  @override
   Widget build(BuildContext context) {
+    final useWebShell = WebTopNav.isEnabled(context);
+
     return PopScope(
       canPop: false,
       child: Scaffold(
+        key: _webScaffoldKey,
         backgroundColor: ColorResource.scaffoldBackground,
+        endDrawer: useWebShell ? const WebProfileDrawer() : null,
+        appBar: useWebShell
+            ? WebTopNav(
+                selectedIndex: null,
+                onDestinationSelected: (index) {
+                  DashboardTabBus.open(index);
+                  context.goNamed(RouteNames.dashboard);
+                },
+                onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
+              )
+            : null,
         body: Padding(
-          padding: const EdgeInsets.only(top: 40),
+          // Mobile offsets the gradient band below the status bar; on web the
+          // top nav already provides the chrome.
+          padding: EdgeInsets.only(top: useWebShell ? 0 : 40),
           child: Stack(
             children: [
               Container(
@@ -43,19 +75,26 @@ class OrderSuccessPage extends StatelessWidget {
                 ),
               ),
               SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
-                child: Column(
-                  children: [
-                    _buildTopBadge(),
-                    const SizedBox(height: 50),
-                    _buildHeroCard(),
-                    // const SizedBox(height: 18),
-                    // _buildOrderDetailsCard(),
-                    // const SizedBox(height: 18),
-                    // _buildStatusCard(),
-                    const SizedBox(height: 28),
-                    _buildActionButtons(context),
-                  ],
+                padding: EdgeInsets.fromLTRB(
+                    20, useWebShell ? 32 : 20, 20, 28),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints:
+                        const BoxConstraints(maxWidth: _maxContentWidth),
+                    child: Column(
+                      children: [
+                        _buildTopBadge(),
+                        const SizedBox(height: 50),
+                        _buildHeroCard(),
+                        // const SizedBox(height: 18),
+                        // _buildOrderDetailsCard(),
+                        // const SizedBox(height: 18),
+                        // _buildStatusCard(),
+                        const SizedBox(height: 28),
+                        _buildActionButtons(context),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],

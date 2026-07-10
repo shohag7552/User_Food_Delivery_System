@@ -1,4 +1,7 @@
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -6,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
-class OrderFailedPage extends StatelessWidget {
+class OrderFailedPage extends StatefulWidget {
   final String errorMessage;
   final VoidCallback? onRetry;
 
@@ -17,17 +20,47 @@ class OrderFailedPage extends StatelessWidget {
   });
 
   @override
+  State<OrderFailedPage> createState() => _OrderFailedPageState();
+}
+
+class _OrderFailedPageState extends State<OrderFailedPage> {
+  /// Error content reads like a dialog — keep it a narrow centered column on
+  /// desktop web instead of stretching edge to edge.
+  static const double _maxContentWidth = 480;
+  final GlobalKey<ScaffoldState> _webScaffoldKey = GlobalKey<ScaffoldState>();
+
+  String get errorMessage => widget.errorMessage;
+  VoidCallback? get onRetry => widget.onRetry;
+
+  @override
   Widget build(BuildContext context) {
+    final useWebShell = WebTopNav.isEnabled(context);
+
     return PopScope(
       canPop: true,
       child: Scaffold(
+        key: _webScaffoldKey,
         backgroundColor: ColorResource.scaffoldBackground,
+        endDrawer: useWebShell ? const WebProfileDrawer() : null,
+        appBar: useWebShell
+            ? WebTopNav(
+                selectedIndex: null,
+                onDestinationSelected: (index) {
+                  DashboardTabBus.open(index);
+                  context.goNamed(RouteNames.dashboard);
+                },
+                onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
+              )
+            : null,
         body: SafeArea(
           child: Center(
             child: SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(24),
-                child: Column(
+                child: ConstrainedBox(
+                  constraints:
+                      const BoxConstraints(maxWidth: _maxContentWidth),
+                  child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Error Animation
@@ -62,6 +95,7 @@ class OrderFailedPage extends StatelessWidget {
                     // Action Buttons
                     _buildActionButtons(context),
                   ],
+                  ),
                 ),
               ),
             ),

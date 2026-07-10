@@ -18,6 +18,10 @@ class BusinessSetupModel {
   final double? maxDeliveryRadius;
   final double loyaltyPointEarningRate;
   final double loyaltyPointWalletRate;
+
+  /// Store-wide VAT/tax rate in percent (e.g. 10 = 10%), applied to order
+  /// subtotals at checkout. 0 disables tax.
+  final double vatPercentage;
   final String storeLocation;
   final double? storeLatitude;
   final double? storeLongitude;
@@ -48,6 +52,7 @@ class BusinessSetupModel {
     this.maxDeliveryRadius,
     this.loyaltyPointEarningRate = 1.0,
     this.loyaltyPointWalletRate = 0.10,
+    this.vatPercentage = 0.0,
     required this.storeLocation,
     this.storeLatitude,
     this.storeLongitude,
@@ -83,6 +88,7 @@ class BusinessSetupModel {
           .toDouble(),
       loyaltyPointWalletRate: (json['loyalty_point_wallet_rate'] ?? 0.10)
           .toDouble(),
+      vatPercentage: (json['vat_percentage'] ?? 0.0).toDouble(),
       storeLocation: json['store_location'] ?? '',
       storeLatitude: json['store_latitude']?.toDouble(),
       storeLongitude: json['store_longitude']?.toDouble(),
@@ -118,6 +124,7 @@ class BusinessSetupModel {
       if (maxDeliveryRadius != null) 'max_delivery_radius': maxDeliveryRadius,
       'loyalty_point_earning_rate': loyaltyPointEarningRate,
       'loyalty_point_wallet_rate': loyaltyPointWalletRate,
+      'vat_percentage': vatPercentage,
       'store_location': storeLocation,
       if (storeLatitude != null) 'store_latitude': storeLatitude,
       if (storeLongitude != null) 'store_longitude': storeLongitude,
@@ -147,6 +154,7 @@ class BusinessSetupModel {
     double? maxDeliveryRadius,
     double? loyaltyPointEarningRate,
     double? loyaltyPointWalletRate,
+    double? vatPercentage,
     String? storeLocation,
     double? storeLatitude,
     double? storeLongitude,
@@ -178,6 +186,7 @@ class BusinessSetupModel {
           loyaltyPointEarningRate ?? this.loyaltyPointEarningRate,
       loyaltyPointWalletRate:
           loyaltyPointWalletRate ?? this.loyaltyPointWalletRate,
+      vatPercentage: vatPercentage ?? this.vatPercentage,
       storeLocation: storeLocation ?? this.storeLocation,
       storeLatitude: storeLatitude ?? this.storeLatitude,
       storeLongitude: storeLongitude ?? this.storeLongitude,

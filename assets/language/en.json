@@ -196,7 +196,7 @@
   "failed_to_load_product_details": "Failed to load product details",
   "promocode_applied": "Promocode applied",
   "subtotal": "Subtotal",
-  "tax_10": "Tax (10%)",
+  "tax": "Tax",
   "discount": "Discount",
   "total": "Total",
   "proceed_to_checkout": "Proceed to Checkout",

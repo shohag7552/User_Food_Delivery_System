@@ -532,7 +532,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ),
           ],
           const SizedBox(height: 8),
-          _buildSummaryRow('tax_10'.tr, controller.tax),
+          _buildSummaryRow('${'tax'.tr} (${controller.vatPercentageLabel}%)', controller.tax),
           if (controller.appliedCoupon != null) ...[
             const SizedBox(height: 8),
             _buildSummaryRow(
@@ -1560,7 +1560,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           ),
                         ],
                         const SizedBox(height: 8),
-                        _buildSummaryRow('tax_10'.tr, controller.tax),
+                        _buildSummaryRow('${'tax'.tr} (${controller.vatPercentageLabel}%)', controller.tax),
                         if (controller.appliedCoupon != null) ...[
                           const SizedBox(height: 8),
                           _buildSummaryRow('coupon_discount'.tr, -controller.discountAmount, isDiscount: true),

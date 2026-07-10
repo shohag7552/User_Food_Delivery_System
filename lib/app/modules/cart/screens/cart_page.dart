@@ -258,7 +258,7 @@ class _CartPageState extends State<CartPage> {
             _buildDiscountRow('item_discount'.tr, controller.itemDiscountTotal),
           ],
           const SizedBox(height: 10),
-          _buildSummaryRow('tax_10'.tr, controller.tax),
+          _buildSummaryRow('${'tax'.tr} (${controller.vatPercentageLabel}%)', controller.tax),
           if (controller.discountAmount > 0) ...[
             const SizedBox(height: 10),
             _buildDiscountRow('coupon_discount'.tr, controller.discountAmount),
@@ -648,7 +648,7 @@ class _CartPageState extends State<CartPage> {
                           _buildDiscountRow('item_discount'.tr, controller.itemDiscountTotal),
                         ],
                         const SizedBox(height: 8),
-                        _buildSummaryRow('tax_10'.tr, controller.tax),
+                        _buildSummaryRow('${'tax'.tr} (${controller.vatPercentageLabel}%)', controller.tax),
                         if (controller.discountAmount > 0) ...[
                           const SizedBox(height: 8),
                           _buildDiscountRow('coupon_discount'.tr, controller.discountAmount),

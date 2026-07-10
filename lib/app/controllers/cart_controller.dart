@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
+import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/models/coupon_model.dart';
@@ -43,7 +44,21 @@ class CartController extends GetxController implements GetxService {
   /// Total item-level discount (original - discounted)
   double get itemDiscountTotal => originalSubtotal - subtotal;
 
-  double get tax => subtotal * 0.10; // 10% tax
+  /// Store-wide VAT rate in percent, read live from the business setup
+  /// (0 when settings aren't loaded yet or the store charges no tax).
+  double get vatPercentage {
+    if (!Get.isRegistered<SettingsController>()) return 0.0;
+    return Get.find<SettingsController>().businessSetup?.vatPercentage ?? 0.0;
+  }
+
+  /// VAT/tax on the discounted subtotal, driven by the business setup.
+  double get tax => subtotal * vatPercentage / 100;
+
+  /// Display form of [vatPercentage]: whole numbers without decimals
+  /// ("10"), fractional rates with one ("7.5").
+  String get vatPercentageLabel => vatPercentage % 1 == 0
+      ? vatPercentage.toInt().toString()
+      : vatPercentage.toStringAsFixed(1);
 
   // Calculate discount from applied coupon
   double get discountAmount {

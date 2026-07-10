@@ -196,7 +196,7 @@
   "failed_to_load_product_details": "পণ্যের তথ্য লোড করতে ব্যর্থ",
   "promocode_applied": "প্রমোকোড প্রয়োগ হয়েছে",
   "subtotal": "উপমোট",
-  "tax_10": "কর (১০%)",
+  "tax": "কর",
   "discount": "ছাড়",
   "total": "মোট",
   "proceed_to_checkout": "চেকআউটে যান",
