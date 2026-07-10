@@ -3,6 +3,9 @@ import 'dart:async' show unawaited;
 import 'package:appwrite_user_app/app/appwrite/payment_service.dart';
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/address_controller.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
@@ -43,6 +46,10 @@ class CheckoutPage extends StatefulWidget {
 }
 
 class _CheckoutPageState extends State<CheckoutPage> {
+  // Web shell: content cap + scaffold key for the top-nav profile drawer.
+  static const double _maxContentWidth = 1160;
+  final GlobalKey<ScaffoldState> _webScaffoldKey = GlobalKey<ScaffoldState>();
+
   final _instructionsController = TextEditingController();
   PaymentMethod _selectedPaymentMethod = PaymentMethod.cod;
   PaymentGateway _selectedGateway = PaymentGateway.sslcommerz;
@@ -328,9 +335,24 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Desktop web gets the shared top-nav shell + a two-column layout;
+    // mobile/tablet keep the original stacked flow with the bottom summary.
+    final useWebShell = WebTopNav.isEnabled(context);
+
     return Scaffold(
+      key: _webScaffoldKey,
       backgroundColor: ColorResource.scaffoldBackground,
-      appBar: CustomAppbar(title: 'checkout'.tr),
+      endDrawer: useWebShell ? const WebProfileDrawer() : null,
+      appBar: useWebShell
+          ? WebTopNav(
+              selectedIndex: null,
+              onDestinationSelected: (index) {
+                DashboardTabBus.open(index);
+                context.goNamed(RouteNames.dashboard);
+              },
+              onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
+            )
+          : CustomAppbar(title: 'checkout'.tr),
       body: AuthGate(
         child: GetBuilder<CartController>(
         builder: (controller) {
@@ -354,6 +376,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
               ),
             );
           }
+
+          if (useWebShell) return _buildWebBody(controller);
 
           return Column(
             children: [
@@ -385,6 +409,149 @@ class _CheckoutPageState extends State<CheckoutPage> {
           );
         },
         ),
+      ),
+    );
+  }
+
+  // ── Web/desktop: centered two-column checkout ──
+  //   Left:  address · shipping/schedule · payment · instructions
+  //   Right: order summary rail — coupon, always-open breakdown, place order
+  Widget _buildWebBody(CartController controller) {
+    return SingleChildScrollView(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'checkout'.tr,
+                  style: poppinsBold.copyWith(
+                    fontSize: Constants.fontSizeOverLarge,
+                    color: ColorResource.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildDeliveryAddress(),
+                          const SizedBox(height: 20),
+                          _isEcommerce
+                              ? _buildShippingSection()
+                              : _buildDeliverySchedule(),
+                          const SizedBox(height: 20),
+                          _buildPaymentMethod(),
+                          const SizedBox(height: 20),
+                          _buildDeliveryInstructions(),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    SizedBox(
+                      width: 380,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildCouponSection(controller),
+                          const SizedBox(height: 20),
+                          _buildWebSummaryCard(controller),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Web order-summary rail: the full price breakdown (always expanded — no
+  /// collapse toggle on desktop) plus the place-order button.
+  Widget _buildWebSummaryCard(CartController controller) {
+    final settingsController = Get.find<SettingsController>();
+    final deliveryFee = _calculateDeliveryFee(controller, settingsController);
+    final isOutsideRadius = _isOutsideDeliveryRadius(settingsController);
+    final storeStatus = _storeStatus();
+    final blockForClosed =
+        !_isEcommerce && _deliveryType == 'now' && !storeStatus.isOpenNow;
+    final total = controller.total + deliveryFee;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: ColorResource.cardBackground,
+        borderRadius: BorderRadius.circular(Constants.radiusLarge),
+        boxShadow: ColorResource.customShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'order_summary'.tr,
+            style: poppinsBold.copyWith(
+              fontSize: Constants.fontSizeLarge,
+              color: ColorResource.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildSummaryRow(
+            '${'cart_items_count'.tr} (${controller.itemCount})',
+            controller.originalSubtotal,
+          ),
+          if (controller.itemDiscountTotal > 0) ...[
+            const SizedBox(height: 8),
+            _buildSummaryRow(
+              'item_discount'.tr,
+              -controller.itemDiscountTotal,
+              isDiscount: true,
+            ),
+          ],
+          const SizedBox(height: 8),
+          _buildSummaryRow(
+            _isEcommerce ? 'shipping'.tr : 'delivery_fee'.tr,
+            deliveryFee,
+          ),
+          if (isOutsideRadius) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Selected address is outside the delivery radius.',
+              style: poppinsMedium.copyWith(
+                fontSize: Constants.fontSizeSmall,
+                color: Colors.red,
+              ),
+            ),
+          ],
+          const SizedBox(height: 8),
+          _buildSummaryRow('tax_10'.tr, controller.tax),
+          if (controller.appliedCoupon != null) ...[
+            const SizedBox(height: 8),
+            _buildSummaryRow(
+              'coupon_discount'.tr,
+              -controller.discountAmount,
+              isDiscount: true,
+            ),
+          ],
+          const Divider(height: 24),
+          _buildSummaryRow('total'.tr, total, isTotal: true),
+          const SizedBox(height: 16),
+          _buildPlaceOrderButton(
+            controller,
+            deliveryFee: deliveryFee,
+            isOutsideRadius: isOutsideRadius,
+            blockForClosed: blockForClosed,
+            total: total,
+          ),
+        ],
       ),
     );
   }
@@ -1460,62 +1627,80 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ),
             
             const SizedBox(height: 16),
-            
+
             // Place order button
-            GetBuilder<OrderController>(
-              builder: (orderController) {
-                return SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: orderController.isPlacingOrder ||
-                            isOutsideRadius ||
-                            blockForClosed
-                        ? null
-                        : () => _placeOrder(controller, total, deliveryFee, controller.tax),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: ColorResource.primaryDark,
-                      // Muted grey when unavailable, dimmed brand while placing.
-                      disabledBackgroundColor: (isOutsideRadius || blockForClosed)
-                          ? ColorResource.textLight.withValues(alpha: 0.5)
-                          : ColorResource.primaryDark.withValues(alpha: 0.6),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(Constants.radiusLarge),
-                      ),
-                    ),
-                    child: orderController.isPlacingOrder
-                        ? SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              color: ColorResource.textWhite,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : isOutsideRadius
-                            ? _buildBlockedButtonContent(
-                                Icons.location_off_outlined,
-                                'cannot_deliver_to_address'.tr,
-                              )
-                            : blockForClosed
-                                ? _buildBlockedButtonContent(
-                                    Icons.store_mall_directory_outlined,
-                                    'store_closed'.tr,
-                                  )
-                                : Text(
-                                    '${'place_order_with_total'.tr} - ${CurrencyHelper.formatAmount(total)}',
-                                    style: poppinsBold.copyWith(
-                                      fontSize: Constants.fontSizeLarge,
-                                      color: ColorResource.textWhite,
-                                    ),
-                                  ),
-                  ),
-                );
-              },
+            _buildPlaceOrderButton(
+              controller,
+              deliveryFee: deliveryFee,
+              isOutsideRadius: isOutsideRadius,
+              blockForClosed: blockForClosed,
+              total: total,
             ),
           ],
         ),
       ),
+    );
+  }
+
+  /// Place-order CTA with its blocked states (outside radius / store closed /
+  /// placing spinner). Shared by the mobile bottom bar and the web summary.
+  Widget _buildPlaceOrderButton(
+    CartController controller, {
+    required double deliveryFee,
+    required bool isOutsideRadius,
+    required bool blockForClosed,
+    required double total,
+  }) {
+    return GetBuilder<OrderController>(
+      builder: (orderController) {
+        return SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: orderController.isPlacingOrder ||
+                    isOutsideRadius ||
+                    blockForClosed
+                ? null
+                : () => _placeOrder(controller, total, deliveryFee, controller.tax),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ColorResource.primaryDark,
+              // Muted grey when unavailable, dimmed brand while placing.
+              disabledBackgroundColor: (isOutsideRadius || blockForClosed)
+                  ? ColorResource.textLight.withValues(alpha: 0.5)
+                  : ColorResource.primaryDark.withValues(alpha: 0.6),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(Constants.radiusLarge),
+              ),
+            ),
+            child: orderController.isPlacingOrder
+                ? SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: ColorResource.textWhite,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : isOutsideRadius
+                    ? _buildBlockedButtonContent(
+                        Icons.location_off_outlined,
+                        'cannot_deliver_to_address'.tr,
+                      )
+                    : blockForClosed
+                        ? _buildBlockedButtonContent(
+                            Icons.store_mall_directory_outlined,
+                            'store_closed'.tr,
+                          )
+                        : Text(
+                            '${'place_order_with_total'.tr} - ${CurrencyHelper.formatAmount(total)}',
+                            style: poppinsBold.copyWith(
+                              fontSize: Constants.fontSizeLarge,
+                              color: ColorResource.textWhite,
+                            ),
+                          ),
+          ),
+        );
+      },
     );
   }
 
