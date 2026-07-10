@@ -1032,8 +1032,12 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                               ),
                             ),
                           ),
-                          // Scroll arrows — reveal only while hovered (web).
-                          if (isWide) ...[
+                          // Scroll arrows — reveal only while hovered (web),
+                          // and only when the strip actually overflows.
+                          // Hover triggers a rebuild, so the laid-out scroll
+                          // extent is available by the time this matters.
+                          if (isWide &&
+                              _carouselHasOverflow(scrollController)) ...[
                             Align(
                               alignment: Alignment.centerLeft,
                               child: _animatedArrow(
@@ -1115,6 +1119,12 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
       ),
     );
   }
+
+  /// Whether a horizontal strip actually overflows its viewport. Checked at
+  /// build time — the hover that reveals the arrows triggers a rebuild, so
+  /// the laid-out extent is available when it matters.
+  bool _carouselHasOverflow(ScrollController controller) =>
+      controller.hasClients && controller.position.maxScrollExtent > 1;
 
   void _scrollCarouselBy(ScrollController controller, double delta) {
     if (!controller.hasClients) return;

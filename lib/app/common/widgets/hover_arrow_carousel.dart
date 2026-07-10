@@ -14,11 +14,18 @@ class HoverArrows extends StatefulWidget {
   final VoidCallback onLeft;
   final VoidCallback onRight;
 
+  /// Whether the carousel actually has anything to scroll. Evaluated lazily
+  /// on every build (hover triggers one), so implementations can inspect a
+  /// laid-out ScrollController. When it returns false the arrows stay hidden —
+  /// a strip whose items all fit needs no paging affordance.
+  final bool Function()? canScroll;
+
   const HoverArrows({
     super.key,
     required this.child,
     required this.onLeft,
     required this.onRight,
+    this.canScroll,
   });
 
   @override
@@ -34,6 +41,8 @@ class _HoverArrowsState extends State<HoverArrows> {
       return widget.child;
     }
 
+    final bool showArrows = widget.canScroll?.call() ?? true;
+
     return MouseRegion(
       onEnter: (_) {
         if (!_hovered) setState(() => _hovered = true);
@@ -44,18 +53,20 @@ class _HoverArrowsState extends State<HoverArrows> {
       child: Stack(
         children: [
           widget.child,
-          Positioned.fill(
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: _animatedArrow(isLeft: true),
+          if (showArrows) ...[
+            Positioned.fill(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: _animatedArrow(isLeft: true),
+              ),
             ),
-          ),
-          Positioned.fill(
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: _animatedArrow(isLeft: false),
+            Positioned.fill(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: _animatedArrow(isLeft: false),
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -159,6 +170,9 @@ class _HoverArrowCarouselState extends State<HoverArrowCarousel> {
     return HoverArrows(
       onLeft: () => _scrollBy(-widget.scrollDelta),
       onRight: () => _scrollBy(widget.scrollDelta),
+      // No arrows when every item already fits in the viewport.
+      canScroll: () =>
+          _controller.hasClients && _controller.position.maxScrollExtent > 1,
       child: SizedBox(
         height: widget.height,
         child: widget.builder(context, _controller),

@@ -145,10 +145,14 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
                       ? FoodCardMetrics.webCardHeight(screenWidth) + 8
                       : 250;
 
-                  // Hover-revealed arrows page the carousel on desktop web.
+                  // Hover-revealed arrows page the carousel on desktop web —
+                  // hidden when every dish already fits in the viewport
+                  // (items × fraction ≤ 1 means nothing to page through).
                   return HoverArrows(
                     onLeft: () => _carouselController.previousPage(),
                     onRight: () => _carouselController.nextPage(),
+                    canScroll: () =>
+                        products.length * viewportFraction > 1.001,
                     child: CarouselSlider.builder(
                     carouselController: _carouselController,
                     itemCount: products.length,
