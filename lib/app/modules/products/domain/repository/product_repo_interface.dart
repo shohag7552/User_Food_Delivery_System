@@ -20,6 +20,13 @@ abstract class ProductRepoInterface {
     int offset = 0,
     int limit = 10,
   });
+
+  /// Products of one brand, paginated (brand products page).
+  Future<List<ProductModel>> getProductsByBrand(
+    String brandId, {
+    int offset = 0,
+    int limit = 10,
+  });
   Future<List<ProductModel>> searchProducts(String query);
   Future<ProductModel?> getProductById(String id);
 

@@ -26,4 +26,18 @@ class BrandRepository implements BrandRepoInterface {
       rethrow;
     }
   }
+
+  @override
+  Future<BrandModel?> getBrandById(String id) async {
+    try {
+      final response = await appwriteService.getDocument(
+        tableId: AppwriteConfig.brandsCollection,
+        rowId: id,
+      );
+      return BrandModel.fromJson(response.data);
+    } catch (e) {
+      log('====> Error fetching brand by ID: $e');
+      return null;
+    }
+  }
 }

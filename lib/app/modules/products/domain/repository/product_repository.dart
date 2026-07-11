@@ -169,6 +169,32 @@ class ProductRepository implements ProductRepoInterface {
   }
 
   @override
+  Future<List<ProductModel>> getProductsByBrand(
+    String brandId, {
+    int offset = 0,
+    int limit = 10,
+  }) async {
+    try {
+      final response = await appwriteService.listTable(
+        tableId: AppwriteConfig.productsCollection,
+        queries: [
+          Query.equal('brand_id', brandId),
+          Query.equal('is_available', true),
+          Query.equal('module_type', ModuleController.current),
+          Query.offset(offset),
+          Query.limit(limit),
+        ],
+      );
+      return response.rows
+          .map((row) => ProductModel.fromJson(row.data))
+          .toList();
+    } catch (e) {
+      log('====> Error fetching products by brand: $e');
+      rethrow;
+    }
+  }
+
+  @override
   Future<List<ProductModel>> getProductsByCategory(
     String categoryId, {
     int offset = 0,

@@ -31,6 +31,14 @@ class BrandController extends GetxController implements GetxService {
     return null;
   }
 
+  /// Resolve a brand by id — from the already-loaded list when possible,
+  /// otherwise fetched from the backend (cold deep links). Null if not found.
+  Future<BrandModel?> getBrandById(String id) async {
+    final local = brandById(id);
+    if (local != null) return local;
+    return brandRepoInterface.getBrandById(id);
+  }
+
   Future<void> getBrands({bool reload = false}) async {
     if (_brands.isNotEmpty && !reload) return;
     try {

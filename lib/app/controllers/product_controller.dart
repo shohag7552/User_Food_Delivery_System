@@ -297,6 +297,24 @@ class ProductController extends GetxController implements GetxService {
     }
   }
 
+  /// Fetch products by brand
+  Future<List<ProductModel>> getProductsByBrand(
+    String brandId, {
+    int offset = 0,
+    int limit = 10,
+  }) async {
+    try {
+      return await productRepoInterface.getProductsByBrand(
+        brandId,
+        offset: offset,
+        limit: limit,
+      );
+    } catch (e) {
+      log('====> Error loading products by brand: $e');
+      rethrow;
+    }
+  }
+
   /// Search products from Appwrite
   Future<List<ProductModel>> searchProducts(String query) async {
     try {

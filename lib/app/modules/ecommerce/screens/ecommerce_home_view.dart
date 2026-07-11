@@ -129,9 +129,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
             SliverToBoxAdapter(child: _buildBrands(hPad)),
           ],
           SliverToBoxAdapter(child: _buildPopular(hPad)),
-          SliverToBoxAdapter(
-            child: _sectionHeader('all_products'.tr, hPad),
-          ),
+          SliverToBoxAdapter(child: _sectionHeader('all_products'.tr, hPad)),
           _buildAllProductsGrid(crossAxisCount, hPad),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
@@ -153,8 +151,10 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     return GetBuilder<BannerController>(
       builder: (bannerController) {
         final promos = bannerController.banners
-            .where((b) =>
-                b.moduleType == ModuleController.ecommerce && b.isPromotional)
+            .where(
+              (b) =>
+                  b.moduleType == ModuleController.ecommerce && b.isPromotional,
+            )
             .toList();
         return GetBuilder<BrandController>(
           builder: (brandController) {
@@ -185,7 +185,8 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                           height: _promosBrandsHeight,
                           isLoading: false,
                           errorMessage: null,
-                          onRetry: () => bannerController.getBanners(reload: true),
+                          onRetry: () =>
+                              bannerController.getBanners(reload: true),
                         ),
                       ],
                     ),
@@ -238,54 +239,69 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     );
   }
 
+  /// Opens the brand's products page (`/brand/<id>`), passing the loaded
+  /// model as `extra` for instant render.
+  void _openBrand(BrandModel brand) {
+    context.pushNamed(
+      RouteNames.brand,
+      pathParameters: {'id': brand.id},
+      extra: brand,
+    );
+  }
+
   Widget _brandTile(BrandModel brand) {
     final hasLogo = (brand.logoUrl ?? '').isNotEmpty;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
-        borderRadius: BorderRadius.circular(Constants.radiusLarge),
-        border: Border.all(
-          color: ColorResource.textLight.withValues(alpha: 0.15),
-        ),
-      ),
-      child: Row(
-        children: [
-          // Logo, or a branded placeholder when none is set.
-          Container(
-            width: 40,
-            height: 40,
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: ColorResource.primaryDark.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: hasLogo
-                ? CustomNetworkImage(
-                    image: brand.logoUrl!,
-                    width: 40,
-                    height: 40,
-                    fit: BoxFit.cover,
-                  )
-                : Icon(
-                    Icons.storefront_outlined,
-                    size: 20,
-                    color: ColorResource.primaryDark,
-                  ),
+    return InkWell(
+      onTap: () => _openBrand(brand),
+      borderRadius: BorderRadius.circular(Constants.radiusLarge),
+      hoverColor: ColorResource.primaryDark.withValues(alpha: 0.04),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: ColorResource.cardBackground,
+          borderRadius: BorderRadius.circular(Constants.radiusLarge),
+          border: Border.all(
+            color: ColorResource.textLight.withValues(alpha: 0.15),
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              brand.nameMap.trLanguage,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: poppinsMedium.copyWith(
-                fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textPrimary,
+        ),
+        child: Row(
+          children: [
+            // Logo, or a branded placeholder when none is set.
+            Container(
+              width: 40,
+              height: 40,
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: ColorResource.primaryDark.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: hasLogo
+                  ? CustomNetworkImage(
+                      image: brand.logoUrl!,
+                      width: 40,
+                      height: 40,
+                      fit: BoxFit.cover,
+                    )
+                  : Icon(
+                      Icons.storefront_outlined,
+                      size: 20,
+                      color: ColorResource.primaryDark,
+                    ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                brand.nameMap.trLanguage,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: poppinsMedium.copyWith(
+                  fontSize: Constants.fontSizeDefault,
+                  color: ColorResource.textPrimary,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -293,9 +309,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
   /// Dispatches to a platform-appropriate hero: a static two-column layout on
   /// web (editorial, image-right) and a collapsing SliverAppBar on mobile.
   Widget _buildSliverAppBar(BuildContext context, double hPad, bool isWide) {
-    return isWide
-        ? _buildWebHero(hPad)
-        : _buildMobileAppBar(hPad);
+    return isWide ? _buildWebHero(hPad) : _buildMobileAppBar(hPad);
   }
 
   static const double _heroHeight = 300.0;
@@ -315,7 +329,8 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                 height: _heroHeight,
                 child: GetBuilder<CategoryController>(
                   builder: (catController) {
-                    final showPanel = catController.categories.isNotEmpty ||
+                    final showPanel =
+                        catController.categories.isNotEmpty ||
                         catController.isLoading;
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -433,7 +448,9 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                 hoverColor: ColorResource.primaryDark.withValues(alpha: 0.04),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   child: Row(
                     children: [
                       Container(
@@ -441,8 +458,9 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                         height: 30,
                         clipBehavior: Clip.antiAlias,
                         decoration: BoxDecoration(
-                          color:
-                              ColorResource.primaryDark.withValues(alpha: 0.07),
+                          color: ColorResource.primaryDark.withValues(
+                            alpha: 0.07,
+                          ),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: (category.imagePath?.isNotEmpty ?? false)
@@ -522,8 +540,11 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     return GetBuilder<BannerController>(
       builder: (bannerController) {
         final banners = bannerController.banners
-            .where((b) =>
-                b.moduleType == ModuleController.ecommerce && !b.isPromotional)
+            .where(
+              (b) =>
+                  b.moduleType == ModuleController.ecommerce &&
+                  !b.isPromotional,
+            )
             .toList();
 
         return ClipRRect(
@@ -584,8 +605,11 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                   StretchMode.zoomBackground,
                   StretchMode.blurBackground,
                 ],
-                background: _buildMobileAppBarBackground(hPad, collapseRatio,
-                    searchMaxWidth),
+                background: _buildMobileAppBarBackground(
+                  hPad,
+                  collapseRatio,
+                  searchMaxWidth,
+                ),
               ),
               // Collapsed search — anchored to the bottom edge of the pinned
               // bar (FlexibleSpaceBar's title metrics float it mid-bar).
@@ -611,59 +635,57 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     double searchMaxWidth,
   ) {
     return Stack(
-              fit: StackFit.expand,
+      fit: StackFit.expand,
+      children: [
+        Image.asset(Images.shoppingBanner, fit: BoxFit.cover),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withValues(alpha: 0.22),
+                ColorResource.primaryDark.withValues(alpha: 0.84),
+              ],
+            ),
+          ),
+        ),
+        SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(hPad, 14, hPad, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Image.asset(Images.shoppingBanner, fit: BoxFit.cover),
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withValues(alpha: 0.22),
-                        ColorResource.primaryDark.withValues(alpha: 0.84),
-                      ],
+                Text(
+                  'shop'.tr,
+                  style: poppinsBold.copyWith(
+                    fontSize: Constants.fontSizeOverLarge,
+                    color: ColorResource.textWhite,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Opacity(
+                  opacity: collapseRatio,
+                  child: Text(
+                    'shop_tagline'.tr,
+                    style: poppinsRegular.copyWith(
+                      fontSize: Constants.fontSizeSmall,
+                      color: ColorResource.textWhite.withValues(alpha: 0.80),
                     ),
                   ),
                 ),
-                SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(hPad, 14, hPad, 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          'shop'.tr,
-                          style: poppinsBold.copyWith(
-                            fontSize: Constants.fontSizeOverLarge,
-                            color: ColorResource.textWhite,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Opacity(
-                          opacity: collapseRatio,
-                          child: Text(
-                            'shop_tagline'.tr,
-                            style: poppinsRegular.copyWith(
-                              fontSize: Constants.fontSizeSmall,
-                              color: ColorResource.textWhite
-                                  .withValues(alpha: 0.80),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Opacity(
-                          opacity: collapseRatio,
-                          child:
-                              _constrained(searchMaxWidth, _buildSearchBar()),
-                        ),
-                      ],
-                    ),
-                  ),
+                const SizedBox(height: 12),
+                Opacity(
+                  opacity: collapseRatio,
+                  child: _constrained(searchMaxWidth, _buildSearchBar()),
                 ),
               ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -720,8 +742,11 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
         // Shop hero slider: strictly ecommerce-tagged hero banners (promotional
         // banners are shown separately in their own section below).
         final banners = bannerController.banners
-            .where((b) =>
-                b.moduleType == ModuleController.ecommerce && !b.isPromotional)
+            .where(
+              (b) =>
+                  b.moduleType == ModuleController.ecommerce &&
+                  !b.isPromotional,
+            )
             .toList();
 
         if (banners.isEmpty && !bannerController.isLoading) {
@@ -749,8 +774,10 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     return GetBuilder<BannerController>(
       builder: (bannerController) {
         final promos = bannerController.banners
-            .where((b) =>
-                b.moduleType == ModuleController.ecommerce && b.isPromotional)
+            .where(
+              (b) =>
+                  b.moduleType == ModuleController.ecommerce && b.isPromotional,
+            )
             .toList();
 
         if (promos.isEmpty) return const SizedBox.shrink();
@@ -807,8 +834,9 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                             width: 60,
                             height: 60,
                             decoration: BoxDecoration(
-                              color: ColorResource.primaryDark
-                                  .withValues(alpha: 0.08),
+                              color: ColorResource.primaryDark.withValues(
+                                alpha: 0.08,
+                              ),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             clipBehavior: Clip.antiAlias,
@@ -866,42 +894,49 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                 separatorBuilder: (_, _) => const SizedBox(width: 12),
                 itemBuilder: (context, index) {
                   final brand = controller.brands[index];
-                  return Container(
-                    width: 110,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: ColorResource.cardBackground,
-                      borderRadius: BorderRadius.circular(Constants.radiusLarge),
-                      border: Border.all(
-                        color: ColorResource.textLight.withValues(alpha: 0.15),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        if ((brand.logoUrl ?? '').isNotEmpty) ...[
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: CustomNetworkImage(
-                              image: brand.logoUrl!,
-                              width: 32,
-                              height: 32,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                        ],
-                        Expanded(
-                          child: Text(
-                            brand.nameMap.trLanguage,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: poppinsMedium.copyWith(
-                              fontSize: Constants.fontSizeSmall,
-                              color: ColorResource.textPrimary,
-                            ),
+                  return GestureDetector(
+                    onTap: () => _openBrand(brand),
+                    child: Container(
+                      width: 110,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: ColorResource.cardBackground,
+                        borderRadius: BorderRadius.circular(
+                          Constants.radiusLarge,
+                        ),
+                        border: Border.all(
+                          color: ColorResource.textLight.withValues(
+                            alpha: 0.15,
                           ),
                         ),
-                      ],
+                      ),
+                      child: Row(
+                        children: [
+                          if ((brand.logoUrl ?? '').isNotEmpty) ...[
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: CustomNetworkImage(
+                                image: brand.logoUrl!,
+                                width: 32,
+                                height: 32,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                          Expanded(
+                            child: Text(
+                              brand.nameMap.trLanguage,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: poppinsMedium.copyWith(
+                                fontSize: Constants.fontSizeSmall,
+                                color: ColorResource.textPrimary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -1105,8 +1140,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
         shadowColor: Colors.black.withValues(alpha: 0.2),
         child: InkWell(
           customBorder: const CircleBorder(),
-          onTap: () =>
-              _scrollCarouselBy(scrollController, isLeft ? -380 : 380),
+          onTap: () => _scrollCarouselBy(scrollController, isLeft ? -380 : 380),
           child: Padding(
             padding: const EdgeInsets.all(8),
             child: Icon(
@@ -1128,8 +1162,10 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
 
   void _scrollCarouselBy(ScrollController controller, double delta) {
     if (!controller.hasClients) return;
-    final target = (controller.offset + delta)
-        .clamp(0.0, controller.position.maxScrollExtent);
+    final target = (controller.offset + delta).clamp(
+      0.0,
+      controller.position.maxScrollExtent,
+    );
     controller.animateTo(
       target,
       duration: const Duration(milliseconds: 350),
@@ -1173,9 +1209,8 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
               mainAxisSpacing: 14,
             ),
             delegate: SliverChildBuilderDelegate(
-              (context, index) => EcommerceProductCard(
-                product: controller.products[index],
-              ),
+              (context, index) =>
+                  EcommerceProductCard(product: controller.products[index]),
               childCount: controller.products.length,
             ),
           ),

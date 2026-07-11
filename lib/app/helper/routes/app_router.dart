@@ -1,9 +1,11 @@
+import 'package:appwrite_user_app/app/controllers/brand_controller.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/controllers/coupon_controller.dart';
 import 'package:appwrite_user_app/app/controllers/policy_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
+import 'package:appwrite_user_app/app/models/brand_model.dart';
 import 'package:appwrite_user_app/app/models/category_model.dart';
 import 'package:appwrite_user_app/app/models/coupon_model.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
@@ -14,6 +16,7 @@ import 'package:appwrite_user_app/app/modules/address/screens/full_screen_map_pa
 import 'package:appwrite_user_app/app/modules/auth/screens/forgot_password_screen.dart';
 import 'package:appwrite_user_app/app/modules/auth/screens/login_screen.dart';
 import 'package:appwrite_user_app/app/modules/auth/screens/signup_screen.dart';
+import 'package:appwrite_user_app/app/modules/brands/screens/brand_products_page.dart';
 import 'package:appwrite_user_app/app/modules/cart/screens/cart_page.dart';
 import 'package:appwrite_user_app/app/modules/categories/screens/category_products_page.dart';
 import 'package:appwrite_user_app/app/modules/categories/screens/category_screen.dart';
@@ -61,6 +64,7 @@ abstract class RouteNames {
   static const search = 'search';
   static const categories = 'categories';
   static const category = 'category';
+  static const brand = 'brand';
   static const flashSale = 'flash-sale';
   static const productDetail = 'product-detail';
   static const cart = 'cart';
@@ -191,6 +195,7 @@ abstract class AppRouter {
   static const String search = '/search';
   static const String categories = '/categories';
   static const String categoryPath = '/category/:id';
+  static const String brandPath = '/brand/:id';
   static const String flashSale = '/flash-sale';
   static const String productDetailPath = '/product/:id';
   static const String cart = '/cart';
@@ -279,6 +284,24 @@ abstract class AppRouter {
                 .getCategoryById(state.pathParameters['id']!),
             notFoundKey: 'category_not_found',
             builder: (category) => CategoryProductsPage(category: category),
+          );
+        },
+      ),
+      GoRoute(
+        path: brandPath,
+        name: RouteNames.brand,
+        // `extra` carries the already-loaded model for instant render on
+        // in-app navigation; a cold deep link hydrates it from the URL id.
+        builder: (context, state) {
+          final brand = state.extra;
+          if (brand is BrandModel) {
+            return BrandProductsPage(brand: brand);
+          }
+          return _DeepLinkLoader<BrandModel>(
+            fetch: () => Get.find<BrandController>()
+                .getBrandById(state.pathParameters['id']!),
+            notFoundKey: 'brand_not_found',
+            builder: (brand) => BrandProductsPage(brand: brand),
           );
         },
       ),
