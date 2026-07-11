@@ -37,7 +37,10 @@ class FlashSaleSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 20),
-                // Gradient header: title, countdown, see-all.
+                // Gradient header: title, countdown, see-all. Adapts to the
+                // available width — one row when everything fits; on compact
+                // (phone) widths the countdown moves to its own line so the
+                // title and chips never break or overflow.
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Container(
@@ -48,39 +51,40 @@ class FlashSaleSection extends StatelessWidget {
                       borderRadius:
                           BorderRadius.circular(Constants.radiusLarge),
                     ),
-                    child: Row(
-                      children: [
-                        const Text('⚡', style: TextStyle(fontSize: 20)),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        // Titles + countdown (incl. a possible day chip) +
+                        // see-all need roughly this much to share one row.
+                        final bool compact = constraints.maxWidth < 480;
+
+                        final Widget titles = Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'flash_sale'.tr,
+                              style: poppinsBold.copyWith(
+                                fontSize: Constants.fontSizeLarge,
+                                color: ColorResource.textWhite,
+                              ),
+                            ),
+                            if (sale.title.isNotEmpty)
                               Text(
-                                'flash_sale'.tr,
-                                style: poppinsBold.copyWith(
-                                  fontSize: Constants.fontSizeLarge,
-                                  color: ColorResource.textWhite,
+                                sale.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: poppinsRegular.copyWith(
+                                  fontSize: Constants.fontSizeSmall,
+                                  color: ColorResource.textWhite
+                                      .withValues(alpha: 0.85),
                                 ),
                               ),
-                              if (sale.title.isNotEmpty)
-                                Text(
-                                  sale.title,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: poppinsRegular.copyWith(
-                                    fontSize: Constants.fontSizeSmall,
-                                    color: ColorResource.textWhite
-                                        .withValues(alpha: 0.85),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        _CountdownChips(remaining: controller.remaining),
-                        const SizedBox(width: 6),
-                        InkWell(
+                          ],
+                        );
+
+                        final Widget countdown =
+                            _CountdownChips(remaining: controller.remaining);
+
+                        final Widget seeAll = InkWell(
                           onTap: () =>
                               context.pushNamed(RouteNames.flashSale),
                           borderRadius:
@@ -91,6 +95,7 @@ class FlashSaleSection extends StatelessWidget {
                               vertical: 6,
                             ),
                             child: Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
                                   'see_all'.tr,
@@ -107,8 +112,50 @@ class FlashSaleSection extends StatelessWidget {
                               ],
                             ),
                           ),
-                        ),
-                      ],
+                        );
+
+                        if (!compact) {
+                          return Row(
+                            children: [
+                              const Text('⚡', style: TextStyle(fontSize: 20)),
+                              const SizedBox(width: 6),
+                              Expanded(child: titles),
+                              const SizedBox(width: 10),
+                              countdown,
+                              const SizedBox(width: 6),
+                              seeAll,
+                            ],
+                          );
+                        }
+
+                        // Compact: titles + see-all share the first line; the
+                        // countdown gets its own line. The FittedBox shrinks
+                        // the chips as a last resort on ultra-narrow screens
+                        // instead of overflowing.
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Text('⚡',
+                                    style: TextStyle(fontSize: 20)),
+                                const SizedBox(width: 6),
+                                Expanded(child: titles),
+                                const SizedBox(width: 6),
+                                seeAll,
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: countdown,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),

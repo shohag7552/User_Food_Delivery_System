@@ -1,9 +1,7 @@
 {
   "projects": {
-    "default": "global-food-42514",
-    "user": "bazardhor-241ba",
-    "food user app": "food-app-c2fe8",
-    "staging": "food-app-c2fe8"
+    "default": "food-app-c2fe8",
+    "user-app": "food-app-c2fe8"
   },
   "targets": {},
   "etags": {}
