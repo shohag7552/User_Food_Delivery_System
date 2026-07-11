@@ -37,6 +37,15 @@ class CouponController extends GetxController implements GetxService {
     }
   }
 
+  /// Resolve a coupon by id — from the already-loaded list when possible,
+  /// otherwise fetched from the backend (cold deep links). Null if not found.
+  Future<CouponModel?> getCouponById(String id) async {
+    for (final coupon in _coupons ?? const <CouponModel>[]) {
+      if (coupon.id == id) return coupon;
+    }
+    return couponRepoInterface.getCouponById(id);
+  }
+
   /// Validate coupon by code
   Future<CouponModel?> validateCouponCode(String code, {double? orderAmount}) async {
     try {

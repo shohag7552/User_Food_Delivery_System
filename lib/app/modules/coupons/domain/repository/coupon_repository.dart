@@ -57,6 +57,20 @@ class CouponRepository implements CouponRepoInterface {
   }
 
   @override
+  Future<CouponModel?> getCouponById(String id) async {
+    try {
+      final response = await appwriteService.getDocument(
+        tableId: AppwriteConfig.couponsCollection,
+        rowId: id,
+      );
+      return CouponModel.fromJson(response.data);
+    } catch (e) {
+      log('Failed to get coupon by id: $e');
+      return null;
+    }
+  }
+
+  @override
   Future<bool> addCoupon(CouponModel coupon) async {
     try {
       await appwriteService.createRow(

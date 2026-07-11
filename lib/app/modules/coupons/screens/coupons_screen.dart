@@ -133,6 +133,7 @@ class _CouponCard extends StatelessWidget {
   void _handleTap(BuildContext context) {
     context.pushNamed(
       RouteNames.couponDetails,
+      pathParameters: {'id': coupon.id ?? ''},
       extra: CouponDetailsArgs(
         coupon: coupon,
         isSelectionMode: isSelectionMode,

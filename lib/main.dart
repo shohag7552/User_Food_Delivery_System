@@ -9,12 +9,23 @@ import 'package:appwrite_user_app/global.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 import 'app/resources/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Clean web URLs (/category/... instead of /#/category/...); no-op off web.
+  usePathUrlStrategy();
+
+  // Web: make pushNamed()-opened pages (product/order/category details, …)
+  // update the browser URL. go_router stopped reflecting imperative pushes in
+  // the URL by default (v8+); it warns the top route may not be deep-linkable,
+  // but every pushed route here hydrates itself from its URL, so it is safe.
+  GoRouter.optionURLReflectsImperativeAPIs = true;
 
   await Global.init().then((languages) => runApp(MyApp(languages: languages)));
 }

@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
-import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/models/user_model.dart';
 import 'package:appwrite_user_app/app/modules/profile/domain/repository/profile_repo_interface.dart';
@@ -90,10 +89,11 @@ class ProfileController extends GetxController implements GetxService {
     }
   }
 
-  /// Update user profile
-  Future<void> updateUserProfile() async {
+  /// Update user profile. Returns true on success — navigation (closing the
+  /// edit page) is the calling view's responsibility, never the controller's.
+  Future<bool> updateUserProfile() async {
     if (!formKey.currentState!.validate()) {
-      return;
+      return false;
     }
 
     try {
@@ -117,12 +117,13 @@ class ProfileController extends GetxController implements GetxService {
       update();
 
       customToster('Profile updated successfully');
-      AppRouter.router.pop(); // Return to profile page
+      return true;
     } catch (e) {
       _isUpdating = false;
       update();
       log('Error updating profile: $e');
       customToster('Failed to update profile', isSuccess: false);
+      return false;
     }
   }
 

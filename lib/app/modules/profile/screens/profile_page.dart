@@ -209,13 +209,9 @@ class _ProfilePageState extends State<ProfilePage> {
                               title: 'about_us'.tr,
                               subtitle: 'learn_more_about_us'.tr,
                               onTap: () {
-                                final policyController = Get.find<PolicyController>();
                                 context.pushNamed(
                                   RouteNames.policy,
-                                  extra: PolicyArgs(
-                                    title: 'about_us'.tr,
-                                    htmlContent: policyController.policies?.aboutUsHtml ?? '',
-                                  ),
+                                  pathParameters: {'type': PolicyType.aboutUs},
                                 );
                               },
                             ),
@@ -224,13 +220,9 @@ class _ProfilePageState extends State<ProfilePage> {
                               title: 'terms_and_conditions_title'.tr,
                               subtitle: 'read_our_terms'.tr,
                               onTap: () {
-                                final policyController = Get.find<PolicyController>();
                                 context.pushNamed(
                                   RouteNames.policy,
-                                  extra: PolicyArgs(
-                                    title: 'terms_and_conditions_title'.tr,
-                                    htmlContent: policyController.policies?.termsAndConditionsHtml ?? '',
-                                  ),
+                                  pathParameters: {'type': PolicyType.terms},
                                 );
                               },
                             ),
@@ -239,13 +231,9 @@ class _ProfilePageState extends State<ProfilePage> {
                               title: 'privacy_policy_title'.tr,
                               subtitle: 'read_our_privacy_policy'.tr,
                               onTap: () {
-                                final policyController = Get.find<PolicyController>();
                                 context.pushNamed(
                                   RouteNames.policy,
-                                  extra: PolicyArgs(
-                                    title: 'privacy_policy_title'.tr,
-                                    htmlContent: policyController.policies?.privacyPolicyHtml ?? '',
-                                  ),
+                                  pathParameters: {'type': PolicyType.privacy},
                                 );
                               },
                             ),

@@ -561,7 +561,16 @@ class EditProfilePage extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: controller.isUpdating ? null : controller.updateUserProfile,
+          onTap: controller.isUpdating
+              ? null
+              : () async {
+                  final saved = await controller.updateUserProfile();
+                  // Navigation stays in the view: return to the profile
+                  // page once the save succeeds.
+                  if (saved && context.mounted) {
+                    context.pop();
+                  }
+                },
           borderRadius: BorderRadius.circular(16),
           child: Center(
             child: controller.isUpdating

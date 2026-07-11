@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
-import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
 import 'package:appwrite_user_app/app/modules/address/domain/repository/address_repo_interface.dart';
@@ -65,33 +64,37 @@ class AddressController extends GetxController implements GetxService {
     }
   }
 
-  /// Add new address
-  Future<void> addAddress(AddressModel address) async {
+  /// Add new address. Returns true on success — navigation (closing the
+  /// page) is the calling view's responsibility, never the controller's.
+  Future<bool> addAddress(AddressModel address) async {
     try {
       await addressRepoInterface.addAddress(address);
       await fetchAddresses(); // Refresh list
-      AppRouter.router.pop(); // Close add address page
       customToster('Address added successfully');
+      return true;
     } catch (e) {
       log('Error adding address: $e');
       customToster('Failed to add address', isSuccess: false);
+      return false;
     }
   }
 
-  /// Update existing address
-  Future<void> updateAddress(String id, AddressModel address) async {
+  /// Update existing address. Returns true on success — navigation (closing
+  /// the page/sheet) is the calling view's responsibility.
+  Future<bool> updateAddress(String id, AddressModel address) async {
     try {
       await addressRepoInterface.updateAddress(id, address);
       await fetchAddresses(); // Refresh list
-      Get.back(); // Close edit address page
       Get.snackbar(
         'Success',
         'Address updated successfully',
         snackPosition: SnackPosition.BOTTOM,
       );
+      return true;
     } catch (e) {
       log('Error updating address: $e');
       Get.snackbar('error'.tr, 'failed_to_update_address'.tr);
+      return false;
     }
   }
 

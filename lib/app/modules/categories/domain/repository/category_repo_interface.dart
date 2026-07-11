@@ -3,4 +3,7 @@ import 'package:image_picker/image_picker.dart';
 
 abstract class CategoryRepoInterface {
   Future<List<CategoryModel>> getCategories();
+
+  /// Fetch a single category by its document id (deep-link hydration)
+  Future<CategoryModel?> getCategoryById(String id);
 }

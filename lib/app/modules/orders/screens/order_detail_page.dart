@@ -11,7 +11,6 @@ import 'package:appwrite_user_app/app/models/order_model.dart';
 import 'package:appwrite_user_app/app/models/review_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
-import 'package:go_router/go_router.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/submit_review_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
@@ -88,8 +87,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           ? WebTopNav(
               selectedIndex: null,
               onDestinationSelected: (index) {
-                DashboardTabBus.open(index);
-                context.goNamed(RouteNames.dashboard);
+                DashboardTabs.open(context, index);
               },
               onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
             )

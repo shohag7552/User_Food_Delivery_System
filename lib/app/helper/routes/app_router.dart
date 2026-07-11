@@ -1,4 +1,8 @@
+import 'package:appwrite_user_app/app/controllers/category_controller.dart';
+import 'package:appwrite_user_app/app/controllers/coupon_controller.dart';
+import 'package:appwrite_user_app/app/controllers/policy_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
 import 'package:appwrite_user_app/app/models/category_model.dart';
 import 'package:appwrite_user_app/app/models/coupon_model.dart';
@@ -86,10 +90,14 @@ abstract class RouteNames {
 // Passed through go_router's `extra`; only available for in-app navigation
 // (a hard refresh / deep link has `extra == null`, handled per route below).
 
-class PolicyArgs {
-  final String title;
-  final String htmlContent;
-  const PolicyArgs({required this.title, required this.htmlContent});
+/// URL segment values for the `/policy/:type` route. Using stable slugs (not
+/// localized titles) keeps the links language-independent and shareable.
+abstract class PolicyType {
+  const PolicyType._();
+
+  static const aboutUs = 'about-us';
+  static const terms = 'terms';
+  static const privacy = 'privacy';
 }
 
 class OrderSuccessArgs {
@@ -201,8 +209,8 @@ abstract class AppRouter {
   static const String loyalty = '/loyalty-points';
   static const String language = '/language';
   static const String coupons = '/coupons';
-  static const String couponDetails = '/coupons/details';
-  static const String policy = '/policy';
+  static const String couponDetailsPath = '/coupons/:id';
+  static const String policyPath = '/policy/:type';
   static const String mapPicker = '/map-picker';
   static const String imageViewer = '/image-viewer';
   static const String payment = '/payment';
@@ -234,7 +242,12 @@ abstract class AppRouter {
       GoRoute(
         path: dashboard,
         name: RouteNames.dashboard,
-        builder: (context, state) => const DashboardScreen(),
+        // `?tab=cart` (etc.) selects a dashboard tab, making every tab a
+        // shareable URL; no parameter means "leave the current tab alone".
+        builder: (context, state) => DashboardScreen(
+          initialTab:
+              DashboardTabs.indexFromName(state.uri.queryParameters['tab']),
+        ),
       ),
       GoRoute(
         path: search,
@@ -254,12 +267,20 @@ abstract class AppRouter {
       GoRoute(
         path: categoryPath,
         name: RouteNames.category,
-        // Needs the full CategoryModel; no fetch-by-id yet, so a cold deep
-        // link without `extra` falls back to the dashboard.
-        redirect: (context, state) =>
-            state.extra is CategoryModel ? null : dashboard,
-        builder: (context, state) =>
-            CategoryProductsPage(category: state.extra as CategoryModel),
+        // `extra` carries the already-loaded model for instant render on
+        // in-app navigation; a cold deep link hydrates it from the URL id.
+        builder: (context, state) {
+          final category = state.extra;
+          if (category is CategoryModel) {
+            return CategoryProductsPage(category: category);
+          }
+          return _DeepLinkLoader<CategoryModel>(
+            fetch: () => Get.find<CategoryController>()
+                .getCategoryById(state.pathParameters['id']!),
+            notFoundKey: 'category_not_found',
+            builder: (category) => CategoryProductsPage(category: category),
+          );
+        },
       ),
       GoRoute(
         path: productDetailPath,
@@ -269,7 +290,12 @@ abstract class AppRouter {
           if (product is ProductModel) {
             return EcommerceProductDetailPage(product: product);
           }
-          return _ProductByIdLoader(productId: state.pathParameters['id']!);
+          return _DeepLinkLoader<ProductModel>(
+            fetch: () => Get.find<ProductController>()
+                .getProductById(state.pathParameters['id']!),
+            notFoundKey: 'product_not_found',
+            builder: (product) => EcommerceProductDetailPage(product: product),
+          );
         },
       ),
       GoRoute(
@@ -395,31 +421,60 @@ abstract class AppRouter {
         },
       ),
       GoRoute(
-        path: couponDetails,
+        path: couponDetailsPath,
         name: RouteNames.couponDetails,
-        redirect: (context, state) =>
-            state.extra is CouponDetailsArgs ? null : coupons,
         builder: (context, state) {
-          final args = state.extra as CouponDetailsArgs;
-          return CouponDetailsScreen(
-            coupon: args.coupon,
-            isSelectionMode: args.isSelectionMode,
-            onSelect: args.onSelect,
+          // Fast path: in-app navigation carries the coupon (plus selection
+          // callbacks, which cannot survive a URL). Cold deep links hydrate
+          // the coupon from the id and open in plain view mode.
+          final args = state.extra;
+          if (args is CouponDetailsArgs) {
+            return CouponDetailsScreen(
+              coupon: args.coupon,
+              isSelectionMode: args.isSelectionMode,
+              onSelect: args.onSelect,
+            );
+          }
+          return _DeepLinkLoader<CouponModel>(
+            fetch: () => Get.find<CouponController>()
+                .getCouponById(state.pathParameters['id']!),
+            notFoundKey: 'coupon_not_found',
+            builder: (coupon) => CouponDetailsScreen(coupon: coupon),
           );
         },
       ),
       GoRoute(
-        path: policy,
+        path: policyPath,
         name: RouteNames.policy,
-        redirect: (context, state) =>
-            state.extra is PolicyArgs ? null : dashboard,
-        builder: (context, state) {
-          final args = state.extra as PolicyArgs;
-          return PolicyContentScreen(
-            title: args.title,
-            htmlContent: args.htmlContent,
-          );
-        },
+        // Content is resolved from PolicyController by the :type slug, so the
+        // page needs nothing beyond its URL — fully deep-linkable.
+        builder: (context, state) => _DeepLinkLoader<(String, String)>(
+          fetch: () async {
+            final policyController = Get.find<PolicyController>();
+            if (policyController.policies == null) {
+              await policyController.fetchPolicies();
+            }
+            final policies = policyController.policies;
+            if (policies == null) return null;
+            return switch (state.pathParameters['type']) {
+              PolicyType.aboutUs => ('about_us'.tr, policies.aboutUsHtml),
+              PolicyType.terms => (
+                  'terms_and_conditions_title'.tr,
+                  policies.termsAndConditionsHtml,
+                ),
+              PolicyType.privacy => (
+                  'privacy_policy_title'.tr,
+                  policies.privacyPolicyHtml,
+                ),
+              _ => null,
+            };
+          },
+          notFoundKey: 'content_not_available',
+          builder: (content) => PolicyContentScreen(
+            title: content.$1,
+            htmlContent: content.$2,
+          ),
+        ),
       ),
       GoRoute(
         path: mapPicker,
@@ -459,29 +514,37 @@ abstract class AppRouter {
   );
 }
 
-/// Hydrates the product detail page from an id when it is opened via a cold
-/// deep link (no `extra` model available).
-class _ProductByIdLoader extends StatefulWidget {
-  final String productId;
+/// Hydrates a page's data from its URL when a route is opened via a cold deep
+/// link (hard refresh / copied URL — `extra` is `null`). Shows a spinner while
+/// [fetch] resolves, the page from [builder] on success, and a translated
+/// not-found message ([notFoundKey]) when the data cannot be loaded.
+class _DeepLinkLoader<T> extends StatefulWidget {
+  final Future<T?> Function() fetch;
+  final Widget Function(T data) builder;
+  final String notFoundKey;
 
-  const _ProductByIdLoader({required this.productId});
+  const _DeepLinkLoader({
+    required this.fetch,
+    required this.builder,
+    required this.notFoundKey,
+  });
 
   @override
-  State<_ProductByIdLoader> createState() => _ProductByIdLoaderState();
+  State<_DeepLinkLoader<T>> createState() => _DeepLinkLoaderState<T>();
 }
 
-class _ProductByIdLoaderState extends State<_ProductByIdLoader> {
-  late final Future<ProductModel?> _future;
+class _DeepLinkLoaderState<T> extends State<_DeepLinkLoader<T>> {
+  late final Future<T?> _future;
 
   @override
   void initState() {
     super.initState();
-    _future = Get.find<ProductController>().getProductById(widget.productId);
+    _future = widget.fetch();
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<ProductModel?>(
+    return FutureBuilder<T?>(
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
@@ -489,19 +552,19 @@ class _ProductByIdLoaderState extends State<_ProductByIdLoader> {
             body: Center(child: CircularProgressIndicator()),
           );
         }
-        final product = snapshot.data;
-        if (product == null) {
+        final data = snapshot.data;
+        if (data == null) {
           return Scaffold(
             appBar: AppBar(),
             body: Center(
               child: Text(
-                'product_not_found'.tr,
+                widget.notFoundKey.tr,
                 style: TextStyle(color: ColorResource.textSecondary),
               ),
             ),
           );
         }
-        return EcommerceProductDetailPage(product: product);
+        return widget.builder(data);
       },
     );
   }

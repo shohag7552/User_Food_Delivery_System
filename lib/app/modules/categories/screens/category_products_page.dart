@@ -293,8 +293,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
       appBar: WebTopNav(
         selectedIndex: null,
         onDestinationSelected: (index) {
-          DashboardTabBus.open(index);
-          context.goNamed(RouteNames.dashboard);
+          DashboardTabs.open(context, index);
         },
         onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
       ),
@@ -329,8 +328,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
             children: [
               InkWell(
                 onTap: () {
-                  DashboardTabBus.open(0);
-                  context.goNamed(RouteNames.dashboard);
+                  DashboardTabs.open(context, 0);
                 },
                 child: Text(
                   'home'.tr,

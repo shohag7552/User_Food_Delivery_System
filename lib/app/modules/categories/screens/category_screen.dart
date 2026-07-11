@@ -91,8 +91,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
       appBar: WebTopNav(
         selectedIndex: null,
         onDestinationSelected: (index) {
-          DashboardTabBus.open(index);
-          context.goNamed(RouteNames.dashboard);
+          DashboardTabs.open(context, index);
         },
         onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
       ),

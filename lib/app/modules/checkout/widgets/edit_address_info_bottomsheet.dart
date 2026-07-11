@@ -67,10 +67,13 @@ class _EditAddressInfoBottomSheetState
       postalCode: _postalController.text.trim(),
     );
 
-    // updateAddress refreshes the list and pops this sheet on success.
-    await Get.find<AddressController>().updateAddress(widget.address.id, updated);
+    final saved = await Get.find<AddressController>()
+        .updateAddress(widget.address.id, updated);
 
-    if (mounted) setState(() => _isSaving = false);
+    if (!mounted) return;
+    setState(() => _isSaving = false);
+    // Navigation stays in the view: close the sheet once the save succeeds.
+    if (saved) Navigator.of(context).pop();
   }
 
   @override

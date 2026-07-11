@@ -26,4 +26,17 @@ class CategoryRepository implements CategoryRepoInterface {
     }).toList();
   }
 
+  @override
+  Future<CategoryModel?> getCategoryById(String id) async {
+    try {
+      final response = await appwriteService.getDocument(
+        tableId: AppwriteConfig.categoriesCollection,
+        rowId: id,
+      );
+      return CategoryModel.fromJson(response.data);
+    } catch (e) {
+      log('====> Error fetching category by ID: $e');
+      return null;
+    }
+  }
 }

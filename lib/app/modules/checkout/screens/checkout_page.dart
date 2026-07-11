@@ -347,8 +347,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           ? WebTopNav(
               selectedIndex: null,
               onDestinationSelected: (index) {
-                DashboardTabBus.open(index);
-                context.goNamed(RouteNames.dashboard);
+                DashboardTabs.open(context, index);
               },
               onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
             )

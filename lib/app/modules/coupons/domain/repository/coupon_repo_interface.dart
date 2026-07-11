@@ -7,6 +7,9 @@ abstract class CouponRepoInterface {
   /// Get coupon by code for validation
   Future<CouponModel?> getCouponByCode(String code);
 
+  /// Fetch a single coupon by its document id (deep-link hydration)
+  Future<CouponModel?> getCouponById(String id);
+
   /// Add new coupon
   Future<bool> addCoupon(CouponModel coupon);
 

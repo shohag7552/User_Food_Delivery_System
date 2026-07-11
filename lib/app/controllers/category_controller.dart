@@ -44,4 +44,12 @@ class CategoryController extends GetxController implements GetxService {
     }
   }
 
+  /// Resolve a category by id — from the already-loaded list when possible,
+  /// otherwise fetched from the backend (cold deep links). Null if not found.
+  Future<CategoryModel?> getCategoryById(String id) async {
+    for (final category in _categories) {
+      if (category.id == id) return category;
+    }
+    return categoryRepoInterface.getCategoryById(id);
+  }
 }

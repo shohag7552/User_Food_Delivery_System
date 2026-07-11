@@ -3,7 +3,6 @@ import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/flash_sale_controller.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
-import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/modules/flash_sale/widgets/flash_sale_item_card.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -11,7 +10,6 @@ import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:go_router/go_router.dart';
 
 /// Full flash-sale page ("see all"): banner with live countdown + a
 /// responsive grid of all sale items. Deep-linkable — fetches the sale itself
@@ -57,8 +55,7 @@ class _FlashSaleScreenState extends State<FlashSaleScreen> {
       appBar: WebTopNav(
         selectedIndex: null,
         onDestinationSelected: (index) {
-          DashboardTabBus.open(index);
-          context.goNamed(RouteNames.dashboard);
+          DashboardTabs.open(context, index);
         },
         onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
       ),

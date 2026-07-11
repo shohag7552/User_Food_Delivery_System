@@ -24,7 +24,12 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  /// Tab requested by the URL's `?tab=` parameter; null when absent. Applied
+  /// on first build and whenever the route delivers a new value (deep links,
+  /// browser back/forward, in-app tab navigation from pushed pages).
+  final int? initialTab;
+
+  const DashboardScreen({super.key, this.initialTab});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -52,9 +57,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
 
-    _pageController = PageController(initialPage: 0);
-    // Let pushed routes (e.g. product detail) open a tab via the web top nav.
-    DashboardTabBus.register(_onNavItemTapped);
+    _selectedIndex = widget.initialTab ?? 0;
+    _pageController = PageController(initialPage: _selectedIndex);
     _listenToConnectivity();
 
     // Load favorites
@@ -94,8 +98,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   @override
+  void didUpdateWidget(DashboardScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The route re-delivers the widget when the `?tab=` URL parameter changes
+    // (browser back/forward, or tab navigation from a pushed page).
+    final tab = widget.initialTab;
+    if (tab != null && tab != _selectedIndex) {
+      _animateTo(tab);
+    }
+  }
+
+  @override
   void dispose() {
-    DashboardTabBus.clear(_onNavItemTapped);
     _connectivitySubscription?.cancel();
     _pageController.dispose();
     super.dispose();
@@ -107,7 +121,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
-  void _onNavItemTapped(int index) {
+  void _animateTo(int index) {
     // Subtle physical feedback for a more premium, tactile feel.
     HapticFeedback.selectionClick();
     _pageController.animateToPage(
@@ -115,6 +129,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
+  }
+
+  void _onNavItemTapped(int index) {
+    _animateTo(index);
+    _syncTabToUrl(index);
+  }
+
+  /// Web only: reflect the active tab in the browser URL (`/?tab=cart`) so
+  /// the address bar names the visible screen and the link is shareable.
+  /// No-op on mobile — tab switching stays purely local there.
+  void _syncTabToUrl(int index) {
+    if (!WebTopNav.isEnabled(context)) return;
+    DashboardTabs.open(context, index);
   }
 
   @override

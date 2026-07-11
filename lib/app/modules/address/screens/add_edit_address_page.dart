@@ -527,12 +527,13 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
         longitude: _selectedLocation?.longitude,
       );
 
-      if (widget.address == null) {
-        // Add new address
-        await controller.addAddress(address);
-      } else {
-        // Update existing address
-        await controller.updateAddress(widget.address!.id, address);
+      final saved = widget.address == null
+          ? await controller.addAddress(address)
+          : await controller.updateAddress(widget.address!.id, address);
+
+      // Navigation stays in the view: close the page once the save succeeds.
+      if (saved && mounted) {
+        context.pop();
       }
     } catch (e) {
       Get.snackbar(

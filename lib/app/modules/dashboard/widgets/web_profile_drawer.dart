@@ -188,57 +188,41 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                     Get.snackbar('help_and_support'.tr, 'feature_coming_soon'.tr);
                   },
                 ),
-                GetBuilder<PolicyController>(
-                  builder: (pc) => Column(
-                    children: [
-                      _item(
-                        icon: Icons.info_outline,
-                        title: 'about_us'.tr,
-                        subtitle: 'learn_more_about_us'.tr,
-                        onTap: () {
-                          _close();
-                          context.pushNamed(
-                            RouteNames.policy,
-                            extra: PolicyArgs(
-                              title: 'about_us'.tr,
-                              htmlContent: pc.policies?.aboutUsHtml ?? '',
-                            ),
-                          );
-                        },
-                      ),
-                      _item(
-                        icon: Icons.description_outlined,
-                        title: 'terms_and_conditions_title'.tr,
-                        subtitle: 'read_our_terms'.tr,
-                        onTap: () {
-                          _close();
-                          context.pushNamed(
-                            RouteNames.policy,
-                            extra: PolicyArgs(
-                              title: 'terms_and_conditions_title'.tr,
-                              htmlContent:
-                                  pc.policies?.termsAndConditionsHtml ?? '',
-                            ),
-                          );
-                        },
-                      ),
-                      _item(
-                        icon: Icons.privacy_tip_outlined,
-                        title: 'privacy_policy_title'.tr,
-                        subtitle: 'read_our_privacy_policy'.tr,
-                        onTap: () {
-                          _close();
-                          context.pushNamed(
-                            RouteNames.policy,
-                            extra: PolicyArgs(
-                              title: 'privacy_policy_title'.tr,
-                              htmlContent: pc.policies?.privacyPolicyHtml ?? '',
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+                _item(
+                  icon: Icons.info_outline,
+                  title: 'about_us'.tr,
+                  subtitle: 'learn_more_about_us'.tr,
+                  onTap: () {
+                    _close();
+                    context.pushNamed(
+                      RouteNames.policy,
+                      pathParameters: {'type': PolicyType.aboutUs},
+                    );
+                  },
+                ),
+                _item(
+                  icon: Icons.description_outlined,
+                  title: 'terms_and_conditions_title'.tr,
+                  subtitle: 'read_our_terms'.tr,
+                  onTap: () {
+                    _close();
+                    context.pushNamed(
+                      RouteNames.policy,
+                      pathParameters: {'type': PolicyType.terms},
+                    );
+                  },
+                ),
+                _item(
+                  icon: Icons.privacy_tip_outlined,
+                  title: 'privacy_policy_title'.tr,
+                  subtitle: 'read_our_privacy_policy'.tr,
+                  onTap: () {
+                    _close();
+                    context.pushNamed(
+                      RouteNames.policy,
+                      pathParameters: {'type': PolicyType.privacy},
+                    );
+                  },
                 ),
 
                 // ── Account Actions ───────────────────────────────────────
