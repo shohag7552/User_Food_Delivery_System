@@ -634,5 +634,7 @@
   "day_short": "d",
   "update_required": "Update Required",
   "update_required_message": "A new version of the app is available. Please update to the latest version to continue.",
-  "update_now": "Update Now"
+  "update_now": "Update Now",
+  "maintenance_mode_title": "Under Maintenance",
+  "maintenance_mode_message": "We're currently performing scheduled maintenance. Please check back again in a little while."
 }

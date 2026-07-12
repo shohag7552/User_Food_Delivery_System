@@ -77,16 +77,21 @@ class Global {
       await Get.find<AuthController>().isAlreadyLoggedIn();
       final settingsOk = await Get.find<SplashController>().fetchSettings();
       if (settingsOk) {
-        // Block behind the update screen when the store requires a newer
-        // version; otherwise open on the dashboard — guests browse products and
-        // are asked to sign in only when an action requires it.
+        // Block behind the startup gate when the store is down for maintenance
+        // (takes precedence) or requires a newer version; otherwise open on the
+        // dashboard — guests browse products and are asked to sign in only when
+        // an action requires it.
         final updateController = Get.find<UpdateController>();
         updateController.checkForForceUpdate(
           Get.find<SettingsController>().businessSetup,
         );
-        AppRouter.startLocation = updateController.forceUpdateRequired
-            ? AppRouter.forceUpdate
-            : AppRouter.dashboard;
+        if (updateController.maintenanceModeOn) {
+          AppRouter.startLocation = AppRouter.maintenance;
+        } else if (updateController.forceUpdateRequired) {
+          AppRouter.startLocation = AppRouter.forceUpdate;
+        } else {
+          AppRouter.startLocation = AppRouter.dashboard;
+        }
       }
     } catch (e) {
       debugPrint('Web bootstrap failed, falling back to splash: $e');

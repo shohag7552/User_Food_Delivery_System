@@ -87,11 +87,17 @@ class _SplashScreenState extends State<SplashScreen> {
 
     _hasNavigated = true;
 
-    // Block behind the update screen when the store requires a newer version.
+    // Block behind the startup gate when the store is down for maintenance or
+    // requires a newer version. Maintenance takes precedence — the store being
+    // offline outright wins over "please upgrade".
     final updateController = Get.find<UpdateController>();
     updateController.checkForForceUpdate(
       Get.find<SettingsController>().businessSetup,
     );
+    if (updateController.maintenanceModeOn) {
+      AppRouter.router.goNamed(RouteNames.maintenance);
+      return;
+    }
     if (updateController.forceUpdateRequired) {
       AppRouter.router.goNamed(RouteNames.forceUpdate);
       return;

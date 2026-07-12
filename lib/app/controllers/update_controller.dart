@@ -16,18 +16,24 @@ class UpdateController extends GetxController implements GetxService {
   bool _forceUpdateRequired = false;
   bool get forceUpdateRequired => _forceUpdateRequired;
 
+  bool _maintenanceModeOn = false;
+  bool get maintenanceModeOn => _maintenanceModeOn;
+
   String? _storeUrl;
   String? get storeUrl => _storeUrl;
 
-  /// Recomputes the force-update state from the freshly loaded [setup].
-  /// Safe to call with a null setup (e.g. settings failed to load) — it simply
-  /// clears the flag so the app is never blocked on missing config.
+  /// Recomputes the startup gate state (maintenance + force update) from the
+  /// freshly loaded [setup]. Safe to call with a null setup (e.g. settings
+  /// failed to load) — it simply clears the flags so the app is never blocked
+  /// on missing config.
   void checkForForceUpdate(BusinessSetupModel? setup) {
     if (setup == null) {
       _forceUpdateRequired = false;
+      _maintenanceModeOn = false;
       _storeUrl = null;
     } else {
       _forceUpdateRequired = setup.requiresForceUpdate(Constants.appVersion);
+      _maintenanceModeOn = setup.isMaintenanceModeOn;
       _storeUrl = _resolveStoreUrl(setup);
     }
     update();
