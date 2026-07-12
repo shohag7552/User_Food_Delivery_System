@@ -1,5 +1,7 @@
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
+import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/controllers/splash_controller.dart';
+import 'package:appwrite_user_app/app/controllers/update_controller.dart';
 import 'package:appwrite_user_app/app/helper/dependencies.dart';
 import 'package:appwrite_user_app/app/helper/notification_helper.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
@@ -75,9 +77,16 @@ class Global {
       await Get.find<AuthController>().isAlreadyLoggedIn();
       final settingsOk = await Get.find<SplashController>().fetchSettings();
       if (settingsOk) {
-        // Always open on the dashboard — guests browse products and are asked
-        // to sign in only when an action requires it.
-        AppRouter.startLocation = AppRouter.dashboard;
+        // Block behind the update screen when the store requires a newer
+        // version; otherwise open on the dashboard — guests browse products and
+        // are asked to sign in only when an action requires it.
+        final updateController = Get.find<UpdateController>();
+        updateController.checkForForceUpdate(
+          Get.find<SettingsController>().businessSetup,
+        );
+        AppRouter.startLocation = updateController.forceUpdateRequired
+            ? AppRouter.forceUpdate
+            : AppRouter.dashboard;
       }
     } catch (e) {
       debugPrint('Web bootstrap failed, falling back to splash: $e');

@@ -620,5 +620,8 @@
   "failed_to_load_flash_sale": "ফ্ল্যাশ সেল লোড করা যায়নি",
   "flash_sale_limit_reached": "এই পণ্যের ফ্ল্যাশ সেল সীমা শেষ",
   "flash_sale_ended": "এই ফ্ল্যাশ সেল শেষ হয়ে গেছে",
-  "day_short": "দিন"
+  "day_short": "দিন",
+  "update_required": "আপডেট প্রয়োজন",
+  "update_required_message": "অ্যাপের একটি নতুন সংস্করণ পাওয়া গেছে। চালিয়ে যেতে অনুগ্রহ করে সর্বশেষ সংস্করণে আপডেট করুন।",
+  "update_now": "এখনই আপডেট করুন"
 }

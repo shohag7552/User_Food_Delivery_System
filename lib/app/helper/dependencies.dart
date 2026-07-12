@@ -61,6 +61,7 @@ import 'package:appwrite_user_app/app/modules/policies/domain/repository/policy_
 import 'package:appwrite_user_app/app/modules/policies/domain/repository/policy_repository.dart';
 import 'package:appwrite_user_app/app/controllers/policy_controller.dart';
 import 'package:appwrite_user_app/app/controllers/splash_controller.dart';
+import 'package:appwrite_user_app/app/controllers/update_controller.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -198,6 +199,7 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   Get.lazyPut(() => LoyaltyController(loyaltyRepoInterface: Get.find()));
   Get.lazyPut(() => SplashController(splashRepositoryInterface: Get.find()));
   Get.lazyPut(() => PolicyController(policyRepoInterface: Get.find()));
+  Get.lazyPut(() => UpdateController());
 
   /// Retrieving localized data
   Map<String, Map<String, String>> languages = {};

@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
+import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/controllers/splash_controller.dart';
+import 'package:appwrite_user_app/app/controllers/update_controller.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/images.dart';
@@ -84,6 +86,16 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!settingsFetched || _hasNavigated) return;
 
     _hasNavigated = true;
+
+    // Block behind the update screen when the store requires a newer version.
+    final updateController = Get.find<UpdateController>();
+    updateController.checkForForceUpdate(
+      Get.find<SettingsController>().businessSetup,
+    );
+    if (updateController.forceUpdateRequired) {
+      AppRouter.router.goNamed(RouteNames.forceUpdate);
+      return;
+    }
 
     // Always open on the dashboard so guests can browse products. Signing in is
     // requested only when an action requires it (checkout, favorites, profile…).

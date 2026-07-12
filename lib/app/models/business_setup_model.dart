@@ -31,6 +31,12 @@ class BusinessSetupModel {
   final bool isFoodModuleEnabled;
   final bool isEcommerceModuleEnabled;
   final String defaultModule; // 'food' | 'ecommerce'
+  // Force app update — the store admin flips these to require customers to
+  // upgrade before continuing (see [requiresForceUpdate]).
+  final bool isForceUpdateActive;
+  final String? appMinVersion;
+  final String? androidStoreUrl;
+  final String? iosStoreUrl;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -61,6 +67,10 @@ class BusinessSetupModel {
     this.isFoodModuleEnabled = true,
     this.isEcommerceModuleEnabled = false,
     this.defaultModule = 'food',
+    this.isForceUpdateActive = false,
+    this.appMinVersion,
+    this.androidStoreUrl,
+    this.iosStoreUrl,
     this.createdAt,
     this.updatedAt,
   });
@@ -97,6 +107,10 @@ class BusinessSetupModel {
       isFoodModuleEnabled: json['is_food_module_enabled'] ?? true,
       isEcommerceModuleEnabled: json['is_ecommerce_module_enabled'] ?? false,
       defaultModule: json['default_module'] ?? 'food',
+      isForceUpdateActive: json['is_force_update_active'] ?? false,
+      appMinVersion: json['app_min_version'],
+      androidStoreUrl: json['android_store_url'],
+      iosStoreUrl: json['ios_store_url'],
       createdAt: json['\$createdAt'] != null
           ? DateTime.parse(json['\$createdAt'])
           : null,
@@ -133,6 +147,10 @@ class BusinessSetupModel {
       'is_food_module_enabled': isFoodModuleEnabled,
       'is_ecommerce_module_enabled': isEcommerceModuleEnabled,
       'default_module': defaultModule,
+      'is_force_update_active': isForceUpdateActive,
+      if (appMinVersion != null) 'app_min_version': appMinVersion,
+      if (androidStoreUrl != null) 'android_store_url': androidStoreUrl,
+      if (iosStoreUrl != null) 'ios_store_url': iosStoreUrl,
     };
   }
 
@@ -163,6 +181,10 @@ class BusinessSetupModel {
     bool? isFoodModuleEnabled,
     bool? isEcommerceModuleEnabled,
     String? defaultModule,
+    bool? isForceUpdateActive,
+    String? appMinVersion,
+    String? androidStoreUrl,
+    String? iosStoreUrl,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -196,6 +218,10 @@ class BusinessSetupModel {
       isEcommerceModuleEnabled:
           isEcommerceModuleEnabled ?? this.isEcommerceModuleEnabled,
       defaultModule: defaultModule ?? this.defaultModule,
+      isForceUpdateActive: isForceUpdateActive ?? this.isForceUpdateActive,
+      appMinVersion: appMinVersion ?? this.appMinVersion,
+      androidStoreUrl: androidStoreUrl ?? this.androidStoreUrl,
+      iosStoreUrl: iosStoreUrl ?? this.iosStoreUrl,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -235,5 +261,33 @@ class BusinessSetupModel {
       }
     }
     return null;
+  }
+
+  /// Whether the running build ([currentVersion], e.g. "1.0.0") must be
+  /// upgraded before the app can be used. True only when the admin has turned
+  /// on [isForceUpdateActive] AND a valid [appMinVersion] is set that is higher
+  /// than [currentVersion]. Fails open (returns false) on missing/unparseable
+  /// config so a bad setting can never lock every customer out.
+  bool requiresForceUpdate(String currentVersion) {
+    if (!isForceUpdateActive) return false;
+    final min = appMinVersion?.trim();
+    if (min == null || min.isEmpty) return false;
+    return _compareVersions(currentVersion, min) < 0;
+  }
+
+  /// Compares two dot-separated version strings numerically. Returns a negative
+  /// number when [a] < [b], zero when equal, positive when [a] > [b]. Missing
+  /// segments count as 0 ("1.2" == "1.2.0"); any non-numeric segment is treated
+  /// as 0 rather than throwing.
+  static int _compareVersions(String a, String b) {
+    final aParts = a.split('.');
+    final bParts = b.split('.');
+    final length = aParts.length > bParts.length ? aParts.length : bParts.length;
+    for (int i = 0; i < length; i++) {
+      final aVal = i < aParts.length ? (int.tryParse(aParts[i].trim()) ?? 0) : 0;
+      final bVal = i < bParts.length ? (int.tryParse(bParts[i].trim()) ?? 0) : 0;
+      if (aVal != bVal) return aVal - bVal;
+    }
+    return 0;
   }
 }

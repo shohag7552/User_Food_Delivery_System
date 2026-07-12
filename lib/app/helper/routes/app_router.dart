@@ -42,6 +42,7 @@ import 'package:appwrite_user_app/app/modules/policies/screens/policy_content_sc
 import 'package:appwrite_user_app/app/modules/profile/screens/edit_profile_page.dart';
 import 'package:appwrite_user_app/app/modules/search/screens/search_page.dart';
 import 'package:appwrite_user_app/app/modules/splash/screens/splash_screen.dart';
+import 'package:appwrite_user_app/app/modules/update/screens/force_update_screen.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -57,6 +58,7 @@ abstract class RouteNames {
   const RouteNames._();
 
   static const splash = 'splash';
+  static const forceUpdate = 'force-update';
   static const login = 'login';
   static const signup = 'signup';
   static const forgotPassword = 'forgot-password';
@@ -188,6 +190,7 @@ abstract class AppRouter {
 
   // Concrete paths (templates for the ones with parameters).
   static const String splash = '/splash';
+  static const String forceUpdate = '/force-update';
   static const String login = '/login';
   static const String signup = '/signup';
   static const String forgotPassword = '/forgot-password';
@@ -228,6 +231,11 @@ abstract class AppRouter {
         path: splash,
         name: RouteNames.splash,
         builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: forceUpdate,
+        name: RouteNames.forceUpdate,
+        builder: (context, state) => const ForceUpdateScreen(),
       ),
       GoRoute(
         path: login,

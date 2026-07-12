@@ -631,5 +631,8 @@
   "failed_to_load_flash_sale": "Failed to load flash sale",
   "flash_sale_limit_reached": "Flash sale limit reached for this item",
   "flash_sale_ended": "This flash sale has ended",
-  "day_short": "d"
+  "day_short": "d",
+  "update_required": "Update Required",
+  "update_required_message": "A new version of the app is available. Please update to the latest version to continue.",
+  "update_now": "Update Now"
 }
