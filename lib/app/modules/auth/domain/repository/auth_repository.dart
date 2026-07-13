@@ -4,6 +4,7 @@ import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthRepository implements AuthRepoInterface {
@@ -38,15 +39,22 @@ class AuthRepository implements AuthRepoInterface {
       );
 
       if (userId != null) {
-        String? fcmToken = await _getDeviceToken();
-        await appwriteService.updateTable(
-          tableId: AppwriteConfig.usersCollection,
-          rowId: userId,
-          data: {'fcm_token': fcmToken},
-        );
+        // Best-effort push-notification registration — the session already
+        // exists at this point, so a failure here (e.g. FCM/web issues) must
+        // never turn a successful login into a failure.
+        try {
+          String? fcmToken = await _getDeviceToken();
+          await appwriteService.updateTable(
+            tableId: AppwriteConfig.usersCollection,
+            rowId: userId,
+            data: {'fcm_token': fcmToken},
+          );
 
-        if (fcmToken != null) {
-          await appwriteService.setupMessaging(fcmToken: fcmToken);
+          if (fcmToken != null) {
+            await appwriteService.setupMessaging(fcmToken: fcmToken);
+          }
+        } catch (e) {
+          print('Post-login device registration skipped: $e');
         }
       }
 
@@ -162,22 +170,30 @@ class AuthRepository implements AuthRepoInterface {
   }
 
   Future<String?> _getDeviceToken() async {
-    // 1. Request Permission
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
-    NotificationSettings settings = await messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    // Web push needs a VAPID key + service worker this app doesn't configure,
+    // and getToken() throws without them. Skip FCM on web entirely.
+    if (kIsWeb) return null;
+    try {
+      // 1. Request Permission
+      FirebaseMessaging messaging = FirebaseMessaging.instance;
+      NotificationSettings settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      // 2. Get the Token
-      String? token = await messaging.getToken();
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        // 2. Get the Token
+        String? token = await messaging.getToken();
 
-      if (token != null) {
-        print('==> FCM Token: $token');
-        return token;
+        if (token != null) {
+          print('==> FCM Token: $token');
+          return token;
+        }
       }
+    } catch (e) {
+      // FCM is a non-critical add-on; never let it fail auth.
+      print('FCM token unavailable: $e');
     }
     return null;
   }
