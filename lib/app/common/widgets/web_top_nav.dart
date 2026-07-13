@@ -50,7 +50,7 @@ class WebTopNav extends StatelessWidget implements PreferredSizeWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Material(
-      color: ColorResource.cardBackground,
+      color: context.cardBackground,
       elevation: 0.5,
       shadowColor: isDark
           ? Colors.black.withValues(alpha: 0.4)
@@ -124,7 +124,7 @@ class WebTopNav extends StatelessWidget implements PreferredSizeWidget {
                           ),
                           child: VerticalDivider(
                             width: 1,
-                            color: ColorResource.textLight
+                            color: context.textLight
                                 .withValues(alpha: 0.25),
                           ),
                         ),
@@ -440,13 +440,13 @@ class _TopNavSearchFieldState extends State<_TopNavSearchField> {
           child: Container(
             height: 38,
             decoration: BoxDecoration(
-              color: ColorResource.scaffoldBackground,
+              color: context.scaffoldBackground,
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? Colors.white.withValues(alpha: 0.15)
                     : Colors.black.withValues(alpha: 0.08),
-                // color: ColorResource.textLight.withValues(alpha: 0.25),
+                // color: context.textLight.withValues(alpha: 0.25),
               ),
             ),
             child: TextField(
@@ -457,20 +457,20 @@ class _TopNavSearchFieldState extends State<_TopNavSearchField> {
               textInputAction: TextInputAction.search,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textPrimary,
+                color: context.textPrimary,
               ),
               decoration: InputDecoration(
                 hintText: 'search_products'.tr,
                 hintStyle: poppinsRegular.copyWith(
                   fontSize: Constants.fontSizeDefault,
-                  color: ColorResource.textLight,
+                  color: context.textLight,
                 ),
                 isDense: true,
                 border: InputBorder.none,
                 prefixIcon: Icon(
                   Icons.search_rounded,
                   size: 18,
-                  color: ColorResource.textSecondary,
+                  color: context.textSecondary,
                 ),
                 prefixIconConstraints: const BoxConstraints(
                   minWidth: 40,
@@ -483,7 +483,7 @@ class _TopNavSearchFieldState extends State<_TopNavSearchField> {
                         child: Icon(
                           Icons.close_rounded,
                           size: 16,
-                          color: ColorResource.textSecondary,
+                          color: context.textSecondary,
                         ),
                       )
                     : null,
@@ -517,7 +517,7 @@ class _TopNavSearchFieldState extends State<_TopNavSearchField> {
           groupId: _TopNavSearchField,
           onTapOutside: (_) => setState(_hideSuggestions),
           child: Material(
-            color: ColorResource.cardBackground,
+            color: context.cardBackground,
             elevation: 10,
             shadowColor: Colors.black.withValues(alpha: 0.25),
             borderRadius: BorderRadius.circular(Constants.radiusLarge),
@@ -548,7 +548,7 @@ class _TopNavSearchFieldState extends State<_TopNavSearchField> {
               'searching'.tr,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeSmall,
-                color: ColorResource.textSecondary,
+                color: context.textSecondary,
               ),
             ),
           ],
@@ -564,14 +564,14 @@ class _TopNavSearchFieldState extends State<_TopNavSearchField> {
             Icon(
               Icons.search_off_rounded,
               size: 18,
-              color: ColorResource.textLight,
+              color: context.textLight,
             ),
             const SizedBox(width: 12),
             Text(
               'no_results_found'.tr,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeSmall,
-                color: ColorResource.textSecondary,
+                color: context.textSecondary,
               ),
             ),
           ],
@@ -586,7 +586,7 @@ class _TopNavSearchFieldState extends State<_TopNavSearchField> {
         for (final product in _suggestions) _suggestionTile(product),
         Divider(
           height: 1,
-          color: ColorResource.textLight.withValues(alpha: 0.2),
+          color: context.textLight.withValues(alpha: 0.2),
         ),
         // Footer — run the full search for what's typed.
         InkWell(
@@ -647,7 +647,7 @@ class _TopNavSearchFieldState extends State<_TopNavSearchField> {
                 overflow: TextOverflow.ellipsis,
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeSmall,
-                  color: ColorResource.textPrimary,
+                  color: context.textPrimary,
                 ),
               ),
             ),

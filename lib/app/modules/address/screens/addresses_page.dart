@@ -101,7 +101,7 @@ class AddressesPage extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final addressTextColor =
-        theme.textTheme.bodyMedium?.color ?? ColorResource.textPrimary;
+        theme.textTheme.bodyMedium?.color ?? context.textPrimary;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -166,7 +166,7 @@ class AddressesPage extends StatelessWidget {
                             fontSize: Constants.fontSizeDefault,
                             color:
                                 theme.textTheme.titleMedium?.color ??
-                                ColorResource.textPrimary,
+                                context.textPrimary,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -330,7 +330,7 @@ class AddressesPage extends StatelessWidget {
             onPressed: () => Navigator.pop(context),
             child: Text(
               'cancel'.tr,
-              style: poppinsMedium.copyWith(color: ColorResource.textSecondary),
+              style: poppinsMedium.copyWith(color: context.textSecondary),
             ),
           ),
           ElevatedButton(

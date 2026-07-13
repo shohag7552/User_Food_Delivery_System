@@ -65,7 +65,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: ColorResource.textWhite),
@@ -145,7 +145,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     ];
 
     return Container(
-      color: ColorResource.cardBackground,
+      color: context.cardBackground,
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -181,7 +181,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           gradient: isSelected ? ColorResource.primaryGradient : null,
-          color: isSelected ? null : ColorResource.scaffoldBackground,
+          color: isSelected ? null : context.scaffoldBackground,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? Colors.transparent : ColorResource.shadowLight,
@@ -192,7 +192,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
           label,
           style: poppinsMedium.copyWith(
             fontSize: Constants.fontSizeSmall,
-            color: isSelected ? ColorResource.textWhite : ColorResource.textSecondary,
+            color: isSelected ? ColorResource.textWhite : context.textSecondary,
           ),
         ),
       ),
@@ -212,7 +212,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             'Loading your order history...',
             style: poppinsMedium.copyWith(
               fontSize: Constants.fontSizeDefault,
-              color: ColorResource.textSecondary,
+              color: context.textSecondary,
             ),
           ),
         ],
@@ -251,7 +251,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
               child: Icon(
                 Icons.history,
                 size: 60,
-                color: ColorResource.textLight,
+                color: context.textLight,
               ),
             ),
             const SizedBox(height: 24),
@@ -259,7 +259,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
               'No Order History',
               style: poppinsBold.copyWith(
                 fontSize: 24,
-                color: ColorResource.textPrimary,
+                color: context.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -268,7 +268,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
               textAlign: TextAlign.center,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textSecondary,
+                color: context.textSecondary,
                 height: 1.5,
               ),
             ),
@@ -307,7 +307,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color: ColorResource.cardBackground,
+          color: context.cardBackground,
           borderRadius: BorderRadius.circular(Constants.radiusLarge),
           boxShadow: ColorResource.customShadow,
         ),
@@ -334,7 +334,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                           order.orderNumber,
                           style: poppinsBold.copyWith(
                             fontSize: Constants.fontSizeDefault,
-                            color: ColorResource.textPrimary,
+                            color: context.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -343,14 +343,14 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                             Icon(
                               Icons.access_time,
                               size: 14,
-                              color: ColorResource.textSecondary,
+                              color: context.textSecondary,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               DateFormat('MMM dd, yyyy • hh:mm a').format(order.createdAt),
                               style: poppinsRegular.copyWith(
                                 fontSize: Constants.fontSizeSmall,
-                                color: ColorResource.textSecondary,
+                                color: context.textSecondary,
                               ),
                             ),
                           ],
@@ -378,7 +378,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                     '${order.items.length} ${order.items.length == 1 ? 'Item' : 'Items'}',
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeLarge,
-                      color: ColorResource.textPrimary,
+                      color: context.textPrimary,
                     ),
                   ),
                   const Spacer(),
@@ -389,7 +389,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                         'Total Paid',
                         style: poppinsRegular.copyWith(
                           fontSize: Constants.fontSizeSmall,
-                          color: ColorResource.textSecondary,
+                          color: context.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -428,7 +428,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                           'Delivery Address',
                           style: poppinsBold.copyWith(
                             fontSize: Constants.fontSizeDefault,
-                            color: ColorResource.textPrimary,
+                            color: context.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -436,7 +436,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                           order.address.street,
                           style: poppinsRegular.copyWith(
                             fontSize: Constants.fontSizeSmall,
-                            color: ColorResource.textSecondary,
+                            color: context.textSecondary,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,

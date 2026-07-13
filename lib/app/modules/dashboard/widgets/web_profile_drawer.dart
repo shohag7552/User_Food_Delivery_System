@@ -251,7 +251,7 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                       '${'version'.tr}: ${Constants.appVersion}',
                       style: poppinsRegular.copyWith(
                         fontSize: Constants.fontSizeSmall,
-                        color: isDark ? Colors.white54 : ColorResource.textLight,
+                        color: isDark ? Colors.white54 : context.textLight,
                       ),
                     ),
                   ),
@@ -359,7 +359,7 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
         style: poppinsBold.copyWith(
           fontSize: Constants.fontSizeExtraSmall,
           letterSpacing: 0.8,
-          color: isDark ? Colors.white54 : ColorResource.textSecondary,
+          color: isDark ? Colors.white54 : context.textSecondary,
         ),
       ),
     );
@@ -387,7 +387,7 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
         title,
         style: poppinsMedium.copyWith(
           fontSize: Constants.fontSizeDefault,
-          color: isDark ? Colors.white : ColorResource.textPrimary,
+          color: isDark ? Colors.white : context.textPrimary,
         ),
       ),
       subtitle: subtitle.isNotEmpty
@@ -395,14 +395,14 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
               subtitle,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeExtraSmall,
-                color: isDark ? Colors.white60 : ColorResource.textSecondary,
+                color: isDark ? Colors.white60 : context.textSecondary,
               ),
             )
           : null,
       trailing: Icon(
         Icons.chevron_right,
         size: 18,
-        color: isDark ? Colors.white30 : ColorResource.textLight,
+        color: isDark ? Colors.white30 : context.textLight,
       ),
       dense: true,
       onTap: onTap,
@@ -430,14 +430,14 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
         title,
         style: poppinsMedium.copyWith(
           fontSize: Constants.fontSizeDefault,
-          color: isDark ? Colors.white : ColorResource.textPrimary,
+          color: isDark ? Colors.white : context.textPrimary,
         ),
       ),
       subtitle: Text(
         subtitle,
         style: poppinsRegular.copyWith(
           fontSize: Constants.fontSizeExtraSmall,
-          color: isDark ? Colors.white60 : ColorResource.textSecondary,
+          color: isDark ? Colors.white60 : context.textSecondary,
         ),
       ),
       trailing: Switch.adaptive(value: value, onChanged: onChanged),
@@ -465,7 +465,7 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
             onPressed: () => Navigator.pop(ctx),
             child: Text(
               'cancel'.tr,
-              style: poppinsMedium.copyWith(color: ColorResource.textSecondary),
+              style: poppinsMedium.copyWith(color: context.textSecondary),
             ),
           ),
           ElevatedButton(
@@ -503,7 +503,7 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
             onPressed: () => Navigator.pop(ctx),
             child: Text(
               'cancel'.tr,
-              style: poppinsMedium.copyWith(color: ColorResource.textSecondary),
+              style: poppinsMedium.copyWith(color: context.textSecondary),
             ),
           ),
           ElevatedButton(

@@ -40,7 +40,7 @@ class _OrderFailedPageState extends State<OrderFailedPage> {
       canPop: true,
       child: Scaffold(
         key: _webScaffoldKey,
-        backgroundColor: ColorResource.scaffoldBackground,
+        backgroundColor: context.scaffoldBackground,
         endDrawer: useWebShell ? const WebProfileDrawer() : null,
         appBar: useWebShell
             ? WebTopNav(
@@ -71,7 +71,7 @@ class _OrderFailedPageState extends State<OrderFailedPage> {
                       'order_failed'.tr,
                       style: poppinsBold.copyWith(
                         fontSize: Constants.fontSizeExtraLarge + 4,
-                        color: ColorResource.textPrimary,
+                        color: context.textPrimary,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -81,7 +81,7 @@ class _OrderFailedPageState extends State<OrderFailedPage> {
                       'could_not_process_order'.tr,
                       style: poppinsRegular.copyWith(
                         fontSize: Constants.fontSizeDefault,
-                        color: ColorResource.textSecondary,
+                        color: context.textSecondary,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -140,7 +140,7 @@ class _OrderFailedPageState extends State<OrderFailedPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
         boxShadow: ColorResource.customShadow,
         border: Border.all(
@@ -160,7 +160,7 @@ class _OrderFailedPageState extends State<OrderFailedPage> {
             'error_details'.tr,
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeLarge,
-              color: ColorResource.textPrimary,
+              color: context.textPrimary,
             ),
           ),
           const SizedBox(height: 12),
@@ -168,7 +168,7 @@ class _OrderFailedPageState extends State<OrderFailedPage> {
             errorMessage,
             style: poppinsRegular.copyWith(
               fontSize: Constants.fontSizeDefault,
-              color: ColorResource.textSecondary,
+              color: context.textSecondary,
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -224,10 +224,10 @@ class _OrderFailedPageState extends State<OrderFailedPage> {
               ),
             ),
             style: OutlinedButton.styleFrom(
-              foregroundColor: ColorResource.textSecondary,
+              foregroundColor: context.textSecondary,
               padding: const EdgeInsets.symmetric(vertical: 16),
               side: BorderSide(
-                color: ColorResource.textSecondary,
+                color: context.textSecondary,
                 width: 2,
               ),
               shape: RoundedRectangleBorder(

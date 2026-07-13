@@ -398,7 +398,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: ColorResource.cardBackground,
+                  color: context.cardBackground,
                   borderRadius: _sheetTopRadius,
                 ),
                 child: Column(
@@ -459,7 +459,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
               // Reviews Section — only when the product has reviews.
               if (_hasReviews) ...[
                 Divider(
-                  color: ColorResource.textLight.withValues(alpha: 0.2),
+                  color: context.textLight.withValues(alpha: 0.2),
                   thickness: 1,
                 ),
                 const SizedBox(height: 18),
@@ -478,7 +478,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
   /// expand; they scroll.
   Widget _buildDialogBody(BuildContext context) {
     return Container(
-      color: ColorResource.cardBackground,
+      color: context.cardBackground,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -494,7 +494,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                     overflow: TextOverflow.ellipsis,
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeLarge,
-                      color: ColorResource.textPrimary,
+                      color: context.textPrimary,
                     ),
                   ),
                 ),
@@ -504,13 +504,13 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: ColorResource.scaffoldBackground,
+                      color: context.scaffoldBackground,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.close_rounded,
                       size: 20,
-                      color: ColorResource.textSecondary,
+                      color: context.textSecondary,
                     ),
                   ),
                 ),
@@ -543,7 +543,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
           opacity: _isExpanded ? 1 : 0,
           child: Container(
             decoration: BoxDecoration(
-              color: ColorResource.cardBackground,
+              color: context.cardBackground,
               borderRadius: _sheetTopRadius,
               boxShadow: [
                 BoxShadow(
@@ -562,7 +562,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: ColorResource.textLight.withValues(alpha: 0.4),
+                    color: context.textLight.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -576,7 +576,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                         overflow: TextOverflow.ellipsis,
                         style: poppinsBold.copyWith(
                           fontSize: Constants.fontSizeLarge,
-                          color: ColorResource.textPrimary,
+                          color: context.textPrimary,
                         ),
                       ),
                     ),
@@ -587,17 +587,17 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                         width: 30,
                         height: 30,
                         decoration: BoxDecoration(
-                          color: ColorResource.scaffoldBackground,
+                          color: context.scaffoldBackground,
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: ColorResource.textLight.withValues(
+                            color: context.textLight.withValues(
                               alpha: 0.15,
                             ),
                           ),
                         ),
                         child: Icon(
                           Icons.close,
-                          color: ColorResource.textPrimary,
+                          color: context.textPrimary,
                           size: 18,
                         ),
                       ),
@@ -744,10 +744,10 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: Constants.paddingSizeSmall, vertical: Constants.paddingSizeDefault),
       decoration: BoxDecoration(
-        color: ColorResource.scaffoldBackground,
+        color: context.scaffoldBackground,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: ColorResource.textLight.withValues(alpha: 0.12),
+          color: context.textLight.withValues(alpha: 0.12),
         ),
       ),
       child: Column(
@@ -760,7 +760,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeLarge,
                 height: 1.2,
-                color: ColorResource.textPrimary,
+                color: context.textPrimary,
               ),
             ),
             widget.product.isVeg ? Padding(
@@ -795,7 +795,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                 PriceHelper.formatPrice(widget.product.price),
                 style: poppinsRegular.copyWith(
                   fontSize: Constants.fontSizeDefault,
-                  color: ColorResource.textLight,
+                  color: context.textLight,
                   decoration: TextDecoration.lineThrough,
                 ),
               ),
@@ -830,7 +830,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
   Widget _buildDescription() {
     final style = poppinsRegular.copyWith(
       fontSize: Constants.fontSizeSmall,
-      color: ColorResource.textSecondary,
+      color: context.textSecondary,
     );
 
     return LayoutBuilder(
@@ -881,10 +881,10 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: ColorResource.textLight.withValues(alpha: 0.12),
+          color: context.textLight.withValues(alpha: 0.12),
         ),
       ),
       child: Column(
@@ -897,7 +897,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                 'customize_your_order'.tr,
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeLarge,
-                  color: ColorResource.textPrimary,
+                  color: context.textPrimary,
                 ),
               ),
             ),
@@ -922,7 +922,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
           'choose_your_preferred_options_to_build_the_perfect_order'.tr,
           style: poppinsRegular.copyWith(
             fontSize: Constants.fontSizeSmall,
-            color: ColorResource.textSecondary,
+            color: context.textSecondary,
           ),
         ),
         const SizedBox(height: 12),
@@ -948,7 +948,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
       decoration: BoxDecoration(
         color: isHighlighted
             ? ColorResource.primaryDark.withValues(alpha: 0.06)
-            : ColorResource.scaffoldBackground.withValues(alpha: 0.7),
+            : context.scaffoldBackground.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isHighlighted
@@ -976,7 +976,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                 variant.title,
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeDefault,
-                  color: ColorResource.textPrimary,
+                  color: context.textPrimary,
                 ),
               ),
             ),
@@ -1007,7 +1007,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
               : 'Select one or more options',
           style: poppinsRegular.copyWith(
             fontSize: Constants.fontSizeExtraSmall,
-            color: ColorResource.textSecondary,
+            color: context.textSecondary,
           ),
         ),
         const SizedBox(height: 10),
@@ -1041,12 +1041,12 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
         decoration: BoxDecoration(
           color: isSelected
               ? Colors.green.withValues(alpha: 0.05)
-              : ColorResource.scaffoldBackground,
+              : context.scaffoldBackground,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
                 ? Colors.green
-                : ColorResource.textLight.withValues(alpha: 0.2),
+                : context.textLight.withValues(alpha: 0.2),
             width: isSelected ? .7 : 0.5,
           ),
         ),
@@ -1061,7 +1061,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                 border: Border.all(
                   color: isSelected
                       ? ColorResource.primaryDark
-                      : ColorResource.textLight,
+                      : context.textLight,
                   width: 2,
                 ),
               ),
@@ -1088,7 +1088,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                     option.name,
                     style: poppinsMedium.copyWith(
                       fontSize: Constants.fontSizeDefault,
-                      color: ColorResource.textPrimary,
+                      color: context.textPrimary,
                     ),
                   ),
                   if (option.price <= 0)
@@ -1098,7 +1098,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                         'Included at no extra cost',
                         style: poppinsRegular.copyWith(
                           fontSize: Constants.fontSizeExtraSmall,
-                          color: ColorResource.textSecondary,
+                          color: context.textSecondary,
                         ),
                       ),
                     ),
@@ -1150,12 +1150,12 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
         decoration: BoxDecoration(
           color: isSelected
               ? Colors.green.withValues(alpha: 0.05)
-              : ColorResource.scaffoldBackground,
+              : context.scaffoldBackground,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
                 ? Colors.green
-                : ColorResource.textLight.withValues(alpha: 0.2),
+                : context.textLight.withValues(alpha: 0.2),
             width: isSelected ? .7 : 0.5,
           ),
         ),
@@ -1170,7 +1170,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                 border: Border.all(
                   color: isSelected
                       ? ColorResource.primaryDark
-                      : ColorResource.textLight,
+                      : context.textLight,
                   width: 2,
                 ),
                 color: isSelected ? ColorResource.primaryDark : Colors.transparent,
@@ -1193,7 +1193,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                     option.name,
                     style: poppinsMedium.copyWith(
                       fontSize: Constants.fontSizeDefault,
-                      color: ColorResource.textPrimary,
+                      color: context.textPrimary,
                     ),
                   ),
                   if (option.price <= 0)
@@ -1203,7 +1203,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                         'Included at no extra cost',
                         style: poppinsRegular.copyWith(
                           fontSize: Constants.fontSizeExtraSmall,
-                          color: ColorResource.textSecondary,
+                          color: context.textSecondary,
                         ),
                       ),
                     ),
@@ -1238,12 +1238,12 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
         decoration: BoxDecoration(
           color: enabled
               ? ColorResource.primaryDark
-              : ColorResource.textLight.withValues(alpha: 0.2),
+              : context.textLight.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(
           icon,
-          color: enabled ? ColorResource.textWhite : ColorResource.textLight,
+          color: enabled ? ColorResource.textWhite : context.textLight,
           size: 18,
         ),
       ),
@@ -1259,7 +1259,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         boxShadow: [
           BoxShadow(
             color: ColorResource.shadowMedium,
@@ -1275,7 +1275,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 3),
               decoration: BoxDecoration(
-                color: ColorResource.scaffoldBackground,
+                color: context.scaffoldBackground,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
@@ -1287,7 +1287,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                       overflow: TextOverflow.ellipsis,
                       style: poppinsBold.copyWith(
                         fontSize: Constants.fontSizeLarge,
-                        color: ColorResource.textPrimary,
+                        color: context.textPrimary,
                       ),
                     ),
                   ),
@@ -1484,7 +1484,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -1507,8 +1507,8 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeDefault,
                   color: outOfStock
-                      ? ColorResource.textLight
-                      : ColorResource.textPrimary,
+                      ? context.textLight
+                      : context.textPrimary,
                 ),
               ),
             ),
@@ -1533,10 +1533,10 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: ColorResource.textLight.withValues(alpha: 0.12),
+          color: context.textLight.withValues(alpha: 0.12),
         ),
       ),
       child: Column(
@@ -1546,7 +1546,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
           'Customer reviews',
           style: poppinsBold.copyWith(
             fontSize: Constants.fontSizeLarge,
-            color: ColorResource.textPrimary,
+            color: context.textPrimary,
           ),
         ),
         const SizedBox(height: 4),
@@ -1554,7 +1554,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
           'See what other customers are saying before you order.',
           style: poppinsRegular.copyWith(
             fontSize: Constants.fontSizeSmall,
-            color: ColorResource.textSecondary,
+            color: context.textSecondary,
           ),
         ),
         const SizedBox(height: 12),
@@ -1577,7 +1577,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
-        color: color ?? ColorResource.cardBackground,
+        color: color ?? context.cardBackground,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -1592,7 +1592,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
             label,
             style: poppinsMedium.copyWith(
               fontSize: Constants.fontSizeExtraSmall,
-              color: color != null ? Theme.of(context).cardColor : ColorResource.textPrimary,
+              color: color != null ? Theme.of(context).cardColor : context.textPrimary,
             ),
           ),
         ],

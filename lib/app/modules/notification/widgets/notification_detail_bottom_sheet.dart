@@ -31,7 +31,7 @@ class NotificationDetailBottomSheet extends StatelessWidget {
     return Container(
       constraints: BoxConstraints(maxHeight: screenHeight * 0.85),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
@@ -82,7 +82,7 @@ class NotificationDetailBottomSheet extends StatelessWidget {
               'Notification Detail',
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeLarge,
-                color: ColorResource.textPrimary,
+                color: context.textPrimary,
               ),
             ),
           ),
@@ -91,13 +91,13 @@ class NotificationDetailBottomSheet extends StatelessWidget {
             icon: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: ColorResource.scaffoldBackground,
+                color: context.scaffoldBackground,
                 borderRadius: BorderRadius.circular(Constants.radiusDefault),
               ),
               child: Icon(
                 Icons.close_rounded,
                 size: 20,
-                color: ColorResource.textSecondary,
+                color: context.textSecondary,
               ),
             ),
           ),
@@ -341,7 +341,7 @@ class NotificationDetailBottomSheet extends StatelessWidget {
             child: OutlinedButton(
               onPressed: () => Navigator.of(context).pop(),
               style: OutlinedButton.styleFrom(
-                side: BorderSide(color: ColorResource.textLight),
+                side: BorderSide(color: context.textLight),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(Constants.radiusLarge),
                 ),
@@ -351,7 +351,7 @@ class NotificationDetailBottomSheet extends StatelessWidget {
                 'Dismiss',
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeDefault,
-                  color: ColorResource.textSecondary,
+                  color: context.textSecondary,
                 ),
               ),
             ),
@@ -455,7 +455,7 @@ class _SectionLabel extends StatelessWidget {
       label,
       style: poppinsMedium.copyWith(
         fontSize: Constants.fontSizeSmall,
-        color: ColorResource.textSecondary,
+        color: context.textSecondary,
         letterSpacing: 0.5,
       ),
     );
@@ -497,7 +497,7 @@ class _MetaRow extends StatelessWidget {
               label,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeSmall,
-                color: ColorResource.textSecondary,
+                color: context.textSecondary,
               ),
             ),
           ),
@@ -505,7 +505,7 @@ class _MetaRow extends StatelessWidget {
             value,
             style: poppinsMedium.copyWith(
               fontSize: Constants.fontSizeSmall,
-              color: valueColor ?? ColorResource.textPrimary,
+              color: valueColor ?? context.textPrimary,
             ),
           ),
         ],
@@ -522,7 +522,7 @@ class _Divider extends StatelessWidget {
       thickness: 1,
       indent: 16,
       endIndent: 16,
-      color: ColorResource.textLight.withValues(alpha: 0.2),
+      color: context.textLight.withValues(alpha: 0.2),
     );
   }
 }

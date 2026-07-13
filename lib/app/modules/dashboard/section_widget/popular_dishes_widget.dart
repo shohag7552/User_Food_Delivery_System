@@ -49,7 +49,7 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
                     'popular_dishes'.tr,
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeExtraLarge,
-                      color: ColorResource.textPrimary,
+                      color: context.textPrimary,
                     ),
                   ),
                 ],
@@ -78,7 +78,7 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
                         'failed_to_load_popular_dishes'.tr,
                         style: poppinsMedium.copyWith(
                           fontSize: Constants.fontSizeDefault,
-                          color: ColorResource.textSecondary,
+                          color: context.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -106,7 +106,7 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
                     children: [
                       Icon(
                         Icons.restaurant_menu,
-                        color: ColorResource.textLight,
+                        color: context.textLight,
                         size: 48,
                       ),
                       const SizedBox(height: 12),
@@ -114,7 +114,7 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
                         'no_popular_dishes_available'.tr,
                         style: poppinsMedium.copyWith(
                           fontSize: Constants.fontSizeDefault,
-                          color: ColorResource.textSecondary,
+                          color: context.textSecondary,
                         ),
                       ),
                     ],

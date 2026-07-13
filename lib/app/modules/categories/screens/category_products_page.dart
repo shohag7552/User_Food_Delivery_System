@@ -159,7 +159,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
 
   Widget _buildMobileScaffold(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
@@ -288,7 +288,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
 
     return Scaffold(
       key: _webScaffoldKey,
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       endDrawer: const WebProfileDrawer(),
       appBar: WebTopNav(
         selectedIndex: null,
@@ -343,7 +343,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                 child: Icon(
                   Icons.chevron_right,
                   size: 16,
-                  color: ColorResource.textLight,
+                  color: context.textLight,
                 ),
               ),
               Flexible(
@@ -353,7 +353,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                   overflow: TextOverflow.ellipsis,
                   style: poppinsMedium.copyWith(
                     fontSize: Constants.fontSizeSmall,
-                    color: ColorResource.textSecondary,
+                    color: context.textSecondary,
                   ),
                 ),
               ),
@@ -498,7 +498,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
             'Loading products...',
             style: poppinsMedium.copyWith(
               fontSize: Constants.fontSizeDefault,
-              color: ColorResource.textSecondary,
+              color: context.textSecondary,
             ),
           ),
         ],
@@ -523,7 +523,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
               'Oops!',
               style: poppinsBold.copyWith(
                 fontSize: 24,
-                color: ColorResource.textPrimary,
+                color: context.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -532,7 +532,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
               textAlign: TextAlign.center,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textSecondary,
+                color: context.textSecondary,
               ),
             ),
             const SizedBox(height: 32),
@@ -572,7 +572,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
               child: Icon(
                 Icons.food_bank_outlined,
                 size: 60,
-                color: ColorResource.textLight,
+                color: context.textLight,
               ),
             ),
             const SizedBox(height: 24),
@@ -580,7 +580,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
               'No Products Found',
               style: poppinsBold.copyWith(
                 fontSize: 24,
-                color: ColorResource.textPrimary,
+                color: context.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -589,7 +589,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
               textAlign: TextAlign.center,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textSecondary,
+                color: context.textSecondary,
                 height: 1.5,
               ),
             ),
@@ -636,7 +636,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
       isBackgroundTransparent: true,
       child: Container(
         decoration: BoxDecoration(
-          color: ColorResource.cardBackground,
+          color: context.cardBackground,
           borderRadius: BorderRadius.circular(Constants.radiusLarge),
           boxShadow: ColorResource.customShadow,
         ),
@@ -704,7 +704,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                     product.nameMap.trLanguage,
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeDefault,
-                      color: ColorResource.textPrimary,
+                      color: context.textPrimary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -739,7 +739,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                                 '\$${product.price.toStringAsFixed(2)}',
                                 style: poppinsRegular.copyWith(
                                   fontSize: Constants.fontSizeSmall,
-                                  color: ColorResource.textLight,
+                                  color: context.textLight,
                                   decoration: TextDecoration.lineThrough,
                                 ),
                               ),

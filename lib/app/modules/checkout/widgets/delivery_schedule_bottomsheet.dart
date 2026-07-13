@@ -96,7 +96,7 @@ class _DeliveryScheduleBottomSheetState
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
-            color: ColorResource.cardBackground,
+            color: context.cardBackground,
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(Constants.radiusExtraLarge),
             ),
@@ -158,7 +158,7 @@ class _DeliveryScheduleBottomSheetState
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 12, 16),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(Constants.radiusExtraLarge),
         ),
@@ -178,7 +178,7 @@ class _DeliveryScheduleBottomSheetState
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: ColorResource.textLight.withValues(alpha: 0.4),
+                color: context.textLight.withValues(alpha: 0.4),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -208,7 +208,7 @@ class _DeliveryScheduleBottomSheetState
                       'delivery_schedule'.tr,
                       style: poppinsBold.copyWith(
                         fontSize: Constants.fontSizeExtraLarge,
-                        color: ColorResource.textPrimary,
+                        color: context.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -216,7 +216,7 @@ class _DeliveryScheduleBottomSheetState
                       'choose_when_to_deliver'.tr,
                       style: poppinsRegular.copyWith(
                         fontSize: Constants.fontSizeSmall,
-                        color: ColorResource.textSecondary,
+                        color: context.textSecondary,
                       ),
                     ),
                   ],
@@ -229,12 +229,12 @@ class _DeliveryScheduleBottomSheetState
                   width: 34,
                   height: 34,
                   decoration: BoxDecoration(
-                    color: ColorResource.scaffoldBackground,
+                    color: context.scaffoldBackground,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.close_rounded,
-                    color: ColorResource.textSecondary,
+                    color: context.textSecondary,
                     size: 20,
                   ),
                 ),
@@ -274,7 +274,7 @@ class _DeliveryScheduleBottomSheetState
               ? Colors.grey[100]
               : (isSelected
                   ? ColorResource.primaryDark.withValues(alpha: 0.1)
-                  : ColorResource.scaffoldBackground),
+                  : context.scaffoldBackground),
           borderRadius: BorderRadius.circular(Constants.radiusLarge),
           border: Border.all(
             color: !isAvailable
@@ -316,7 +316,7 @@ class _DeliveryScheduleBottomSheetState
                           ? Colors.grey
                           : (isSelected
                               ? ColorResource.primaryDark
-                              : ColorResource.textPrimary),
+                              : context.textPrimary),
                     ),
                   ),
                   const SizedBox(height: 3),
@@ -326,7 +326,7 @@ class _DeliveryScheduleBottomSheetState
                       fontSize: Constants.fontSizeSmall,
                       color: !isAvailable
                           ? Colors.grey
-                          : ColorResource.textSecondary,
+                          : context.textSecondary,
                     ),
                   ),
                 ],
@@ -352,7 +352,7 @@ class _DeliveryScheduleBottomSheetState
           'select_day'.tr,
           style: poppinsBold.copyWith(
             fontSize: Constants.fontSizeDefault,
-            color: ColorResource.textPrimary,
+            color: context.textPrimary,
           ),
         ),
         const SizedBox(height: 12),
@@ -363,7 +363,7 @@ class _DeliveryScheduleBottomSheetState
             'select_time_slot'.tr,
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeDefault,
-              color: ColorResource.textPrimary,
+              color: context.textPrimary,
             ),
           ),
           const SizedBox(height: 12),
@@ -409,7 +409,7 @@ class _DeliveryScheduleBottomSheetState
         decoration: BoxDecoration(
           color: isSelected
               ? ColorResource.primaryDark.withValues(alpha: 0.1)
-              : ColorResource.scaffoldBackground,
+              : context.scaffoldBackground,
           borderRadius: BorderRadius.circular(Constants.radiusLarge),
           border: Border.all(
             color: isSelected ? ColorResource.primaryDark : Colors.transparent,
@@ -460,7 +460,7 @@ class _DeliveryScheduleBottomSheetState
                       fontSize: Constants.fontSizeLarge,
                       color: isSelected
                           ? ColorResource.primaryDark
-                          : ColorResource.textPrimary,
+                          : context.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -468,7 +468,7 @@ class _DeliveryScheduleBottomSheetState
                     _getAvailabilityText(date, businessSetup),
                     style: poppinsRegular.copyWith(
                       fontSize: Constants.fontSizeSmall,
-                      color: ColorResource.textLight,
+                      color: context.textLight,
                     ),
                   ),
                 ],
@@ -550,12 +550,12 @@ class _DeliveryScheduleBottomSheetState
             decoration: BoxDecoration(
               color: isSelected
                   ? ColorResource.primaryDark
-                  : ColorResource.scaffoldBackground,
+                  : context.scaffoldBackground,
               borderRadius: BorderRadius.circular(Constants.radiusDefault),
               border: Border.all(
                 color: isSelected
                     ? ColorResource.primaryDark
-                    : ColorResource.textLight.withValues(alpha: 0.3),
+                    : context.textLight.withValues(alpha: 0.3),
               ),
             ),
             child: Row(
@@ -570,7 +570,7 @@ class _DeliveryScheduleBottomSheetState
                   slot,
                   style: poppinsMedium.copyWith(
                     fontSize: Constants.fontSizeSmall,
-                    color: isSelected ? Colors.white : ColorResource.textPrimary,
+                    color: isSelected ? Colors.white : context.textPrimary,
                   ),
                 ),
               ],
@@ -585,7 +585,7 @@ class _DeliveryScheduleBottomSheetState
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         boxShadow: [
           BoxShadow(
             color: ColorResource.shadowLight,

@@ -110,7 +110,7 @@ class _AuthDialogState extends State<AuthDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: ColorResource.cardBackground,
+      backgroundColor: context.cardBackground,
       insetPadding: const EdgeInsets.all(24),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
@@ -174,7 +174,7 @@ class _AuthDialogState extends State<AuthDialog> {
                       _obscurePassword
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
-                      color: ColorResource.textLight,
+                      color: context.textLight,
                       size: 20,
                     ),
                     onPressed: () =>
@@ -237,7 +237,7 @@ class _AuthDialogState extends State<AuthDialog> {
                 _isSignup ? 'create_account'.tr : 'welcome_back'.tr,
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeOverLarge,
-                  color: ColorResource.textPrimary,
+                  color: context.textPrimary,
                 ),
               ),
               const SizedBox(height: 4),
@@ -247,7 +247,7 @@ class _AuthDialogState extends State<AuthDialog> {
                     : 'login_to_your_account'.tr,
                 style: poppinsRegular.copyWith(
                   fontSize: Constants.fontSizeSmall,
-                  color: ColorResource.textSecondary,
+                  color: context.textSecondary,
                 ),
               ),
             ],
@@ -260,7 +260,7 @@ class _AuthDialogState extends State<AuthDialog> {
             padding: const EdgeInsets.all(4),
             child: Icon(
               Icons.close_rounded,
-              color: ColorResource.textSecondary,
+              color: context.textSecondary,
               size: 22,
             ),
           ),
@@ -281,7 +281,7 @@ class _AuthDialogState extends State<AuthDialog> {
                 : 'dont_have_an_account'.tr,
             style: poppinsRegular.copyWith(
               fontSize: Constants.fontSizeDefault,
-              color: ColorResource.textSecondary,
+              color: context.textSecondary,
             ),
           ),
           TextButton(
@@ -323,9 +323,9 @@ class _AuthDialogState extends State<AuthDialog> {
         labelText: label,
         prefixIcon: Icon(icon, color: ColorResource.primaryDark, size: 20),
         suffixIcon: suffix,
-        labelStyle: poppinsRegular.copyWith(color: ColorResource.textLight),
+        labelStyle: poppinsRegular.copyWith(color: context.textLight),
         filled: true,
-        fillColor: ColorResource.scaffoldBackground,
+        fillColor: context.scaffoldBackground,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
@@ -335,7 +335,7 @@ class _AuthDialogState extends State<AuthDialog> {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(Constants.radiusLarge),
           borderSide: BorderSide(
-            color: ColorResource.textLight.withValues(alpha: 0.25),
+            color: context.textLight.withValues(alpha: 0.25),
           ),
         ),
         focusedBorder: OutlineInputBorder(

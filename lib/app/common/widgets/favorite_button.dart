@@ -72,7 +72,7 @@ class FavoriteButton extends StatelessWidget {
                       size: size,
                       color: isFavorite
                           ? (activeColor ?? ColorResource.error)
-                          : (inactiveColor ?? ColorResource.textLight),
+                          : (inactiveColor ?? context.textLight),
                     ),
                   ),
           ),

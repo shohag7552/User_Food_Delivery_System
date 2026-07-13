@@ -114,7 +114,7 @@ class _QuickActionButtonState extends State<QuickActionButton>
                 widget.label,
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeSmall,
-                  color: ColorResource.textSecondary,
+                  color: context.textSecondary,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 2,

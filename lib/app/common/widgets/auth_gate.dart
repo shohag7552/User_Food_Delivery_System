@@ -69,7 +69,7 @@ class LoginRequiredView extends StatelessWidget {
               textAlign: TextAlign.center,
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeExtraLarge,
-                color: ColorResource.textPrimary,
+                color: context.textPrimary,
               ),
             ),
             const SizedBox(height: 10),
@@ -78,7 +78,7 @@ class LoginRequiredView extends StatelessWidget {
               textAlign: TextAlign.center,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textSecondary,
+                color: context.textSecondary,
               ),
             ),
             const SizedBox(height: 28),

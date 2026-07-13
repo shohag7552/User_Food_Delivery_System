@@ -82,7 +82,7 @@ class _EditAddressInfoBottomSheetState
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         decoration: BoxDecoration(
-          color: ColorResource.cardBackground,
+          color: context.cardBackground,
           borderRadius: const BorderRadius.vertical(
             top: Radius.circular(Constants.radiusExtraLarge),
           ),
@@ -103,7 +103,7 @@ class _EditAddressInfoBottomSheetState
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: ColorResource.textLight.withValues(alpha: 0.4),
+                        color: context.textLight.withValues(alpha: 0.4),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -113,7 +113,7 @@ class _EditAddressInfoBottomSheetState
                     'edit_delivery_details'.tr,
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeLarge,
-                      color: ColorResource.textPrimary,
+                      color: context.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 16),

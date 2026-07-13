@@ -30,10 +30,10 @@ class ReviewCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusDefault),
         border: Border.all(
-          color: ColorResource.textLight.withOpacity(0.1),
+          color: context.textLight.withOpacity(0.1),
         ),
       ),
       child: Column(
@@ -68,7 +68,7 @@ class ReviewCard extends StatelessWidget {
                             maxLines: 1, overflow: TextOverflow.ellipsis,
                             style: poppinsMedium.copyWith(
                               fontSize: Constants.fontSizeDefault,
-                              color: ColorResource.textPrimary,
+                              color: context.textPrimary,
                             ),
                           ),
                         ),
@@ -97,7 +97,7 @@ class ReviewCard extends StatelessWidget {
                       timeago.format(review.createdAt),
                       style: poppinsRegular.copyWith(
                         fontSize: Constants.fontSizeSmall,
-                        color: ColorResource.textLight,
+                        color: context.textLight,
                       ),
                     ),
                   ],
@@ -119,7 +119,7 @@ class ReviewCard extends StatelessWidget {
               review.title!,
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textPrimary,
+                color: context.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
@@ -130,7 +130,7 @@ class ReviewCard extends StatelessWidget {
             review.comment,
             style: poppinsRegular.copyWith(
               fontSize: Constants.fontSizeDefault,
-              color: ColorResource.textSecondary,
+              color: context.textSecondary,
               height: 1.5,
             ),
           ),
@@ -153,7 +153,7 @@ class ReviewCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: isMarkedHelpful
                             ? ColorResource.primaryDark.withValues(alpha: 0.1)
-                            : ColorResource.scaffoldBackground,
+                            : context.scaffoldBackground,
                         borderRadius: BorderRadius.circular(
                           Constants.radiusSmall,
                         ),
@@ -173,7 +173,7 @@ class ReviewCard extends StatelessWidget {
                             size: 14,
                             color: isMarkedHelpful
                                 ? ColorResource.primaryDark
-                                : ColorResource.textSecondary,
+                                : context.textSecondary,
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -182,7 +182,7 @@ class ReviewCard extends StatelessWidget {
                               fontSize: Constants.fontSizeSmall,
                               color: isMarkedHelpful
                                   ? ColorResource.primaryDark
-                                  : ColorResource.textSecondary,
+                                  : context.textSecondary,
                             ),
                           ),
                           if (review.helpfulCount > 0) ...[

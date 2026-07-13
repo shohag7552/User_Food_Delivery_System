@@ -75,7 +75,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
                     textAlign: TextAlign.center,
                     style: poppinsRegular.copyWith(
                       fontSize: 14,
-                      color: ColorResource.textSecondary,
+                      color: context.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 32),

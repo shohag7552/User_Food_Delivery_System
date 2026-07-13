@@ -227,7 +227,7 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
       height: 160,
       margin: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
         border: Border.all(
           color: ColorResource.error.withValues(alpha: 0.3),
@@ -246,7 +246,7 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
                 'Failed to load banners',
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeDefault,
-                  color: ColorResource.textPrimary,
+                  color: context.textPrimary,
                 ),
               ),
               if (widget.onRetry != null) ...[

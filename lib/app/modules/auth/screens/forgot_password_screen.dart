@@ -203,7 +203,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
                         // Theme-aware (dark card in dark mode).
-                        color: ColorResource.cardBackground
+                        color: context.cardBackground
                             .withValues(alpha: 0.97),
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
@@ -230,7 +230,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                                   readOnly: _otpRequested,
                                   style: poppinsRegular.copyWith(
                                     fontSize: 16,
-                                    color: ColorResource.textPrimary,
+                                    color: context.textPrimary,
                                   ),
                                   decoration: _inputDecoration(
                                     hintText: 'Enter your email',
@@ -289,7 +289,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                                     maxLength: 6,
                                     style: poppinsRegular.copyWith(
                                     fontSize: 16,
-                                    color: ColorResource.textPrimary,
+                                    color: context.textPrimary,
                                   ),
                                     decoration: _inputDecoration(
                                       hintText: 'Enter 6-digit OTP',
@@ -314,7 +314,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                                     obscureText: _obscurePassword,
                                     style: poppinsRegular.copyWith(
                                     fontSize: 16,
-                                    color: ColorResource.textPrimary,
+                                    color: context.textPrimary,
                                   ),
                                     decoration: _passwordDecoration(
                                       hintText: 'Enter your new password',
@@ -343,7 +343,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                                     obscureText: _obscureConfirmPassword,
                                     style: poppinsRegular.copyWith(
                                     fontSize: 16,
-                                    color: ColorResource.textPrimary,
+                                    color: context.textPrimary,
                                   ),
                                     decoration: _passwordDecoration(
                                       hintText: 'Re-enter your new password',
@@ -417,12 +417,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
       counterText: counterText,
       hintStyle: poppinsRegular.copyWith(
         fontSize: 14,
-        color: ColorResource.textLight,
+        color: context.textLight,
       ),
       prefixIcon: Icon(icon, color: ColorResource.primaryDark),
       filled: true,
       // Dark surface in dark mode, light grey in light.
-      fillColor: ColorResource.scaffoldBackground,
+      fillColor: context.scaffoldBackground,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,

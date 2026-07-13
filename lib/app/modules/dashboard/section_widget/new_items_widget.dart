@@ -53,7 +53,7 @@ class NewItemsWidget extends StatelessWidget {
                     'new_items'.tr,
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeExtraLarge,
-                      color: ColorResource.textPrimary,
+                      color: context.textPrimary,
                     ),
                   ),
                 ],
@@ -82,7 +82,7 @@ class NewItemsWidget extends StatelessWidget {
                         'failed_to_load_new_items'.tr,
                         style: poppinsMedium.copyWith(
                           fontSize: Constants.fontSizeDefault,
-                          color: ColorResource.textSecondary,
+                          color: context.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -110,7 +110,7 @@ class NewItemsWidget extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.restaurant_menu,
-                        color: ColorResource.textLight,
+                        color: context.textLight,
                         size: 48,
                       ),
                       const SizedBox(height: 12),
@@ -118,7 +118,7 @@ class NewItemsWidget extends StatelessWidget {
                         'no_new_items_available'.tr,
                         style: poppinsMedium.copyWith(
                           fontSize: Constants.fontSizeDefault,
-                          color: ColorResource.textSecondary,
+                          color: context.textSecondary,
                         ),
                       ),
                     ],

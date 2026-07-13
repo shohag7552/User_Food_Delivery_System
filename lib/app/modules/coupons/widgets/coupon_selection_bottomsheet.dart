@@ -74,7 +74,7 @@ class _CouponSelectionBottomSheetState
       builder: (BuildContext context, ScrollController scrollController) {
         return Container(
           decoration: BoxDecoration(
-            color: ColorResource.cardBackground,
+            color: context.cardBackground,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(Constants.radiusExtraLarge),
               topRight: Radius.circular(Constants.radiusExtraLarge),
@@ -87,7 +87,7 @@ class _CouponSelectionBottomSheetState
               Container(
                 padding: const EdgeInsets.fromLTRB(20, 12, 12, 16),
                 decoration: BoxDecoration(
-                  color: ColorResource.cardBackground,
+                  color: context.cardBackground,
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(Constants.radiusExtraLarge),
                     topRight: Radius.circular(Constants.radiusExtraLarge),
@@ -108,7 +108,7 @@ class _CouponSelectionBottomSheetState
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: ColorResource.textLight.withValues(alpha: 0.4),
+                          color: context.textLight.withValues(alpha: 0.4),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -140,7 +140,7 @@ class _CouponSelectionBottomSheetState
                                 'select_coupon'.tr,
                                 style: poppinsBold.copyWith(
                                   fontSize: Constants.fontSizeExtraLarge,
-                                  color: ColorResource.textPrimary,
+                                  color: context.textPrimary,
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -148,7 +148,7 @@ class _CouponSelectionBottomSheetState
                                 'choose_a_coupon_to_save'.tr,
                                 style: poppinsRegular.copyWith(
                                   fontSize: Constants.fontSizeSmall,
-                                  color: ColorResource.textSecondary,
+                                  color: context.textSecondary,
                                 ),
                               ),
                             ],
@@ -161,12 +161,12 @@ class _CouponSelectionBottomSheetState
                             width: 34,
                             height: 34,
                             decoration: BoxDecoration(
-                              color: ColorResource.scaffoldBackground,
+                              color: context.scaffoldBackground,
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               Icons.close_rounded,
-                              color: ColorResource.textSecondary,
+                              color: context.textSecondary,
                               size: 20,
                             ),
                           ),
@@ -194,14 +194,14 @@ class _CouponSelectionBottomSheetState
                             Icon(
                               Icons.local_offer_rounded,
                               size: 80,
-                              color: ColorResource.textLight,
+                              color: context.textLight,
                             ),
                             const SizedBox(height: 16),
                             Text(
                               'no_coupons_available'.tr,
                               style: poppinsBold.copyWith(
                                 fontSize: Constants.fontSizeLarge,
-                                color: ColorResource.textSecondary,
+                                color: context.textSecondary,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -209,7 +209,7 @@ class _CouponSelectionBottomSheetState
                               'check_back_later_deals'.tr,
                               style: poppinsRegular.copyWith(
                                 fontSize: Constants.fontSizeDefault,
-                                color: ColorResource.textLight,
+                                color: context.textLight,
                               ),
                             ),
                           ],
@@ -270,12 +270,12 @@ class _CouponCard extends StatelessWidget {
         ? ColorResource.primaryDark
         : theme.disabledColor;
     final titleColor = isValid
-        ? theme.textTheme.titleMedium?.color ?? ColorResource.textPrimary
-        : (theme.textTheme.titleMedium?.color ?? ColorResource.textPrimary)
+        ? theme.textTheme.titleMedium?.color ?? context.textPrimary
+        : (theme.textTheme.titleMedium?.color ?? context.textPrimary)
               .withValues(alpha: 0.72);
     final bodyColor = isValid
-        ? theme.textTheme.bodyMedium?.color ?? ColorResource.textSecondary
-        : (theme.textTheme.bodyMedium?.color ?? ColorResource.textSecondary)
+        ? theme.textTheme.bodyMedium?.color ?? context.textSecondary
+        : (theme.textTheme.bodyMedium?.color ?? context.textSecondary)
               .withValues(alpha: 0.68);
     final statusBackground = isValid
         ? accentColor.withValues(alpha: 0.10)

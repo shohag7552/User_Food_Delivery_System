@@ -64,7 +64,7 @@ class _AddressSelectionBottomSheetState
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
-            color: ColorResource.cardBackground,
+            color: context.cardBackground,
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(Constants.radiusExtraLarge),
             ),
@@ -96,7 +96,7 @@ class _AddressSelectionBottomSheetState
                             'select_delivery_address'.tr,
                             style: poppinsBold.copyWith(
                               fontSize: Constants.fontSizeLarge,
-                              color: ColorResource.textPrimary,
+                              color: context.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -125,7 +125,7 @@ class _AddressSelectionBottomSheetState
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(Constants.radiusExtraLarge),
         ),
@@ -145,7 +145,7 @@ class _AddressSelectionBottomSheetState
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: ColorResource.textLight.withOpacity(0.3),
+                color: context.textLight.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -171,13 +171,13 @@ class _AddressSelectionBottomSheetState
                   'delivery_address'.tr,
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeExtraLarge,
-                    color: ColorResource.textPrimary,
+                    color: context.textPrimary,
                   ),
                 ),
               ),
               IconButton(
                 icon: Icon(Icons.close_rounded,
-                    color: ColorResource.textSecondary),
+                    color: context.textSecondary),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -202,7 +202,7 @@ class _AddressSelectionBottomSheetState
         decoration: BoxDecoration(
           color: isSelected
               ? ColorResource.primaryDark.withValues(alpha: 0.1)
-              : ColorResource.scaffoldBackground,
+              : context.scaffoldBackground,
           borderRadius: BorderRadius.circular(Constants.radiusLarge),
           border: Border.all(
             color: isSelected ? ColorResource.primaryDark : Colors.transparent,
@@ -238,7 +238,7 @@ class _AddressSelectionBottomSheetState
                           fontSize: Constants.fontSizeDefault,
                           color: isSelected
                               ? ColorResource.primaryDark
-                              : ColorResource.textPrimary,
+                              : context.textPrimary,
                         ),
                       ),
                       if (address.isDefault) ...[ 
@@ -268,7 +268,7 @@ class _AddressSelectionBottomSheetState
                     address.phone,
                     style: poppinsRegular.copyWith(
                       fontSize: Constants.fontSizeSmall,
-                      color: ColorResource.textSecondary,
+                      color: context.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -276,7 +276,7 @@ class _AddressSelectionBottomSheetState
                     address.fullAddress,
                     style: poppinsRegular.copyWith(
                       fontSize: Constants.fontSizeSmall,
-                      color: ColorResource.textSecondary,
+                      color: context.textSecondary,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -308,7 +308,7 @@ class _AddressSelectionBottomSheetState
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: ColorResource.scaffoldBackground,
+          color: context.scaffoldBackground,
           borderRadius: BorderRadius.circular(Constants.radiusLarge),
           border: Border.all(
             color: ColorResource.primaryDark.withValues(alpha: 0.3),
@@ -355,14 +355,14 @@ class _AddressSelectionBottomSheetState
             Icon(
               Icons.location_off_outlined,
               size: 80,
-              color: ColorResource.textLight,
+              color: context.textLight,
             ),
             const SizedBox(height: 16),
             Text(
               'no_saved_addresses'.tr,
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeLarge,
-                color: ColorResource.textPrimary,
+                color: context.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
@@ -370,7 +370,7 @@ class _AddressSelectionBottomSheetState
               'add_delivery_address_to_continue'.tr,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textSecondary,
+                color: context.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -403,7 +403,7 @@ class _AddressSelectionBottomSheetState
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         boxShadow: [
           BoxShadow(
             color: ColorResource.shadowLight,

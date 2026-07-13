@@ -154,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen>
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: ColorResource.cardBackground
+                        color: context.cardBackground
                             .withValues(alpha: 0.97),
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
@@ -184,13 +184,13 @@ class _LoginScreenState extends State<LoginScreen>
                               keyboardType: TextInputType.emailAddress,
                               style: poppinsRegular.copyWith(
                                 fontSize: 16,
-                                color: ColorResource.textPrimary,
+                                color: context.textPrimary,
                               ),
                               decoration: InputDecoration(
                                 hintText: 'enter_your_email'.tr,
                                 hintStyle: poppinsRegular.copyWith(
                                   fontSize: 14,
-                                  color: ColorResource.textLight,
+                                  color: context.textLight,
                                 ),
                                 prefixIcon: const Icon(
                                   Icons.email_outlined,
@@ -198,7 +198,7 @@ class _LoginScreenState extends State<LoginScreen>
                                 ),
                                 filled: true,
                                 // Dark surface in dark mode, light grey in light.
-                                fillColor: ColorResource.scaffoldBackground,
+                                fillColor: context.scaffoldBackground,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide.none,
@@ -255,13 +255,13 @@ class _LoginScreenState extends State<LoginScreen>
                               obscureText: _obscurePassword,
                               style: poppinsRegular.copyWith(
                                 fontSize: 16,
-                                color: ColorResource.textPrimary,
+                                color: context.textPrimary,
                               ),
                               decoration: InputDecoration(
                                 hintText: 'enter_your_password'.tr,
                                 hintStyle: poppinsRegular.copyWith(
                                   fontSize: 14,
-                                  color: ColorResource.textLight,
+                                  color: context.textLight,
                                 ),
                                 prefixIcon: const Icon(
                                   Icons.lock_outline,
@@ -282,7 +282,7 @@ class _LoginScreenState extends State<LoginScreen>
                                 ),
                                 filled: true,
                                 // Dark surface in dark mode, light grey in light.
-                                fillColor: ColorResource.scaffoldBackground,
+                                fillColor: context.scaffoldBackground,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide.none,

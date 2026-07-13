@@ -57,18 +57,18 @@ class CustomTextField extends StatelessWidget {
       // Theme-aware colors (ColorResource resolves per light/dark mode).
       style: poppinsRegular.copyWith(
         fontSize: 15,
-        color: ColorResource.textPrimary,
+        color: context.textPrimary,
       ),
       textCapitalization: textCapitalization!,
       decoration: InputDecoration(
         labelText: label,
         hintText: hintText,
         labelStyle: poppinsRegular.copyWith(
-          color: ColorResource.textSecondary,
+          color: context.textSecondary,
           fontSize: 14,
         ),
         hintStyle: poppinsRegular.copyWith(
-          color: ColorResource.textLight,
+          color: context.textLight,
           fontSize: 14,
         ),
         prefixIcon: icon != null
@@ -77,24 +77,24 @@ class CustomTextField extends StatelessWidget {
         suffixIcon: suffixIcon,
         filled: true,
         fillColor: enabled
-            ? ColorResource.cardBackground
-            : ColorResource.scaffoldBackground,
+            ? context.cardBackground
+            : context.scaffoldBackground,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: ColorResource.textLight.withValues(alpha: 0.35),
+            color: context.textLight.withValues(alpha: 0.35),
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: ColorResource.textLight.withValues(alpha: 0.35),
+            color: context.textLight.withValues(alpha: 0.35),
           ),
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: ColorResource.textLight.withValues(alpha: 0.2),
+            color: context.textLight.withValues(alpha: 0.2),
           ),
         ),
         focusedBorder: OutlineInputBorder(

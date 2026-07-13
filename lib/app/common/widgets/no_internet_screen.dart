@@ -17,7 +17,7 @@ class NoInternetScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: ColorResource.scaffoldBackground,
+      color: context.scaffoldBackground,
       child: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -29,7 +29,7 @@ class NoInternetScreen extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 420),
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: ColorResource.cardBackground,
+                  color: context.cardBackground,
                   borderRadius: BorderRadius.circular(
                     Constants.radiusExtraLarge,
                   ),
@@ -66,7 +66,7 @@ class NoInternetScreen extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: poppinsBold.copyWith(
                           fontSize: Constants.fontSizeOverLarge,
-                          color: ColorResource.textPrimary,
+                          color: context.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -77,7 +77,7 @@ class NoInternetScreen extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: poppinsRegular.copyWith(
                           height: 1.6,
-                          color: ColorResource.textSecondary,
+                          color: context.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -120,7 +120,7 @@ class NoInternetScreen extends StatelessWidget {
                         'we_will_refresh_when_back_online'.tr,
                         textAlign: TextAlign.center,
                         style: poppinsRegular.copyWith(
-                          color: ColorResource.textLight,
+                          color: context.textLight,
                         ),
                       ),
                     ],

@@ -157,7 +157,7 @@ class _EcommerceProductCardState extends State<EcommerceProductCard> {
                   product.nameMap.trLanguage,
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeDefault,
-                    color: ColorResource.textPrimary,
+                    color: context.textPrimary,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -197,7 +197,7 @@ class _EcommerceProductCardState extends State<EcommerceProductCard> {
                               overflow: TextOverflow.ellipsis,
                               style: poppinsRegular.copyWith(
                                 fontSize: Constants.fontSizeSmall,
-                                color: ColorResource.textLight,
+                                color: context.textLight,
                                 decoration: TextDecoration.lineThrough,
                               ),
                             ),

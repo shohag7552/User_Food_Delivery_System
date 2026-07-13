@@ -55,7 +55,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       appBar: _hideOwnAppBar
           ? null
           : CustomAppbar(
@@ -165,7 +165,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             'my_favorites'.tr,
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeOverLarge,
-              color: ColorResource.textPrimary,
+              color: context.textPrimary,
             ),
           ),
           const SizedBox(width: 10),
@@ -173,7 +173,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             '($count)',
             style: poppinsMedium.copyWith(
               fontSize: Constants.fontSizeLarge,
-              color: ColorResource.textSecondary,
+              color: context.textSecondary,
             ),
           ),
         ],
@@ -221,7 +221,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   Widget _buildSkeletonCard() {
     return Container(
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
         boxShadow: ColorResource.customShadow,
       ),
@@ -232,7 +232,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           Container(
             height: 140,
             decoration: BoxDecoration(
-              color: ColorResource.textLight.withValues(alpha: 0.2),
+              color: context.textLight.withValues(alpha: 0.2),
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(Constants.radiusLarge),
               ),
@@ -247,7 +247,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   height: 16,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: ColorResource.textLight.withValues(alpha: 0.2),
+                    color: context.textLight.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -256,7 +256,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   height: 14,
                   width: 80,
                   decoration: BoxDecoration(
-                    color: ColorResource.textLight.withValues(alpha: 0.2),
+                    color: context.textLight.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -293,7 +293,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               'no_favorites_yet'.tr,
               style: poppinsBold.copyWith(
                 fontSize: 24,
-                color: ColorResource.textPrimary,
+                color: context.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -302,7 +302,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               textAlign: TextAlign.center,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textSecondary,
+                color: context.textSecondary,
                 height: 1.5,
               ),
             ),
@@ -339,7 +339,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       isBackgroundTransparent: true,
       child: Container(
         decoration: BoxDecoration(
-          color: ColorResource.cardBackground,
+          color: context.cardBackground,
           borderRadius: BorderRadius.circular(Constants.radiusLarge),
           boxShadow: ColorResource.customShadow,
         ),
@@ -479,7 +479,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: poppinsMedium.copyWith(
                             fontSize: Constants.fontSizeDefault,
-                            color: ColorResource.textPrimary,
+                            color: context.textPrimary,
                             height: 1.2,
                           ),
                         ),
@@ -502,7 +502,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                             PriceHelper.formatPrice(product.price),
                             style: poppinsRegular.copyWith(
                               fontSize: Constants.fontSizeSmall,
-                              color: ColorResource.textLight,
+                              color: context.textLight,
                               decoration: TextDecoration.lineThrough,
                             ),
                           ),

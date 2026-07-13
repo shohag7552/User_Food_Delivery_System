@@ -34,7 +34,7 @@ class RatingStars extends StatelessWidget {
             size: size,
             color: index < rating
                 ? (activeColor ?? Colors.amber)
-                : (inactiveColor ?? ColorResource.textLight),
+                : (inactiveColor ?? context.textLight),
           );
         }),
         if (showRating) ...[
@@ -43,7 +43,7 @@ class RatingStars extends StatelessWidget {
             rating.toStringAsFixed(1),
             style: TextStyle(
               fontSize: size * 0.8,
-              color: ColorResource.textSecondary,
+              color: context.textSecondary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -54,7 +54,7 @@ class RatingStars extends StatelessWidget {
             '($reviewCount)',
             style: TextStyle(
               fontSize: size * 0.75,
-              color: ColorResource.textLight,
+              color: context.textLight,
             ),
           ),
         ],
@@ -100,7 +100,7 @@ class _InteractiveRatingStarsState extends State<InteractiveRatingStars> {
               child: Icon(
                 isActive ? Icons.star : Icons.star_border,
                 size: widget.size,
-                color: isActive ? Colors.amber : ColorResource.textLight,
+                color: isActive ? Colors.amber : context.textLight,
               ),
             ),
           ),

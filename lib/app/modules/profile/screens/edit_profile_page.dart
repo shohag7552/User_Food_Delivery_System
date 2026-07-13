@@ -316,7 +316,7 @@ class EditProfilePage extends StatelessWidget {
                     fontSize: Constants.fontSizeLarge,
                     color:
                         theme.textTheme.titleLarge?.color ??
-                        ColorResource.textPrimary,
+                        context.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -393,7 +393,7 @@ class EditProfilePage extends StatelessWidget {
                 fontSize: Constants.fontSizeDefault,
                 color:
                     theme.textTheme.bodyMedium?.color ??
-                    ColorResource.textPrimary,
+                    context.textPrimary,
               ),
             ),
           ],
@@ -490,7 +490,7 @@ class EditProfilePage extends StatelessWidget {
       keyboardType: keyboardType,
       style: poppinsRegular.copyWith(
         fontSize: Constants.fontSizeDefault,
-        color: theme.textTheme.bodyLarge?.color ?? ColorResource.textPrimary,
+        color: theme.textTheme.bodyLarge?.color ?? context.textPrimary,
       ),
       decoration: InputDecoration(
         labelText: label,

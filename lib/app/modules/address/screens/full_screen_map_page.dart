@@ -64,7 +64,7 @@ class _FullScreenMapPageState extends State<FullScreenMapPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       appBar: CustomAppbar(
         title: 'select_location'.tr,
       ),
@@ -110,7 +110,7 @@ class _FullScreenMapPageState extends State<FullScreenMapPage> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                color: ColorResource.cardBackground,
+                color: context.cardBackground,
                 borderRadius: BorderRadius.circular(Constants.radiusLarge),
                 boxShadow: [
                   BoxShadow(
@@ -145,7 +145,7 @@ class _FullScreenMapPageState extends State<FullScreenMapPage> {
                           'delivery_location'.tr,
                           style: poppinsMedium.copyWith(
                             fontSize: Constants.fontSizeExtraSmall,
-                            color: ColorResource.textSecondary,
+                            color: context.textSecondary,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -164,7 +164,7 @@ class _FullScreenMapPageState extends State<FullScreenMapPage> {
                                     'locating'.tr,
                                     style: poppinsMedium.copyWith(
                                       fontSize: Constants.fontSizeSmall,
-                                      color: ColorResource.textSecondary,
+                                      color: context.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -175,7 +175,7 @@ class _FullScreenMapPageState extends State<FullScreenMapPage> {
                                     : 'move_map_to_set_location'.tr,
                                 style: poppinsBold.copyWith(
                                   fontSize: Constants.fontSizeSmall,
-                                  color: ColorResource.textPrimary,
+                                  color: context.textPrimary,
                                 ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,

@@ -207,7 +207,7 @@ class _EcommerceProductDetailPageState
 
   Widget _buildMobileScaffold(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -228,8 +228,8 @@ class _EcommerceProductDetailPageState
       expandedHeight: expandedHeight,
       pinned: true,
       elevation: 0,
-      backgroundColor: ColorResource.cardBackground,
-      surfaceTintColor: ColorResource.cardBackground,
+      backgroundColor: context.cardBackground,
+      surfaceTintColor: context.cardBackground,
       automaticallyImplyLeading: false,
       // Thin progress bar while refreshing from the database; reserves a
       // constant 2px so the bar height never jumps.
@@ -280,7 +280,7 @@ class _EcommerceProductDetailPageState
                     overflow: TextOverflow.ellipsis,
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeLarge,
-                      color: ColorResource.textPrimary,
+                      color: context.textPrimary,
                     ),
                   )
                 : null,
@@ -337,7 +337,7 @@ class _EcommerceProductDetailPageState
       product.nameMap.trLanguage,
       style: poppinsBold.copyWith(
         fontSize: fontSize,
-        color: ColorResource.textPrimary,
+        color: context.textPrimary,
       ),
     );
   }
@@ -374,7 +374,7 @@ class _EcommerceProductDetailPageState
                   PriceHelper.formatPrice(product.price),
                   style: poppinsRegular.copyWith(
                     fontSize: Constants.fontSizeDefault,
-                    color: ColorResource.textLight,
+                    color: context.textLight,
                     decoration: TextDecoration.lineThrough,
                   ),
                 ),
@@ -421,7 +421,7 @@ class _EcommerceProductDetailPageState
           'description'.tr,
           style: poppinsBold.copyWith(
             fontSize: Constants.fontSizeLarge,
-            color: ColorResource.textPrimary,
+            color: context.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
@@ -432,7 +432,7 @@ class _EcommerceProductDetailPageState
               _descExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
           style: poppinsRegular.copyWith(
             fontSize: Constants.fontSizeDefault,
-            color: ColorResource.textSecondary,
+            color: context.textSecondary,
             height: 1.5,
           ),
         ),
@@ -460,13 +460,13 @@ class _EcommerceProductDetailPageState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 20),
-        Divider(color: ColorResource.textLight.withValues(alpha: 0.2)),
+        Divider(color: context.textLight.withValues(alpha: 0.2)),
         const SizedBox(height: 12),
         Text(
           'customer_reviews'.tr,
           style: poppinsBold.copyWith(
             fontSize: Constants.fontSizeLarge,
-            color: ColorResource.textPrimary,
+            color: context.textPrimary,
           ),
         ),
         const SizedBox(height: 12),
@@ -488,7 +488,7 @@ class _EcommerceProductDetailPageState
   Widget _buildWebScaffold(BuildContext context) {
     return Scaffold(
       key: _webScaffoldKey,
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       endDrawer: const WebProfileDrawer(),
       appBar: WebTopNav(
         // No tab is "active" on a sub-page.
@@ -592,7 +592,7 @@ class _EcommerceProductDetailPageState
                       border: Border.all(
                         color: selected
                             ? ColorResource.primaryDark
-                            : ColorResource.textLight.withValues(alpha: 0.3),
+                            : context.textLight.withValues(alpha: 0.3),
                         width: selected ? 2 : 1,
                       ),
                     ),
@@ -637,10 +637,10 @@ class _EcommerceProductDetailPageState
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: ColorResource.cardBackground,
+            color: context.cardBackground,
             borderRadius: BorderRadius.circular(Constants.radiusLarge),
             border: Border.all(
-              color: ColorResource.textLight.withValues(alpha: 0.15),
+              color: context.textLight.withValues(alpha: 0.15),
             ),
           ),
           child: product.isOutOfStock
@@ -670,7 +670,7 @@ class _EcommerceProductDetailPageState
         const SizedBox(height: 20),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Divider(color: ColorResource.textLight.withValues(alpha: 0.2)),
+          child: Divider(color: context.textLight.withValues(alpha: 0.2)),
         ),
         const SizedBox(height: 12),
         Padding(
@@ -679,7 +679,7 @@ class _EcommerceProductDetailPageState
             'you_may_also_like'.tr,
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeExtraLarge,
-              color: ColorResource.textPrimary,
+              color: context.textPrimary,
             ),
           ),
         ),
@@ -720,7 +720,7 @@ class _EcommerceProductDetailPageState
         height: 38,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: ColorResource.cardBackground.withValues(alpha: 0.92),
+          color: context.cardBackground.withValues(alpha: 0.92),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
@@ -731,7 +731,7 @@ class _EcommerceProductDetailPageState
           ],
         ),
         child: child ??
-            Icon(icon, size: 20, color: ColorResource.textPrimary),
+            Icon(icon, size: 20, color: context.textPrimary),
       ),
     );
   }
@@ -802,7 +802,7 @@ class _EcommerceProductDetailPageState
                   decoration: BoxDecoration(
                     color: _currentImage == index
                         ? ColorResource.primaryDark
-                        : ColorResource.cardBackground.withValues(alpha: 0.7),
+                        : context.cardBackground.withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -881,7 +881,7 @@ class _EcommerceProductDetailPageState
               label,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeSmall,
-                color: ColorResource.textSecondary,
+                color: context.textSecondary,
               ),
             ),
           ),
@@ -890,7 +890,7 @@ class _EcommerceProductDetailPageState
               value,
               style: poppinsMedium.copyWith(
                 fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textPrimary,
+                color: context.textPrimary,
               ),
             ),
           ),
@@ -912,7 +912,7 @@ class _EcommerceProductDetailPageState
                   'customize_your_order'.tr,
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeLarge,
-                    color: ColorResource.textPrimary,
+                    color: context.textPrimary,
                   ),
                 ),
               ),
@@ -937,7 +937,7 @@ class _EcommerceProductDetailPageState
             'choose_your_preferred_options_to_build_the_perfect_order'.tr,
             style: poppinsRegular.copyWith(
               fontSize: Constants.fontSizeSmall,
-              color: ColorResource.textSecondary,
+              color: context.textSecondary,
             ),
           ),
           const SizedBox(height: 12),
@@ -979,7 +979,7 @@ class _EcommerceProductDetailPageState
                 variant.title,
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeDefault,
-                  color: ColorResource.textPrimary,
+                  color: context.textPrimary,
                 ),
               ),
               if (variant.required)
@@ -997,7 +997,7 @@ class _EcommerceProductDetailPageState
                     : 'optional'.tr,
                 style: poppinsRegular.copyWith(
                   fontSize: Constants.fontSizeExtraSmall,
-                  color: ColorResource.textSecondary,
+                  color: context.textSecondary,
                 ),
               ),
             ],
@@ -1036,12 +1036,12 @@ class _EcommerceProductDetailPageState
         decoration: BoxDecoration(
           color: isSelected
               ? ColorResource.primaryDark
-              : ColorResource.cardBackground,
+              : context.cardBackground,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
                 ? ColorResource.primaryDark
-                : ColorResource.textLight.withValues(alpha: 0.3),
+                : context.textLight.withValues(alpha: 0.3),
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -1054,7 +1054,7 @@ class _EcommerceProductDetailPageState
                 fontSize: Constants.fontSizeDefault,
                 color: isSelected
                     ? ColorResource.textWhite
-                    : ColorResource.textPrimary,
+                    : context.textPrimary,
               ),
             ),
             if (option.price > 0) ...[
@@ -1253,7 +1253,7 @@ class _EcommerceProductDetailPageState
                         isUpdate ? 'in_cart'.tr : 'total'.tr,
                         style: poppinsRegular.copyWith(
                           fontSize: Constants.fontSizeSmall,
-                          color: ColorResource.textSecondary,
+                          color: context.textSecondary,
                         ),
                       ),
                       Text(
@@ -1271,10 +1271,10 @@ class _EcommerceProductDetailPageState
                 // Quantity stepper.
                 Container(
                   decoration: BoxDecoration(
-                    color: ColorResource.scaffoldBackground,
+                    color: context.scaffoldBackground,
                     borderRadius: BorderRadius.circular(Constants.radiusLarge),
                     border: Border.all(
-                      color: ColorResource.textLight.withValues(alpha: 0.2),
+                      color: context.textLight.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Row(
@@ -1290,7 +1290,7 @@ class _EcommerceProductDetailPageState
                             '$_qty',
                             style: poppinsBold.copyWith(
                               fontSize: Constants.fontSizeLarge,
-                              color: ColorResource.textPrimary,
+                              color: context.textPrimary,
                             ),
                           ),
                         ),
@@ -1353,7 +1353,7 @@ class _EcommerceProductDetailPageState
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         boxShadow: [
           BoxShadow(
             color: ColorResource.shadowMedium,
@@ -1379,7 +1379,7 @@ class _EcommerceProductDetailPageState
           icon,
           size: 18,
           color: onTap == null
-              ? ColorResource.textLight
+              ? context.textLight
               : ColorResource.primaryDark,
         ),
       ),
@@ -1393,7 +1393,7 @@ class _EcommerceProductDetailPageState
         onPressed: null,
         style: ElevatedButton.styleFrom(
           disabledBackgroundColor:
-              ColorResource.textLight.withValues(alpha: 0.4),
+              context.textLight.withValues(alpha: 0.4),
           padding: const EdgeInsets.symmetric(vertical: 15),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(Constants.radiusLarge),

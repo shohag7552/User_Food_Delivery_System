@@ -276,7 +276,7 @@ class _CouponCard extends StatelessWidget {
                             coupon.description,
                             style: poppinsBold.copyWith(
                               fontSize: Constants.fontSizeLarge,
-                              color: titleColor ?? ColorResource.textPrimary,
+                              color: titleColor ?? context.textPrimary,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -298,7 +298,7 @@ class _CouponCard extends StatelessWidget {
                                     fontSize: Constants.fontSizeDefault,
                                     color:
                                         bodyColor ??
-                                        ColorResource.textSecondary,
+                                        context.textSecondary,
                                   ),
                                 ),
                               ],
@@ -320,7 +320,7 @@ class _CouponCard extends StatelessWidget {
                                     fontSize: Constants.fontSizeSmall,
                                     color:
                                         bodyColor ??
-                                        ColorResource.textSecondary,
+                                        context.textSecondary,
                                   ),
                                 ),
                               ),

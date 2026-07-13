@@ -218,7 +218,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Container(
               decoration: BoxDecoration(
                 // Translucent so the blur reads as real glass.
-                color: ColorResource.cardBackground
+                color: context.cardBackground
                     .withValues(alpha: isDark ? 0.72 : 0.82),
                 borderRadius: BorderRadius.circular(28),
                 border: Border.all(
@@ -279,7 +279,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               icon,
               color: isSelected
                   ? ColorResource.textWhite
-                  : ColorResource.textSecondary,
+                  : context.textSecondary,
               size: 24,
             ),
             if (isSelected) ...[
@@ -352,7 +352,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ? ColorResource.textWhite
                           : (hasItems
                               ? ColorResource.primaryDark
-                              : ColorResource.textSecondary),
+                              : context.textSecondary),
                       size: 24,
                     ),
                     if (hasItems)

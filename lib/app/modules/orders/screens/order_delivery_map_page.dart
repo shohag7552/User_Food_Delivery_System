@@ -73,7 +73,7 @@ class _OrderDeliveryMapPageState extends State<OrderDeliveryMapPage> {
     );
 
     return Scaffold(
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       appBar: CustomAppbar(title: 'delivery_location'.tr),
       body: Stack(
         children: [
@@ -137,7 +137,7 @@ class _OrderDeliveryMapPageState extends State<OrderDeliveryMapPage> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: ColorResource.cardBackground,
+                color: context.cardBackground,
                 borderRadius: BorderRadius.circular(Constants.radiusLarge),
                 boxShadow: ColorResource.customShadow,
               ),
@@ -232,7 +232,7 @@ class _OrderDeliveryMapPageState extends State<OrderDeliveryMapPage> {
             overflow: TextOverflow.ellipsis,
             style: poppinsMedium.copyWith(
               fontSize: Constants.fontSizeSmall,
-              color: ColorResource.textPrimary,
+              color: context.textPrimary,
             ),
           ),
         ),
@@ -268,7 +268,7 @@ class _OrderDeliveryMapPageState extends State<OrderDeliveryMapPage> {
                 title,
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeDefault,
-                  color: ColorResource.textPrimary,
+                  color: context.textPrimary,
                 ),
               ),
               const SizedBox(height: 2),
@@ -276,7 +276,7 @@ class _OrderDeliveryMapPageState extends State<OrderDeliveryMapPage> {
                 subtitle,
                 style: poppinsRegular.copyWith(
                   fontSize: Constants.fontSizeSmall,
-                  color: ColorResource.textSecondary,
+                  color: context.textSecondary,
                 ),
               ),
             ],

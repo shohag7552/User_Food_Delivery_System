@@ -234,7 +234,7 @@ class _SearchPageState extends State<SearchPage> {
 
   Widget _buildMobileScaffold() {
     return Scaffold(
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       body: Column(
         children: [
           // Search Header
@@ -253,7 +253,7 @@ class _SearchPageState extends State<SearchPage> {
   Widget _buildWebScaffold() {
     return Scaffold(
       key: _webScaffoldKey,
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       appBar: WebTopNav(
         selectedIndex: null,
         onDestinationSelected: (index) {
@@ -317,7 +317,7 @@ class _SearchPageState extends State<SearchPage> {
                 text: 'results_found'.tr,
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeExtraLarge,
-                  color: ColorResource.textPrimary,
+                  color: context.textPrimary,
                 ),
               ),
             ],
@@ -329,7 +329,7 @@ class _SearchPageState extends State<SearchPage> {
             '${'showing_matches_for'.tr} "$_activeQuery"',
             style: poppinsRegular.copyWith(
               fontSize: Constants.fontSizeDefault,
-              color: ColorResource.textSecondary,
+              color: context.textSecondary,
             ),
           ),
         ],
@@ -395,7 +395,7 @@ class _SearchPageState extends State<SearchPage> {
       ),
       child: Container(
         decoration: BoxDecoration(
-          color: ColorResource.cardBackground,
+          color: context.cardBackground,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -413,13 +413,13 @@ class _SearchPageState extends State<SearchPage> {
           textInputAction: TextInputAction.search,
           style: poppinsRegular.copyWith(
             fontSize: Constants.fontSizeDefault,
-            color: ColorResource.textPrimary,
+            color: context.textPrimary,
           ),
           decoration: InputDecoration(
             hintText: 'search_for_dishes'.tr,
             hintStyle: poppinsRegular.copyWith(
               fontSize: Constants.fontSizeDefault,
-              color: ColorResource.textLight,
+              color: context.textLight,
             ),
             prefixIcon: IconButton(
               onPressed: () => context.pop(),
@@ -442,19 +442,19 @@ class _SearchPageState extends State<SearchPage> {
                     child: Container(
                       margin: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: ColorResource.scaffoldBackground,
+                        color: context.scaffoldBackground,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.close_rounded,
-                        color: ColorResource.textSecondary,
+                        color: context.textSecondary,
                         size: 18,
                       ),
                     ),
                   )
                 : null,
             filled: true,
-            fillColor: ColorResource.cardBackground,
+            fillColor: context.cardBackground,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide.none,
@@ -509,7 +509,7 @@ class _SearchPageState extends State<SearchPage> {
             'searching'.tr,
             style: poppinsMedium.copyWith(
               fontSize: Constants.fontSizeDefault,
-              color: ColorResource.textSecondary,
+              color: context.textSecondary,
             ),
           ),
           if (_activeQuery.isNotEmpty) ...[
@@ -518,7 +518,7 @@ class _SearchPageState extends State<SearchPage> {
               '"$_activeQuery"',
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeSmall,
-                color: ColorResource.textLight,
+                color: context.textLight,
               ),
             ),
           ],
@@ -550,7 +550,7 @@ class _SearchPageState extends State<SearchPage> {
                   'recent_searches'.tr,
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeLarge,
-                    color: ColorResource.textPrimary,
+                    color: context.textPrimary,
                   ),
                 ),
                 TextButton(
@@ -572,7 +572,7 @@ class _SearchPageState extends State<SearchPage> {
               children: _searchHistory.map((item) {
                 return Container(
                   decoration: BoxDecoration(
-                    color: ColorResource.cardBackground,
+                    color: context.cardBackground,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: ColorResource.primaryDark.withValues(alpha: 0.08),
@@ -592,7 +592,7 @@ class _SearchPageState extends State<SearchPage> {
                               Icon(
                                 Icons.history_rounded,
                                 size: 16,
-                                color: ColorResource.textSecondary,
+                                color: context.textSecondary,
                               ),
                               const SizedBox(width: 8),
                               ConstrainedBox(
@@ -601,7 +601,7 @@ class _SearchPageState extends State<SearchPage> {
                                   item,
                                   style: poppinsRegular.copyWith(
                                     fontSize: Constants.fontSizeSmall,
-                                    color: ColorResource.textPrimary,
+                                    color: context.textPrimary,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -618,7 +618,7 @@ class _SearchPageState extends State<SearchPage> {
                           child: Icon(
                             Icons.close_rounded,
                             size: 16,
-                            color: ColorResource.textLight,
+                            color: context.textLight,
                           ),
                         ),
                       ),
@@ -634,7 +634,7 @@ class _SearchPageState extends State<SearchPage> {
               'popular_items'.tr,
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeLarge,
-                color: ColorResource.textPrimary,
+                color: context.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
@@ -668,14 +668,14 @@ class _SearchPageState extends State<SearchPage> {
             Icon(
               Icons.search_off,
               size: 100,
-              color: ColorResource.textLight,
+              color: context.textLight,
             ),
             const SizedBox(height: 24),
             Text(
               'no_results_found'.tr,
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeExtraLarge,
-                color: ColorResource.textPrimary,
+                color: context.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -684,7 +684,7 @@ class _SearchPageState extends State<SearchPage> {
               textAlign: TextAlign.center,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textSecondary,
+                color: context.textSecondary,
               ),
             ),
             const SizedBox(height: 24),
@@ -724,7 +724,7 @@ class _SearchPageState extends State<SearchPage> {
                 '${_searchResults.length} ${'results_found'.tr}',
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeLarge,
-                  color: ColorResource.textPrimary,
+                  color: context.textPrimary,
                 ),
               ),
               if (_activeQuery.isNotEmpty) ...[
@@ -733,7 +733,7 @@ class _SearchPageState extends State<SearchPage> {
                   '${'showing_matches_for'.tr} "$_activeQuery"',
                   style: poppinsRegular.copyWith(
                     fontSize: Constants.fontSizeSmall,
-                    color: ColorResource.textSecondary,
+                    color: context.textSecondary,
                   ),
                 ),
               ],
@@ -774,7 +774,7 @@ class _SearchPageState extends State<SearchPage> {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: ColorResource.cardBackground,
+          color: context.cardBackground,
           borderRadius: BorderRadius.circular(Constants.radiusLarge),
           boxShadow: ColorResource.customShadow,
         ),
@@ -829,7 +829,7 @@ class _SearchPageState extends State<SearchPage> {
                     product.nameMap.trLanguage,
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeDefault,
-                      color: ColorResource.textPrimary,
+                      color: context.textPrimary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -846,7 +846,7 @@ class _SearchPageState extends State<SearchPage> {
                   //   product.descriptionMap.trLanguage,
                   //   style: poppinsRegular.copyWith(
                   //     fontSize: Constants.fontSizeSmall,
-                  //     color: ColorResource.textSecondary,
+                  //     color: context.textSecondary,
                   //   ),
                   //   maxLines: 2,
                   //   overflow: TextOverflow.ellipsis,
@@ -870,7 +870,7 @@ class _SearchPageState extends State<SearchPage> {
                               PriceHelper.formatPrice(product.price),
                               style: poppinsRegular.copyWith(
                                 fontSize: Constants.fontSizeSmall,
-                                color: ColorResource.textLight,
+                                color: context.textLight,
                                 decoration: TextDecoration.lineThrough,
                               ),
                             ),

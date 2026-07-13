@@ -271,7 +271,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     return SliverAppBar(
       automaticallyImplyLeading: false,
       pinned: true,
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       elevation: 0,
       toolbarHeight: 0,
       flexibleSpace: GetBuilder<ProductController>(
@@ -285,7 +285,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                   'all_products'.tr,
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeExtraLarge,
-                    color: ColorResource.textPrimary,
+                    color: context.textPrimary,
                   ),
                 ),
                 PopupMenuButton<ProductListFilter>(
@@ -323,7 +323,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                     Icons.filter_list,
                     color: productController.selectedProductFilter ==
                             ProductListFilter.all
-                        ? ColorResource.textPrimary
+                        ? context.textPrimary
                         : ColorResource.primaryDark,
                   ),
                 ),
@@ -345,7 +345,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       primary: false,
       toolbarHeight: 64,
       titleSpacing: 0,
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       elevation: 0,
       scrolledUnderElevation: 0,
       title: GetBuilder<ProductController>(
@@ -360,7 +360,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                       'all_products'.tr,
                       style: poppinsBold.copyWith(
                         fontSize: Constants.fontSizeExtraLarge,
-                        color: ColorResource.textPrimary,
+                        color: context.textPrimary,
                       ),
                     ),
                   ),
@@ -407,12 +407,12 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             gradient: selected ? ColorResource.primaryGradient : null,
-            color: selected ? null : ColorResource.cardBackground,
+            color: selected ? null : context.cardBackground,
             borderRadius: BorderRadius.circular(999),
             border: Border.all(
               color: selected
                   ? Colors.transparent
-                  : ColorResource.textLight.withValues(alpha: 0.3),
+                  : context.textLight.withValues(alpha: 0.3),
             ),
           ),
           child: Text(
@@ -421,7 +421,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
               fontSize: Constants.fontSizeSmall,
               color: selected
                   ? ColorResource.textWhite
-                  : ColorResource.textSecondary,
+                  : context.textSecondary,
             ),
           ),
         ),
@@ -618,7 +618,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: ColorResource.cardBackground,
+          color: context.cardBackground,
           borderRadius: BorderRadius.circular(Constants.radiusLarge),
           border: Border.all(
             color: isDark
@@ -639,7 +639,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
           children: [
             Icon(
               Icons.search,
-              color: ColorResource.textSecondary,
+              color: context.textSecondary,
               size: 24,
             ),
             const SizedBox(width: 12),
@@ -648,7 +648,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                 'search_for_dishes'.tr,
                 style: poppinsRegular.copyWith(
                   fontSize: Constants.fontSizeDefault,
-                  color: ColorResource.textLight,
+                  color: context.textLight,
                 ),
               ),
             ),
@@ -720,7 +720,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
               fontSize: Constants.fontSizeDefault,
               color: isSelected
                   ? ColorResource.primaryDark
-                  : ColorResource.textPrimary,
+                  : context.textPrimary,
             ),
           ),
         ),

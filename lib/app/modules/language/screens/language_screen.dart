@@ -37,7 +37,7 @@ class _LanguageScreenState extends State<LanguageScreen> with SingleTickerProvid
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       appBar: AppBar(
         backgroundColor: ColorResource.primaryDark,
         foregroundColor: ColorResource.textWhite,
@@ -150,7 +150,7 @@ class _LanguageCard extends StatelessWidget {
       curve: Curves.easeInOut,
       margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
-        color: isSelected ? ColorResource.primaryDark.withValues(alpha: 0.06) : ColorResource.cardBackground,
+        color: isSelected ? ColorResource.primaryDark.withValues(alpha: 0.06) : context.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
         border: Border.all(
           color: isSelected ? ColorResource.primaryDark : Colors.transparent,
@@ -214,7 +214,7 @@ class _LanguageCard extends StatelessWidget {
                     language.languageName ?? '',
                     style: (isSelected ? poppinsBold : poppinsMedium).copyWith(
                       fontSize: Constants.fontSizeLarge,
-                      color: isSelected ? ColorResource.primaryDark : ColorResource.textPrimary,
+                      color: isSelected ? ColorResource.primaryDark : context.textPrimary,
                     ),
                   ),
                 ),

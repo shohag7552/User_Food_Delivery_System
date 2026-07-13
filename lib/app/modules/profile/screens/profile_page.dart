@@ -276,7 +276,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               fontSize: Constants.fontSizeSmall,
                               color: isDark
                                   ? Colors.white54
-                                  : ColorResource.textLight,
+                                  : context.textLight,
                             ),
                           ),
                         ),
@@ -433,7 +433,7 @@ class _ProfilePageState extends State<ProfilePage> {
             title,
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeDefault,
-              color: isDark ? Colors.white70 : ColorResource.textSecondary,
+              color: isDark ? Colors.white70 : context.textSecondary,
             ),
           ),
         ),
@@ -508,7 +508,7 @@ class _ProfilePageState extends State<ProfilePage> {
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'cancel'.tr,
-              style: poppinsMedium.copyWith(color: ColorResource.textSecondary),
+              style: poppinsMedium.copyWith(color: context.textSecondary),
             ),
           ),
           ElevatedButton(
@@ -551,7 +551,7 @@ class _ProfilePageState extends State<ProfilePage> {
             onPressed: () => Navigator.pop(context),
             child: Text(
               'cancel'.tr,
-              style: poppinsMedium.copyWith(color: ColorResource.textSecondary),
+              style: poppinsMedium.copyWith(color: context.textSecondary),
             ),
           ),
           ElevatedButton(
@@ -620,20 +620,20 @@ class _ProfileOption extends StatelessWidget {
         title,
         style: poppinsMedium.copyWith(
           fontSize: Constants.fontSizeDefault,
-          color: isDark ? Colors.white : ColorResource.textPrimary,
+          color: isDark ? Colors.white : context.textPrimary,
         ),
       ),
       subtitle: Text(
         subtitle,
         style: poppinsRegular.copyWith(
           fontSize: Constants.fontSizeSmall,
-          color: isDark ? Colors.white60 : ColorResource.textSecondary,
+          color: isDark ? Colors.white60 : context.textSecondary,
         ),
       ),
       trailing: trailing ??
           Icon(
             Icons.chevron_right,
-            color: isDark ? Colors.white38 : ColorResource.textLight,
+            color: isDark ? Colors.white38 : context.textLight,
           ),
       onTap: onTap,
     );
@@ -672,7 +672,7 @@ class _ThemeModeOption extends StatelessWidget {
         'Dark mode',
         style: poppinsMedium.copyWith(
           fontSize: Constants.fontSizeDefault,
-          color: isDark ? Colors.white : ColorResource.textPrimary,
+          color: isDark ? Colors.white : context.textPrimary,
         ),
       ),
       subtitle: Text(
@@ -681,7 +681,7 @@ class _ThemeModeOption extends StatelessWidget {
             : 'Switch to a brighter appearance across the app',
         style: poppinsRegular.copyWith(
           fontSize: Constants.fontSizeSmall,
-          color: isDark ? Colors.white60 : ColorResource.textSecondary,
+          color: isDark ? Colors.white60 : context.textSecondary,
         ),
       ),
       trailing: Switch.adaptive(

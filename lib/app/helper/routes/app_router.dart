@@ -598,7 +598,7 @@ class _DeepLinkLoaderState<T> extends State<_DeepLinkLoader<T>> {
             body: Center(
               child: Text(
                 widget.notFoundKey.tr,
-                style: TextStyle(color: ColorResource.textSecondary),
+                style: TextStyle(color: context.textSecondary),
               ),
             ),
           );

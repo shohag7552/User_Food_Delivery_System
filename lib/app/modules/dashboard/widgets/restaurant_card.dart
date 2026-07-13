@@ -68,7 +68,7 @@ class _RestaurantCardState extends State<RestaurantCard>
         child: Container(
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: ColorResource.cardBackground,
+            color: context.cardBackground,
             borderRadius: BorderRadius.circular(Constants.radiusLarge),
             boxShadow: [
               BoxShadow(
@@ -119,7 +119,7 @@ class _RestaurantCardState extends State<RestaurantCard>
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: ColorResource.cardBackground,
+                          color: context.cardBackground,
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
@@ -135,7 +135,7 @@ class _RestaurantCardState extends State<RestaurantCard>
                           size: 20,
                           color: widget.isFavorite
                               ? ColorResource.favoriteColor
-                              : ColorResource.textSecondary,
+                              : context.textSecondary,
                         ),
                       ),
                     ),
@@ -157,7 +157,7 @@ class _RestaurantCardState extends State<RestaurantCard>
                             widget.name,
                             style: poppinsBold.copyWith(
                               fontSize: Constants.fontSizeLarge,
-                              color: ColorResource.textPrimary,
+                              color: context.textPrimary,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -188,7 +188,7 @@ class _RestaurantCardState extends State<RestaurantCard>
                                 widget.rating.toStringAsFixed(1),
                                 style: poppinsMedium.copyWith(
                                   fontSize: Constants.fontSizeSmall,
-                                  color: ColorResource.textPrimary,
+                                  color: context.textPrimary,
                                 ),
                               ),
                             ],
@@ -202,7 +202,7 @@ class _RestaurantCardState extends State<RestaurantCard>
                       widget.cuisineType,
                       style: poppinsRegular.copyWith(
                         fontSize: Constants.fontSizeSmall,
-                        color: ColorResource.textSecondary,
+                        color: context.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -212,28 +212,28 @@ class _RestaurantCardState extends State<RestaurantCard>
                         Icon(
                           Icons.access_time,
                           size: 16,
-                          color: ColorResource.textLight,
+                          color: context.textLight,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           widget.deliveryTime,
                           style: poppinsRegular.copyWith(
                             fontSize: Constants.fontSizeSmall,
-                            color: ColorResource.textSecondary,
+                            color: context.textSecondary,
                           ),
                         ),
                         const SizedBox(width: 16),
                         Icon(
                           Icons.attach_money,
                           size: 16,
-                          color: ColorResource.textLight,
+                          color: context.textLight,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           widget.minimumOrder,
                           style: poppinsRegular.copyWith(
                             fontSize: Constants.fontSizeSmall,
-                            color: ColorResource.textSecondary,
+                            color: context.textSecondary,
                           ),
                         ),
                       ],

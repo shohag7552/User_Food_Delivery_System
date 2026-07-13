@@ -46,7 +46,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   Widget _buildMobileScaffold() {
     return Scaffold(
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       appBar: AppBar(
         title: Text(
           'categories'.tr,
@@ -87,7 +87,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
   Widget _buildWebScaffold() {
     return Scaffold(
       key: _webScaffoldKey,
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       appBar: WebTopNav(
         selectedIndex: null,
         onDestinationSelected: (index) {
@@ -113,7 +113,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                       'categories'.tr,
                       style: poppinsBold.copyWith(
                         fontSize: Constants.fontSizeOverLarge,
-                        color: ColorResource.textPrimary,
+                        color: context.textPrimary,
                       ),
                     ),
                   ),
@@ -175,7 +175,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 textAlign: TextAlign.center,
                 style: poppinsRegular.copyWith(
                   fontSize: Constants.fontSizeDefault,
-                  color: ColorResource.textSecondary,
+                  color: context.textSecondary,
                 ),
               ),
               const SizedBox(height: 12),
@@ -200,7 +200,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
           'no_categories_available'.tr,
           style: poppinsRegular.copyWith(
             fontSize: Constants.fontSizeDefault,
-            color: ColorResource.textLight,
+            color: context.textLight,
           ),
         ),
       );
@@ -253,7 +253,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                         height: double.infinity,
                       )
                     : Container(
-                        color: ColorResource.cardBackground,
+                        color: context.cardBackground,
                         alignment: Alignment.center,
                         child: Icon(
                           Icons.restaurant_menu,
@@ -274,7 +274,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
               overflow: TextOverflow.ellipsis,
               style: poppinsMedium.copyWith(
                 fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textPrimary,
+                color: context.textPrimary,
               ),
             ),
           ),

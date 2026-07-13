@@ -64,7 +64,7 @@ class AllProductsWidget extends StatelessWidget {
                     'Failed to load products',
                     style: poppinsMedium.copyWith(
                       fontSize: Constants.fontSizeDefault,
-                      color: ColorResource.textSecondary,
+                      color: context.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -93,7 +93,7 @@ class AllProductsWidget extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.restaurant_menu,
-                    color: ColorResource.textLight,
+                    color: context.textLight,
                     size: 48,
                   ),
                   const SizedBox(height: 12),
@@ -101,7 +101,7 @@ class AllProductsWidget extends StatelessWidget {
                     'No products available',
                     style: poppinsMedium.copyWith(
                       fontSize: Constants.fontSizeDefault,
-                      color: ColorResource.textSecondary,
+                      color: context.textSecondary,
                     ),
                   ),
                 ],
@@ -294,7 +294,7 @@ class AllProductsWidget extends StatelessWidget {
                 //   product.descriptionMap.trLanguage,
                 //   style: poppinsRegular.copyWith(
                 //     fontSize: Constants.fontSizeSmall,
-                //     color: ColorResource.textSecondary,
+                //     color: context.textSecondary,
                 //   ),
                 //   maxLines: 2,
                 //   overflow: TextOverflow.ellipsis,

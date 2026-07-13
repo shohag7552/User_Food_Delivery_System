@@ -148,7 +148,7 @@ class _BrandProductsPageState extends State<BrandProductsPage> {
 
   Widget _buildMobileScaffold(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
@@ -214,7 +214,7 @@ class _BrandProductsPageState extends State<BrandProductsPage> {
 
     return Scaffold(
       key: _webScaffoldKey,
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       endDrawer: const WebProfileDrawer(),
       appBar: WebTopNav(
         selectedIndex: null,
@@ -341,7 +341,7 @@ class _BrandProductsPageState extends State<BrandProductsPage> {
                 child: Icon(
                   Icons.chevron_right,
                   size: 16,
-                  color: ColorResource.textLight,
+                  color: context.textLight,
                 ),
               ),
               Flexible(
@@ -351,7 +351,7 @@ class _BrandProductsPageState extends State<BrandProductsPage> {
                   overflow: TextOverflow.ellipsis,
                   style: poppinsMedium.copyWith(
                     fontSize: Constants.fontSizeSmall,
-                    color: ColorResource.textSecondary,
+                    color: context.textSecondary,
                   ),
                 ),
               ),
@@ -456,7 +456,7 @@ class _BrandProductsPageState extends State<BrandProductsPage> {
             'loading_products'.tr,
             style: poppinsMedium.copyWith(
               fontSize: Constants.fontSizeDefault,
-              color: ColorResource.textSecondary,
+              color: context.textSecondary,
             ),
           ),
         ],
@@ -478,7 +478,7 @@ class _BrandProductsPageState extends State<BrandProductsPage> {
               textAlign: TextAlign.center,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textSecondary,
+                color: context.textSecondary,
               ),
             ),
             const SizedBox(height: 32),
@@ -519,7 +519,7 @@ class _BrandProductsPageState extends State<BrandProductsPage> {
               child: Icon(
                 Icons.storefront_outlined,
                 size: 60,
-                color: ColorResource.textLight,
+                color: context.textLight,
               ),
             ),
             const SizedBox(height: 24),
@@ -527,7 +527,7 @@ class _BrandProductsPageState extends State<BrandProductsPage> {
               'no_products_found'.tr,
               style: poppinsBold.copyWith(
                 fontSize: 24,
-                color: ColorResource.textPrimary,
+                color: context.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -536,7 +536,7 @@ class _BrandProductsPageState extends State<BrandProductsPage> {
               textAlign: TextAlign.center,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textSecondary,
+                color: context.textSecondary,
                 height: 1.5,
               ),
             ),

@@ -41,7 +41,7 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
       canPop: false,
       child: Scaffold(
         key: _webScaffoldKey,
-        backgroundColor: ColorResource.scaffoldBackground,
+        backgroundColor: context.scaffoldBackground,
         endDrawer: useWebShell ? const WebProfileDrawer() : null,
         appBar: useWebShell
             ? WebTopNav(
@@ -67,7 +67,7 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                     colors: [
                       ColorResource.primaryDark,
                       ColorResource.primaryMedium,
-                      ColorResource.scaffoldBackground,
+                      context.scaffoldBackground,
                     ],
                     stops: const [0, 0.65, 1],
                   ),
@@ -178,7 +178,7 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(22, 28, 22, 24),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
@@ -196,7 +196,7 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
             'order_placed_successfully'.tr,
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeOverLarge + 4,
-              color: ColorResource.textPrimary,
+              color: context.textPrimary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -205,7 +205,7 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
             'thank_you_for_your_order'.tr,
             style: poppinsRegular.copyWith(
               fontSize: Constants.fontSizeDefault,
-              color: ColorResource.textSecondary,
+              color: context.textSecondary,
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -215,7 +215,7 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
             width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: ColorResource.scaffoldBackground,
+              color: context.scaffoldBackground,
               borderRadius: BorderRadius.circular(18),
             ),
             child: Column(
@@ -224,7 +224,7 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                   'order_number'.tr,
                   style: poppinsRegular.copyWith(
                     fontSize: Constants.fontSizeSmall,
-                    color: ColorResource.textSecondary,
+                    color: context.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -249,7 +249,7 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(24),
         boxShadow: ColorResource.customShadow,
       ),
@@ -260,7 +260,7 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
             'Order summary',
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeLarge,
-              color: ColorResource.textPrimary,
+              color: context.textPrimary,
             ),
           ),
           const SizedBox(height: 18),
@@ -310,7 +310,7 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                         'What happens next?',
                         style: poppinsBold.copyWith(
                           fontSize: Constants.fontSizeDefault,
-                          color: ColorResource.textPrimary,
+                          color: context.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -318,7 +318,7 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                         'You can track progress from your orders page once the restaurant starts preparing it.',
                         style: poppinsRegular.copyWith(
                           fontSize: Constants.fontSizeSmall,
-                          color: ColorResource.textSecondary,
+                          color: context.textSecondary,
                           height: 1.45,
                         ),
                       ),
@@ -374,7 +374,7 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                   'Your receipt is ready',
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeDefault,
-                    color: ColorResource.textPrimary,
+                    color: context.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -382,7 +382,7 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                   'Review order details, payment, and delivery updates anytime from My Orders.',
                   style: poppinsRegular.copyWith(
                     fontSize: Constants.fontSizeSmall,
-                    color: ColorResource.textSecondary,
+                    color: context.textSecondary,
                     height: 1.45,
                   ),
                 ),
@@ -424,14 +424,14 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
                 label,
                 style: poppinsRegular.copyWith(
                   fontSize: Constants.fontSizeSmall,
-                  color: ColorResource.textSecondary,
+                  color: context.textSecondary,
                 ),
               ),
               Text(
                 value,
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeDefault,
-                  color: valueColor ?? ColorResource.textPrimary,
+                  color: valueColor ?? context.textPrimary,
                 ),
               ),
             ],

@@ -9,7 +9,7 @@ class MenuPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       appBar: AppBar(
         title: Text(
           'Menu',
@@ -28,14 +28,14 @@ class MenuPage extends StatelessWidget {
             Icon(
               Icons.restaurant_menu,
               size: 80,
-              color: ColorResource.textLight,
+              color: context.textLight,
             ),
             const SizedBox(height: 20),
             Text(
               'Menu Page',
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeExtraLarge,
-                color: ColorResource.textPrimary,
+                color: context.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
@@ -43,7 +43,7 @@ class MenuPage extends StatelessWidget {
               'Categories and dishes will appear here',
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textSecondary,
+                color: context.textSecondary,
               ),
             ),
           ],

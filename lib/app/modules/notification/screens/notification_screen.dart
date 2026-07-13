@@ -29,7 +29,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       appBar: CustomAppbar(
         title: 'notifications_title'.tr,
         actions: [
@@ -115,8 +115,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: notification.isRead
-                ? ColorResource.cardBackground
-                : ColorResource.cardBackground,
+                ? context.cardBackground
+                : context.cardBackground,
             borderRadius: BorderRadius.circular(Constants.radiusLarge),
             boxShadow: ColorResource.customShadow,
             border: notification.isRead
@@ -145,7 +145,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             notification.title,
                             style: (notification.isRead ? poppinsMedium : poppinsBold).copyWith(
                               fontSize: Constants.fontSizeDefault,
-                              color: ColorResource.textPrimary,
+                              color: context.textPrimary,
                             ),
                           ),
                         ),
@@ -168,7 +168,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       overflow: TextOverflow.ellipsis,
                       style: poppinsRegular.copyWith(
                         fontSize: Constants.fontSizeSmall,
-                        color: ColorResource.textSecondary,
+                        color: context.textSecondary,
                         height: 1.4,
                       ),
                     ),
@@ -177,7 +177,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       timeago.format(notification.createdAt),
                       style: poppinsRegular.copyWith(
                         fontSize: Constants.fontSizeSmall - 1,
-                        color: ColorResource.textLight,
+                        color: context.textLight,
                       ),
                     ),
                   ],
@@ -239,7 +239,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
         boxShadow: ColorResource.customShadow,
       ),
@@ -249,7 +249,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: ColorResource.textLight.withValues(alpha: 0.2),
+              color: context.textLight.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(Constants.radiusDefault),
             ),
           ),
@@ -262,7 +262,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   height: 16,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: ColorResource.textLight.withValues(alpha: 0.2),
+                    color: context.textLight.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -271,7 +271,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   height: 14,
                   width: 200,
                   decoration: BoxDecoration(
-                    color: ColorResource.textLight.withValues(alpha: 0.2),
+                    color: context.textLight.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -280,7 +280,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   height: 12,
                   width: 80,
                   decoration: BoxDecoration(
-                    color: ColorResource.textLight.withValues(alpha: 0.2),
+                    color: context.textLight.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -317,7 +317,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               'notifications_empty'.tr,
               style: poppinsBold.copyWith(
                 fontSize: 24,
-                color: ColorResource.textPrimary,
+                color: context.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -326,7 +326,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               textAlign: TextAlign.center,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textSecondary,
+                color: context.textSecondary,
                 height: 1.5,
               ),
             ),

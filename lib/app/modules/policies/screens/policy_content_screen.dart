@@ -18,7 +18,7 @@ class PolicyContentScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       body: CustomScrollView(
         slivers: [
           // Gradient App Bar

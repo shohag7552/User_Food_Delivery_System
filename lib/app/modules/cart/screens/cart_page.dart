@@ -38,7 +38,7 @@ class _CartPageState extends State<CartPage> {
         WebTopNav.isEnabled(context) && !Navigator.of(context).canPop();
 
     return Scaffold(
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       appBar: hideAppBar
           ? null
           : AppBar(
@@ -105,14 +105,14 @@ class _CartPageState extends State<CartPage> {
           Icon(
             Icons.shopping_cart_outlined,
             size: 100,
-            color: ColorResource.textLight,
+            color: context.textLight,
           ),
           const SizedBox(height: 20),
           Text(
             'your_cart_is_empty'.tr,
             style: poppinsBold.copyWith(
               fontSize: 24,
-              color: ColorResource.textPrimary,
+              color: context.textPrimary,
             ),
           ),
           const SizedBox(height: 12),
@@ -120,7 +120,7 @@ class _CartPageState extends State<CartPage> {
             'add_items_to_get_started'.tr,
             style: poppinsRegular.copyWith(
               fontSize: Constants.fontSizeDefault,
-              color: ColorResource.textSecondary,
+              color: context.textSecondary,
             ),
           ),
         ],
@@ -191,7 +191,7 @@ class _CartPageState extends State<CartPage> {
           'cart'.tr,
           style: poppinsBold.copyWith(
             fontSize: Constants.fontSizeOverLarge,
-            color: ColorResource.textPrimary,
+            color: context.textPrimary,
           ),
         ),
         const SizedBox(width: 10),
@@ -199,7 +199,7 @@ class _CartPageState extends State<CartPage> {
           '($count)',
           style: poppinsMedium.copyWith(
             fontSize: Constants.fontSizeLarge,
-            color: ColorResource.textSecondary,
+            color: context.textSecondary,
           ),
         ),
       ],
@@ -210,7 +210,7 @@ class _CartPageState extends State<CartPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
         boxShadow: ColorResource.customShadow,
       ),
@@ -221,7 +221,7 @@ class _CartPageState extends State<CartPage> {
             'order_summary'.tr,
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeLarge,
-              color: ColorResource.textPrimary,
+              color: context.textPrimary,
             ),
           ),
           const SizedBox(height: 16),
@@ -329,12 +329,12 @@ class _CartPageState extends State<CartPage> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: ColorResource.cardBackground,
+              color: context.cardBackground,
               borderRadius: BorderRadius.circular(Constants.radiusLarge),
               border: Border.all(
                 color: isDark
                     ? Colors.white.withValues(alpha: 0.08)
-                    : ColorResource.textLight.withValues(alpha: 0.12),
+                    : context.textLight.withValues(alpha: 0.12),
               ),
               boxShadow: [
                 BoxShadow(
@@ -383,7 +383,7 @@ class _CartPageState extends State<CartPage> {
                               item.productName,
                               style: poppinsBold.copyWith(
                                 fontSize: 15,
-                                color: ColorResource.textPrimary,
+                                color: context.textPrimary,
                               ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
@@ -413,7 +413,7 @@ class _CartPageState extends State<CartPage> {
                               .join(', '),
                           style: poppinsRegular.copyWith(
                             fontSize: 12.5,
-                            color: ColorResource.textSecondary,
+                            color: context.textSecondary,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -442,11 +442,11 @@ class _CartPageState extends State<CartPage> {
                                           overflow: TextOverflow.ellipsis,
                                           style: poppinsRegular.copyWith(
                                             fontSize: Constants.fontSizeSmall,
-                                            color: ColorResource.textLight,
+                                            color: context.textLight,
                                             decoration:
                                                 TextDecoration.lineThrough,
                                             decorationColor:
-                                                ColorResource.textLight,
+                                                context.textLight,
                                           ),
                                         ),
                                       ),
@@ -489,12 +489,12 @@ class _CartPageState extends State<CartPage> {
                           // Quantity stepper
                           Container(
                             decoration: BoxDecoration(
-                              color: ColorResource.scaffoldBackground,
+                              color: context.scaffoldBackground,
                               borderRadius: BorderRadius.circular(
                                 Constants.radiusDefault,
                               ),
                               border: Border.all(
-                                color: ColorResource.textLight.withValues(
+                                color: context.textLight.withValues(
                                   alpha: 0.15,
                                 ),
                               ),
@@ -515,7 +515,7 @@ class _CartPageState extends State<CartPage> {
                                     '${item.quantity}',
                                     style: poppinsBold.copyWith(
                                       fontSize: Constants.fontSizeDefault,
-                                      color: ColorResource.textPrimary,
+                                      color: context.textPrimary,
                                     ),
                                   ),
                                 ),
@@ -564,12 +564,12 @@ class _CartPageState extends State<CartPage> {
         decoration: BoxDecoration(
           color: enabled
               ? ColorResource.primaryDark
-              : ColorResource.textLight.withValues(alpha: 0.2),
+              : context.textLight.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(Constants.radiusDefault),
         ),
         child: Icon(
           icon,
-          color: enabled ? ColorResource.textWhite : ColorResource.textLight,
+          color: enabled ? ColorResource.textWhite : context.textLight,
           size: 18,
         ),
       ),
@@ -580,7 +580,7 @@ class _CartPageState extends State<CartPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         boxShadow: [
           BoxShadow(
             color: ColorResource.shadowMedium,
@@ -599,7 +599,7 @@ class _CartPageState extends State<CartPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  border: Border.all(color: ColorResource.textLight.withOpacity(0.2)),
+                  border: Border.all(color: context.textLight.withOpacity(0.2)),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -608,7 +608,7 @@ class _CartPageState extends State<CartPage> {
                     Text(
                       controller.appliedCoupon!.code,
                       style: poppinsMedium.copyWith(
-                        color: ColorResource.textPrimary,
+                        color: context.textPrimary,
                         fontSize: 14,
                       ),
                     ),
@@ -683,7 +683,7 @@ class _CartPageState extends State<CartPage> {
                             'total'.tr,
                             style: poppinsBold.copyWith(
                               fontSize: Constants.fontSizeLarge,
-                              color: ColorResource.textPrimary,
+                              color: context.textPrimary,
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -774,14 +774,14 @@ class _CartPageState extends State<CartPage> {
         Text(
           label,
           style: isTotal 
-            ? poppinsBold.copyWith(fontSize: Constants.fontSizeLarge, color: ColorResource.textPrimary)
-            : poppinsRegular.copyWith(fontSize: Constants.fontSizeDefault, color: ColorResource.textSecondary),
+            ? poppinsBold.copyWith(fontSize: Constants.fontSizeLarge, color: context.textPrimary)
+            : poppinsRegular.copyWith(fontSize: Constants.fontSizeDefault, color: context.textSecondary),
         ),
         Text(
           CurrencyHelper.formatAmount(amount),
           style: isTotal
             ? poppinsBold.copyWith(fontSize: Constants.fontSizeLarge, color: ColorResource.primaryDark)
-            : poppinsBold.copyWith(fontSize: Constants.fontSizeDefault, color: ColorResource.textPrimary),
+            : poppinsBold.copyWith(fontSize: Constants.fontSizeDefault, color: context.textPrimary),
         ),
       ],
     );

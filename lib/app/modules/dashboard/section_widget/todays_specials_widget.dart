@@ -39,7 +39,7 @@ class TodaysSpecialsWidget extends StatelessWidget {
                     'todays_specials'.tr,
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeExtraLarge,
-                      color: ColorResource.textPrimary,
+                      color: context.textPrimary,
                     ),
                   ),
                 ],
@@ -68,7 +68,7 @@ class TodaysSpecialsWidget extends StatelessWidget {
                         'failed_to_load_specials'.tr,
                         style: poppinsMedium.copyWith(
                           fontSize: Constants.fontSizeDefault,
-                          color: ColorResource.textSecondary,
+                          color: context.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -96,7 +96,7 @@ class TodaysSpecialsWidget extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.restaurant_menu,
-                        color: ColorResource.textLight,
+                        color: context.textLight,
                         size: 48,
                       ),
                       const SizedBox(height: 12),
@@ -104,7 +104,7 @@ class TodaysSpecialsWidget extends StatelessWidget {
                         'no_specials_available_today'.tr,
                         style: poppinsMedium.copyWith(
                           fontSize: Constants.fontSizeDefault,
-                          color: ColorResource.textSecondary,
+                          color: context.textSecondary,
                         ),
                       ),
                     ],

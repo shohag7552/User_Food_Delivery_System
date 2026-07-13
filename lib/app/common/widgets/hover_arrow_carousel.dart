@@ -88,7 +88,7 @@ class _HoverArrowsState extends State<HoverArrows> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Material(
-              color: ColorResource.cardBackground,
+              color: context.cardBackground,
               shape: const CircleBorder(),
               elevation: 3,
               shadowColor: Colors.black.withValues(alpha: 0.2),

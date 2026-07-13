@@ -137,7 +137,7 @@ class _FloatingModuleSwitcherState extends State<FloatingModuleSwitcher> {
       margin: const EdgeInsets.only(right: 8),
       padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(999),
         boxShadow: [
           BoxShadow(
@@ -200,7 +200,7 @@ class _FloatingModuleSwitcherState extends State<FloatingModuleSwitcher> {
           decoration: BoxDecoration(
             color: selected
                 ? ColorResource.primaryDark
-                : ColorResource.scaffoldBackground,
+                : context.scaffoldBackground,
             borderRadius: BorderRadius.circular(999),
           ),
           child: Row(
@@ -211,7 +211,7 @@ class _FloatingModuleSwitcherState extends State<FloatingModuleSwitcher> {
                 size: 16,
                 color: selected
                     ? ColorResource.textWhite
-                    : ColorResource.textSecondary,
+                    : context.textSecondary,
               ),
               const SizedBox(width: 6),
               Text(
@@ -220,7 +220,7 @@ class _FloatingModuleSwitcherState extends State<FloatingModuleSwitcher> {
                   fontSize: Constants.fontSizeSmall,
                   color: selected
                       ? ColorResource.textWhite
-                      : ColorResource.textSecondary,
+                      : context.textSecondary,
                 ),
               ),
             ],

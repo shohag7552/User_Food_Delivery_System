@@ -135,7 +135,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
     final isEditing = widget.address != null;
 
     return Scaffold(
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       appBar: CustomAppbar(
         title: isEditing ? 'edit_address'.tr : 'add_address'.tr,
       ),
@@ -149,7 +149,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
               'location_map'.tr,
               style: poppinsMedium.copyWith(
                 fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textPrimary,
+                color: context.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
@@ -360,7 +360,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
                 'set_as_default_address'.tr,
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeDefault,
-                  color: ColorResource.textPrimary,
+                  color: context.textPrimary,
                 ),
               ),
               activeColor: ColorResource.primaryDark,

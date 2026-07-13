@@ -81,7 +81,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
     return Scaffold(
       key: _webScaffoldKey,
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       endDrawer: showWebNav ? const WebProfileDrawer() : null,
       appBar: showWebNav
           ? WebTopNav(
@@ -145,14 +145,14 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     Icon(
                       Icons.receipt_long_outlined,
                       size: 64,
-                      color: ColorResource.textLight,
+                      color: context.textLight,
                     ),
                     const SizedBox(height: 16),
                     Text(
                       'unable_to_load_order_details'.tr,
                       style: poppinsBold.copyWith(
                         fontSize: Constants.fontSizeLarge,
-                        color: ColorResource.textPrimary,
+                        color: context.textPrimary,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -161,7 +161,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                       'pull_to_refresh_or_try_again'.tr,
                       style: poppinsRegular.copyWith(
                         fontSize: Constants.fontSizeDefault,
-                        color: ColorResource.textSecondary,
+                        color: context.textSecondary,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -405,7 +405,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
         boxShadow: ColorResource.customShadow,
       ),
@@ -444,7 +444,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           label,
           style: poppinsRegular.copyWith(
             fontSize: Constants.fontSizeSmall,
-            color: ColorResource.textSecondary,
+            color: context.textSecondary,
           ),
         ),
         const SizedBox(height: 4),
@@ -452,7 +452,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           value,
           style: poppinsBold.copyWith(
             fontSize: Constants.fontSizeDefault,
-            color: ColorResource.textPrimary,
+            color: context.textPrimary,
           ),
         ),
       ],
@@ -465,7 +465,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
         boxShadow: ColorResource.customShadow,
       ),
@@ -478,7 +478,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               'order_items'.tr,
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeLarge,
-                color: ColorResource.textPrimary,
+                color: context.textPrimary,
               ),
             ),
           ),
@@ -505,7 +505,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: ColorResource.scaffoldBackground,
+        color: context.scaffoldBackground,
         borderRadius: BorderRadius.circular(Constants.radiusDefault),
         border: Border.all(color: Colors.grey.shade200),
       ),
@@ -533,7 +533,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   item.productName,
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeDefault,
-                    color: ColorResource.textPrimary,
+                    color: context.textPrimary,
                   ),
                 ),
                 if (item.selectedVariants.isNotEmpty) ...[
@@ -578,9 +578,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                 PriceHelper.formatPrice(item.basePrice),
                                 style: poppinsRegular.copyWith(
                                   fontSize: Constants.fontSizeExtraSmall,
-                                  color: ColorResource.textLight,
+                                  color: context.textLight,
                                   decoration: TextDecoration.lineThrough,
-                                  decorationColor: ColorResource.textLight,
+                                  decorationColor: context.textLight,
                                 ),
                               ),
                               const SizedBox(width: 6),
@@ -605,7 +605,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                           '${PriceHelper.formatPrice(item.price)} × ${item.quantity}',
                           style: poppinsRegular.copyWith(
                             fontSize: Constants.fontSizeSmall,
-                            color: ColorResource.textSecondary,
+                            color: context.textSecondary,
                           ),
                         ),
                       ],
@@ -768,7 +768,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
         boxShadow: ColorResource.customShadow,
       ),
@@ -787,7 +787,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 'delivery_address'.tr,
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeLarge,
-                  color: ColorResource.textPrimary,
+                  color: context.textPrimary,
                 ),
               ),
             ],
@@ -796,7 +796,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: ColorResource.scaffoldBackground,
+              color: context.scaffoldBackground,
               borderRadius: BorderRadius.circular(Constants.radiusDefault),
               border: Border.all(color: Colors.grey.shade200),
             ),
@@ -804,7 +804,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               children: [
                 Icon(
                   Icons.home_outlined,
-                  color: ColorResource.textSecondary,
+                  color: context.textSecondary,
                   size: 20,
                 ),
                 const SizedBox(width: 12),
@@ -813,7 +813,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     order.address.street,
                     style: poppinsRegular.copyWith(
                       fontSize: Constants.fontSizeDefault,
-                      color: ColorResource.textPrimary,
+                      color: context.textPrimary,
                       height: 1.5,
                     ),
                   ),
@@ -883,7 +883,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
         boxShadow: ColorResource.customShadow,
       ),
@@ -902,7 +902,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 'payment_info'.tr,
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeLarge,
-                  color: ColorResource.textPrimary,
+                  color: context.textPrimary,
                 ),
               ),
             ],
@@ -911,7 +911,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: ColorResource.scaffoldBackground,
+              color: context.scaffoldBackground,
               borderRadius: BorderRadius.circular(Constants.radiusDefault),
               border: Border.all(color: Colors.grey.shade200),
             ),
@@ -934,7 +934,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                             'payment_method'.tr,
                             style: poppinsRegular.copyWith(
                               fontSize: Constants.fontSizeSmall,
-                              color: ColorResource.textSecondary,
+                              color: context.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -942,7 +942,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                             methodLabel,
                             style: poppinsBold.copyWith(
                               fontSize: Constants.fontSizeDefault,
-                              color: ColorResource.textPrimary,
+                              color: context.textPrimary,
                             ),
                           ),
                         ],
@@ -970,7 +970,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                             'payment_status'.tr,
                             style: poppinsRegular.copyWith(
                               fontSize: Constants.fontSizeSmall,
-                              color: ColorResource.textSecondary,
+                              color: context.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -978,7 +978,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                             statusLabel,
                             style: poppinsBold.copyWith(
                               fontSize: Constants.fontSizeDefault,
-                              color: ColorResource.textPrimary,
+                              color: context.textPrimary,
                             ),
                           ),
                         ],
@@ -1027,7 +1027,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
         boxShadow: ColorResource.customShadow,
       ),
@@ -1038,7 +1038,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             'payment_summary'.tr,
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeLarge,
-              color: ColorResource.textPrimary,
+              color: context.textPrimary,
             ),
           ),
           const SizedBox(height: 16),
@@ -1073,7 +1073,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
         boxShadow: ColorResource.customShadow,
       ),
@@ -1093,7 +1093,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   'deliveryman'.tr,
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeLarge,
-                    color: ColorResource.textPrimary,
+                    color: context.textPrimary,
                   ),
                 ),
               ),
@@ -1103,7 +1103,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: ColorResource.scaffoldBackground,
+              color: context.scaffoldBackground,
               borderRadius: BorderRadius.circular(Constants.radiusDefault),
               border: Border.all(color: Colors.grey.shade200),
             ),
@@ -1144,7 +1144,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                             : 'deliveryman'.tr,
                         style: poppinsBold.copyWith(
                           fontSize: Constants.fontSizeDefault,
-                          color: ColorResource.textPrimary,
+                          color: context.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -1154,7 +1154,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                             : 'phone_number_not_available'.tr,
                         style: poppinsRegular.copyWith(
                           fontSize: Constants.fontSizeDefault,
-                          color: ColorResource.textSecondary,
+                          color: context.textSecondary,
                         ),
                       ),
                     ],
@@ -1178,7 +1178,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             fontSize: isTotal
                 ? Constants.fontSizeLarge
                 : Constants.fontSizeDefault,
-            color: isDiscount ? Colors.green.shade700 : ColorResource.textPrimary,
+            color: isDiscount ? Colors.green.shade700 : context.textPrimary,
           ),
         ),
         Text(
@@ -1191,7 +1191,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 : Constants.fontSizeLarge,
             color: isDiscount
                 ? Colors.green.shade700
-                : (isTotal ? ColorResource.primaryDark : ColorResource.textPrimary),
+                : (isTotal ? ColorResource.primaryDark : context.textPrimary),
           ),
         ),
       ],
@@ -1216,7 +1216,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
         boxShadow: ColorResource.customShadow,
       ),
@@ -1227,7 +1227,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             'order_status'.tr,
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeLarge,
-              color: ColorResource.textPrimary,
+              color: context.textPrimary,
             ),
           ),
           const SizedBox(height: 16),
@@ -1246,12 +1246,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                         decoration: BoxDecoration(
                           color: done
                               ? ColorResource.primaryDark
-                              : ColorResource.scaffoldBackground,
+                              : context.scaffoldBackground,
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: done
                                 ? ColorResource.primaryDark
-                                : ColorResource.textLight
+                                : context.textLight
                                     .withValues(alpha: 0.4),
                             width: 1.5,
                           ),
@@ -1261,7 +1261,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                           size: done ? 15 : 8,
                           color: done
                               ? ColorResource.textWhite
-                              : ColorResource.textLight,
+                              : context.textLight,
                         ),
                       ),
                       if (!isLast)
@@ -1270,7 +1270,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                             width: 2,
                             color: i < current
                                 ? ColorResource.primaryDark
-                                : ColorResource.textLight
+                                : context.textLight
                                     .withValues(alpha: 0.25),
                           ),
                         ),
@@ -1284,11 +1284,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                       style: done
                           ? poppinsBold.copyWith(
                               fontSize: Constants.fontSizeDefault,
-                              color: ColorResource.textPrimary,
+                              color: context.textPrimary,
                             )
                           : poppinsRegular.copyWith(
                               fontSize: Constants.fontSizeDefault,
-                              color: ColorResource.textSecondary,
+                              color: context.textSecondary,
                             ),
                     ),
                   ),
@@ -1323,7 +1323,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
         boxShadow: ColorResource.customShadow,
       ),
@@ -1342,7 +1342,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 'tracking_info'.tr,
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeLarge,
-                  color: ColorResource.textPrimary,
+                  color: context.textPrimary,
                 ),
               ),
             ],
@@ -1367,7 +1367,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               label,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeSmall,
-                color: ColorResource.textSecondary,
+                color: context.textSecondary,
               ),
             ),
           ),
@@ -1376,7 +1376,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               value,
               style: poppinsMedium.copyWith(
                 fontSize: Constants.fontSizeDefault,
-                color: ColorResource.textPrimary,
+                color: context.textPrimary,
               ),
             ),
           ),
@@ -1518,7 +1518,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),
@@ -1615,7 +1615,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'close'.tr,
-              style: poppinsMedium.copyWith(color: ColorResource.textSecondary),
+              style: poppinsMedium.copyWith(color: context.textSecondary),
             ),
           ),
           ElevatedButton(

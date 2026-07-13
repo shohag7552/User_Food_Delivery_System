@@ -39,7 +39,7 @@ class FlashSaleItemCard extends StatelessWidget {
       ),
       child: Container(
         decoration: BoxDecoration(
-          color: ColorResource.cardBackground,
+          color: context.cardBackground,
           borderRadius: BorderRadius.circular(Constants.radiusLarge),
           boxShadow: ColorResource.customShadow,
         ),
@@ -109,7 +109,7 @@ class FlashSaleItemCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: poppinsMedium.copyWith(
                       fontSize: Constants.fontSizeDefault,
-                      color: ColorResource.textPrimary,
+                      color: context.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -132,7 +132,7 @@ class FlashSaleItemCard extends StatelessWidget {
                                 PriceHelper.formatPrice(product.price),
                                 style: poppinsRegular.copyWith(
                                   fontSize: Constants.fontSizeSmall,
-                                  color: ColorResource.textLight,
+                                  color: context.textLight,
                                   decoration: TextDecoration.lineThrough,
                                 ),
                               ),
@@ -148,7 +148,7 @@ class FlashSaleItemCard extends StatelessWidget {
                             gradient:
                                 soldOut ? null : ColorResource.primaryGradient,
                             color: soldOut
-                                ? ColorResource.textLight
+                                ? context.textLight
                                     .withValues(alpha: 0.3)
                                 : null,
                             borderRadius: BorderRadius.circular(

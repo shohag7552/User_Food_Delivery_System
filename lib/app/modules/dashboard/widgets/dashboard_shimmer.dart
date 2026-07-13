@@ -47,9 +47,9 @@ class _DashboardShimmerState extends State<DashboardShimmer>
                 begin: Alignment(-1.2 + (_controller.value * 2.4), -0.2),
                 end: Alignment(1.2 + (_controller.value * 2.4), 0.2),
                 colors: [
-                  ColorResource.textLight.withValues(alpha: 0.10),
-                  ColorResource.textLight.withValues(alpha: 0.22),
-                  ColorResource.textLight.withValues(alpha: 0.10),
+                  context.textLight.withValues(alpha: 0.10),
+                  context.textLight.withValues(alpha: 0.22),
+                  context.textLight.withValues(alpha: 0.10),
                 ],
                 stops: const [0.1, 0.5, 0.9],
               ).createShader(bounds);
@@ -86,7 +86,7 @@ class ShimmerBox extends StatelessWidget {
       height: height,
       margin: margin,
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: radius,
       ),
     );
@@ -107,7 +107,7 @@ class BannerShimmer extends StatelessWidget {
         child: Container(
           height: 160,
           decoration: BoxDecoration(
-            color: ColorResource.cardBackground,
+            color: context.cardBackground,
             borderRadius: radius,
             boxShadow: [
               BoxShadow(
@@ -127,8 +127,8 @@ class BannerShimmer extends StatelessWidget {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        ColorResource.textLight.withValues(alpha: 0.08),
-                        ColorResource.textLight.withValues(alpha: 0.18),
+                        context.textLight.withValues(alpha: 0.08),
+                        context.textLight.withValues(alpha: 0.18),
                       ],
                     ),
                   ),
@@ -177,9 +177,9 @@ class CategorySectionShimmer extends StatelessWidget {
             child: Container(
               width: 70,
               decoration: BoxDecoration(
-                color: ColorResource.cardBackground,
+                color: context.cardBackground,
                 border: Border.all(
-                  color: ColorResource.textLight.withValues(alpha: 0.12),
+                  color: context.textLight.withValues(alpha: 0.12),
                 ),
                 borderRadius: BorderRadius.circular(Constants.radiusLarge),
               ),
@@ -240,7 +240,7 @@ class HorizontalFoodListShimmer extends StatelessWidget {
           child: Container(
             width: cardWidth,
             decoration: BoxDecoration(
-              color: ColorResource.cardBackground,
+              color: context.cardBackground,
               borderRadius: BorderRadius.circular(28),
               boxShadow: [
                 BoxShadow(
@@ -353,7 +353,7 @@ class AllProductsGridShimmer extends StatelessWidget {
             borderRadius: BorderRadius.circular(Constants.radiusLarge),
             child: Container(
               decoration: BoxDecoration(
-                color: ColorResource.cardBackground,
+                color: context.cardBackground,
                 borderRadius: BorderRadius.circular(Constants.radiusLarge),
               ),
               child: Column(
@@ -401,7 +401,7 @@ class LoadMoreShimmer extends StatelessWidget {
         width: 120,
         height: 14,
         decoration: BoxDecoration(
-          color: ColorResource.cardBackground,
+          color: context.cardBackground,
           borderRadius: BorderRadius.circular(999),
         ),
       ),

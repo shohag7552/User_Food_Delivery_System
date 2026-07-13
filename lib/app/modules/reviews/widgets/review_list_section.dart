@@ -58,7 +58,7 @@ class ReviewListSection extends StatelessWidget {
                   'Reviews ($reviewCount)',
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeLarge,
-                    color: ColorResource.textPrimary,
+                    color: context.textPrimary,
                   ),
                 ),
               ],

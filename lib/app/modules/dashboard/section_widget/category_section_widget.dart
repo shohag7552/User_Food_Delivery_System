@@ -35,7 +35,7 @@ class CategorySectionWidget extends StatelessWidget {
                     'menu_categories'.tr,
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeExtraLarge,
-                      color: ColorResource.textPrimary,
+                      color: context.textPrimary,
                     ),
                   ),
                   TextButton(
@@ -85,7 +85,7 @@ class CategorySectionWidget extends StatelessWidget {
                     'no_categories_available'.tr,
                     style: poppinsRegular.copyWith(
                       fontSize: Constants.fontSizeDefault,
-                      color: ColorResource.textLight,
+                      color: context.textLight,
                     ),
                   ),
                 ),
@@ -251,7 +251,7 @@ class CategorySectionWidget extends StatelessWidget {
                           height: double.infinity,
                         )
                       : Container(
-                          color: ColorResource.cardBackground,
+                          color: context.cardBackground,
                           alignment: Alignment.center,
                           child: Icon(
                             Icons.restaurant_menu,

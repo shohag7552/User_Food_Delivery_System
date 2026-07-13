@@ -101,7 +101,7 @@ class _DashboardStatsCardState extends State<DashboardStatsCard>
                   widget.value,
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeOverLarge,
-                    color: ColorResource.textPrimary,
+                    color: context.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -110,7 +110,7 @@ class _DashboardStatsCardState extends State<DashboardStatsCard>
                   widget.title,
                   style: poppinsRegular.copyWith(
                     fontSize: Constants.fontSizeSmall,
-                    color: ColorResource.textSecondary,
+                    color: context.textSecondary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

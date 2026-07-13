@@ -77,7 +77,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                           fontSize: Constants.fontSizeLarge,
                           color: isDark
                               ? Colors.white
-                              : ColorResource.textPrimary,
+                              : context.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -86,7 +86,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                         style: poppinsRegular.copyWith(
                           color: isDark
                               ? Colors.white70
-                              : ColorResource.textSecondary,
+                              : context.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -272,7 +272,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                   transaction.title,
                   style: poppinsMedium.copyWith(
                     fontSize: Constants.fontSizeLarge,
-                    color: isDark ? Colors.white : ColorResource.textPrimary,
+                    color: isDark ? Colors.white : context.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -281,7 +281,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                   style: poppinsRegular.copyWith(
                     color: isDark
                         ? Colors.white70
-                        : ColorResource.textSecondary,
+                        : context.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -291,7 +291,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                   ).format(transaction.createdAt),
                   style: poppinsRegular.copyWith(
                     fontSize: Constants.fontSizeSmall,
-                    color: isDark ? Colors.white54 : ColorResource.textLight,
+                    color: isDark ? Colors.white54 : context.textLight,
                   ),
                 ),
               ],
@@ -313,7 +313,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                 'points',
                 style: poppinsRegular.copyWith(
                   fontSize: Constants.fontSizeSmall,
-                  color: isDark ? Colors.white54 : ColorResource.textLight,
+                  color: isDark ? Colors.white54 : context.textLight,
                 ),
               ),
             ],
@@ -360,14 +360,14 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                     Text(
                       'Available points: ${NumberFormat.decimalPattern().format(totalPoints)}',
                       style: poppinsMedium.copyWith(
-                        color: ColorResource.textPrimary,
+                        color: context.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       'Conversion rate: $walletConversionRate points = ${CurrencyHelper.formatAmount(1)}',
                       style: poppinsRegular.copyWith(
-                        color: ColorResource.textSecondary,
+                        color: context.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -410,7 +410,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                             'You will receive',
                             style: poppinsRegular.copyWith(
                               fontSize: Constants.fontSizeSmall,
-                              color: ColorResource.textSecondary,
+                              color: context.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -433,7 +433,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                   child: Text(
                     'Cancel',
                     style: poppinsMedium.copyWith(
-                      color: ColorResource.textSecondary,
+                      color: context.textSecondary,
                     ),
                   ),
                 ),
@@ -514,14 +514,14 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
         children: [
           Icon(
             Icons.workspace_premium_outlined,
-            color: isDark ? Colors.white54 : ColorResource.textLight,
+            color: isDark ? Colors.white54 : context.textLight,
             size: 40,
           ),
           const SizedBox(height: 12),
           Text(
             'No loyalty activity yet',
             style: poppinsMedium.copyWith(
-              color: isDark ? Colors.white : ColorResource.textPrimary,
+              color: isDark ? Colors.white : context.textPrimary,
             ),
           ),
           const SizedBox(height: 6),
@@ -529,7 +529,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
             'Delivered orders will appear here with earned points.',
             textAlign: TextAlign.center,
             style: poppinsRegular.copyWith(
-              color: isDark ? Colors.white70 : ColorResource.textSecondary,
+              color: isDark ? Colors.white70 : context.textSecondary,
             ),
           ),
         ],

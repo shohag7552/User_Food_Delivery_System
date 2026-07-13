@@ -42,7 +42,7 @@ class _FlashSaleScreenState extends State<FlashSaleScreen> {
 
   Widget _buildMobileScaffold() {
     return Scaffold(
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       appBar: CustomAppbar(title: 'flash_sale'.tr),
       body: _buildBody(isWide: false),
     );
@@ -51,7 +51,7 @@ class _FlashSaleScreenState extends State<FlashSaleScreen> {
   Widget _buildWebScaffold() {
     return Scaffold(
       key: _webScaffoldKey,
-      backgroundColor: ColorResource.scaffoldBackground,
+      backgroundColor: context.scaffoldBackground,
       appBar: WebTopNav(
         selectedIndex: null,
         onDestinationSelected: (index) {
@@ -90,7 +90,7 @@ class _FlashSaleScreenState extends State<FlashSaleScreen> {
                   'failed_to_load_flash_sale'.tr,
                   style: poppinsMedium.copyWith(
                     fontSize: Constants.fontSizeDefault,
-                    color: ColorResource.textSecondary,
+                    color: context.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -117,14 +117,14 @@ class _FlashSaleScreenState extends State<FlashSaleScreen> {
                 Icon(
                   Icons.flash_off_rounded,
                   size: 64,
-                  color: ColorResource.textLight,
+                  color: context.textLight,
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'flash_sale_ended'.tr,
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeLarge,
-                    color: ColorResource.textPrimary,
+                    color: context.textPrimary,
                   ),
                 ),
               ],

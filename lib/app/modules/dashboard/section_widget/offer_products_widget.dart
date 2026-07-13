@@ -53,7 +53,7 @@ class OfferProductsWidget extends StatelessWidget {
                     'offer_products'.tr,
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeExtraLarge,
-                      color: ColorResource.textPrimary,
+                      color: context.textPrimary,
                     ),
                   ),
                 ],
@@ -82,7 +82,7 @@ class OfferProductsWidget extends StatelessWidget {
                         'failed_to_load_offers'.tr,
                         style: poppinsMedium.copyWith(
                           fontSize: Constants.fontSizeDefault,
-                          color: ColorResource.textSecondary,
+                          color: context.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 8),

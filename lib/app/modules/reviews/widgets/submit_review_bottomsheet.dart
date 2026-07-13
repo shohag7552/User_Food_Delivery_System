@@ -106,7 +106,7 @@ class _SubmitReviewBottomSheetState extends State<SubmitReviewBottomSheet> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(Constants.radiusExtraLarge),
           topRight: Radius.circular(Constants.radiusExtraLarge),
@@ -135,7 +135,7 @@ class _SubmitReviewBottomSheetState extends State<SubmitReviewBottomSheet> {
                           'Write a Review',
                           style: poppinsBold.copyWith(
                             fontSize: Constants.fontSizeExtraLarge,
-                            color: ColorResource.textPrimary,
+                            color: context.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -143,7 +143,7 @@ class _SubmitReviewBottomSheetState extends State<SubmitReviewBottomSheet> {
                           widget.productName,
                           style: poppinsRegular.copyWith(
                             fontSize: Constants.fontSizeSmall,
-                            color: ColorResource.textSecondary,
+                            color: context.textSecondary,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -153,7 +153,7 @@ class _SubmitReviewBottomSheetState extends State<SubmitReviewBottomSheet> {
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: Icon(Icons.close, color: ColorResource.textSecondary),
+                    icon: Icon(Icons.close, color: context.textSecondary),
                   ),
                 ],
               ),
@@ -165,7 +165,7 @@ class _SubmitReviewBottomSheetState extends State<SubmitReviewBottomSheet> {
                 'Your Rating *',
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeDefault,
-                  color: ColorResource.textPrimary,
+                  color: context.textPrimary,
                 ),
               ),
               const SizedBox(height: 12),
@@ -198,7 +198,7 @@ class _SubmitReviewBottomSheetState extends State<SubmitReviewBottomSheet> {
                 'Review Title (Optional)',
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeDefault,
-                  color: ColorResource.textPrimary,
+                  color: context.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -207,10 +207,10 @@ class _SubmitReviewBottomSheetState extends State<SubmitReviewBottomSheet> {
                 decoration: InputDecoration(
                   hintText: 'summarize_your_experience'.tr,
                   hintStyle: poppinsRegular.copyWith(
-                    color: ColorResource.textLight,
+                    color: context.textLight,
                   ),
                   filled: true,
-                  fillColor: ColorResource.scaffoldBackground,
+                  fillColor: context.scaffoldBackground,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(Constants.radiusDefault),
                     borderSide: BorderSide.none,
@@ -227,7 +227,7 @@ class _SubmitReviewBottomSheetState extends State<SubmitReviewBottomSheet> {
                 'Your Review *',
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeDefault,
-                  color: ColorResource.textPrimary,
+                  color: context.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -236,10 +236,10 @@ class _SubmitReviewBottomSheetState extends State<SubmitReviewBottomSheet> {
                 decoration: InputDecoration(
                   hintText: 'share_your_thoughts'.tr,
                   hintStyle: poppinsRegular.copyWith(
-                    color: ColorResource.textLight,
+                    color: context.textLight,
                   ),
                   filled: true,
-                  fillColor: ColorResource.scaffoldBackground,
+                  fillColor: context.scaffoldBackground,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(Constants.radiusDefault),
                     borderSide: BorderSide.none,
@@ -260,7 +260,7 @@ class _SubmitReviewBottomSheetState extends State<SubmitReviewBottomSheet> {
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: ColorResource.primaryDark,
-                    disabledBackgroundColor: ColorResource.textLight.withValues(alpha: 0.3),
+                    disabledBackgroundColor: context.textLight.withValues(alpha: 0.3),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(Constants.radiusLarge),
                     ),

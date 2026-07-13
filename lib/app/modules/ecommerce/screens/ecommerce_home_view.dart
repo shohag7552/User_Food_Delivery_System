@@ -258,10 +258,10 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: ColorResource.cardBackground,
+          color: context.cardBackground,
           borderRadius: BorderRadius.circular(Constants.radiusLarge),
           border: Border.all(
-            color: ColorResource.textLight.withValues(alpha: 0.15),
+            color: context.textLight.withValues(alpha: 0.15),
           ),
         ),
         child: Row(
@@ -296,7 +296,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                 overflow: TextOverflow.ellipsis,
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeDefault,
-                  color: ColorResource.textPrimary,
+                  color: context.textPrimary,
                 ),
               ),
             ),
@@ -359,10 +359,10 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
   Widget _buildWebCategoryList(CategoryController controller) {
     return Container(
       decoration: BoxDecoration(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
         border: Border.all(
-          color: ColorResource.textLight.withValues(alpha: 0.15),
+          color: context.textLight.withValues(alpha: 0.15),
         ),
       ),
       clipBehavior: Clip.antiAlias,
@@ -381,7 +381,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
         height: 1,
         indent: 14,
         endIndent: 14,
-        color: ColorResource.textLight.withValues(alpha: 0.10),
+        color: context.textLight.withValues(alpha: 0.10),
       ),
       itemBuilder: (_, _) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -391,7 +391,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
               width: 30,
               height: 30,
               decoration: BoxDecoration(
-                color: ColorResource.textLight.withValues(alpha: 0.12),
+                color: context.textLight.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
@@ -400,7 +400,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
               child: Container(
                 height: 12,
                 decoration: BoxDecoration(
-                  color: ColorResource.textLight.withValues(alpha: 0.12),
+                  color: context.textLight.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
@@ -410,7 +410,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
               width: 14,
               height: 14,
               decoration: BoxDecoration(
-                color: ColorResource.textLight.withValues(alpha: 0.08),
+                color: context.textLight.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
@@ -435,7 +435,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
               height: 1,
               indent: 14,
               endIndent: 14,
-              color: ColorResource.textLight.withValues(alpha: 0.10),
+              color: context.textLight.withValues(alpha: 0.10),
             ),
             itemBuilder: (context, index) {
               final category = cats[index];
@@ -484,14 +484,14 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                           overflow: TextOverflow.ellipsis,
                           style: poppinsMedium.copyWith(
                             fontSize: Constants.fontSizeDefault,
-                            color: ColorResource.textPrimary,
+                            color: context.textPrimary,
                           ),
                         ),
                       ),
                       Icon(
                         Icons.chevron_right_rounded,
                         size: 18,
-                        color: ColorResource.textLight,
+                        color: context.textLight,
                       ),
                     ],
                   ),
@@ -503,7 +503,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
         if (hasMore) ...[
           Divider(
             height: 1,
-            color: ColorResource.textLight.withValues(alpha: 0.10),
+            color: context.textLight.withValues(alpha: 0.10),
           ),
           InkWell(
             onTap: () {},
@@ -707,7 +707,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         decoration: BoxDecoration(
-          color: ColorResource.cardBackground,
+          color: context.cardBackground,
           borderRadius: BorderRadius.circular(Constants.radiusLarge),
           boxShadow: [
             BoxShadow(
@@ -719,14 +719,14 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
         ),
         child: Row(
           children: [
-            Icon(Icons.search, color: ColorResource.textSecondary),
+            Icon(Icons.search, color: context.textSecondary),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 'search_products'.tr,
                 style: poppinsRegular.copyWith(
                   fontSize: Constants.fontSizeDefault,
-                  color: ColorResource.textLight,
+                  color: context.textLight,
                 ),
               ),
             ),
@@ -860,7 +860,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                             textAlign: TextAlign.center,
                             style: poppinsMedium.copyWith(
                               fontSize: Constants.fontSizeExtraSmall,
-                              color: ColorResource.textPrimary,
+                              color: context.textPrimary,
                             ),
                           ),
                         ],
@@ -900,12 +900,12 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                       width: 110,
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: ColorResource.cardBackground,
+                        color: context.cardBackground,
                         borderRadius: BorderRadius.circular(
                           Constants.radiusLarge,
                         ),
                         border: Border.all(
-                          color: ColorResource.textLight.withValues(
+                          color: context.textLight.withValues(
                             alpha: 0.15,
                           ),
                         ),
@@ -931,7 +931,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                               overflow: TextOverflow.ellipsis,
                               style: poppinsMedium.copyWith(
                                 fontSize: Constants.fontSizeSmall,
-                                color: ColorResource.textPrimary,
+                                color: context.textPrimary,
                               ),
                             ),
                           ),
@@ -1134,7 +1134,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Material(
-        color: ColorResource.cardBackground,
+        color: context.cardBackground,
         shape: const CircleBorder(),
         elevation: 3,
         shadowColor: Colors.black.withValues(alpha: 0.2),
@@ -1192,7 +1192,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                 child: Text(
                   'no_products_available'.tr,
                   style: poppinsMedium.copyWith(
-                    color: ColorResource.textSecondary,
+                    color: context.textSecondary,
                   ),
                 ),
               ),
@@ -1226,7 +1226,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
         title,
         style: poppinsBold.copyWith(
           fontSize: Constants.fontSizeExtraLarge,
-          color: ColorResource.textPrimary,
+          color: context.textPrimary,
         ),
       ),
     );

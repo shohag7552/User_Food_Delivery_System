@@ -191,7 +191,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                       Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: ColorResource.cardBackground
+                          color: context.cardBackground
                               .withValues(alpha: 0.97),
                           borderRadius: BorderRadius.circular(24),
                           boxShadow: [
