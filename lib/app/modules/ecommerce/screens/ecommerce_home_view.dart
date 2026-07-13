@@ -319,7 +319,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
   Widget _buildWebHero(double hPad) {
     return SliverToBoxAdapter(
       child: ColoredBox(
-        color: ColorResource.scaffoldBackground,
+        color: Theme.of(context).scaffoldBackgroundColor,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: double.infinity),

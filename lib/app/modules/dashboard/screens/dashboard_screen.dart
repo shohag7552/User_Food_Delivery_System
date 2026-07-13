@@ -174,7 +174,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         return Scaffold(
           key: _scaffoldKey,
-          backgroundColor: ColorResource.scaffoldBackground,
+          // Inherit the theme's scaffoldBackgroundColor (same value) instead of
+          // a static ColorResource read captured in build(). The ScaffoldState
+          // is a Theme dependent, so the background repaints on a theme toggle
+          // even though this screen's build() doesn't re-run.
           extendBody: true,
           appBar: showWebNav
               ? WebTopNav(

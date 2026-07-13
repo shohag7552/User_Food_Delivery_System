@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
+import 'package:appwrite_user_app/app/controllers/localization_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
@@ -113,12 +114,9 @@ class WebTopNav extends StatelessWidget implements PreferredSizeWidget {
                           3,
                           false,
                         ),
-                        _navItem(
-                          Icons.person_rounded,
-                          'profile'.tr,
-                          4,
-                          false,
-                        ),
+                        // Theme toggle replaces the profile shortcut here —
+                        // profile stays reachable from the menu drawer.
+                        _themeToggle(),
                         Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
@@ -140,6 +138,38 @@ class WebTopNav extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
       ),
+    );
+  }
+
+  /// Light/dark theme switch. Rebuilds on [LocalizationController] so the icon
+  /// and tooltip track the active theme; the label names the mode tapping
+  /// switches *to*.
+  Widget _themeToggle() {
+    return GetBuilder<LocalizationController>(
+      builder: (localizationController) {
+        final isDark = localizationController.darkTheme;
+        return Padding(
+          padding: const EdgeInsets.only(left: 2),
+          child: Tooltip(
+            message: isDark ? 'light_mode'.tr : 'dark_mode'.tr,
+            child: InkWell(
+              onTap: (){
+                localizationController.toggleTheme();
+              },
+              borderRadius: BorderRadius.circular(Constants.radiusLarge),
+              hoverColor: ColorResource.primaryDark.withValues(alpha: 0.06),
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Icon(
+                  isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                  size: 22,
+                  color: ColorResource.textSecondary,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -413,7 +443,10 @@ class _TopNavSearchFieldState extends State<_TopNavSearchField> {
               color: ColorResource.scaffoldBackground,
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
-                color: ColorResource.textLight.withValues(alpha: 0.25),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white.withValues(alpha: 0.15)
+                    : Colors.black.withValues(alpha: 0.08),
+                // color: ColorResource.textLight.withValues(alpha: 0.25),
               ),
             ),
             child: TextField(
