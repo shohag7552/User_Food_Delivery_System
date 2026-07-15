@@ -18,12 +18,19 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="Food User — browse, order and get it delivered.">
+
+  <!-- Browser UI colour follows the system theme. -->
+  <meta name="theme-color" content="#F5F7FA" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="appwrite_user_app">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Food User">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
@@ -33,12 +40,46 @@
   <link rel="manifest" href="manifest.json">
 
   <style>
-    /* ── Initial loading screen (shown until Flutter renders its first frame) ── */
+    /* ──────────────────────────────────────────────────────────────
+       Initial loading screen (shown until Flutter renders its first
+       frame). Theme tokens mirror the app's palette in colors.dart so
+       the boot screen matches the app in both light and dark mode.
+       ────────────────────────────────────────────────────────────── */
+    :root {
+      --bg-1: #F5F7FA;
+      --bg-2: #EDF1F7;
+      --card: #FFFFFF;
+      --card-border: rgba(16, 24, 40, 0.06);
+      --card-shadow: rgba(16, 24, 40, 0.14);
+      --text: #1A1A1A;
+      --muted: #6B7280;
+      --brand: #E03131;
+      --brand-strong: #C92A2A;
+      --ring-track: rgba(224, 49, 49, 0.16);
+      --blob: rgba(224, 49, 49, 0.10);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-1: #0B1220;
+        --bg-2: #111A2E;
+        --card: #111827;
+        --card-border: rgba(255, 255, 255, 0.08);
+        --card-shadow: rgba(0, 0, 0, 0.55);
+        --text: #F8FAFC;
+        --muted: #CBD5E1;
+        --brand: #F03E3E;
+        --brand-strong: #E03131;
+        --ring-track: rgba(240, 62, 62, 0.20);
+        --blob: rgba(240, 62, 62, 0.14);
+      }
+    }
+
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
-      background: #F5F7FA;
+      background: var(--bg-1);
     }
 
     #app-loader {
@@ -49,36 +90,40 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(150deg, #F5F7FA 0%, #F5F7FA 52%, #F5F7FA 100%);
+      padding: 24px;
+      box-sizing: border-box;
+      background:
+        radial-gradient(120% 90% at 50% -10%, var(--bg-2) 0%, var(--bg-1) 60%);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
         Helvetica, Arial, sans-serif;
       -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
       transition: opacity 0.5s ease;
       overflow: hidden;
     }
 
-    /* Soft glowing blobs for depth */
+    /* Soft brand-tinted glows for depth. */
     #app-loader::before,
     #app-loader::after {
       content: "";
       position: absolute;
       border-radius: 50%;
-      filter: blur(2px);
-      opacity: 0.18;
-      background: #ffffff;
+      filter: blur(60px);
+      background: var(--blob);
+      pointer-events: none;
     }
     #app-loader::before {
-      width: 320px;
-      height: 320px;
-      top: -110px;
+      width: 340px;
+      height: 340px;
+      top: -120px;
       right: -90px;
     }
     #app-loader::after {
-      width: 260px;
-      height: 260px;
-      bottom: -100px;
-      left: -80px;
-      opacity: 0.12;
+      width: 300px;
+      height: 300px;
+      bottom: -120px;
+      left: -90px;
+      opacity: 0.8;
     }
 
     #app-loader.app-loader--hidden {
@@ -86,56 +131,80 @@
       pointer-events: none;
     }
 
+    .loader__card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 1;
+    }
+
     .loader__logo {
-      width: 104px;
-      height: 104px;
+      width: 108px;
+      height: 108px;
       border-radius: 28px;
-      background: #ffffff;
+      background: var(--card);
+      border: 1px solid var(--card-border);
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+      box-shadow: 0 20px 55px -12px var(--card-shadow);
       animation: loaderPop 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
     }
     .loader__logo img {
-      width: 78px;
-      height: 78px;
+      width: 80px;
+      height: 80px;
       object-fit: contain;
     }
 
     .loader__name {
-      margin-top: 24px;
-      color: #ffffff;
+      margin-top: 26px;
+      color: var(--text);
       font-size: 25px;
       font-weight: 700;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.2px;
       animation: loaderFadeUp 0.6s ease 0.1s both;
     }
 
     .loader__tagline {
       margin-top: 8px;
-      color: rgba(255, 255, 255, 0.85);
+      color: var(--muted);
       font-size: 14px;
       font-weight: 400;
+      letter-spacing: 0.2px;
       animation: loaderFadeUp 0.6s ease 0.2s both;
     }
 
+    /* Modern gradient ring spinner (masked conic gradient). */
     .loader__spinner {
-      margin-top: 38px;
-      width: 40px;
-      height: 40px;
-      border: 3.5px solid rgba(255, 255, 255, 0.28);
-      border-top-color: #0B1220;
+      margin-top: 40px;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
+      background:
+        conic-gradient(from 0deg, transparent 8%, var(--brand) 92%, transparent 100%);
+      -webkit-mask: radial-gradient(farthest-side,
+        transparent calc(100% - 4px), #000 calc(100% - 4px));
+      mask: radial-gradient(farthest-side,
+        transparent calc(100% - 4px), #000 calc(100% - 4px));
       animation: loaderSpin 0.85s linear infinite;
+      animation-delay: 0.15s;
+    }
+    /* Fallback for browsers without mask support: a bordered ring. */
+    @supports not ((-webkit-mask: radial-gradient(#000, #000)) or (mask: radial-gradient(#000, #000))) {
+      .loader__spinner {
+        background: none;
+        border: 3.5px solid var(--ring-track);
+        border-top-color: var(--brand);
+      }
     }
 
     @keyframes loaderSpin {
       to { transform: rotate(360deg); }
     }
     @keyframes loaderPop {
-      0% { transform: scale(0.7); opacity: 0; }
+      0% { transform: scale(0.72); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
     }
     @keyframes loaderFadeUp {
@@ -154,12 +223,14 @@
 <body>
   <!-- Branded loading screen shown while the Flutter engine boots. -->
   <div id="app-loader">
-    <div class="loader__logo">
-      <img src="icons/Icon-192.png" alt="Food User" />
+    <div class="loader__card">
+      <div class="loader__logo">
+        <img src="icons/logo.png" alt="Kiko Shop" />
+      </div>
+      <div class="loader__name">Food User</div>
+      <div class="loader__tagline">Getting things ready…</div>
+      <div class="loader__spinner"></div>
     </div>
-    <div class="loader__name">Food User</div>
-    <div class="loader__tagline">Getting things ready…</div>
-    <div class="loader__spinner"></div>
   </div>
 
   <script>
