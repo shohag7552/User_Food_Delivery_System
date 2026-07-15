@@ -29,14 +29,12 @@ class FlashSaleItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final product = item.product!;
-    final bool soldOut = item.remainingStock <= 0;
+    // Sold out when the flash-sale allowance is exhausted OR the product's own
+    // inventory is depleted — the buyer can never receive more than either.
+    final bool soldOut = item.remainingStock <= 0 || product.isOutOfStock;
 
     return GestureDetector(
-      onTap: () => context.pushNamed(
-        RouteNames.productDetail,
-        pathParameters: {'id': product.id},
-        extra: product,
-      ),
+      onTap: () => _openProductDetail(context),
       child: Container(
         decoration: BoxDecoration(
           color: context.cardBackground,
@@ -206,6 +204,15 @@ class FlashSaleItemCard extends StatelessWidget {
     );
   }
 
+  /// Opens the product's detail page (same as tapping the card).
+  void _openProductDetail(BuildContext context) {
+    context.pushNamed(
+      RouteNames.productDetail,
+      pathParameters: {'id': item.product!.id},
+      extra: item.product,
+    );
+  }
+
   /// Adds one unit at the flash price. The flash price is written into the
   /// cart as a fixed discount, so cart totals / checkout / order records work
   /// completely unchanged.
@@ -216,8 +223,27 @@ class FlashSaleItemCard extends StatelessWidget {
     }
 
     final product = item.product!;
+
+    // Variant products can't be added in one tap — the buyer must choose their
+    // options first, so send them to the detail page instead of adding blindly.
+    if (product.variants.isNotEmpty) {
+      _openProductDetail(context);
+      return;
+    }
+
+    // Guard the product's own inventory, not just the flash-sale allowance.
+    if (product.isOutOfStock) {
+      customToster('out_of_stock'.tr, isSuccess: false);
+      return;
+    }
+
     final existingQty = CartHelper.getProductCartQuantity(product.id) ?? 0;
-    if (existingQty + 1 > item.remainingStock) {
+    // The buyer can never get more than either the flash-sale remainder or the
+    // product's real stock — cap at the smaller of the two.
+    final int maxAllowed = item.remainingStock < product.stock
+        ? item.remainingStock
+        : product.stock;
+    if (existingQty + 1 > maxAllowed) {
       customToster('flash_sale_limit_reached'.tr, isSuccess: false);
       return;
     }
