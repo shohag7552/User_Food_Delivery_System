@@ -2,6 +2,7 @@ import 'package:appwrite_user_app/app/common/widgets/auth_dialog.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
+import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/helper/session_manager.dart';
@@ -36,8 +37,18 @@ class CartHelper {
 
     // Check if product has variants
     if (product.variants.isNotEmpty) {
-      // Has variants - open bottom sheet for customization
-      ProductDetailBottomSheet.show(context, product);
+      // Variant selection UX differs by module: the food module uses a quick
+      // customization bottom sheet, while the shop (ecommerce) module opens the
+      // full product detail page instead of a dialog.
+      if (product.moduleType == ModuleController.ecommerce) {
+        context.pushNamed(
+          RouteNames.productDetail,
+          pathParameters: {'id': product.id},
+          extra: product,
+        );
+      } else {
+        ProductDetailBottomSheet.show(context, product);
+      }
       return;
     }
 
