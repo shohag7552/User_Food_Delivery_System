@@ -12,7 +12,7 @@ import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:appwrite_user_app/app/helper/store_time_helper.dart';
 
 class OrdersPage extends StatefulWidget {
   const OrdersPage({super.key});
@@ -440,7 +440,7 @@ class _OrdersPageState extends State<OrdersPage> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              DateFormat('MMM dd, yyyy • hh:mm a').format(order.createdAt),
+                              StoreTime.format(order.createdAt, 'MMM dd, yyyy • hh:mm a'),
                               style: poppinsRegular.copyWith(
                                 fontSize: Constants.fontSizeSmall,
                                 color: context.textSecondary,

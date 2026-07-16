@@ -17,6 +17,10 @@ class OrderModel {
   final DeliveryAddress address; // <--- Parsed from JSON
   final List<OrderItem> items; // <--- Parsed from JSON
   final DateTime createdAt;
+  // Absolute UTC start/end of the scheduled delivery slot (null for ASAP / most
+  // ecommerce orders). Display in the store timezone via StoreTime.
+  final DateTime? scheduledStart;
+  final DateTime? scheduledEnd;
   final String moduleType; // 'food' | 'ecommerce'
   // --- Ecommerce fulfillment (nullable; food ignores them) ---
   final double shippingCost;
@@ -41,6 +45,8 @@ class OrderModel {
     required this.address,
     required this.items,
     required this.createdAt,
+    this.scheduledStart,
+    this.scheduledEnd,
     this.moduleType = 'food',
     this.shippingCost = 0.0,
     this.shippingMethod,
@@ -64,6 +70,12 @@ class OrderModel {
       discountAmount: (json['discount_amount'] as num?)?.toDouble() ?? 0.0,
       couponDiscount: (json['coupon_discount'] as num?)?.toDouble() ?? 0.0,
       createdAt: DateTime.parse(json['\$createdAt']), // Appwrite auto-timestamp
+      scheduledStart: json['scheduled_start'] != null
+          ? DateTime.parse(json['scheduled_start'])
+          : null,
+      scheduledEnd: json['scheduled_end'] != null
+          ? DateTime.parse(json['scheduled_end'])
+          : null,
       // PARSE ADDRESS SNAPSHOT
       address: DeliveryAddress.fromJson(jsonDecode(json['delivery_address'])),
 
@@ -96,6 +108,8 @@ class OrderModel {
     DeliveryAddress? address,
     List<OrderItem>? items,
     DateTime? createdAt,
+    DateTime? scheduledStart,
+    DateTime? scheduledEnd,
     String? moduleType,
     double? shippingCost,
     String? shippingMethod,
@@ -119,6 +133,8 @@ class OrderModel {
       address: address ?? this.address,
       items: items ?? this.items,
       createdAt: createdAt ?? this.createdAt,
+      scheduledStart: scheduledStart ?? this.scheduledStart,
+      scheduledEnd: scheduledEnd ?? this.scheduledEnd,
       moduleType: moduleType ?? this.moduleType,
       shippingCost: shippingCost ?? this.shippingCost,
       shippingMethod: shippingMethod ?? this.shippingMethod,

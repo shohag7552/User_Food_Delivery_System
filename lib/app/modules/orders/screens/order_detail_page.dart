@@ -19,7 +19,7 @@ import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
+import 'package:appwrite_user_app/app/helper/store_time_helper.dart';
 
 class OrderDetailPage extends StatefulWidget {
   final String orderId;
@@ -349,8 +349,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      DateFormat('EEEE, MMMM dd, yyyy • hh:mm a')
-                          .format(order.createdAt),
+                      StoreTime.format(
+                          order.createdAt, 'EEEE, MMMM dd, yyyy • hh:mm a'),
                       style: poppinsRegular.copyWith(
                         fontSize: Constants.fontSizeDefault,
                         color: ColorResource.textWhite.withValues(alpha: 0.9),
@@ -358,11 +358,51 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     ),
                   ],
                 ),
+                _buildScheduledLine(order),
               ],
             ),
           ),
           const SizedBox(width: 16),
           _buildStatusBadge(order.status),
+        ],
+      ),
+    );
+  }
+
+  /// A scheduled-delivery line (`Scheduled: day • start - end`) shown only for
+  /// scheduled orders. Times render in the store timezone; empty for ASAP.
+  Widget _buildScheduledLine(OrderModel order, {bool centered = false}) {
+    final start = order.scheduledStart;
+    if (start == null) return const SizedBox.shrink();
+
+    final day = StoreTime.format(start, 'EEE, MMM dd');
+    final startTime = StoreTime.format(start, 'hh:mm a');
+    final endTime = order.scheduledEnd != null
+        ? StoreTime.format(order.scheduledEnd!, 'hh:mm a')
+        : null;
+    final slot = endTime != null ? '$startTime - $endTime' : startTime;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.schedule_rounded,
+            size: 15,
+            color: ColorResource.textWhite.withValues(alpha: 0.9),
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              '${'scheduled_delivery'.tr}: $day • $slot',
+              textAlign: centered ? TextAlign.center : TextAlign.start,
+              style: poppinsMedium.copyWith(
+                fontSize: Constants.fontSizeSmall,
+                color: ColorResource.textWhite,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -386,8 +426,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             ),
           ),
           const SizedBox(height: 8),
+          _buildScheduledLine(order, centered: true),
           Text(
-            DateFormat('EEEE, MMMM dd, yyyy • hh:mm a').format(order.createdAt),
+            StoreTime.format(order.createdAt, 'EEEE, MMMM dd, yyyy • hh:mm a'),
             style: poppinsRegular.copyWith(
               fontSize: Constants.fontSizeDefault,
               color: ColorResource.textWhite.withValues(alpha: 0.9),

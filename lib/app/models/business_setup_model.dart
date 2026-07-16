@@ -37,8 +37,15 @@ class BusinessSetupModel {
   final String? appMinVersion;
   final String? androidStoreUrl;
   final String? iosStoreUrl;
+  // Store timezone — the source of truth for all order/schedule times. Times
+  // are computed and displayed in this zone, never the customer's device zone.
+  final String timezone; // IANA label, e.g. 'Asia/Dhaka' (display only)
+  final int timezoneOffsetMinutes; // minutes east of UTC, e.g. 360 = +06:00
   final DateTime? createdAt;
   final DateTime? updatedAt;
+
+  /// The store's UTC offset as a [Duration].
+  Duration get timezoneOffset => Duration(minutes: timezoneOffsetMinutes);
 
   BusinessSetupModel({
     this.id,
@@ -71,6 +78,8 @@ class BusinessSetupModel {
     this.appMinVersion,
     this.androidStoreUrl,
     this.iosStoreUrl,
+    this.timezone = 'Asia/Dhaka',
+    this.timezoneOffsetMinutes = 360,
     this.createdAt,
     this.updatedAt,
   });
@@ -111,6 +120,8 @@ class BusinessSetupModel {
       appMinVersion: json['app_min_version'],
       androidStoreUrl: json['android_store_url'],
       iosStoreUrl: json['ios_store_url'],
+      timezone: json['timezone'] ?? 'Asia/Dhaka',
+      timezoneOffsetMinutes: (json['timezone_offset'] as num?)?.toInt() ?? 360,
       createdAt: json['\$createdAt'] != null
           ? DateTime.parse(json['\$createdAt'])
           : null,
@@ -151,6 +162,8 @@ class BusinessSetupModel {
       if (appMinVersion != null) 'app_min_version': appMinVersion,
       if (androidStoreUrl != null) 'android_store_url': androidStoreUrl,
       if (iosStoreUrl != null) 'ios_store_url': iosStoreUrl,
+      'timezone': timezone,
+      'timezone_offset': timezoneOffsetMinutes,
     };
   }
 
@@ -185,6 +198,8 @@ class BusinessSetupModel {
     String? appMinVersion,
     String? androidStoreUrl,
     String? iosStoreUrl,
+    String? timezone,
+    int? timezoneOffsetMinutes,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -222,6 +237,9 @@ class BusinessSetupModel {
       appMinVersion: appMinVersion ?? this.appMinVersion,
       androidStoreUrl: androidStoreUrl ?? this.androidStoreUrl,
       iosStoreUrl: iosStoreUrl ?? this.iosStoreUrl,
+      timezone: timezone ?? this.timezone,
+      timezoneOffsetMinutes:
+          timezoneOffsetMinutes ?? this.timezoneOffsetMinutes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

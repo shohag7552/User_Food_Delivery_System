@@ -3,6 +3,7 @@ import 'package:appwrite/models.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
+import 'package:appwrite_user_app/app/helper/store_time_helper.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
 import 'package:appwrite_user_app/app/modules/checkout/domain/repository/order_repo_interface.dart';
 import 'package:dart_appwrite/dart_appwrite.dart';
@@ -65,7 +66,9 @@ class OrderRepository implements OrderRepoInterface {
         'coupon_discount': couponDiscount,
         'delivery_address': deliveryAddress,
         'order_items': orderItems,
-        'created_at': DateTime.now().toIso8601String(),
+        // Store as an absolute UTC instant (the customer app is the writer, so
+        // the trailing 'Z' keeps it unambiguous across devices/timezones).
+        'created_at': DateTime.now().toUtc().toIso8601String(),
         'module_type': ModuleController.current,
       };
 
@@ -78,6 +81,17 @@ class OrderRepository implements OrderRepoInterface {
       }
       if (scheduledTimeSlot != null) {
         orderData['scheduled_time_slot'] = scheduledTimeSlot;
+      }
+      // Resolve the chosen slot to absolute UTC start/end instants (computed in
+      // the store timezone) — the machine-usable source of truth for scheduled
+      // orders. scheduled_date / scheduled_time_slot above stay only as
+      // human-readable display values.
+      if (scheduledDate != null && scheduledTimeSlot != null) {
+        final range = StoreTime.slotToUtcRange(scheduledDate, scheduledTimeSlot);
+        if (range != null) {
+          orderData['scheduled_start'] = range.start.toIso8601String();
+          orderData['scheduled_end'] = range.end.toIso8601String();
+        }
       }
       if (deliveryInstructions != null && deliveryInstructions.isNotEmpty) {
         orderData['delivery_instructions'] = deliveryInstructions;
