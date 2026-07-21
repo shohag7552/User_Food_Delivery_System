@@ -20,6 +20,7 @@ import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/enums/payment_method_enum.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
+import 'package:appwrite_user_app/app/helper/store_time_helper.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
 import 'package:appwrite_user_app/app/models/business_hours_model.dart';
@@ -57,8 +58,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
   bool _isAddressExpanded = false;
   AddressModel? _selectedAddress;
   
-  // Delivery schedule
-  String? _scheduleDisplayText = 'ASAP (30-45 mins)';
+  // Delivery schedule. Null while the default "now" option is active — the
+  // live ASAP estimate is derived from business setup at build time; this only
+  // holds the label once a specific slot has been scheduled.
+  String? _scheduleDisplayText;
   Map<String, dynamic>? scheduleData;
 
   String _deliveryType = 'now'; // 'now' or 'schedule'
@@ -302,7 +305,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
     if (businessSetup == null) {
       return (isOpenNow: true, nextOpenLabel: null);
     }
-    final now = DateTime.now();
+    // Business hours are configured in the store's timezone, so evaluate
+    // "open now" against the store's wall-clock, not the device's.
+    final now = StoreTime.nowCivil();
     if (businessSetup.isOpenNow(now)) {
       return (isOpenNow: true, nextOpenLabel: null);
     }
@@ -1989,6 +1994,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final storeStatus = _storeStatus();
     final showClosed = isNow && !storeStatus.isOpenNow;
     final scheduleTitle = isNow ? 'deliver_now'.tr : 'scheduled_delivery'.tr;
+    // Live ASAP estimate from business setup (falls back when unconfigured).
+    final businessSetup = Get.find<SettingsController>().businessSetup;
+    final asapEstimate =
+        businessSetup?.asapEstimateLabel ?? 'asap_30_45_mins'.tr;
+    final scheduleSubtitle =
+        isNow ? asapEstimate : (_scheduleDisplayText ?? asapEstimate);
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -2057,7 +2068,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      _scheduleDisplayText ?? 'asap_30_45_mins'.tr,
+                      scheduleSubtitle,
                       style: poppinsRegular.copyWith(
                         fontSize: Constants.fontSizeSmall,
                         color: context.textSecondary,

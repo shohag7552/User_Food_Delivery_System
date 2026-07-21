@@ -509,6 +509,7 @@
   "not_yet_valid": "Not Yet Valid",
   "inactive": "Inactive",
   "asap_mins": "ASAP (30-45 mins)",
+  "asap_estimate": "ASAP (@min-@max mins)",
   "please_select_date_time": "Please select both date and time slot",
   "today": "Today",
   "tomorrow": "Tomorrow",

@@ -1,4 +1,5 @@
 import 'package:appwrite_user_app/app/models/business_hours_model.dart';
+import 'package:get/get.dart';
 
 class BusinessSetupModel {
   final String? id;
@@ -16,6 +17,12 @@ class BusinessSetupModel {
   final double? minDeliveryFee;
   final double? freeDeliveryAbove;
   final double? maxDeliveryRadius;
+
+  /// Estimated ASAP delivery window in minutes (food module only). Powers the
+  /// "ASAP (30-45 mins)" estimate at checkout; null when the store leaves it
+  /// unset (e.g. ecommerce). See [asapEstimateLabel].
+  final int? minDeliveryTime;
+  final int? maxDeliveryTime;
   final double loyaltyPointEarningRate;
   final double loyaltyPointWalletRate;
 
@@ -47,6 +54,15 @@ class BusinessSetupModel {
   /// The store's UTC offset as a [Duration].
   Duration get timezoneOffset => Duration(minutes: timezoneOffsetMinutes);
 
+  /// Localized "ASAP (30-45 mins)" estimate for immediate ("now") orders,
+  /// derived from the store's configured [minDeliveryTime]/[maxDeliveryTime].
+  /// Falls back to 30-45 minutes when the store hasn't set a window.
+  String get asapEstimateLabel {
+    final min = minDeliveryTime ?? 30;
+    final max = maxDeliveryTime ?? 45;
+    return 'asap_estimate'.trParams({'min': '$min', 'max': '$max'});
+  }
+
   BusinessSetupModel({
     this.id,
     required this.businessName,
@@ -63,6 +79,8 @@ class BusinessSetupModel {
     this.minDeliveryFee,
     this.freeDeliveryAbove,
     this.maxDeliveryRadius,
+    this.minDeliveryTime,
+    this.maxDeliveryTime,
     this.loyaltyPointEarningRate = 1.0,
     this.loyaltyPointWalletRate = 0.10,
     this.vatPercentage = 0.0,
@@ -103,6 +121,8 @@ class BusinessSetupModel {
       minDeliveryFee: json['min_delivery_fee']?.toDouble(),
       freeDeliveryAbove: json['free_delivery_above']?.toDouble(),
       maxDeliveryRadius: json['max_delivery_radius']?.toDouble(),
+      minDeliveryTime: (json['min_delivery_time'] as num?)?.toInt(),
+      maxDeliveryTime: (json['max_delivery_time'] as num?)?.toInt(),
       loyaltyPointEarningRate: (json['loyalty_point_earning_rate'] ?? 1.0)
           .toDouble(),
       loyaltyPointWalletRate: (json['loyalty_point_wallet_rate'] ?? 0.10)
@@ -147,6 +167,8 @@ class BusinessSetupModel {
       if (minDeliveryFee != null) 'min_delivery_fee': minDeliveryFee,
       if (freeDeliveryAbove != null) 'free_delivery_above': freeDeliveryAbove,
       if (maxDeliveryRadius != null) 'max_delivery_radius': maxDeliveryRadius,
+      if (minDeliveryTime != null) 'min_delivery_time': minDeliveryTime,
+      if (maxDeliveryTime != null) 'max_delivery_time': maxDeliveryTime,
       'loyalty_point_earning_rate': loyaltyPointEarningRate,
       'loyalty_point_wallet_rate': loyaltyPointWalletRate,
       'vat_percentage': vatPercentage,
@@ -183,6 +205,8 @@ class BusinessSetupModel {
     double? minDeliveryFee,
     double? freeDeliveryAbove,
     double? maxDeliveryRadius,
+    int? minDeliveryTime,
+    int? maxDeliveryTime,
     double? loyaltyPointEarningRate,
     double? loyaltyPointWalletRate,
     double? vatPercentage,
@@ -219,6 +243,8 @@ class BusinessSetupModel {
       minDeliveryFee: minDeliveryFee ?? this.minDeliveryFee,
       freeDeliveryAbove: freeDeliveryAbove ?? this.freeDeliveryAbove,
       maxDeliveryRadius: maxDeliveryRadius ?? this.maxDeliveryRadius,
+      minDeliveryTime: minDeliveryTime ?? this.minDeliveryTime,
+      maxDeliveryTime: maxDeliveryTime ?? this.maxDeliveryTime,
       loyaltyPointEarningRate:
           loyaltyPointEarningRate ?? this.loyaltyPointEarningRate,
       loyaltyPointWalletRate:

@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
+import 'package:appwrite_user_app/app/helper/store_time_helper.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -57,11 +58,12 @@ class _DeliveryScheduleBottomSheetState
 
   void _confirm() {
     if (_deliveryType == 'now') {
+      final businessSetup = Get.find<SettingsController>().businessSetup;
       Navigator.pop(context, {
         'type': 'now',
         'date': null,
         'timeSlot': null,
-        'displayText': 'asap_mins'.tr,
+        'displayText': businessSetup?.asapEstimateLabel ?? 'asap_mins'.tr,
       });
     } else {
       if (_selectedDate == null || _selectedTimeSlot == null) {
@@ -69,9 +71,13 @@ class _DeliveryScheduleBottomSheetState
         return;
       }
 
-      final dateStr = _selectedDate!.day == DateTime.now().day
-          ? 'today'.tr
-          : 'tomorrow'.tr;
+      // Compare against the store's calendar day, not the device's, so the
+      // Today/Tomorrow label matches the slots the customer actually picked.
+      final storeNow = StoreTime.nowCivil();
+      final isToday = _selectedDate!.year == storeNow.year &&
+          _selectedDate!.month == storeNow.month &&
+          _selectedDate!.day == storeNow.day;
+      final dateStr = isToday ? 'today'.tr : 'tomorrow'.tr;
 
       Navigator.pop(context, {
         'type': 'schedule',
@@ -119,7 +125,7 @@ class _DeliveryScheduleBottomSheetState
                         type: 'now',
                         title: 'deliver_now'.tr,
                         subtitle: isStoreOpen
-                            ? 'asap_mins'.tr
+                            ? (businessSetup?.asapEstimateLabel ?? 'asap_mins'.tr)
                             : 'store_closed'.tr,
                         icon: Icons.flash_on_rounded,
                         isAvailable: isStoreOpen,
@@ -374,7 +380,10 @@ class _DeliveryScheduleBottomSheetState
   }
 
   Widget _buildDayOptions(dynamic businessSetup) {
-    final today = DateTime.now();
+    // Days are the STORE's calendar days (its timezone), so the chosen date's
+    // Y/M/D matches how the order is later resolved to a UTC slot range.
+    final storeNow = StoreTime.nowCivil();
+    final today = DateTime(storeNow.year, storeNow.month, storeNow.day);
     final tomorrow = today.add(const Duration(days: 1));
 
     return Column(
@@ -628,7 +637,9 @@ class _DeliveryScheduleBottomSheetState
     }
 
     final List<String> slots = [];
-    final now = DateTime.now();
+    // Evaluate "now" and the 1-hour lead time in the store's timezone so slots
+    // are filtered consistently regardless of the customer's device timezone.
+    final now = StoreTime.nowCivil();
     final isToday = date.year == now.year &&
         date.month == now.month &&
         date.day == now.day;

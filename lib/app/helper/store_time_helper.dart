@@ -29,6 +29,16 @@ class StoreTime {
   /// `DateTime.now()`.
   static DateTime now() => DateTime.now().toUtc().add(offset);
 
+  /// "Now" as a plain, local-flagged store wall-clock. Unlike [now] (which is
+  /// UTC-flagged), this can be safely compared with other civil DateTimes built
+  /// from Y/M/D/H/M fields — e.g. business-hours checks and slot generation,
+  /// where mixing a UTC-flagged instant with local-flagged ones would compare
+  /// the wrong absolute times.
+  static DateTime nowCivil() {
+    final n = now();
+    return DateTime(n.year, n.month, n.day, n.hour, n.minute, n.second);
+  }
+
   /// Converts a UTC [instant] to the store's wall-clock for display/formatting.
   static DateTime toStore(DateTime instant) => instant.toUtc().add(offset);
 
