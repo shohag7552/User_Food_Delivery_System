@@ -355,10 +355,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             // Product Image with badges
             Stack(
               children: [
-                Expanded(
-                  child: Container(
-                    height: 140,
-                    decoration: BoxDecoration(
+                Container(
+                  height: 140,
+                  decoration: BoxDecoration(
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(Constants.radiusLarge),
                       ),
@@ -382,7 +381,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       ),
                     ),
                   ),
-                ),
 
                 // Veg/Non-veg badge
                 Positioned(
