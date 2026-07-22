@@ -8,6 +8,7 @@ import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
+import 'package:appwrite_user_app/app/helper/nav_bar_visibility.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/modules/ecommerce/widgets/ecommerce_product_card.dart';
@@ -97,12 +98,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     final isWide = width >= _webBreakpoint;
     final crossAxisCount = _crossAxisCount(width);
 
-    final grid = GridView.builder(
+    final grid = NavClearance(
+      builder: (context, bottom) => GridView.builder(
       padding: EdgeInsets.fromLTRB(
         isWide ? 24 : 16,
         _hideOwnAppBar ? 8 : 16,
         isWide ? 24 : 16,
-        Constants.bottomNavSpace,
+        // Nav-bar clearance + a small breathing space at the very bottom.
+        bottom + 20,
       ),
       gridDelegate: isWide
           ? SliverGridDelegateWithFixedCrossAxisCount(
@@ -115,7 +118,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               crossAxisCount: 2,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
-              mainAxisExtent: 240,
+              // Tall enough for the image + a 2-line name, rating and price so
+              // the card content never overflows/overlaps.
+              mainAxisExtent: 250,
             ),
       itemCount: favorites.length,
       itemBuilder: (context, index) {
@@ -130,6 +135,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             _buildProductCard(context, product, favorite.id, controller);
         return kIsWeb ? HoverLift(child: card) : card;
       },
+      ),
     );
 
     final refreshable = RefreshIndicator(
@@ -349,29 +355,31 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             // Product Image with badges
             Stack(
               children: [
-                Container(
-                  height: 140,
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(Constants.radiusLarge),
+                Expanded(
+                  child: Container(
+                    height: 140,
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(Constants.radiusLarge),
+                      ),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.1),
+                        ],
+                      ),
                     ),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: 0.1),
-                      ],
-                    ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(Constants.radiusLarge),
-                    ),
-                    child: CustomNetworkImage(
-                      image: product.imageId,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(Constants.radiusLarge),
+                      ),
+                      child: CustomNetworkImage(
+                        image: product.imageId,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                      ),
                     ),
                   ),
                 ),
@@ -486,7 +494,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    
+
                     RatingStars(
                       rating: product.avgRating,
                       reviewCount: product.ratingCount,

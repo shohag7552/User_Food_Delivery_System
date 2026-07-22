@@ -8,6 +8,7 @@ import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/cart_helper.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
+import 'package:appwrite_user_app/app/helper/nav_bar_visibility.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/food_card_metrics.dart';
@@ -115,8 +116,7 @@ class AllProductsWidget extends StatelessWidget {
           slivers: [
             // Products Grid
             SliverPadding(
-              padding:
-                  EdgeInsets.symmetric(horizontal: horizontalPadding),
+              padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
               sliver: SliverGrid(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount ?? (isTablet ? 3 : 2),
@@ -172,9 +172,12 @@ class AllProductsWidget extends StatelessWidget {
                 ),
               ),
 
-            // Bottom spacing (clears the floating bottom nav bar)
-            const SliverToBoxAdapter(
-              child: SizedBox(height: Constants.bottomNavSpace),
+            // Bottom spacing that clears the floating nav bar — and collapses
+            // when the bar auto-hides so no empty space is left behind.
+            SliverToBoxAdapter(
+              child: NavClearance(
+                builder: (context, bottom) => SizedBox(height: bottom),
+              ),
             ),
           ],
         );

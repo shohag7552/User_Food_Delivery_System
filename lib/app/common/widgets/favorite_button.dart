@@ -43,7 +43,7 @@ class FavoriteButton extends StatelessWidget {
           child: Container(
             padding: EdgeInsets.all(size * 0.4),
             decoration: BoxDecoration(
-              color: backgroundColor ?? ColorResource.textWhite,
+              color: backgroundColor ?? Theme.of(context).cardColor,
               shape: BoxShape.circle,
             
             ),

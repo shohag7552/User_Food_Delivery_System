@@ -3,6 +3,7 @@ import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
+import 'package:appwrite_user_app/app/helper/nav_bar_visibility.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -577,21 +578,38 @@ class _CartPageState extends State<CartPage> {
   }
 
   Widget _buildBottomSummary(CartController controller) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: context.cardBackground,
-        boxShadow: [
-          BoxShadow(
-            color: ColorResource.shadowMedium,
-            blurRadius: 10,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        // Keeps the checkout bar above the floating bottom nav bar.
-        minimum: const EdgeInsets.only(bottom: Constants.bottomNavSpace),
+    return ValueListenableBuilder<bool>(
+      // Slide the whole checkout bar in step with the nav bar: it sits above the
+      // nav while shown, and glides down to the bottom edge (clearing the home
+      // indicator) when the nav auto-hides on scroll — same 320ms curve as the
+      // nav, so they move together.
+      valueListenable: NavBarVisibility.visible,
+      builder: (context, navVisible, child) {
+        // Use viewPadding (the raw home-indicator inset) — NOT padding, which
+        // includes the nav-bar height under `extendBody: true` and would keep
+        // the gap ~90 even when the nav is hidden, so the bar wouldn't move.
+        final double homeIndicator = MediaQuery.of(context).viewPadding.bottom;
+        final double gap =
+            navVisible ? Constants.bottomNavSpace : homeIndicator;
+        return AnimatedPadding(
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeInOutCubic,
+          padding: EdgeInsets.only(bottom: gap),
+          child: child,
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: context.cardBackground,
+          boxShadow: [
+            BoxShadow(
+              color: ColorResource.shadowMedium,
+              blurRadius: 10,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

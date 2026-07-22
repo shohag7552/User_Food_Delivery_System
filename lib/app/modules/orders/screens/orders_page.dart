@@ -4,6 +4,7 @@ import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
+import 'package:appwrite_user_app/app/helper/nav_bar_visibility.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -139,16 +140,18 @@ class _OrdersPageState extends State<OrdersPage> {
     return RefreshIndicator(
       onRefresh: controller.refreshOrders,
       color: ColorResource.primaryDark,
-      child: ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, Constants.bottomNavSpace),
-        itemCount: controller.orders.length + (controller.hasMore ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index == controller.orders.length) {
-            return _buildLoadMoreIndicator(controller);
-          }
-          return _buildOrderCard(controller.orders[index]);
-        },
+      child: NavClearance(
+        builder: (context, bottom) => ListView.builder(
+          controller: _scrollController,
+          padding: EdgeInsets.fromLTRB(16, 16, 16, bottom),
+          itemCount: controller.orders.length + (controller.hasMore ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index == controller.orders.length) {
+              return _buildLoadMoreIndicator(controller);
+            }
+            return _buildOrderCard(controller.orders[index]);
+          },
+        ),
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:appwrite_user_app/app/controllers/localization_controller.dart';
 import 'package:appwrite_user_app/app/controllers/policy_controller.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
+import 'package:appwrite_user_app/app/helper/nav_bar_visibility.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -48,14 +49,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
                 // Profile Options
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      16,
-                      16,
-                      16,
-                      Constants.bottomNavSpace,
-                    ),
-                    child: Column(
+                  child: NavClearance(
+                    builder: (context, bottom) => Padding(
+                      padding: EdgeInsets.fromLTRB(16, 16, 16, bottom),
+                      child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildSection(
@@ -284,6 +281,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         const SizedBox(height: 20),
                       ],
                     ),
+                  ),
                   ),
                 ),
               ],

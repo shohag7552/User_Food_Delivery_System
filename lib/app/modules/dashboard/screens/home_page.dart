@@ -282,6 +282,9 @@ class _HomePageState extends State<HomePage>
             crossAxisCount: gridColumns,
             horizontalPadding: gridPadding,
           ),
+
+          // Small breathing space at the very bottom of the page.
+          const SliverToBoxAdapter(child: SizedBox(height: 20)),
         ],
       ),
     );
