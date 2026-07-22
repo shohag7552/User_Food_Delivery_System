@@ -15,10 +15,12 @@ import 'package:appwrite_user_app/app/modules/dashboard/section_widget/popular_d
 import 'package:appwrite_user_app/app/modules/dashboard/section_widget/todays_specials_widget.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/promotional_banner.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
+import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show SystemUiOverlayStyle;
 import 'dart:ui' show ImageFilter;
@@ -803,7 +805,7 @@ class _HomePageState extends State<HomePage>
               _frostedHeaderTile(
                 padding: const EdgeInsets.all(Constants.paddingSizeSmall),
                 child: Icon(
-                  Icons.notifications_none_rounded,
+                  CupertinoIcons.bell,
                   color: ColorResource.primaryDark,
                   size: 24,
                 ),
@@ -860,22 +862,12 @@ class _HomePageState extends State<HomePage>
         child: Row(
           children: [
             Icon(
-              Icons.search_rounded,
+              CupertinoIcons.search,
               color: ColorResource.primaryDark,
               size: 22,
             ),
             const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'search_for_dishes'.tr,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: poppinsRegular.copyWith(
-                  fontSize: Constants.fontSizeDefault,
-                  color: context.textLight,
-                ),
-              ),
-            ),
+            const Expanded(child: _AnimatedSearchHint()),
           ],
         ),
       ),
@@ -955,6 +947,127 @@ class _HomePageState extends State<HomePage>
             color: ColorResource.primaryDark,
           ),
       ],
+    );
+  }
+}
+
+/// Search-bar placeholder that cycles through the store's category names with a
+/// gentle vertical roll ("Search for Pizza" → "Search for Burger" …). Falls
+/// back to the static hint until categories have loaded.
+class _AnimatedSearchHint extends StatefulWidget {
+  const _AnimatedSearchHint();
+
+  @override
+  State<_AnimatedSearchHint> createState() => _AnimatedSearchHintState();
+}
+
+class _AnimatedSearchHintState extends State<_AnimatedSearchHint> {
+  static const Duration _interval = Duration(milliseconds: 2600);
+
+  Timer? _timer;
+  int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(_interval, (_) {
+      if (!mounted) return;
+      final count = _hintNames().length;
+      if (count == 0) return;
+      setState(() => _index = (_index + 1) % count);
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  /// Non-empty, localized category names in display order.
+  List<String> _hintNames() {
+    if (!Get.isRegistered<CategoryController>()) return const [];
+    return Get.find<CategoryController>()
+        .categories
+        .map((c) => c.nameMap.trLanguage)
+        .where((n) => n.trim().isNotEmpty)
+        .toList(growable: false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Fixed "Search for" prefix stays muted; the animating category reads as
+    // the emphasised black term.
+    final TextStyle prefixStyle = poppinsRegular.copyWith(
+      fontSize: Constants.fontSizeDefault,
+      color: context.textSecondary,
+    );
+    final TextStyle categoryStyle = poppinsMedium.copyWith(
+      fontSize: Constants.fontSizeDefault,
+      color: context.textPrimary,
+    );
+
+    return GetBuilder<CategoryController>(
+      builder: (_) {
+        final names = _hintNames();
+
+        // No categories yet → keep the plain, always-readable placeholder.
+        if (names.isEmpty) {
+          return Text(
+            'search_for_dishes'.tr,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: prefixStyle,
+          );
+        }
+
+        final name = names[_index % names.length];
+
+        return Row(
+          children: [
+            Text('search_for'.tr, style: prefixStyle),
+            const SizedBox(width: 5),
+            // Only the category term animates — a clean vertical roll with a
+            // soft fade, one word swapping in place beside the fixed prefix.
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 550),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                layoutBuilder: (currentChild, previousChildren) => Stack(
+                  alignment: Alignment.centerLeft,
+                  children: [
+                    ...previousChildren,
+                    ?currentChild,
+                  ],
+                ),
+                transitionBuilder: (child, animation) {
+                  final bool isIncoming = child.key == ValueKey<String>(name);
+                  // Incoming term rises from just below; the outgoing one lifts
+                  // up and out — a professional split-flap style roll.
+                  final Animation<Offset> slide = Tween<Offset>(
+                    begin: Offset(0, isIncoming ? 0.55 : -0.55),
+                    end: Offset.zero,
+                  ).animate(animation);
+                  return ClipRect(
+                    child: FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(position: slide, child: child),
+                    ),
+                  );
+                },
+                child: Text(
+                  name,
+                  key: ValueKey<String>(name),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: categoryStyle,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
