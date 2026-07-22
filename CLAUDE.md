@@ -109,6 +109,23 @@ Every backend call goes in `modules/<feature>/domain/repository/<feature>_reposi
 ### 4. Widgets go in the feature's `widgets/` folder
 When a screen needs an extracted widget, put it in that module's `widgets/` folder. Only truly cross-module widgets belong in `common/widgets/`. Keep screens thin — compose from widgets.
 
+### 5. Use `Constants` for all design values — never hardcode
+Every design value in a screen/widget — **padding, margin, font size, border radius**, and section spacing — must come from `resources/constants.dart` (`Constants`). Never hardcode raw numbers for these.
+
+```dart
+// ✅ do
+padding: const EdgeInsets.all(Constants.paddingSizeDefault),
+borderRadius: BorderRadius.circular(Constants.radiusLarge),
+fontSize: Constants.fontSizeLarge,
+
+// ❌ don't
+padding: const EdgeInsets.all(15),
+borderRadius: BorderRadius.circular(15),
+fontSize: 16,
+```
+
+Available tokens: font sizes `fontSizeExtraSmall`…`fontSizeOverLarge`; padding/margin `paddingSizeExtraSmall`…`paddingSizeExtraLarge`; radius `radiusSmall`…`radiusExtraLarge`; spacing `spaceSection`, `bottomNavSpace`. If a needed value is missing, add a new token to `Constants` rather than hardcoding at the call site.
+
 ## Conventions
 
 - **DI registration:** add new repos/controllers in `helper/dependencies.dart` with `Get.lazyPut`. Pattern: build the `RepoInterface = Repository(appwriteService: Get.find())`, `Get.lazyPut(() => thatInterface)`, then `Get.lazyPut(() => Controller(repoInterface: Get.find()))`. Resolve with `Get.find<T>()` (guard optional ones with `Get.isRegistered<T>()`).
