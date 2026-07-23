@@ -202,6 +202,36 @@ class _HomePageState extends State<HomePage>
         ),
       );
 
+  /// One curated home section as its own sliver (so it builds lazily as it
+  /// scrolls into view), width-capped for web.
+  Widget _sectionSliver(Widget child) =>
+      SliverToBoxAdapter(child: _capped(child));
+
+  /// A vertical gap between sections, expressed as a sliver.
+  Widget _gapSliver(double height) =>
+      SliverToBoxAdapter(child: SizedBox(height: height));
+
+  /// The ordered curated sections with a single, tokenized vertical rhythm
+  /// (`spaceSection` between sections, `paddingSizeLarge` at the ends).
+  ///
+  /// [OfferProductsWidget] owns its own top gap and collapses to nothing when
+  /// there are no offers, so it deliberately gets no leading gap here — the
+  /// rhythm stays even whether or not it renders.
+  List<Widget> _buildContentSlivers() => [
+        _gapSliver(Constants.paddingSizeLarge),
+        _sectionSliver(_buildPromotionalBanners()),
+        _gapSliver(Constants.spaceSection),
+        _sectionSliver(CategorySectionWidget()),
+        _gapSliver(Constants.spaceSection),
+        _sectionSliver(const TodaysSpecialsWidget()),
+        _gapSliver(Constants.spaceSection),
+        _sectionSliver(const PopularDishesWidget()),
+        _sectionSliver(const OfferProductsWidget()),
+        _gapSliver(Constants.spaceSection),
+        _sectionSliver(const NewItemsWidget()),
+        _gapSliver(Constants.paddingSizeLarge),
+      ];
+
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
@@ -228,44 +258,10 @@ class _HomePageState extends State<HomePage>
           // Web: rounded greeting hero. Mobile: collapsing gradient app bar.
           if (isWebShell) _buildWebHero() else _buildSliverAppBar(context),
 
-          // Main Content
-          SliverToBoxAdapter(
-            child: _capped(
-              Column(
-                children: [
-                  const SizedBox(height: 20),
-
-                  _buildPromotionalBanners(),
-
-                  const SizedBox(height: Constants.spaceSection),
-
-                  // Categories
-                  CategorySectionWidget(),
-
-                  const SizedBox(height: Constants.spaceSection),
-
-                  // Today's Specials
-                  const TodaysSpecialsWidget(),
-
-                  const SizedBox(height: Constants.spaceSection),
-
-                  // Popular Dishes
-                  const PopularDishesWidget(),
-
-                  // Offer Products — spaces itself and disappears entirely
-                  // when there are no discounted items.
-                  const OfferProductsWidget(),
-
-                  const SizedBox(height: Constants.spaceSection),
-
-                  // New Items
-                  const NewItemsWidget(),
-
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ),
-          ),
+          // Curated content sections. Each is its own sliver so off-screen
+          // sections build lazily, with the vertical rhythm owned by a single
+          // consistent gap helper instead of scattered literals.
+          ..._buildContentSlivers(),
 
           // All-products header. The mobile variant relies on the status-bar
           // padding for its paint area (toolbarHeight 0), which is 0 on web —
@@ -284,7 +280,7 @@ class _HomePageState extends State<HomePage>
           ),
 
           // Small breathing space at the very bottom of the page.
-          const SliverToBoxAdapter(child: SizedBox(height: 20)),
+          _gapSliver(Constants.paddingSizeLarge),
         ],
       ),
     );

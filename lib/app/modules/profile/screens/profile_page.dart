@@ -1,4 +1,4 @@
-import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
+import 'package:appwrite_user_app/app/common/widgets/auth_dialog.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/localization_controller.dart';
 import 'package:appwrite_user_app/app/controllers/policy_controller.dart';
@@ -29,6 +29,13 @@ class _ProfilePageState extends State<ProfilePage> {
 
     Get.find<PolicyController>().fetchPolicies();
   }
+
+  /// Wraps an account-only action: runs it when signed in, otherwise opens the
+  /// login flow so a guest can still tap the option and be guided to sign in.
+  VoidCallback _authGuard(bool isLoggedIn, VoidCallback onAuthed) {
+    return isLoggedIn ? onAuthed : () => AuthFlow.openLogin(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -36,8 +43,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: AuthGate(
-        child: GetBuilder<ProfileController>(
+      body: GetBuilder<AuthController>(
+        builder: (auth) {
+          final bool isLoggedIn = auth.isLoggedIn;
+          return GetBuilder<ProfileController>(
         builder: (controller) {
           return RefreshIndicator(
             onRefresh: controller.fetchUserProfile,
@@ -45,7 +54,7 @@ class _ProfilePageState extends State<ProfilePage> {
             child: CustomScrollView(
               slivers: [
                 // App Bar with User Info
-                _buildSliverAppBar(controller),
+                _buildSliverAppBar(controller, isLoggedIn),
 
                 // Profile Options
                 SliverToBoxAdapter(
@@ -55,6 +64,10 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (!isLoggedIn) ...[
+                          _buildGuestSignInCard(),
+                          const SizedBox(height: 20),
+                        ],
                         _buildSection(
                           title: 'account'.tr,
                           items: [
@@ -62,17 +75,17 @@ class _ProfilePageState extends State<ProfilePage> {
                               icon: Icons.person_outline,
                               title: 'my_profile'.tr,
                               subtitle: 'my_profile_subtitle'.tr,
-                              onTap: () {
+                              onTap: _authGuard(isLoggedIn, () {
                                 context.pushNamed(RouteNames.editProfile);
-                              },
+                              }),
                             ),
                             _ProfileOption(
                               icon: Icons.location_on_outlined,
                               title: 'saved_addresses'.tr,
                               subtitle: 'manage_delivery_addresses'.tr,
-                              onTap: () {
+                              onTap: _authGuard(isLoggedIn, () {
                                 context.pushNamed(RouteNames.addresses);
-                              },
+                              }),
                             ),
                             _ProfileOption(
                               icon: Icons.payment_outlined,
@@ -94,20 +107,20 @@ class _ProfilePageState extends State<ProfilePage> {
                               icon: Icons.history,
                               title: 'order_history'.tr,
                               subtitle: 'order_history_subtitle'.tr,
-                              onTap: () {
+                              onTap: _authGuard(isLoggedIn, () {
                                 context.pushNamed(RouteNames.orderHistory);
-                              },
+                              }),
                             ),
                             _ProfileOption(
                               icon: Icons.favorite_outline,
                               title: 'favorites'.tr,
                               subtitle: 'favorites_subtitle'.tr,
-                              onTap: () {
+                              onTap: _authGuard(isLoggedIn, () {
                                 context.pushNamed(
                                   RouteNames.favorites,
                                   queryParameters: {'fromMenu': 'true'},
                                 );
-                              },
+                              }),
                             ),
                             _ProfileOption(
                               icon: Icons.star_outline,
@@ -130,17 +143,17 @@ class _ProfilePageState extends State<ProfilePage> {
                               title: 'coupons'.tr,
                               subtitle: 'view_and_apply_promo_codes'.tr,
                               trailing: _buildBadge('3'),
-                              onTap: () {
+                              onTap: _authGuard(isLoggedIn, () {
                                 context.pushNamed(RouteNames.coupons);
-                              },
+                              }),
                             ),
                             _ProfileOption(
                               icon: Icons.card_giftcard_outlined,
                               title: 'loyalty_points'.tr,
                               subtitle: 'earn_and_redeem_points'.tr,
-                              onTap: () {
+                              onTap: _authGuard(isLoggedIn, () {
                                 context.pushNamed(RouteNames.loyalty);
-                              },
+                              }),
                             ),
                             _ProfileOption(
                               icon: Icons.share_outlined,
@@ -162,9 +175,9 @@ class _ProfilePageState extends State<ProfilePage> {
                               icon: Icons.notifications_outlined,
                               title: 'notifications_title'.tr,
                               subtitle: 'manage_notification_preferences'.tr,
-                              onTap: () {
+                              onTap: _authGuard(isLoggedIn, () {
                                 context.pushNamed(RouteNames.notifications);
-                              },
+                              }),
                             ),
                             GetBuilder<LocalizationController>(
                               builder: (localizationController) {
@@ -241,26 +254,37 @@ class _ProfilePageState extends State<ProfilePage> {
 
                         _buildSection(
                           title: 'account_actions'.tr,
-                          items: [
-                            _ProfileOption(
-                              icon: Icons.logout,
-                              title: 'logout'.tr,
-                              subtitle: 'sign_out_of_your_account'.tr,
-                              iconColor: ColorResource.error,
-                              onTap: () {
-                                _showLogoutDialog(context);
-                              },
-                            ),
-                            _ProfileOption(
-                              icon: Icons.delete_outline,
-                              title: 'delete_account'.tr,
-                              subtitle: 'permanently_delete_your_account'.tr,
-                              iconColor: ColorResource.error,
-                              onTap: () {
-                                _showDeleteAccountDialog(context);
-                              },
-                            ),
-                          ],
+                          items: isLoggedIn
+                              ? [
+                                  _ProfileOption(
+                                    icon: Icons.logout,
+                                    title: 'logout'.tr,
+                                    subtitle: 'sign_out_of_your_account'.tr,
+                                    iconColor: ColorResource.error,
+                                    onTap: () {
+                                      _showLogoutDialog(context);
+                                    },
+                                  ),
+                                  _ProfileOption(
+                                    icon: Icons.delete_outline,
+                                    title: 'delete_account'.tr,
+                                    subtitle:
+                                        'permanently_delete_your_account'.tr,
+                                    iconColor: ColorResource.error,
+                                    onTap: () {
+                                      _showDeleteAccountDialog(context);
+                                    },
+                                  ),
+                                ]
+                              : [
+                                  _ProfileOption(
+                                    icon: Icons.login_rounded,
+                                    title: 'login'.tr,
+                                    subtitle:
+                                        'login_to_access_this_section'.tr,
+                                    onTap: () => AuthFlow.openLogin(context),
+                                  ),
+                                ],
                         ),
 
                         const SizedBox(height: 20),
@@ -288,12 +312,13 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           );
         },
-      ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildSliverAppBar(ProfileController controller) {
+  Widget _buildSliverAppBar(ProfileController controller, bool isLoggedIn) {
     final user = controller.userProfile;
 
     return SliverAppBar(
@@ -355,37 +380,64 @@ class _ProfilePageState extends State<ProfilePage> {
                         child: CircleAvatar(
                           radius: 40,
                           backgroundColor: ColorResource.textWhite,
-                          child: user?.profileImageUrl != null
-                              ? ClipOval(
-                            child: Image.network(
-                              user!.profileImageUrl!,
-                              width: 80,
-                              height: 80,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return _buildAvatarPlaceholder(user);
-                              },
-                            ),
-                          )
-                              : _buildAvatarPlaceholder(user),
+                          child: !isLoggedIn
+                              ? _buildGuestAvatar()
+                              : (user?.profileImageUrl != null
+                                  ? ClipOval(
+                                      child: Image.network(
+                                        user!.profileImageUrl!,
+                                        width: 80,
+                                        height: 80,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return _buildAvatarPlaceholder(user);
+                                        },
+                                      ),
+                                    )
+                                  : _buildAvatarPlaceholder(user)),
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Text(
-                        user?.name ?? 'Loading...',
-                        style: poppinsBold.copyWith(
-                          fontSize: Constants.fontSizeLarge,
-                          color: ColorResource.textWhite,
+                      if (isLoggedIn) ...[
+                        Text(
+                          user?.name ?? 'Loading...',
+                          style: poppinsBold.copyWith(
+                            fontSize: Constants.fontSizeLarge,
+                            color: ColorResource.textWhite,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${'balance'.tr}: ${CurrencyHelper.formatWithSeparators(user?.walletBalance ?? 0)}',
-                        style: poppinsRegular.copyWith(
-                          fontSize: Constants.fontSizeDefault,
-                          color: ColorResource.textWhite.withValues(alpha: 0.9),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${'balance'.tr}: ${CurrencyHelper.formatWithSeparators(user?.walletBalance ?? 0)}',
+                          style: poppinsRegular.copyWith(
+                            fontSize: Constants.fontSizeDefault,
+                            color:
+                                ColorResource.textWhite.withValues(alpha: 0.9),
+                          ),
                         ),
-                      ),
+                      ] else ...[
+                        // Guest: a compact identity line (same height as the
+                        // signed-in name + balance, so the header never
+                        // overflows). The prominent sign-in CTA is the card at
+                        // the top of the list below.
+                        Text(
+                          'guest_user'.tr,
+                          style: poppinsBold.copyWith(
+                            fontSize: Constants.fontSizeLarge,
+                            color: ColorResource.textWhite,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'browsing_as_guest'.tr,
+                          style: poppinsRegular.copyWith(
+                            fontSize: Constants.fontSizeDefault,
+                            color:
+                                ColorResource.textWhite.withValues(alpha: 0.9),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -393,6 +445,112 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  /// Prominent, tappable "sign in / create account" card shown at the top of
+  /// the list for guests — the primary call to action, kept out of the header
+  /// so nothing overflows.
+  Widget _buildGuestSignInCard() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: () => AuthFlow.openLogin(context),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(Constants.radiusLarge),
+          border: Border.all(
+            color: ColorResource.primaryDark.withValues(alpha: 0.25),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.22)
+                  : ColorResource.primaryDark.withValues(alpha: 0.08),
+              blurRadius: 18,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: ColorResource.primaryDark
+                    .withValues(alpha: isDark ? 0.20 : 0.10),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.person_outline_rounded,
+                color: ColorResource.primaryDark,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'guest_cta_title'.tr,
+                    style: poppinsBold.copyWith(
+                      fontSize: Constants.fontSizeDefault,
+                      color: isDark ? Colors.white : context.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'guest_cta_subtitle'.tr,
+                    style: poppinsRegular.copyWith(
+                      fontSize: Constants.fontSizeSmall,
+                      color: isDark ? Colors.white60 : context.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+              decoration: BoxDecoration(
+                gradient: ColorResource.primaryGradient,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                'login'.tr,
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeSmall,
+                  color: ColorResource.textWhite,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Avatar shown for signed-out guests — a person glyph on the brand gradient.
+  Widget _buildGuestAvatar() {
+    return Container(
+      width: 80,
+      height: 80,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: ColorResource.primaryGradient,
+      ),
+      child: const Center(
+        child: Icon(
+          Icons.person_rounded,
+          size: 42,
+          color: ColorResource.textWhite,
+        ),
       ),
     );
   }
