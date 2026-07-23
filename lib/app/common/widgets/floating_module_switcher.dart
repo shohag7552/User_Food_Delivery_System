@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/helper/module_switch_helper.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -6,10 +7,12 @@ import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// A floating handle pinned to the middle-right edge of the screen. Tapping it
-/// makes the handle expand *in place* into the Food / Shop selector at that same
-/// spot; picking a module switches and auto-collapses back to the handle.
-/// Renders nothing unless the store runs both modules.
+/// A floating Food / Shop switcher handle. On mobile it can be **dragged
+/// anywhere** on the screen and, when released, **snaps to the nearest side**
+/// (left or right edge) while keeping its vertical position. Tapping the handle
+/// expands it *in place* into the selector; picking a module switches and
+/// collapses back to the handle. Renders nothing unless the store runs both
+/// modules.
 ///
 /// Designed to sit inside a full-screen [Stack] (e.g. via `Positioned.fill`).
 class FloatingModuleSwitcher extends StatefulWidget {
@@ -20,7 +23,27 @@ class FloatingModuleSwitcher extends StatefulWidget {
 }
 
 class _FloatingModuleSwitcherState extends State<FloatingModuleSwitcher> {
+  // The full-screen area the switcher lives in — used to convert drag
+  // coordinates into an alignment.
+  final GlobalKey _areaKey = GlobalKey();
+
+  static const double _handleW = 46;
+  static const double _handleH = 50;
+
+  /// Position within the screen, expressed as an [Alignment] (-1..1 on each
+  /// axis). Starts at the middle-right edge.
+  Alignment _align = const Alignment(1.0, -0.15);
+  bool _dragging = false;
   bool _expanded = false;
+
+  // Drag bookkeeping (delta-based, so the grab point stays under the finger).
+  Offset _dragStartLocal = Offset.zero;
+  double _handleStartLeft = 0;
+  double _handleStartTop = 0;
+
+  /// Which edge the handle is anchored to — drives corner rounding and the
+  /// direction the panel expands.
+  bool get _isRight => _align.x >= 0;
 
   void _expand() => setState(() => _expanded = true);
 
@@ -34,12 +57,59 @@ class _FloatingModuleSwitcherState extends State<FloatingModuleSwitcher> {
     await ModuleSwitchHelper.switchTo(target);
   }
 
+  RenderBox? get _areaBox =>
+      _areaKey.currentContext?.findRenderObject() as RenderBox?;
+
+  void _onPanStart(DragStartDetails d) {
+    final box = _areaBox;
+    if (box == null) return;
+    final Size size = box.size;
+    _dragStartLocal = box.globalToLocal(d.globalPosition);
+    _handleStartLeft = (_align.x + 1) / 2 * (size.width - _handleW);
+    _handleStartTop = (_align.y + 1) / 2 * (size.height - _handleH);
+    setState(() {
+      _dragging = true;
+      _expanded = false; // dragging always happens from the collapsed handle
+    });
+  }
+
+  void _onPanUpdate(DragUpdateDetails d) {
+    final box = _areaBox;
+    if (box == null) return;
+    final Size size = box.size;
+    final Offset delta = box.globalToLocal(d.globalPosition) - _dragStartLocal;
+    final double maxLeft = size.width - _handleW;
+    final double maxTop = size.height - _handleH;
+    final double left = (_handleStartLeft + delta.dx).clamp(0.0, maxLeft);
+    final double top = (_handleStartTop + delta.dy).clamp(0.0, maxTop);
+    final double ax = maxLeft <= 0 ? 0.0 : (left / maxLeft) * 2 - 1;
+    final double ay = maxTop <= 0 ? 0.0 : (top / maxTop) * 2 - 1;
+    setState(() {
+      _align = Alignment(ax.clamp(-1.0, 1.0), ay.clamp(-1.0, 1.0));
+    });
+  }
+
+  void _onPanEnd(DragEndDetails d) {
+    setState(() {
+      _dragging = false;
+      // Snap horizontally to whichever side the handle is nearer; keep the
+      // vertical position. The AnimatedAlign animates the glide to the edge.
+      _align = Alignment(_align.x >= 0 ? 1.0 : -1.0, _align.y);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ModuleController>(
       builder: (module) {
         if (!module.bothEnabled) return const SizedBox.shrink();
+
+        // Dragging is a mobile-only affordance; the desktop-web shell keeps the
+        // handle pinned at the middle-right edge.
+        final bool draggable = !WebTopNav.isEnabled(context);
+
         return Stack(
+          key: _areaKey,
           children: [
             // Tap-outside-to-close barrier (only while open).
             if (_expanded)
@@ -49,9 +119,14 @@ class _FloatingModuleSwitcherState extends State<FloatingModuleSwitcher> {
                   onTap: _collapse,
                 ),
               ),
-            // The switcher lives at the middle-right edge and expands in place.
-            Align(
-              alignment: const Alignment(1.0, -0.15), // middle-right
+            AnimatedAlign(
+              // Instant while dragging (follows the finger), animated glide on
+              // release so the snap to the edge reads as deliberate.
+              duration: _dragging
+                  ? Duration.zero
+                  : const Duration(milliseconds: 340),
+              curve: Curves.easeOutCubic,
+              alignment: _align,
               child: Material(
                 color: Colors.transparent,
                 child: AnimatedSize(
@@ -59,16 +134,20 @@ class _FloatingModuleSwitcherState extends State<FloatingModuleSwitcher> {
                   reverseDuration: const Duration(milliseconds: 300),
                   // Emphasized easing reads as a deliberate, premium expansion.
                   curve: Curves.easeOutCubic,
-                  alignment: Alignment.centerRight, // grow leftward from edge
+                  // Grow inward from whichever edge the handle sits on.
+                  alignment:
+                      _isRight ? Alignment.centerRight : Alignment.centerLeft,
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 320),
                     reverseDuration: const Duration(milliseconds: 240),
                     switchInCurve: Curves.easeOutCubic,
                     switchOutCurve: Curves.easeInCubic,
-                    // Keep both children pinned to the right edge mid-morph so
+                    // Keep both children pinned to the anchored edge mid-morph so
                     // the cross-fade pivots on the handle instead of jumping.
                     layoutBuilder: (currentChild, previousChildren) => Stack(
-                      alignment: Alignment.centerRight,
+                      alignment: _isRight
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
                       children: [
                         ...previousChildren,
                         ?currentChild,
@@ -80,13 +159,15 @@ class _FloatingModuleSwitcherState extends State<FloatingModuleSwitcher> {
                         scale: Tween<double>(begin: 0.85, end: 1.0).animate(
                           animation,
                         ),
-                        alignment: Alignment.centerRight,
+                        alignment: _isRight
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
                         child: child,
                       ),
                     ),
                     child: _expanded
                         ? _buildPanel(module)
-                        : _buildHandle(module),
+                        : _buildHandle(module, draggable),
                   ),
                 ),
               ),
@@ -97,25 +178,36 @@ class _FloatingModuleSwitcherState extends State<FloatingModuleSwitcher> {
     );
   }
 
-  /// Collapsed state: a small tab tucked against the right edge.
-  Widget _buildHandle(ModuleController module) {
+  /// Collapsed state: a small tab tucked against the anchored edge. Draggable on
+  /// mobile; tapping expands it.
+  Widget _buildHandle(ModuleController module, bool draggable) {
+    final bool right = _isRight;
     return GestureDetector(
       key: const ValueKey('handle'),
       onTap: _expand,
+      onPanStart: draggable ? _onPanStart : null,
+      onPanUpdate: draggable ? _onPanUpdate : null,
+      onPanEnd: draggable ? _onPanEnd : null,
       child: Container(
-        width: 46,
-        height: 50,
+        width: _handleW,
+        height: _handleH,
         decoration: BoxDecoration(
           gradient: ColorResource.primaryGradient,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(25),
-            bottomLeft: Radius.circular(25),
-          ),
+          // Round the two corners facing inward from the anchored edge.
+          borderRadius: right
+              ? const BorderRadius.only(
+                  topLeft: Radius.circular(25),
+                  bottomLeft: Radius.circular(25),
+                )
+              : const BorderRadius.only(
+                  topRight: Radius.circular(25),
+                  bottomRight: Radius.circular(25),
+                ),
           boxShadow: [
             BoxShadow(
               color: ColorResource.primaryDark.withValues(alpha: 0.35),
               blurRadius: 12,
-              offset: const Offset(-2, 4),
+              offset: Offset(right ? -2 : 2, 4),
             ),
           ],
         ),
@@ -134,7 +226,8 @@ class _FloatingModuleSwitcherState extends State<FloatingModuleSwitcher> {
   Widget _buildPanel(ModuleController module) {
     return Container(
       key: const ValueKey('panel'),
-      margin: const EdgeInsets.only(right: 8),
+      // Nudge away from the anchored edge.
+      margin: EdgeInsets.only(right: _isRight ? 8 : 0, left: _isRight ? 0 : 8),
       padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(
         color: context.cardBackground,
