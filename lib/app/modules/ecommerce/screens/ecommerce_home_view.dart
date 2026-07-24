@@ -37,6 +37,9 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
   // Same pair for the Offer Products carousel.
   final ScrollController _offerScrollController = ScrollController();
   bool _offerHovered = false;
+  // Tracks the current layout so scroll-driven pagination stays mobile-only —
+  // web loads the next page via the explicit "View more" button instead.
+  bool _isWide = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -67,6 +70,8 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
   }
 
   void _onScroll() {
+    // Web paginates via the "View more" button, so skip scroll auto-load there.
+    if (_isWide) return;
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       Get.find<ProductController>().loadMoreProducts();
@@ -106,6 +111,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     // On wide (web/desktop) layouts the Promotions and Brands sit side by side;
     // narrow layouts keep them stacked.
     final bool isWide = width >= 900;
+    _isWide = isWide;
 
     return RefreshIndicator(
       color: ColorResource.primaryDark,
@@ -131,6 +137,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
           SliverToBoxAdapter(child: _buildPopular(hPad)),
           SliverToBoxAdapter(child: _sectionHeader('all_products'.tr, hPad)),
           _buildAllProductsGrid(crossAxisCount, hPad),
+          _buildViewMoreButton(hPad, isWide),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
@@ -1216,6 +1223,91 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
           ),
         );
       },
+    );
+  }
+
+  /// Web-only pagination control beneath the all-products grid. Tapping it
+  /// appends the next page (offset) and keeps working continuously while more
+  /// pages remain. It renders nothing on mobile (infinite scroll handles it),
+  /// when there are no products, or once the final page has loaded.
+  Widget _buildViewMoreButton(double hPad, bool isWide) {
+    if (!isWide) return const SliverToBoxAdapter(child: SizedBox.shrink());
+
+    return GetBuilder<ProductController>(
+      builder: (controller) {
+        if (controller.products.isEmpty || !controller.hasMore) {
+          return const SliverToBoxAdapter(child: SizedBox.shrink());
+        }
+        return SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              hPad,
+              Constants.paddingSizeLarge,
+              hPad,
+              0,
+            ),
+            child: Center(
+              // Fixed height keeps the layout stable while the label swaps to
+              // the loading spinner and back.
+              child: SizedBox(
+                height: 48,
+                child: Center(
+                  child: controller.isLoadingMore
+                      ? SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.4,
+                            color: ColorResource.primaryDark,
+                          ),
+                        )
+                      : _viewMoreButton(controller.loadMoreProducts),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Outlined pill button used by [_buildViewMoreButton].
+  Widget _viewMoreButton(VoidCallback onTap) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
+        hoverColor: ColorResource.primaryDark.withValues(alpha: 0.04),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: Constants.paddingSizeExtraLarge,
+            vertical: Constants.paddingSizeSmall,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
+            border: Border.all(color: ColorResource.primaryDark, width: 1.4),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'view_more'.tr,
+                style: poppinsMedium.copyWith(
+                  fontSize: Constants.fontSizeDefault,
+                  color: ColorResource.primaryDark,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                size: 20,
+                color: ColorResource.primaryDark,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

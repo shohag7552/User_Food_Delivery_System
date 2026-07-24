@@ -163,8 +163,15 @@ class AllProductsWidget extends StatelessWidget {
               ),
             ),
 
-            // Load More Indicator
-            if (controller.isLoadingMore)
+            // Pagination footer:
+            //  • Web — an explicit "View more" button that loads the next page
+            //    on tap and keeps working while more pages remain; hidden once
+            //    the last page has loaded. A spinner replaces it while loading.
+            //  • Mobile — infinite scroll drives loadMore, so just show the
+            //    shimmer while the next page is in flight.
+            if (WebTopNav.isEnabled(context))
+              _buildViewMoreSliver(controller)
+            else if (controller.isLoadingMore)
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20),
@@ -182,6 +189,83 @@ class AllProductsWidget extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  /// Web-only pagination control shown beneath the grid. Tapping it appends the
+  /// next page (offset) and keeps working continuously while more pages remain.
+  /// Renders nothing once the final page has loaded; a spinner replaces the
+  /// button while a page is loading so the layout stays put.
+  Widget _buildViewMoreSliver(ProductController controller) {
+    if (!controller.hasMore) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: horizontalPadding,
+          vertical: Constants.paddingSizeLarge,
+        ),
+        child: Center(
+          // Fixed height keeps the layout stable while the label swaps to the
+          // loading spinner and back.
+          child: SizedBox(
+            height: 48,
+            child: Center(
+              child: controller.isLoadingMore
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.4,
+                        color: ColorResource.primaryDark,
+                      ),
+                    )
+                  : _viewMoreButton(controller.loadMoreProducts),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Outlined pill button used by [_buildViewMoreSliver].
+  Widget _viewMoreButton(VoidCallback onTap) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
+        hoverColor: ColorResource.primaryDark.withValues(alpha: 0.04),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: Constants.paddingSizeExtraLarge,
+            vertical: Constants.paddingSizeSmall,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
+            border: Border.all(color: ColorResource.primaryDark, width: 1.4),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'view_more'.tr,
+                style: poppinsMedium.copyWith(
+                  fontSize: Constants.fontSizeDefault,
+                  color: ColorResource.primaryDark,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                size: 20,
+                color: ColorResource.primaryDark,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

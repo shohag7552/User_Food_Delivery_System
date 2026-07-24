@@ -46,6 +46,9 @@ class _HomePageState extends State<HomePage>
   Timer? _reconnectReloadTimer;
   bool _hadConnection = true;
   bool _isReloadingAfterReconnect = false;
+  // Tracks the desktop-web shell so scroll-driven pagination stays mobile-only;
+  // web loads the next page via the explicit "View more" button instead.
+  bool _isWebShell = false;
 
   /// One-shot staggered entrance for the header (badge → greeting → search).
   late final AnimationController _introController;
@@ -105,6 +108,8 @@ class _HomePageState extends State<HomePage>
   }
 
   void _onScroll() {
+    // Web paginates via the "View more" button, so skip scroll auto-load there.
+    if (_isWebShell) return;
     if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
       // Load more when near bottom
       Get.find<ProductController>().loadMoreProducts();
@@ -240,6 +245,7 @@ class _HomePageState extends State<HomePage>
     // Desktop web gets a hero card + width-capped sections; the shared
     // WebTopNav above owns search, so no in-page search bar there.
     final isWebShell = WebTopNav.isEnabled(context);
+    _isWebShell = isWebShell;
     // Grid: 2 columns on phones, 3 on tablets; web derives its count from
     // FoodCardMetrics so the cards match the carousel sections.
     final int? gridColumns =
