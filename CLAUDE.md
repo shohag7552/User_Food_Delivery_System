@@ -126,6 +126,32 @@ fontSize: 16,
 
 Available tokens: font sizes `fontSizeExtraSmall`…`fontSizeOverLarge`; padding/margin `paddingSizeExtraSmall`…`paddingSizeExtraLarge`; radius `radiusSmall`…`radiusExtraLarge`; spacing `spaceSection`, `bottomNavSpace`. If a needed value is missing, add a new token to `Constants` rather than hardcoding at the call site.
 
+### 6. Use theme-aware colors — never hardcode a static color
+The app ships **light and dark** themes, so a screen/widget must never paint with a raw `Color`/`Colors.*` that looks right in only one mode. Pull every color from the theme so it recolors automatically when the mode changes.
+
+- Prefer the reactive `context.<color>` extension (`AppColorsX` in `resources/colors.dart`) wherever a `BuildContext` is available — reading it registers a `Theme` dependency, so the widget rebuilds on theme change:
+  ```dart
+  color: context.textPrimary,          // text
+  color: context.textSecondary,        // muted text
+  color: context.scaffoldBackground,   // page background
+  color: Theme.of(context).cardColor,  // surfaces/cards
+  ```
+- Use `ColorResource.<color>` only where there is **no** `BuildContext` (it resolves via `Get.isDarkMode` but is not reactive).
+- When light/dark need genuinely different values at a call site, branch on `Theme.of(context).brightness == Brightness.dark` (see the existing `isDark` pattern in screens) rather than committing to one hardcoded color.
+- Brand/semantic constants that are intentionally identical in both modes (`ColorResource.primaryDark`, `primaryGradient`, `error`, `textWhite`, …) are fine to use as-is.
+
+```dart
+// ✅ do
+Text('hi', style: poppinsMedium.copyWith(color: context.textPrimary));
+Container(color: Theme.of(context).cardColor);
+
+// ❌ don't
+Text('hi', style: poppinsMedium.copyWith(color: Colors.black));
+Container(color: const Color(0xFFFFFFFF));
+```
+
+If a needed theme color is missing, add it to the `_c*` constants + both `AppColorsX` and the static getters in `resources/colors.dart` rather than hardcoding at the call site.
+
 ## Conventions
 
 - **DI registration:** add new repos/controllers in `helper/dependencies.dart` with `Get.lazyPut`. Pattern: build the `RepoInterface = Repository(appwriteService: Get.find())`, `Get.lazyPut(() => thatInterface)`, then `Get.lazyPut(() => Controller(repoInterface: Get.find()))`. Resolve with `Get.find<T>()` (guard optional ones with `Get.isRegistered<T>()`).

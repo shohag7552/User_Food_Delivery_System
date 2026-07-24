@@ -38,6 +38,7 @@ import 'package:appwrite_user_app/app/modules/orders/screens/order_detail_page.d
 import 'package:appwrite_user_app/app/modules/orders/screens/order_history_page.dart';
 import 'package:appwrite_user_app/app/modules/orders/screens/orders_page.dart';
 import 'package:appwrite_user_app/app/modules/payment/payment_webview_screen.dart';
+import 'package:appwrite_user_app/app/modules/help_support/screens/help_support_screen.dart';
 import 'package:appwrite_user_app/app/modules/policies/screens/policy_content_screen.dart';
 import 'package:appwrite_user_app/app/modules/profile/screens/edit_profile_page.dart';
 import 'package:appwrite_user_app/app/modules/search/screens/search_page.dart';
@@ -89,6 +90,7 @@ abstract class RouteNames {
   static const coupons = 'coupons';
   static const couponDetails = 'coupon-details';
   static const policy = 'policy';
+  static const helpSupport = 'help-support';
   static const mapPicker = 'map-picker';
   static const imageViewer = 'image-viewer';
   static const payment = 'payment';
@@ -222,6 +224,7 @@ abstract class AppRouter {
   static const String coupons = '/coupons';
   static const String couponDetailsPath = '/coupons/:id';
   static const String policyPath = '/policy/:type';
+  static const String helpSupport = '/help-support';
   static const String mapPicker = '/map-picker';
   static const String imageViewer = '/image-viewer';
   static const String payment = '/payment';
@@ -514,6 +517,11 @@ abstract class AppRouter {
             htmlContent: content.$2,
           ),
         ),
+      ),
+      GoRoute(
+        path: helpSupport,
+        name: RouteNames.helpSupport,
+        builder: (context, state) => const HelpSupportScreen(),
       ),
       GoRoute(
         path: mapPicker,

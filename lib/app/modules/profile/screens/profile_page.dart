@@ -88,14 +88,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                 context.pushNamed(RouteNames.addresses);
                               }),
                             ),
-                            _ProfileOption(
-                              icon: Icons.payment_outlined,
-                              title: 'payment_methods'.tr,
-                              subtitle: 'manage_payment_options'.tr,
-                              onTap: () {
-                                Get.snackbar('payment_methods'.tr, 'feature_coming_soon'.tr);
-                              },
-                            ),
                           ],
                         ),
 
@@ -212,7 +204,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               title: 'help_and_support'.tr,
                               subtitle: 'get_help_or_contact_us'.tr,
                               onTap: () {
-                                Get.snackbar('help_and_support'.tr, 'feature_coming_soon'.tr);
+                                context.pushNamed(RouteNames.helpSupport);
                               },
                             ),
                             _ProfileOption(
