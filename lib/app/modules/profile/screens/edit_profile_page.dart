@@ -1,6 +1,9 @@
 import 'dart:ui';
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -9,99 +12,207 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
-class EditProfilePage extends StatelessWidget {
+class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
+
+  @override
+  State<EditProfilePage> createState() => _EditProfilePageState();
+}
+
+class _EditProfilePageState extends State<EditProfilePage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  /// Caps the form width on desktop web so fields stay readable instead of
+  /// stretching edge to edge.
+  static const double _maxContentWidth = 720;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // Desktop web keeps the shared top-nav + account drawer; mobile/tablet use
+    // the gradient hero app bar with a back button.
+    final showWebNav = WebTopNav.isEnabled(context);
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: showWebNav
+          ? WebTopNav(
+              selectedIndex: null,
+              onDestinationSelected: (index) =>
+                  DashboardTabs.open(context, index),
+              onMenuTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+            )
+          : null,
+      endDrawer: showWebNav ? const WebProfileDrawer() : null,
       body: AuthGate(
         child: GetBuilder<ProfileController>(
-        builder: (controller) {
-          if (controller.isLoading) {
-            return Center(
-              child: CircularProgressIndicator(
-                color: ColorResource.primaryDark,
-              ),
-            );
-          }
-
-          return CustomScrollView(
-            slivers: [
-              // Animated App Bar with Gradient
-              _buildSliverAppBar(context, controller),
-
-              // Profile Content
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Form(
-                    key: controller.formKey,
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 20),
-
-                        // Profile Information Card
-                        _buildGlassmorphicCard(
-                          context: context,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildSectionTitle('personal_information'.tr),
-                              const SizedBox(height: 20),
-
-                              // Name Field
-                              _buildCustomTextField(
-                                context: context,
-                                controller: controller.nameController,
-                                label: 'full_name_label'.tr,
-                                icon: Icons.person_outline,
-                                validator: controller.validateName,
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Email Field
-                              _buildCustomTextField(
-                                context: context,
-                                controller: controller.emailController,
-                                label: 'email_address_label'.tr,
-                                icon: Icons.email_outlined,
-                                validator: controller.validateEmail,
-                                keyboardType: TextInputType.emailAddress,
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Phone Field
-                              _buildCustomTextField(
-                                context: context,
-                                controller: controller.phoneController,
-                                label: 'phone_number_label'.tr,
-                                icon: Icons.phone_outlined,
-                                validator: controller.validatePhone,
-                                keyboardType: TextInputType.phone,
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 30),
-
-                        // Save Button with Gradient
-                        _buildSaveButton(context, controller),
-
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
+          builder: (controller) {
+            if (controller.isLoading) {
+              return Center(
+                child: CircularProgressIndicator(
+                  color: ColorResource.primaryDark,
                 ),
-              ),
-            ],
-          );
-        },
+              );
+            }
+
+            return showWebNav
+                ? _buildWebBody(context, controller)
+                : _buildMobileBody(context, controller);
+          },
+        ),
       ),
+    );
+  }
+
+  /// Mobile / tablet: collapsing gradient hero + full-width form.
+  Widget _buildMobileBody(BuildContext context, ProfileController controller) {
+    return CustomScrollView(
+      slivers: [
+        _buildSliverAppBar(context, controller),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Form(
+              key: controller.formKey,
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  _buildProfileInfoCard(context, controller),
+                  const SizedBox(height: 30),
+                  _buildSaveButton(context, controller),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Desktop web: shared top-nav (above) + a centered, width-capped form with a
+  /// rounded gradient header card standing in for the mobile hero app bar.
+  Widget _buildWebBody(BuildContext context, ProfileController controller) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(
+            horizontal: Constants.paddingSizeLarge,
+            vertical: Constants.paddingSizeExtraLarge,
+          ),
+          child: Form(
+            key: controller.formKey,
+            child: Column(
+              children: [
+                _buildWebHeaderCard(context, controller),
+                const SizedBox(height: Constants.spaceSection),
+                _buildProfileInfoCard(context, controller),
+                const SizedBox(height: Constants.spaceSection),
+                _buildSaveButton(context, controller),
+                const SizedBox(height: Constants.paddingSizeLarge),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// The personal-information card (name / email / phone). Shared by both the
+  /// mobile and web layouts so the form itself is defined once.
+  Widget _buildProfileInfoCard(
+    BuildContext context,
+    ProfileController controller,
+  ) {
+    return _buildGlassmorphicCard(
+      context: context,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle('personal_information'.tr),
+          const SizedBox(height: 20),
+
+          // Name Field
+          _buildCustomTextField(
+            context: context,
+            controller: controller.nameController,
+            label: 'full_name_label'.tr,
+            icon: Icons.person_outline,
+            validator: controller.validateName,
+          ),
+          const SizedBox(height: 16),
+
+          // Email Field
+          _buildCustomTextField(
+            context: context,
+            controller: controller.emailController,
+            label: 'email_address_label'.tr,
+            icon: Icons.email_outlined,
+            validator: controller.validateEmail,
+            keyboardType: TextInputType.emailAddress,
+          ),
+          const SizedBox(height: 16),
+
+          // Phone Field
+          _buildCustomTextField(
+            context: context,
+            controller: controller.phoneController,
+            label: 'phone_number_label'.tr,
+            icon: Icons.phone_outlined,
+            validator: controller.validatePhone,
+            keyboardType: TextInputType.phone,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Rounded gradient header used on web in place of the mobile hero app bar:
+  /// the same avatar + titles, but as a card inside the width-capped column.
+  Widget _buildWebHeaderCard(
+    BuildContext context,
+    ProfileController controller,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        vertical: Constants.paddingSizeExtraLarge,
+        horizontal: Constants.paddingSizeLarge,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            ColorResource.primaryDark,
+            ColorResource.primaryDark.withValues(alpha: 0.8),
+            ColorResource.primaryLight,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
+      ),
+      child: Column(
+        children: [
+          _buildProfilePicture(context, controller),
+          const SizedBox(height: 16),
+          Text(
+            'edit_profile'.tr,
+            style: poppinsBold.copyWith(
+              fontSize: Constants.fontSizeOverLarge,
+              color: ColorResource.textWhite,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'update_your_personal_info'.tr,
+            style: poppinsRegular.copyWith(
+              fontSize: Constants.fontSizeDefault,
+              color: ColorResource.textWhite.withValues(alpha: 0.8),
+            ),
+          ),
+        ],
       ),
     );
   }

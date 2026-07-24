@@ -25,6 +25,9 @@ class OrdersPage extends StatefulWidget {
 class _OrdersPageState extends State<OrdersPage> {
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
+  // Tracks the web/desktop layout so scroll-driven pagination stays mobile-only;
+  // web loads the next page via the explicit "View more" button instead.
+  bool _isWide = false;
 
   @override
   void initState() {
@@ -45,6 +48,8 @@ class _OrdersPageState extends State<OrdersPage> {
   }
 
   void _onScroll() {
+    // Web paginates via the "View more" button, so skip scroll auto-load there.
+    if (_isWide) return;
     if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
       // Nearly reached bottom, load more
       Get.find<OrderController>().loadMoreOrders();
@@ -58,6 +63,7 @@ class _OrdersPageState extends State<OrdersPage> {
   @override
   Widget build(BuildContext context) {
     final isWide = MediaQuery.of(context).size.width >= _webBreakpoint;
+    _isWide = isWide;
     // As a dashboard tab on web the shared top-nav is already shown, so drop the
     // page's own app bar — unless this page was pushed as a standalone route.
     final hideAppBar =
@@ -92,28 +98,40 @@ class _OrdersPageState extends State<OrdersPage> {
   }
 
   Widget _buildWebBody(bool showInlineTitle) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (showInlineTitle)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                child: Text(
-                  'my_orders'.tr,
-                  style: poppinsBold.copyWith(
-                    fontSize: Constants.fontSizeOverLarge,
-                    color: context.textPrimary,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Header (title + filter chips) centered to the content width. The
+        // inner column stretches so it fills the full [_maxContentWidth] (and
+        // aligns with the grid below) instead of shrink-wrapping to its content.
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (showInlineTitle)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                    child: Text(
+                      'my_orders'.tr,
+                      style: poppinsBold.copyWith(
+                        fontSize: Constants.fontSizeOverLarge,
+                        color: context.textPrimary,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            _buildFilterChips(),
-            Expanded(child: _buildOrdersList(true)),
-          ],
+                _buildFilterChips(),
+              ],
+            ),
+          ),
         ),
-      ),
+        // The list fills the remaining height. Its scroll view spans the FULL
+        // width (so dragging over the letterboxed side gutters scrolls too —
+        // previously only the centered column was scrollable) and centers its
+        // own content to [_maxContentWidth].
+        Expanded(child: _buildOrdersList(true)),
+      ],
     );
   }
 
@@ -157,43 +175,125 @@ class _OrdersPageState extends State<OrdersPage> {
   }
 
   // Web: responsive grid. A Wrap lets each card keep its natural height (no
-  // overflow), while the column count adapts to the available width.
+  // overflow), while the column count adapts to the available width. The scroll
+  // view is full-width (drag anywhere, including the side gutters, to scroll)
+  // and centers its content to [_maxContentWidth].
   Widget _buildOrdersGrid(OrderController controller) {
     return RefreshIndicator(
       onRefresh: controller.refreshOrders,
       color: ColorResource.primaryDark,
       child: SingleChildScrollView(
         controller: _scrollController,
-        padding: const EdgeInsets.fromLTRB(8, 16, 8, Constants.bottomNavSpace),
-        child: Column(
-          children: [
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final width = constraints.maxWidth;
-                final columns = width >= 1080
-                    ? 3
-                    : width >= 680
-                        ? 2
-                        : 1;
-                const spacing = 16.0;
-                final itemWidth =
-                    (width - (columns - 1) * spacing) / columns;
+        padding: const EdgeInsets.only(
+          top: 16,
+          bottom: Constants.bottomNavSpace,
+        ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.maxWidth;
+                      final columns = width >= 1080
+                          ? 3
+                          : width >= 680
+                              ? 2
+                              : 1;
+                      const spacing = 16.0;
+                      final itemWidth =
+                          (width - (columns - 1) * spacing) / columns;
 
-                return Wrap(
-                  spacing: spacing,
-                  runSpacing: 0, // each card carries its own bottom margin
-                  children: [
-                    for (final order in controller.orders)
-                      SizedBox(
-                        width: itemWidth,
-                        child: HoverLift(child: _buildOrderCard(order)),
-                      ),
-                  ],
-                );
-              },
+                      return Wrap(
+                        spacing: spacing,
+                        runSpacing: 0, // each card carries its own bottom margin
+                        children: [
+                          for (final order in controller.orders)
+                            SizedBox(
+                              width: itemWidth,
+                              child: HoverLift(child: _buildOrderCard(order)),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                  _buildWebPaginationFooter(controller),
+                ],
+              ),
             ),
-            _buildLoadMoreIndicator(controller),
-          ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Web-only pagination control beneath the orders grid. Tapping it loads the
+  /// next page (offset) and keeps working continuously while more pages remain;
+  /// it renders nothing once the last page has loaded. A spinner replaces the
+  /// button while a page is loading so the layout stays put.
+  Widget _buildWebPaginationFooter(OrderController controller) {
+    if (!controller.hasMore) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: Constants.paddingSizeLarge),
+      child: Center(
+        child: SizedBox(
+          height: 48,
+          child: Center(
+            child: controller.isLoadingMore
+                ? SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.4,
+                      color: ColorResource.primaryDark,
+                    ),
+                  )
+                : _viewMoreButton(controller.loadMoreOrders),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Outlined pill button used by [_buildWebPaginationFooter].
+  Widget _viewMoreButton(VoidCallback onTap) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
+        hoverColor: ColorResource.primaryDark.withValues(alpha: 0.04),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: Constants.paddingSizeExtraLarge,
+            vertical: Constants.paddingSizeSmall,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
+            border: Border.all(color: ColorResource.primaryDark, width: 1.4),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'view_more'.tr,
+                style: poppinsMedium.copyWith(
+                  fontSize: Constants.fontSizeDefault,
+                  color: ColorResource.primaryDark,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                size: 20,
+                color: ColorResource.primaryDark,
+              ),
+            ],
+          ),
         ),
       ),
     );
