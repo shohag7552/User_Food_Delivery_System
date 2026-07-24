@@ -1,7 +1,10 @@
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/address_controller.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -12,52 +15,178 @@ import 'package:go_router/go_router.dart';
 
 enum _AddressCardAction { setDefault, edit, delete }
 
-class AddressesPage extends StatelessWidget {
+class AddressesPage extends StatefulWidget {
   const AddressesPage({super.key});
+
+  @override
+  State<AddressesPage> createState() => _AddressesPageState();
+}
+
+class _AddressesPageState extends State<AddressesPage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  /// Caps the list width on desktop web so cards stay readable instead of
+  /// stretching edge to edge.
+  static const double _maxContentWidth = 1080;
+
+  /// At or above this inner width the web layout shows two card columns.
+  static const double _twoColumnWidth = 760;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // Desktop web keeps the shared top-nav + account drawer; mobile/tablet use
+    // the page's own app bar with a back button.
+    final showWebNav = WebTopNav.isEnabled(context);
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: CustomAppbar(title: 'saved_addresses'.tr),
+      appBar: showWebNav
+          ? WebTopNav(
+              selectedIndex: null,
+              onDestinationSelected: (index) =>
+                  DashboardTabs.open(context, index),
+              onMenuTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+            )
+          : CustomAppbar(title: 'saved_addresses'.tr),
+      endDrawer: showWebNav ? const WebProfileDrawer() : null,
       body: AuthGate(
         child: GetBuilder<AddressController>(
-        builder: (controller) {
-          if (controller.isLoading) {
-            return Center(
-              child: CircularProgressIndicator(
-                color: ColorResource.primaryDark,
-              ),
+          builder: (controller) {
+            if (controller.isLoading) {
+              return Center(
+                child: CircularProgressIndicator(
+                  color: ColorResource.primaryDark,
+                ),
+              );
+            }
+
+            if (showWebNav) return _buildWebBody(context, controller);
+
+            // Mobile / tablet: plain full-width list (or the empty state).
+            if (!controller.hasAddresses) return _buildEmptyState();
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: controller.addresses.length,
+              itemBuilder: (context, index) {
+                final address = controller.addresses[index];
+                return _buildAddressCard(context, address, controller);
+              },
             );
-          }
-
-          if (!controller.hasAddresses) {
-            return _buildEmptyState();
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: controller.addresses.length,
-            itemBuilder: (context, index) {
-              final address = controller.addresses[index];
-              return _buildAddressCard(context, address, controller);
-            },
-          );
-        },
+          },
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          context.pushNamed(RouteNames.addEditAddress);
-        },
-        backgroundColor: ColorResource.primaryDark,
-        label: Text(
-          'add_address'.tr,
-          style: poppinsBold.copyWith(color: ColorResource.textWhite),
+      // The web header carries its own "Add address" button, so the FAB is
+      // mobile-only.
+      floatingActionButton: showWebNav
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () {
+                context.pushNamed(RouteNames.addEditAddress);
+              },
+              backgroundColor: ColorResource.primaryDark,
+              label: Text(
+                'add_address'.tr,
+                style: poppinsBold.copyWith(color: ColorResource.textWhite),
+              ),
+              icon: Icon(Icons.add, color: ColorResource.textWhite),
+            ),
+    );
+  }
+
+  /// Desktop web: a full-width scroll surface (drag anywhere, including the side
+  /// gutters, to scroll) with a centred, width-capped column — a header row with
+  /// the title + an "Add address" button, then a responsive card grid.
+  Widget _buildWebBody(BuildContext context, AddressController controller) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(
+        vertical: Constants.paddingSizeExtraLarge,
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: Constants.paddingSizeLarge,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header: title + add button.
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'saved_addresses'.tr,
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeOverLarge,
+                          color: context.textPrimary,
+                        ),
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () =>
+                          context.pushNamed(RouteNames.addEditAddress),
+                      icon: Icon(Icons.add, color: ColorResource.textWhite),
+                      label: Text(
+                        'add_address'.tr,
+                        style: poppinsBold.copyWith(
+                          color: ColorResource.textWhite,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: ColorResource.primaryDark,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: Constants.paddingSizeLarge,
+                          vertical: Constants.paddingSizeDefault,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(Constants.radiusLarge),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: Constants.paddingSizeLarge),
+
+                // Content: responsive card grid, or the empty state.
+                if (!controller.hasAddresses)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40),
+                    child: _buildEmptyState(),
+                  )
+                else
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.maxWidth;
+                      final columns = width >= _twoColumnWidth ? 2 : 1;
+                      const spacing = 16.0;
+                      final itemWidth =
+                          (width - (columns - 1) * spacing) / columns;
+
+                      return Wrap(
+                        spacing: spacing,
+                        runSpacing: 0, // cards carry their own bottom margin
+                        children: [
+                          for (final address in controller.addresses)
+                            SizedBox(
+                              width: itemWidth,
+                              child: _buildAddressCard(
+                                context,
+                                address,
+                                controller,
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+              ],
+            ),
+          ),
         ),
-        icon: Icon(Icons.add, color: ColorResource.textWhite),
       ),
     );
   }
