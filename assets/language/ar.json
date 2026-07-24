@@ -1,5 +1,11 @@
 {
-  "your_business_name": "StackFood",
+  "your_business_name": "Kiko",
+  "order_placed_successfully": "تم تأكيد الطلب بنجاح!",
+  "order_placed_notification_title": "تم تأكيد الطلب بنجاح! 🍔",
+  "order_placed_notification_body": "سنقوم بتوصيل طلبك رقم @orderId قريبًا.",
+  "new_order_notification_title": "طلب جديد! 🛒",
+  "new_order_notification_body": "تم تقديم الطلب رقم @orderId. اضغط لعرضه.",
+
   "choose_your_language": "اختر لغتك",
   "choose_your_language_to_proceed": "اختر لغتك للمتابعة",
   "login": "تسجيل الدخول",
@@ -364,7 +370,6 @@
   "are_you_sure_want_to_delete_account": "هل أنت متأكد أنك تريد حذف حسابك نهائيًا؟ لا يمكن التراجع عن هذا الإجراء.",
   "account_deletion": "حذف الحساب",
   "my_profile_subtitle": "عدّل معلوماتك الشخصية",
-  "order_placed_successfully": "تم تأكيد الطلب بنجاح!",
   "thank_you_for_your_order": "شكرًا لطلبك. لقد استلمناه وسنبدأ التحضير قريبًا.",
   "order_number": "رقم الطلب",
   "view_my_orders": "عرض طلباتي",

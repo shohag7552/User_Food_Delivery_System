@@ -7,6 +7,7 @@ import 'package:appwrite/models.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AppwriteService {
@@ -386,7 +387,7 @@ class AppwriteService {
       log(fileUrl);
       return fileUrl;
     } catch (e) {
-      print("Upload error: $e");
+      log("Upload error: $e");
       return null;
     }
   }
@@ -397,9 +398,9 @@ class AppwriteService {
         bucketId: AppwriteConfig.postsBucketId,
         fileId: fileId,
       );
-      print("Image deleted from storage.");
+      log("Image deleted from storage.");
     } catch (e) {
-      print("Delete error: $e");
+      log("Delete error: $e");
     }
   }
 
@@ -411,14 +412,14 @@ class AppwriteService {
         body: jsonEncode({
           "type": "order_update",
           "userId": currentUserId,
-          "title": "Order Placed Successfully! 🍔",
-          "message": "We will deliver your order #$orderId soon.",
+          "title": 'order_placed_notification_title'.tr,
+          "message": 'order_placed_notification_body'.trParams({'orderId': orderId}),
           "orderId": orderId,
         }),
       );
-      print("✅ Customer order notification sent");
+      log("✅ Customer order notification sent");
     } catch (e) {
-      print("❌ Failed to send customer notification: $e");
+      log("❌ Failed to send customer notification: $e");
     }
 
     // 2. Notify the store admin that a new order has been placed
@@ -428,14 +429,15 @@ class AppwriteService {
         body: jsonEncode({
           "type": "broadcast",
           "topic": AppwriteConfig.storeAdminTopicId,
-          "title": "New Order! 🛒",
-          "message": "Order #$orderId has been placed. Tap to view.",
+          "title": 'new_order_notification_title'.tr,
+          "message":
+              'new_order_notification_body'.trParams({'orderId': orderId}),
           "orderId": orderId,
         }),
       );
-      print("✅ Store admin order notification sent");
+      log("✅ Store admin order notification sent");
     } catch (e) {
-      print("❌ Failed to send store admin notification: $e");
+      log("❌ Failed to send store admin notification: $e");
     }
   }
 
@@ -462,14 +464,14 @@ class AppwriteService {
       );
 
       if (execution.status == ExecutionStatus.completed) {
-        print("✅ Stripe payment request sent to server!");
+        log("✅ Stripe payment request sent to server!");
         return jsonDecode(execution.responseBody);
       } else {
-        print("⚠️ Function failed: ${execution.responseBody}");
+        log("⚠️ Function failed: ${execution.responseBody}");
         return null;
       }
     } catch (e) {
-      print("❌ Failed to trigger Stripe payment function: $e");
+      log("❌ Failed to trigger Stripe payment function: $e");
       return null;
     }
   }
