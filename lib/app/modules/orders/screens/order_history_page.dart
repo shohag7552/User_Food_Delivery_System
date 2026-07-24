@@ -6,6 +6,7 @@ import 'package:appwrite_user_app/app/models/order_model.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:appwrite_user_app/app/common/widgets/directional_flip.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -68,7 +69,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
       backgroundColor: context.scaffoldBackground,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: ColorResource.textWhite),
+          icon: DirectionalFlip(
+            child: Icon(Icons.arrow_back, color: ColorResource.textWhite),
+          ),
           onPressed: () => context.pop(),
         ),
         title: Text(
@@ -154,7 +157,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
           children: filters.map((filter) {
             final isSelected = _selectedFilter == filter['value'];
             return Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsetsDirectional.only(end: 8),
               child: _buildFilterChip(
                 label: filter['label']!,
                 value: filter['value']!,

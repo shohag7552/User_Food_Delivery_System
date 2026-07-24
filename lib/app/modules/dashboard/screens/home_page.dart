@@ -418,7 +418,7 @@ class _HomePageState extends State<HomePage>
     final bool selected = controller.selectedProductFilter == filter;
 
     return Padding(
-      padding: const EdgeInsets.only(left: 8),
+      padding: const EdgeInsetsDirectional.only(start: 8),
       child: InkWell(
         onTap: () => controller.setProductFilter(filter),
         borderRadius: BorderRadius.circular(999),
@@ -1034,7 +1034,7 @@ class _AnimatedSearchHintState extends State<_AnimatedSearchHint> {
                 switchInCurve: Curves.easeOutCubic,
                 switchOutCurve: Curves.easeInCubic,
                 layoutBuilder: (currentChild, previousChildren) => Stack(
-                  alignment: Alignment.centerLeft,
+                  alignment: AlignmentDirectional.centerStart,
                   children: [
                     ...previousChildren,
                     ?currentChild,

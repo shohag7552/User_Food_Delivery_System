@@ -239,7 +239,7 @@ class _OrdersPageState extends State<OrdersPage> {
               children: filters.map((filter) {
                 final isSelected = controller.selectedStatus == filter['value'];
                 return Padding(
-                  padding: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsetsDirectional.only(end: 8),
                   child: _buildFilterChip(
                     label: filter['label']!,
                     value: filter['value']!,

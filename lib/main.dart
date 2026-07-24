@@ -9,6 +9,7 @@ import 'package:appwrite_user_app/global.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -122,6 +123,16 @@ class _MyAppState extends State<MyApp> {
             Constants.languages[0].languageCode,
             Constants.languages[0].countryCode,
           ),
+          // Localized Material/Cupertino widgets and, crucially, RTL text
+          // direction for Arabic (resolved from the active locale).
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: Constants.languages
+              .map((l) => Locale(l.languageCode, l.countryCode))
+              .toList(),
           routeInformationParser: AppRouter.router.routeInformationParser,
           routerDelegate: AppRouter.router.routerDelegate,
           routeInformationProvider: AppRouter.router.routeInformationProvider,

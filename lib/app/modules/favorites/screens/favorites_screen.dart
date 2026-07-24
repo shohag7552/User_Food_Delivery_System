@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
+import 'package:appwrite_user_app/app/common/widgets/directional_flip.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
@@ -315,7 +316,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             const SizedBox(height: 32),
             ElevatedButton.icon(
               onPressed: () => context.pop(),
-              icon: Icon(Icons.arrow_back, color: ColorResource.textWhite),
+              icon: DirectionalFlip(
+                child: Icon(Icons.arrow_back, color: ColorResource.textWhite),
+              ),
               label: Text(
                 'browse_products'.tr,
                 style: poppinsMedium.copyWith(color: ColorResource.textWhite),

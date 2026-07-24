@@ -18,6 +18,7 @@ import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:appwrite_user_app/app/common/widgets/directional_flip.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -423,8 +424,8 @@ class _SearchPageState extends State<SearchPage> {
             ),
             prefixIcon: IconButton(
               onPressed: () => context.pop(),
-              icon: Icon(
-                Icons.arrow_back,
+              icon: const DirectionalFlip(
+                child: Icon(Icons.arrow_back),
               ),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(

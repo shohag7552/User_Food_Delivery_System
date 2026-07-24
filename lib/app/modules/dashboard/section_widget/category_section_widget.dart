@@ -125,7 +125,7 @@ class CategorySectionWidget extends StatelessWidget {
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.only(left: 20, bottom: 10),
+        padding: const EdgeInsetsDirectional.only(start: 20, bottom: 10),
         itemCount: itemCount,
         itemBuilder: (context, index) {
           if (showMoreTile && index == itemCount - 1) {
@@ -221,7 +221,8 @@ class CategorySectionWidget extends StatelessWidget {
     return CustomClickableWidget(
       onTap: onTap,
       isBackgroundTransparent: true,
-      margin: margin ?? const EdgeInsets.only(right: Constants.paddingSizeLarge),
+      margin: margin ??
+          const EdgeInsetsDirectional.only(end: Constants.paddingSizeLarge),
       child: SizedBox(
         width: width,
         child: Column(
@@ -291,7 +292,8 @@ class CategorySectionWidget extends StatelessWidget {
         context.pushNamed(RouteNames.categories);
       },
       isBackgroundTransparent: true,
-      margin: margin ?? const EdgeInsets.only(right: Constants.paddingSizeLarge),
+      margin: margin ??
+          const EdgeInsetsDirectional.only(end: Constants.paddingSizeLarge),
       child: SizedBox(
         width: width,
         child: Column(

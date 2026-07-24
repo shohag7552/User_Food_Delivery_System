@@ -4,6 +4,7 @@ import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:appwrite_user_app/app/common/widgets/directional_flip.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -116,7 +117,9 @@ class EditProfilePage extends StatelessWidget {
       elevation: 0,
       backgroundColor: ColorResource.primaryDark,
       leading: IconButton(
-        icon: Icon(Icons.arrow_back, color: ColorResource.textWhite),
+        icon: DirectionalFlip(
+          child: Icon(Icons.arrow_back, color: ColorResource.textWhite),
+        ),
         onPressed: () => context.pop(),
       ),
       flexibleSpace: FlexibleSpaceBar(

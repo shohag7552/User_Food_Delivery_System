@@ -694,7 +694,7 @@ class _CartPageState extends State<CartPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(left: 12),
+                      padding: const EdgeInsetsDirectional.only(start: 12),
                       child: Row(
                         children: [
                           Text(
@@ -718,7 +718,7 @@ class _CartPageState extends State<CartPage> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(right: 12),
+                      padding: const EdgeInsetsDirectional.only(end: 12),
                       child: Text(
                         CurrencyHelper.formatAmount(controller.total),
                         style: poppinsBold.copyWith(

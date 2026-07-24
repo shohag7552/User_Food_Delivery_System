@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/directional_flip.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -33,7 +34,9 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       leading: showBackButton! ? IconButton(
-        icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+        icon: const DirectionalFlip(
+          child: Icon(Icons.arrow_back_ios, color: Colors.white),
+        ),
         onPressed: () => onBackButtonPressed != null
             ? onBackButtonPressed!()
             : context.pop(),

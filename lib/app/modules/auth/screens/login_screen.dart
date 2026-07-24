@@ -325,7 +325,7 @@ class _LoginScreenState extends State<LoginScreen>
 
                             // Forgot Password
                             Align(
-                              alignment: Alignment.centerRight,
+                              alignment: AlignmentDirectional.centerEnd,
                               child: TextButton(
                                 onPressed: () {
                                   context.pushNamed(RouteNames.forgotPassword);

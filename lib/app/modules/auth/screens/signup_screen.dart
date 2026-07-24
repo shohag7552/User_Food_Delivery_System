@@ -134,7 +134,7 @@ class _SignupScreenState extends State<SignupScreen> with SingleTickerProviderSt
                           ),
                         ),
                       ),
-                      
+
                       const SizedBox(height: 20),
                       
                       // Header

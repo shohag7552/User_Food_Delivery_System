@@ -1,4 +1,5 @@
 import 'package:appwrite_user_app/app/common/widgets/auth_dialog.dart';
+import 'package:appwrite_user_app/app/common/widgets/directional_flip.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/localization_controller.dart';
 import 'package:appwrite_user_app/app/controllers/policy_controller.dart';
@@ -787,9 +788,11 @@ class _ProfileOption extends StatelessWidget {
         ),
       ),
       trailing: trailing ??
-          Icon(
-            Icons.chevron_right,
-            color: isDark ? Colors.white38 : context.textLight,
+          DirectionalFlip(
+            child: Icon(
+              Icons.chevron_right,
+              color: isDark ? Colors.white38 : context.textLight,
+            ),
           ),
       onTap: onTap,
     );

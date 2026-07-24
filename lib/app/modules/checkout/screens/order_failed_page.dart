@@ -5,6 +5,7 @@ import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_draw
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:appwrite_user_app/app/common/widgets/directional_flip.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -216,7 +217,7 @@ class _OrderFailedPageState extends State<OrderFailedPage> {
             onPressed: () {
               context.pop(); // Go back to checkout
             },
-            icon: const Icon(Icons.arrow_back),
+            icon: const DirectionalFlip(child: Icon(Icons.arrow_back)),
             label: Text(
               'go_back_to_checkout'.tr,
               style: poppinsBold.copyWith(

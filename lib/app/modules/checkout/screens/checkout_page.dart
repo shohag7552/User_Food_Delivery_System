@@ -1553,7 +1553,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         if (isOutsideRadius) ...[
                           const SizedBox(height: 8),
                           Align(
-                            alignment: Alignment.centerLeft,
+                            alignment: AlignmentDirectional.centerStart,
                             child: Text(
                               'Selected address is outside the delivery radius.',
                               style: poppinsMedium.copyWith(
@@ -1592,7 +1592,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(left: 12),
+                      padding: const EdgeInsetsDirectional.only(start: 12),
                       child: Row(
                         children: [
                           Text(
@@ -1616,7 +1616,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(right: 12),
+                      padding: const EdgeInsetsDirectional.only(end: 12),
                       child: Text(
                         CurrencyHelper.formatAmount(total),
                         style: poppinsBold.copyWith(
