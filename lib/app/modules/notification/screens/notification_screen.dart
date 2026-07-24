@@ -1,7 +1,10 @@
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/notification_controller.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/models/notification_model.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/modules/notification/widgets/notification_detail_bottom_sheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -18,6 +21,10 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  /// Caps the list width on desktop web so cards stay readable.
+  static const double _maxContentWidth = 720;
 
   @override
   void initState() {
@@ -26,48 +33,73 @@ class _NotificationScreenState extends State<NotificationScreen> {
     Get.find<NotificationController>().getNotifications();
   }
 
+  double _sidePadding(double width, bool isWeb) =>
+      isWeb && width > _maxContentWidth ? (width - _maxContentWidth) / 2 : 16;
+
   @override
   Widget build(BuildContext context) {
+    final isWeb = WebTopNav.isEnabled(context);
+
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: context.scaffoldBackground,
-      appBar: CustomAppbar(
-        title: 'notifications_title'.tr,
-        actions: [
-          GetBuilder<NotificationController>(
-            builder: (controller) {
-              if (!controller.isLoading && controller.notifications.isNotEmpty) {
-                return TextButton(
-                  onPressed: () => controller.markAllAsRead(),
-                  child: Text(
-                    'mark_all_read'.tr,
-                    style: poppinsMedium.copyWith(
-                      fontSize: Constants.fontSizeSmall,
-                      color: ColorResource.textWhite,
-                    ),
-                  ),
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-        ],
-      ),
+      // On web the shared top-nav has no custom actions, so "mark all read"
+      // moves into the inline header below.
+      appBar: isWeb
+          ? WebTopNav(
+              selectedIndex: null,
+              onDestinationSelected: (index) =>
+                  DashboardTabs.open(context, index),
+              onMenuTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+            )
+          : CustomAppbar(
+              title: 'notifications_title'.tr,
+              actions: [
+                GetBuilder<NotificationController>(
+                  builder: (controller) {
+                    if (!controller.isLoading &&
+                        controller.notifications.isNotEmpty) {
+                      return TextButton(
+                        onPressed: () => controller.markAllAsRead(),
+                        child: Text(
+                          'mark_all_read'.tr,
+                          style: poppinsMedium.copyWith(
+                            fontSize: Constants.fontSizeSmall,
+                            color: ColorResource.textWhite,
+                          ),
+                        ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ],
+            ),
+      endDrawer: isWeb ? const WebProfileDrawer() : null,
       body: AuthGate(
         child: GetBuilder<NotificationController>(
         builder: (controller) {
           if (controller.isLoading) {
-            return _buildLoadingState();
+            return _buildLoadingState(context, isWeb);
           }
 
           if (controller.notifications.isEmpty) {
             return _buildEmptyState();
           }
 
-          return RefreshIndicator(
+          final width = MediaQuery.of(context).size.width;
+          final sidePadding = _sidePadding(width, isWeb);
+
+          final list = RefreshIndicator(
             onRefresh: () => controller.getNotifications(),
             color: ColorResource.primaryDark,
             child: ListView.separated(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.fromLTRB(
+                sidePadding,
+                isWeb ? 8 : 16,
+                sidePadding,
+                24,
+              ),
               itemCount: controller.notifications.length,
               separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
@@ -76,8 +108,54 @@ class _NotificationScreenState extends State<NotificationScreen> {
               },
             ),
           );
+
+          if (!isWeb) return list;
+
+          // Web: inline header (title + "mark all read") over the full-width,
+          // centred list.
+          return Column(
+            children: [
+              _buildWebHeader(controller, sidePadding),
+              Expanded(child: list),
+            ],
+          );
         },
         ),
+      ),
+    );
+  }
+
+  Widget _buildWebHeader(NotificationController controller, double sidePadding) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(sidePadding, 20, sidePadding, 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'notifications_title'.tr,
+              style: poppinsBold.copyWith(
+                fontSize: Constants.fontSizeOverLarge,
+                color: context.textPrimary,
+              ),
+            ),
+          ),
+          if (controller.notifications.isNotEmpty)
+            TextButton.icon(
+              onPressed: () => controller.markAllAsRead(),
+              icon: Icon(
+                Icons.done_all_rounded,
+                size: 18,
+                color: ColorResource.primaryDark,
+              ),
+              label: Text(
+                'mark_all_read'.tr,
+                style: poppinsMedium.copyWith(
+                  fontSize: Constants.fontSizeSmall,
+                  color: ColorResource.primaryDark,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -226,9 +304,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 
-  Widget _buildLoadingState() {
+  Widget _buildLoadingState(BuildContext context, bool isWeb) {
+    final width = MediaQuery.of(context).size.width;
+    final sidePadding = _sidePadding(width, isWeb);
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(sidePadding, 16, sidePadding, 24),
       itemCount: 8,
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) => _buildSkeletonCard(),

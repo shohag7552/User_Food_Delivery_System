@@ -1,8 +1,12 @@
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/coupon_controller.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/coupon_model.dart';
+import 'package:appwrite_user_app/app/modules/coupons/screens/coupon_details_screen.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -27,6 +31,13 @@ class CouponsScreen extends StatefulWidget {
 
 class _CouponsScreenState extends State<CouponsScreen> {
   final CouponController _controller = Get.find<CouponController>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  /// Caps the grid width on desktop web so cards stay readable.
+  static const double _maxContentWidth = 1000;
+
+  /// At or above this inner width the web grid shows two columns.
+  static const double _twoColumnWidth = 680;
 
   @override
   void initState() {
@@ -37,12 +48,25 @@ class _CouponsScreenState extends State<CouponsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isWeb = WebTopNav.isEnabled(context);
+    // Selection mode is a focused picker (pushed from checkout), so it keeps its
+    // own app bar rather than the full web shell.
+    final showWebNav = isWeb && !widget.isSelectionMode;
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: CustomAppbar(
-        title: widget.isSelectionMode ? 'select_coupon'.tr : 'coupons'.tr,
-      ),
+      appBar: showWebNav
+          ? WebTopNav(
+              selectedIndex: null,
+              onDestinationSelected: (index) =>
+                  DashboardTabs.open(context, index),
+              onMenuTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+            )
+          : CustomAppbar(
+              title: widget.isSelectionMode ? 'select_coupon'.tr : 'coupons'.tr,
+            ),
+      endDrawer: showWebNav ? const WebProfileDrawer() : null,
       body: AuthGate(
         child: GetBuilder<CouponController>(
         builder: (controller) {
@@ -81,22 +105,93 @@ class _CouponsScreenState extends State<CouponsScreen> {
             );
           }
 
-          return RefreshIndicator(
-            onRefresh: () => controller.getCoupons(),
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: controller.coupons!.length,
-              itemBuilder: (context, index) {
-                final coupon = controller.coupons![index];
-                return _CouponCard(
-                  coupon: coupon,
-                  isSelectionMode: widget.isSelectionMode,
-                  onSelect: widget.onCouponSelected,
-                );
-              },
-            ),
-          );
+          return _buildCouponsList(context, controller, isWeb, showWebNav);
         },
+        ),
+      ),
+    );
+  }
+
+  /// The coupons list. Mobile is a single-column list; web is a responsive
+  /// card grid on a full-width scroll surface (drag anywhere to scroll), centred
+  /// within [_maxContentWidth], with an inline title (unless it's the selection
+  /// picker, which carries its own app-bar title).
+  Widget _buildCouponsList(
+    BuildContext context,
+    CouponController controller,
+    bool isWeb,
+    bool showInlineTitle,
+  ) {
+    final coupons = controller.coupons!;
+
+    if (!isWeb) {
+      return RefreshIndicator(
+        onRefresh: () => controller.getCoupons(),
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: coupons.length,
+          itemBuilder: (context, index) {
+            return _CouponCard(
+              coupon: coupons[index],
+              isSelectionMode: widget.isSelectionMode,
+              onSelect: widget.onCouponSelected,
+            );
+          },
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => controller.getCoupons(),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (showInlineTitle) ...[
+                    Text(
+                      'coupons'.tr,
+                      style: poppinsBold.copyWith(
+                        fontSize: Constants.fontSizeOverLarge,
+                        color: context.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.maxWidth;
+                      final columns = width >= _twoColumnWidth ? 2 : 1;
+                      const spacing = 16.0;
+                      final itemWidth =
+                          (width - (columns - 1) * spacing) / columns;
+
+                      return Wrap(
+                        spacing: spacing,
+                        runSpacing: 0, // cards carry their own bottom margin
+                        children: [
+                          for (final coupon in coupons)
+                            SizedBox(
+                              width: itemWidth,
+                              child: _CouponCard(
+                                coupon: coupon,
+                                isSelectionMode: widget.isSelectionMode,
+                                onSelect: widget.onCouponSelected,
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -131,6 +226,16 @@ class _CouponCard extends StatelessWidget {
   }
 
   void _handleTap(BuildContext context) {
+    // Web: show the details in a centred dialog instead of a pushed page.
+    if (WebTopNav.isEnabled(context)) {
+      showCouponDetailsDialog(
+        context,
+        coupon: coupon,
+        isSelectionMode: isSelectionMode,
+        onSelect: onSelect,
+      );
+      return;
+    }
     context.pushNamed(
       RouteNames.couponDetails,
       pathParameters: {'id': coupon.id ?? ''},

@@ -8,8 +8,10 @@ import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/helper/nav_bar_visibility.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/modules/ecommerce/widgets/ecommerce_product_card.dart';
@@ -35,6 +37,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   static const double _webBreakpoint = 900;
   static const double _maxContentWidth = 1100;
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   void initState() {
     super.initState();
@@ -42,10 +46,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     Get.find<FavoritesController>().fetchFavorites(canUpdate: false, loadWithProduct: true);
   }
 
-  // As a dashboard tab on desktop web, the shared web top-nav is already shown,
-  // so this screen drops its own app bar (and adds an inline title instead).
-  bool get _hideOwnAppBar =>
-      WebTopNav.isEnabled(context) && widget.isFromMenu != true;
+  /// True on desktop web (the layout gets the centred, capped grid + inline
+  /// title regardless of how the screen was reached).
+  bool get _isWebLayout => WebTopNav.isEnabled(context);
 
   int _crossAxisCount(double width) {
     if (width < _webBreakpoint) return 2;
@@ -56,14 +59,30 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final showWebNav = WebTopNav.isEnabled(context);
+    final isFromMenu = widget.isFromMenu == true;
+
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: context.scaffoldBackground,
-      appBar: _hideOwnAppBar
-          ? null
+      // On web: pushed-from-menu shows the shared top-nav shell + account
+      // drawer; as a dashboard tab the shell already provides it (so no own
+      // app bar). Mobile keeps the plain app bar (with a back button when
+      // opened from the menu).
+      appBar: showWebNav
+          ? (isFromMenu
+              ? WebTopNav(
+                  selectedIndex: null,
+                  onDestinationSelected: (index) =>
+                      DashboardTabs.open(context, index),
+                  onMenuTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+                )
+              : null)
           : CustomAppbar(
               title: 'my_favorites'.tr,
-              showBackButton: widget.isFromMenu == true,
+              showBackButton: isFromMenu,
             ),
+      endDrawer: (showWebNav && isFromMenu) ? const WebProfileDrawer() : null,
       body: AuthGate(
         child: GetBuilder<FavoritesController>(
           builder: (controller) {
@@ -97,14 +116,23 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   ) {
     final width = MediaQuery.of(context).size.width;
     final isWide = width >= _webBreakpoint;
-    final crossAxisCount = _crossAxisCount(width);
+    // On web the grid stays FULL-WIDTH (so dragging anywhere — including the
+    // letterboxed side gutters — scrolls); the content is centred within
+    // [_maxContentWidth] by padding the sides instead of wrapping in a
+    // ConstrainedBox (which would trap the scroll to the centre column).
+    final double contentWidth =
+        isWide && width > _maxContentWidth ? _maxContentWidth : width;
+    final double sidePadding = isWide
+        ? (width > _maxContentWidth ? (width - _maxContentWidth) / 2 : 24)
+        : 16;
+    final crossAxisCount = _crossAxisCount(contentWidth);
 
     final grid = NavClearance(
       builder: (context, bottom) => GridView.builder(
       padding: EdgeInsets.fromLTRB(
-        isWide ? 24 : 16,
-        _hideOwnAppBar ? 8 : 16,
-        isWide ? 24 : 16,
+        sidePadding,
+        _isWebLayout ? 8 : 16,
+        sidePadding,
         // Nav-bar clearance + a small breathing space at the very bottom.
         bottom + 20,
       ),
@@ -147,23 +175,23 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
     if (!isWide) return refreshable;
 
-    // Web: centre + cap the content width, with an inline page title.
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-        child: Column(
-          children: [
-            if (_hideOwnAppBar) _buildInlineTitle(favorites.length),
-            Expanded(child: refreshable),
-          ],
-        ),
-      ),
+    // Web: an inline page title (when the shared shell nav owns the app bar),
+    // then the full-width scrollable grid.
+    return Column(
+      children: [
+        if (_isWebLayout)
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: sidePadding),
+            child: _buildInlineTitle(favorites.length),
+          ),
+        Expanded(child: refreshable),
+      ],
     );
   }
 
   Widget _buildInlineTitle(int count) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 4),
+      padding: const EdgeInsets.only(top: 24, bottom: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
@@ -191,17 +219,24 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   Widget _buildLoadingState(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isWide = width >= _webBreakpoint;
+    final double contentWidth =
+        isWide && width > _maxContentWidth ? _maxContentWidth : width;
+    final double sidePadding = isWide
+        ? (width > _maxContentWidth ? (width - _maxContentWidth) / 2 : 24)
+        : 16;
 
-    final grid = GridView.builder(
+    // Full-width grid (content centred via side padding) so the skeleton
+    // matches the loaded layout exactly.
+    return GridView.builder(
       padding: EdgeInsets.fromLTRB(
-        isWide ? 24 : 16,
-        _hideOwnAppBar ? 8 : 16,
-        isWide ? 24 : 16,
+        sidePadding,
+        _isWebLayout ? 8 : 16,
+        sidePadding,
         Constants.bottomNavSpace,
       ),
       gridDelegate: isWide
           ? SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: _crossAxisCount(width),
+              crossAxisCount: _crossAxisCount(contentWidth),
               crossAxisSpacing: 20,
               mainAxisSpacing: 20,
               childAspectRatio: 0.66,
@@ -214,14 +249,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ),
       itemCount: isWide ? 10 : 6,
       itemBuilder: (context, index) => _buildSkeletonCard(),
-    );
-
-    if (!isWide) return grid;
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-        child: grid,
-      ),
     );
   }
 

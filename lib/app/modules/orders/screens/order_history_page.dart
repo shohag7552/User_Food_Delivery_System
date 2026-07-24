@@ -1,8 +1,12 @@
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
+import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -21,7 +25,16 @@ class OrderHistoryPage extends StatefulWidget {
 
 class _OrderHistoryPageState extends State<OrderHistoryPage> {
   final _scrollController = ScrollController();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   String _selectedFilter = 'all'; // 'all', 'delivered', 'cancelled'
+
+  // Web/desktop layout kicks in above this width.
+  static const double _webBreakpoint = 900;
+  static const double _maxContentWidth = 1200;
+
+  // Tracks the web/desktop layout so scroll-driven pagination stays mobile-only;
+  // web loads the next page via the explicit "View more" button instead.
+  bool _isWide = false;
 
   @override
   void initState() {
@@ -43,6 +56,8 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   }
 
   void _onScroll() {
+    // Web paginates via the "View more" button, so skip scroll auto-load there.
+    if (_isWide) return;
     if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
       // Nearly reached bottom, load more
       Get.find<OrderController>().loadMoreOrders();
@@ -65,77 +80,264 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isWide = MediaQuery.of(context).size.width >= _webBreakpoint;
+    _isWide = isWide;
+    // Desktop web keeps the shared top-nav + account drawer; mobile/tablet use
+    // the page's own app bar with a back button.
+    final showWebNav = WebTopNav.isEnabled(context);
+
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: context.scaffoldBackground,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: DirectionalFlip(
-            child: Icon(Icons.arrow_back, color: ColorResource.textWhite),
-          ),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          'Order History',
-          style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeLarge,
-            color: ColorResource.textWhite,
-          ),
-        ),
-        backgroundColor: ColorResource.primaryDark,
-        elevation: 0,
-      ),
+      appBar: showWebNav
+          ? WebTopNav(
+              selectedIndex: null,
+              onDestinationSelected: (index) =>
+                  DashboardTabs.open(context, index),
+              onMenuTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+            )
+          : AppBar(
+              leading: IconButton(
+                icon: DirectionalFlip(
+                  child: Icon(Icons.arrow_back, color: ColorResource.textWhite),
+                ),
+                onPressed: () => context.pop(),
+              ),
+              title: Text(
+                'Order History',
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeLarge,
+                  color: ColorResource.textWhite,
+                ),
+              ),
+              backgroundColor: ColorResource.primaryDark,
+              elevation: 0,
+            ),
+      endDrawer: showWebNav ? const WebProfileDrawer() : null,
       body: AuthGate(
-        child: Column(
-        children: [
-          // Filter Chips
-          _buildFilterChips(),
+        child: isWide ? _buildWebBody(showWebNav) : _buildMobileBody(),
+      ),
+    );
+  }
 
-          // Orders List
-          Expanded(
-            child: GetBuilder<OrderController>(
-              builder: (controller) {
-                if (controller.isLoading && controller.orders.isEmpty) {
-                  return _buildLoadingState();
-                }
+  Widget _buildMobileBody() {
+    return Column(
+      children: [
+        _buildFilterChips(),
+        Expanded(child: _buildOrdersList(false)),
+      ],
+    );
+  }
 
-                // Filter orders to show only delivered and cancelled
-                final filteredOrders = _selectedFilter == 'all'
-                    ? controller.orders.where((order) =>
-                        order.status == 'delivered' || order.status == 'cancelled').toList()
-                    : controller.orders.where((order) => order.status == _selectedFilter).toList();
-
-                if (filteredOrders.isEmpty) {
-                  return _buildEmptyState();
-                }
-
-                return RefreshIndicator(
-                  onRefresh: () async {
-                    // if (_selectedFilter == 'all') {
-                    //   // await controller.filterByStatus('delivered');
-                    // } else {
-                      await controller.refreshOrders();
-                    // }
-                  },
-                  color: ColorResource.primaryDark,
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(16),
-                    itemCount: filteredOrders.length + (controller.hasMore ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index == filteredOrders.length) {
-                        // Loading indicator at bottom
-                        return _buildLoadMoreIndicator(controller);
-                      }
-                      final order = filteredOrders[index];
-                      return _buildOrderCard(order);
-                    },
+  Widget _buildWebBody(bool showInlineTitle) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Header (title + filter chips) centred to the content width.
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (showInlineTitle)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                    child: Text(
+                      'Order History',
+                      style: poppinsBold.copyWith(
+                        fontSize: Constants.fontSizeOverLarge,
+                        color: context.textPrimary,
+                      ),
+                    ),
                   ),
-                );
-              },
+                _buildFilterChips(),
+              ],
             ),
           ),
-        ],
+        ),
+        // The list fills the remaining height; its scroll view spans the full
+        // width (drag anywhere, incl. the side gutters, to scroll) and centres
+        // its own content to [_maxContentWidth].
+        Expanded(child: _buildOrdersList(true)),
+      ],
+    );
+  }
+
+  Widget _buildOrdersList(bool isWide) {
+    return GetBuilder<OrderController>(
+      builder: (controller) {
+        if (controller.isLoading && controller.orders.isEmpty) {
+          return _buildLoadingState();
+        }
+
+        // Filter orders to show only delivered and cancelled
+        final filteredOrders = _selectedFilter == 'all'
+            ? controller.orders.where((order) =>
+                order.status == 'delivered' || order.status == 'cancelled').toList()
+            : controller.orders.where((order) => order.status == _selectedFilter).toList();
+
+        if (filteredOrders.isEmpty) {
+          return _buildEmptyState();
+        }
+
+        return isWide
+            ? _buildOrdersGrid(controller, filteredOrders)
+            : _buildOrdersListView(controller, filteredOrders);
+      },
+    );
+  }
+
+  // Mobile: single-column list with infinite-scroll pagination.
+  Widget _buildOrdersListView(
+    OrderController controller,
+    List<OrderModel> filteredOrders,
+  ) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        await controller.refreshOrders();
+      },
+      color: ColorResource.primaryDark,
+      child: ListView.builder(
+        controller: _scrollController,
+        padding: const EdgeInsets.all(16),
+        itemCount: filteredOrders.length + (controller.hasMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index == filteredOrders.length) {
+            // Loading indicator at bottom
+            return _buildLoadMoreIndicator(controller);
+          }
+          final order = filteredOrders[index];
+          return _buildOrderCard(order);
+        },
       ),
+    );
+  }
+
+  // Web: responsive card grid. A Wrap lets each card keep its natural height,
+  // the scroll view is full-width (drag anywhere to scroll) and centres its
+  // content to [_maxContentWidth]; pagination is the "View more" button.
+  Widget _buildOrdersGrid(
+    OrderController controller,
+    List<OrderModel> filteredOrders,
+  ) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        await controller.refreshOrders();
+      },
+      color: ColorResource.primaryDark,
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        padding: const EdgeInsets.only(
+          top: 16,
+          bottom: Constants.bottomNavSpace,
+        ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.maxWidth;
+                      final columns = width >= 1080
+                          ? 3
+                          : width >= 680
+                              ? 2
+                              : 1;
+                      const spacing = 16.0;
+                      final itemWidth =
+                          (width - (columns - 1) * spacing) / columns;
+
+                      return Wrap(
+                        spacing: spacing,
+                        runSpacing: 0, // each card carries its own bottom margin
+                        children: [
+                          for (final order in filteredOrders)
+                            SizedBox(
+                              width: itemWidth,
+                              child: HoverLift(child: _buildOrderCard(order)),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                  _buildWebPaginationFooter(controller),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Web-only pagination control beneath the grid: loads the next page on tap
+  /// and keeps working while more pages remain; hidden once the last page has
+  /// loaded. A spinner replaces the button while a page is loading.
+  Widget _buildWebPaginationFooter(OrderController controller) {
+    if (!controller.hasMore) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: Constants.paddingSizeLarge),
+      child: Center(
+        child: SizedBox(
+          height: 48,
+          child: Center(
+            child: controller.isLoadingMore
+                ? SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.4,
+                      color: ColorResource.primaryDark,
+                    ),
+                  )
+                : _viewMoreButton(controller.loadMoreOrders),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Outlined pill button used by [_buildWebPaginationFooter].
+  Widget _viewMoreButton(VoidCallback onTap) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
+        hoverColor: ColorResource.primaryDark.withValues(alpha: 0.04),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: Constants.paddingSizeExtraLarge,
+            vertical: Constants.paddingSizeSmall,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
+            border: Border.all(color: ColorResource.primaryDark, width: 1.4),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'view_more'.tr,
+                style: poppinsMedium.copyWith(
+                  fontSize: Constants.fontSizeDefault,
+                  color: ColorResource.primaryDark,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                size: 20,
+                color: ColorResource.primaryDark,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -484,18 +484,24 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
         ],
       ),
       const SizedBox(height: 20),
-      SwitchListTile(
-        value: _isDefault,
-        onChanged: (value) => setState(() => _isDefault = value),
-        title: Text(
-          'set_as_default_address'.tr,
-          style: poppinsMedium.copyWith(
-            fontSize: Constants.fontSizeDefault,
-            color: context.textPrimary,
+      // Wrapped in its own (transparent) Material so the ListTile paints its
+      // ink/selection on it rather than on the decorated web card behind it,
+      // which would otherwise trip a framework assertion.
+      Material(
+        color: Colors.transparent,
+        child: SwitchListTile(
+          value: _isDefault,
+          onChanged: (value) => setState(() => _isDefault = value),
+          title: Text(
+            'set_as_default_address'.tr,
+            style: poppinsMedium.copyWith(
+              fontSize: Constants.fontSizeDefault,
+              color: context.textPrimary,
+            ),
           ),
+          activeColor: ColorResource.primaryDark,
+          contentPadding: EdgeInsets.zero,
         ),
-        activeColor: ColorResource.primaryDark,
-        contentPadding: EdgeInsets.zero,
       ),
     ];
   }

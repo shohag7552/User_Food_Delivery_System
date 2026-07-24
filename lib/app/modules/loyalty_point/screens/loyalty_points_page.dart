@@ -1,8 +1,11 @@
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_button.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/loyalty_controller.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/models/loyalty_history_model.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -20,6 +23,11 @@ class LoyaltyPointsPage extends StatefulWidget {
 }
 
 class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  /// Caps the content width on desktop web.
+  static const double _maxContentWidth = 720;
+
   @override
   void initState() {
     super.initState();
@@ -30,21 +38,31 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final isWeb = WebTopNav.isEnabled(context);
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text(
-          'Loyalty Points',
-          style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeExtraLarge,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: ColorResource.primaryDark,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
+      appBar: isWeb
+          ? WebTopNav(
+              selectedIndex: null,
+              onDestinationSelected: (index) =>
+                  DashboardTabs.open(context, index),
+              onMenuTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+            )
+          : AppBar(
+              title: Text(
+                'Loyalty Points',
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeExtraLarge,
+                  color: Colors.white,
+                ),
+              ),
+              backgroundColor: ColorResource.primaryDark,
+              foregroundColor: Colors.white,
+              elevation: 0,
+            ),
+      endDrawer: isWeb ? const WebProfileDrawer() : null,
       body: AuthGate(
         child: GetBuilder<LoyaltyController>(
         builder: (loyaltyController) {
@@ -60,9 +78,24 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                     parent: BouncingScrollPhysics(),
                   ),
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                  child: Column(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: isWeb ? _maxContentWidth : double.infinity,
+                      ),
+                      child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (isWeb) ...[
+                        Text(
+                          'Loyalty Points',
+                          style: poppinsBold.copyWith(
+                            fontSize: Constants.fontSizeOverLarge,
+                            color: isDark ? Colors.white : context.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                       _buildSummaryCard(
                         context: context,
                         userName: user?.name,
@@ -102,6 +135,8 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                           ),
                         ),
                     ],
+                      ),
+                    ),
                   ),
                 ),
               );
