@@ -136,7 +136,10 @@ class AuthController extends GetxController implements GetxService {
     } catch (e) {
       String errorMessage = 'Login failed. Please try again.';
 
-      if (e.toString().contains('Invalid credentials') ||
+      final error = e.toString().toLowerCase();
+      if (error.contains('blocked')) {
+        errorMessage = 'account_blocked_login'.tr;
+      } else if (e.toString().contains('Invalid credentials') ||
           e.toString().contains('401')) {
         errorMessage = 'Invalid email or password.';
       } else if (e.toString().contains('network') ||
@@ -461,5 +464,28 @@ class AuthController extends GetxController implements GetxService {
     _isLoggedIn = false;
     update();
     SessionManager.clearUserData();
+  }
+
+  /// Permanently closes the current account (blocks the auth user + flags the
+  /// row inactive), then clears local state so the app drops back to guest.
+  Future<bool> deleteAccount() async {
+    _isLoading = true;
+    update();
+
+    bool isSuccess = false;
+    try {
+      await authRepoInterface.closeAccount();
+      isSuccess = true;
+      _isLoggedIn = false;
+      SessionManager.clearUserData();
+      customToster('account_closed_success'.tr);
+    } catch (e) {
+      log('Delete account error: $e');
+      customToster('something_went_wrong'.tr, isSuccess: false);
+    }
+
+    _isLoading = false;
+    update();
+    return isSuccess;
   }
 }

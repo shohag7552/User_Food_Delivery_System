@@ -495,7 +495,7 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
           style: poppinsBold.copyWith(fontSize: Constants.fontSizeLarge),
         ),
         content: Text(
-          'are_you_sure_want_to_delete_account'.tr,
+          'delete_account_warning'.tr,
           style: poppinsRegular.copyWith(fontSize: Constants.fontSizeDefault),
         ),
         actions: [
@@ -508,14 +508,11 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: ColorResource.error),
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              Get.snackbar(
-                'account_deletion'.tr,
-                'feature_coming_soon'.tr,
-                backgroundColor: ColorResource.error,
-                colorText: ColorResource.textWhite,
-              );
+              final ok = await Get.find<AuthController>().deleteAccount();
+              // Return to the dashboard as a guest once the account is closed.
+              if (ok && mounted) context.goNamed(RouteNames.dashboard);
             },
             child: Text(
               'delete'.tr,

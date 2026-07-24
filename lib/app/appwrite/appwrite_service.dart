@@ -342,6 +342,14 @@ class AppwriteService {
     }
   }
 
+  /// Permanently blocks the currently logged-in account. Appwrite keeps the
+  /// user record but rejects any further access (login returns a `user_blocked`
+  /// 401); only an admin can restore it. This is the client-SDK path for
+  /// closing one's own account, since the client SDK has no self-delete.
+  Future<void> blockCurrentAccount() async {
+    await account.updateStatus();
+  }
+
   Future<void> updateName({required String name}) async {
     await account.updateName(name: name);
   }

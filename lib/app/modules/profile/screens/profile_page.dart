@@ -692,7 +692,7 @@ class _ProfilePageState extends State<ProfilePage> {
           style: poppinsBold.copyWith(fontSize: Constants.fontSizeLarge),
         ),
         content: Text(
-          'are_you_sure_want_to_delete_account'.tr,
+          'delete_account_warning'.tr,
           style: poppinsRegular.copyWith(fontSize: Constants.fontSizeDefault),
         ),
         actions: [
@@ -704,15 +704,12 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              // TODO: Implement account deletion
-              Get.snackbar(
-                'account_deletion'.tr,
-                'feature_coming_soon'.tr,
-                backgroundColor: ColorResource.error,
-                colorText: ColorResource.textWhite,
-              );
+              final ok = await Get.find<AuthController>().deleteAccount();
+              if (ok && context.mounted) {
+                context.goNamed(RouteNames.dashboard);
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: ColorResource.error,

@@ -30,6 +30,34 @@ class AuthRepository implements AuthRepoInterface {
   }
 
   @override
+  Future<void> closeAccount() async {
+    // 1. Flag the user row inactive while the session is still valid — the
+    //    admin panel reads `is_active`. Non-fatal if it fails; we still block.
+    final user = await appwriteService.getCurrentUser();
+    if (user != null) {
+      try {
+        await appwriteService.updateTable(
+          tableId: AppwriteConfig.usersCollection,
+          rowId: user.$id,
+          data: {'is_active': false},
+        );
+      } catch (_) {
+        // Non-fatal: proceed to block the auth account regardless.
+      }
+    }
+
+    // 2. Permanently block the Appwrite auth account (server-side). After this,
+    //    login is rejected until an admin restores the account.
+    await appwriteService.blockCurrentAccount();
+
+    // 3. Best-effort local session teardown — deleting the session on an
+    //    already-blocked account may 401, so ignore any failure here.
+    try {
+      await appwriteService.signOut();
+    } catch (_) {}
+  }
+
+  @override
   Future<bool> loginUser(String email, String password) async {
     try {
       // Attempt to sign in with Appwrite
