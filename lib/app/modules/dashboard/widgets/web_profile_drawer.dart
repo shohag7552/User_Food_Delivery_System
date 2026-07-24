@@ -65,15 +65,6 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                     context.pushNamed(RouteNames.addresses);
                   },
                 ),
-                _item(
-                  icon: Icons.payment_outlined,
-                  title: 'payment_methods'.tr,
-                  subtitle: 'manage_payment_options'.tr,
-                  onTap: () {
-                    _close();
-                    Get.snackbar('payment_methods'.tr, 'feature_coming_soon'.tr);
-                  },
-                ),
 
                 // ── Orders & Activity ─────────────────────────────────────
                 _sectionLabel('orders_and_activity'.tr, isDark),
@@ -98,15 +89,15 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                     );
                   },
                 ),
-                _item(
-                  icon: Icons.star_outline,
-                  title: 'reviews_and_ratings'.tr,
-                  subtitle: 'your_reviews_on_items'.tr,
-                  onTap: () {
-                    _close();
-                    Get.snackbar('reviews_and_ratings'.tr, 'feature_coming_soon'.tr);
-                  },
-                ),
+                // _item(
+                //   icon: Icons.star_outline,
+                //   title: 'reviews_and_ratings'.tr,
+                //   subtitle: 'your_reviews_on_items'.tr,
+                //   onTap: () {
+                //     _close();
+                //     Get.snackbar('reviews_and_ratings'.tr, 'feature_coming_soon'.tr);
+                //   },
+                // ),
 
                 // ── Offers & Rewards ──────────────────────────────────────
                 _sectionLabel('offers_and_rewards'.tr, isDark),
@@ -185,7 +176,7 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                   subtitle: 'get_help_or_contact_us'.tr,
                   onTap: () {
                     _close();
-                    Get.snackbar('help_and_support'.tr, 'feature_coming_soon'.tr);
+                    context.pushNamed(RouteNames.helpSupport);
                   },
                 ),
                 _item(

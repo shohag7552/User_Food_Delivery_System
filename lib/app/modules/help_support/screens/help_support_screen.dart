@@ -6,7 +6,6 @@ import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/models/store_setup_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/modules/help_support/widgets/help_faq_section.dart';
-import 'package:appwrite_user_app/app/modules/help_support/widgets/help_quick_action.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -32,7 +31,11 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
 
   /// Width the content column is capped at on desktop web so lines stay
   /// readable instead of stretching edge to edge.
-  static const double _maxContentWidth = 820;
+  static const double _maxContentWidth = 1080;
+
+  /// At or above this inner width the web layout splits into two columns
+  /// (contact + social on the left, FAQ on the right).
+  static const double _twoColumnWidth = 820;
 
   @override
   void initState() {
@@ -122,8 +125,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _WebHeader(store: store),
-                        const SizedBox(height: Constants.paddingSizeLarge),
-                        ..._sections(store),
+                        const SizedBox(height: Constants.spaceSection),
+                        _buildWebContent(store),
                       ],
                     ),
                   ),
@@ -183,56 +186,94 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
       const SizedBox(height: Constants.paddingSizeSmall),
       const HelpFaqSection(),
       const SizedBox(height: Constants.spaceSection),
-      _StillNeedHelpCard(
-        store: store,
-        onContact: () {
-          if (store == null) return;
-          if (store.phone.trim().isNotEmpty) {
-            _call(store.phone);
-          } else if (store.email.trim().isNotEmpty) {
-            _sendEmail(store.email);
-          }
-        },
-      ),
+      _stillNeedHelpCard(store),
       const SizedBox(height: Constants.paddingSizeLarge),
     ];
   }
 
-  Widget _buildQuickActions(StoreSetupModel store) {
-    final actions = <Widget>[
-      if (store.phone.trim().isNotEmpty)
-        HelpQuickAction(
-          icon: Icons.call_rounded,
-          label: 'call_us'.tr,
-          onTap: () => _call(store.phone),
-        ),
-      if (store.email.trim().isNotEmpty)
-        HelpQuickAction(
-          icon: Icons.mail_outline_rounded,
-          label: 'email_us'.tr,
-          onTap: () => _sendEmail(store.email),
-        ),
-      if (store.address.trim().isNotEmpty)
-        HelpQuickAction(
-          icon: Icons.directions_outlined,
-          label: 'visit_us'.tr,
-          onTap: () => _openDirections(store),
-        ),
-      if ((store.website ?? '').trim().isNotEmpty)
-        HelpQuickAction(
-          icon: Icons.language_rounded,
-          label: 'website'.tr,
-          onTap: () => _openWeb(store.website!),
-        ),
-    ];
+  /// Web layout: a two-column split (contact + social on the left, FAQ on the
+  /// right) with the "still need help" CTA full-width below; falls back to the
+  /// stacked single column on narrow web or when store details are missing.
+  Widget _buildWebContent(StoreSetupModel? store) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool twoColumn =
+            store != null && constraints.maxWidth >= _twoColumnWidth;
 
-    return Row(
-      children: [
-        for (int i = 0; i < actions.length; i++) ...[
-          if (i > 0) const SizedBox(width: Constants.paddingSizeSmall),
-          Expanded(child: actions[i]),
-        ],
-      ],
+        if (!twoColumn) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: _sections(store),
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Left: contact details + social links.
+                  Expanded(
+                    flex: 5,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle('contact_information'.tr),
+                        const SizedBox(height: Constants.paddingSizeSmall),
+                        _ContactCard(
+                          store: store,
+                          onCall: _call,
+                          onEmail: _sendEmail,
+                          onWeb: _openWeb,
+                          onDirections: () => _openDirections(store),
+                        ),
+                        if (_hasSocials(store)) ...[
+                          const SizedBox(height: Constants.spaceSection),
+                          _buildSectionTitle('follow_us'.tr),
+                          const SizedBox(height: Constants.paddingSizeSmall),
+                          _SocialRow(store: store, onTap: _openWeb),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: Constants.spaceSection),
+                  // Right: FAQ.
+                  Expanded(
+                    flex: 6,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle('faq_title'.tr),
+                        const SizedBox(height: Constants.paddingSizeSmall),
+                        const HelpFaqSection(),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: Constants.spaceSection),
+            _stillNeedHelpCard(store),
+            const SizedBox(height: Constants.paddingSizeLarge),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _stillNeedHelpCard(StoreSetupModel? store) {
+    return _StillNeedHelpCard(
+      store: store,
+      onContact: () {
+        if (store == null) return;
+        if (store.phone.trim().isNotEmpty) {
+          _call(store.phone);
+        } else if (store.email.trim().isNotEmpty) {
+          _sendEmail(store.email);
+        }
+      },
     );
   }
 
