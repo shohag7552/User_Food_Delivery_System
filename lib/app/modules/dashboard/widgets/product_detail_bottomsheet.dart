@@ -479,52 +479,52 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
   Widget _buildDialogBody(BuildContext context) {
     return Container(
       color: context.cardBackground,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: Stack(
         children: [
-          // Header: product name + close.
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 10, 4),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    widget.product.nameMap.trLanguage,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeLarge,
-                      color: context.textPrimary,
-                    ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: SingleChildScrollView(
+                  child: _buildSheetContent(),
+                ),
+              ),
+              KeyedSubtree(
+                key: _bottomBarKey,
+                child: _buildAddToCartButton(context),
+              ),
+            ],
+          ),
+          // Floating Close Button (translucent glassmorphic overlay)
+          Positioned(
+            top: 16,
+            right: 16,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => Navigator.pop(context),
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.close_rounded,
+                    size: 20,
+                    color: Colors.white,
                   ),
                 ),
-                InkWell(
-                  onTap: () => Navigator.pop(context),
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: context.scaffoldBackground,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.close_rounded,
-                      size: 20,
-                      color: context.textSecondary,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-          Flexible(
-            child: SingleChildScrollView(
-              child: _buildSheetContent(),
-            ),
-          ),
-          KeyedSubtree(
-            key: _bottomBarKey,
-            child: _buildAddToCartButton(context),
           ),
         ],
       ),
@@ -658,17 +658,18 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
             ),
           ),
       
-          Center(
-            child: Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: ColorResource.textWhite.withValues(alpha: 0.8),
-                borderRadius: BorderRadius.circular(2),
+          if (!widget.isDialog)
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: ColorResource.textWhite.withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
-          ),
       
           if (widget.product.isOutOfStock)
             Positioned.fill(
