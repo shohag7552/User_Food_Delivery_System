@@ -1,3 +1,7 @@
+import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -8,8 +12,9 @@ import 'package:go_router/go_router.dart';
 class PolicyContentScreen extends StatelessWidget {
   final String title;
   final String htmlContent;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  const PolicyContentScreen({
+  PolicyContentScreen({
     super.key,
     required this.title,
     required this.htmlContent,
@@ -17,6 +22,86 @@ class PolicyContentScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isWeb = WebTopNav.isEnabled(context);
+    if (isWeb) {
+      return _buildWebLayout(context);
+    } else {
+      return _buildMobileLayout(context);
+    }
+  }
+
+  Widget _buildWebLayout(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Scaffold(
+      key: _scaffoldKey,
+      backgroundColor: context.scaffoldBackground,
+      appBar: WebTopNav(
+        selectedIndex: null,
+        onDestinationSelected: (index) => DashboardTabs.open(context, index),
+        onMenuTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+      ),
+      endDrawer: const WebProfileDrawer(),
+      body: LayoutBuilder(
+        builder: (context, viewport) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: viewport.maxHeight,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 860),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Back Button + Page Title
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                                  onPressed: () => context.pop(),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  title,
+                                  style: poppinsBold.copyWith(
+                                    fontSize: Constants.fontSizeOverLarge,
+                                    color: isDark ? Colors.white : context.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+                            htmlContent.isNotEmpty
+                                ? _buildHtmlContent()
+                                : _buildEmptyState(),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const WebFooter(),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context) {
     return Scaffold(
       backgroundColor: context.scaffoldBackground,
       body: CustomScrollView(
