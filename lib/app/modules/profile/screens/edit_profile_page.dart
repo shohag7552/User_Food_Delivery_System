@@ -173,6 +173,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             icon: Icons.email_outlined,
             validator: controller.validateEmail,
             keyboardType: TextInputType.emailAddress,
+            enabled: false,
           ),
           const SizedBox(height: 16),
 
@@ -616,6 +617,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     required IconData icon,
     required String? Function(String?)? validator,
     TextInputType? keyboardType,
+    bool enabled = true,
   }) {
     final theme = Theme.of(context);
 
@@ -623,39 +625,61 @@ class _EditProfilePageState extends State<EditProfilePage> {
       controller: controller,
       validator: validator,
       keyboardType: keyboardType,
+      enabled: enabled,
       style: poppinsRegular.copyWith(
         fontSize: Constants.fontSizeDefault,
-        color: theme.textTheme.bodyLarge?.color ?? context.textPrimary,
+        color: enabled
+            ? (theme.textTheme.bodyLarge?.color ?? context.textPrimary)
+            : (theme.textTheme.bodyLarge?.color ?? context.textPrimary)
+                .withValues(alpha: 0.5),
       ),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: poppinsMedium.copyWith(
           fontSize: Constants.fontSizeDefault,
-          color: theme.hintColor,
+          color: enabled
+              ? theme.hintColor
+              : theme.hintColor.withValues(alpha: 0.6),
         ),
         prefixIcon: Container(
           margin: const EdgeInsets.all(12),
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            gradient: ColorResource.primaryGradient,
+            gradient: enabled
+                ? ColorResource.primaryGradient
+                : LinearGradient(
+                    colors: [
+                      theme.disabledColor.withValues(alpha: 0.5),
+                      theme.disabledColor.withValues(alpha: 0.7),
+                    ],
+                  ),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: ColorResource.textWhite, size: 20),
         ),
         filled: true,
-        fillColor:
-            theme.inputDecorationTheme.fillColor ??
-            theme.colorScheme.surface.withValues(alpha: 0.5),
+        fillColor: enabled
+            ? (theme.inputDecorationTheme.fillColor ??
+                theme.colorScheme.surface.withValues(alpha: 0.5))
+            : (theme.inputDecorationTheme.fillColor ??
+                    theme.colorScheme.surface.withValues(alpha: 0.5))
+                .withValues(alpha: 0.6),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: theme.dividerColor.withValues(alpha: 0.3),
+            color: theme.dividerColor.withValues(alpha: enabled ? 0.3 : 0.15),
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
             color: theme.dividerColor.withValues(alpha: 0.3),
+          ),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: theme.dividerColor.withValues(alpha: 0.15),
           ),
         ),
         focusedBorder: OutlineInputBorder(

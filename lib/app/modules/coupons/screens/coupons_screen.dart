@@ -76,32 +76,38 @@ class _CouponsScreenState extends State<CouponsScreen> {
           }
 
           if (controller.coupons == null || controller.coupons!.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.local_offer_rounded,
-                    size: 80,
-                    color: Colors.grey[400],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'no_coupons_yet'.tr,
-                    style: poppinsBold.copyWith(
-                      fontSize: 20,
-                      color: Colors.grey[600],
+            if (isWeb) {
+              return RefreshIndicator(
+                onRefresh: () => controller.getCoupons(),
+                child: LayoutBuilder(
+                  builder: (context, viewport) => SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(minHeight: viewport.maxHeight),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 80),
+                            child: _buildEmptyState(),
+                          ),
+                          if (showWebNav) const WebFooter(),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'tap_to_add_coupon'.tr,
-                    style: poppinsRegular.copyWith(
-                      fontSize: 14,
-                      color: Colors.grey[500],
-                    ),
-                  ),
-                ],
+                ),
+              );
+            }
+
+            return RefreshIndicator(
+              onRefresh: () => controller.getCoupons(),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.7,
+                  child: _buildEmptyState(),
+                ),
               ),
             );
           }
@@ -109,6 +115,37 @@ class _CouponsScreenState extends State<CouponsScreen> {
           return _buildCouponsList(context, controller, isWeb, showWebNav);
         },
         ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.local_offer_rounded,
+            size: 80,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'no_coupons_yet'.tr,
+            style: poppinsBold.copyWith(
+              fontSize: 20,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'tap_to_add_coupon'.tr,
+            style: poppinsRegular.copyWith(
+              fontSize: 14,
+              color: Colors.grey[500],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -144,54 +181,67 @@ class _CouponsScreenState extends State<CouponsScreen> {
 
     return RefreshIndicator(
       onRefresh: () => controller.getCoupons(),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Center(
+      child: LayoutBuilder(
+        builder: (context, viewport) => SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (showInlineTitle) ...[
-                    Text(
-                      'coupons'.tr,
-                      style: poppinsBold.copyWith(
-                        fontSize: Constants.fontSizeOverLarge,
-                        color: context.textPrimary,
+            constraints: BoxConstraints(minHeight: viewport.maxHeight),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 20,
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final width = constraints.maxWidth;
-                      final columns = width >= _twoColumnWidth ? 2 : 1;
-                      const spacing = 16.0;
-                      final itemWidth =
-                          (width - (columns - 1) * spacing) / columns;
-
-                      return Wrap(
-                        spacing: spacing,
-                        runSpacing: 0, // cards carry their own bottom margin
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          for (final coupon in coupons)
-                            SizedBox(
-                              width: itemWidth,
-                              child: _CouponCard(
-                                coupon: coupon,
-                                isSelectionMode: widget.isSelectionMode,
-                                onSelect: widget.onCouponSelected,
+                          if (showInlineTitle) ...[
+                            Text(
+                              'coupons'.tr,
+                              style: poppinsBold.copyWith(
+                                fontSize: Constants.fontSizeOverLarge,
+                                color: context.textPrimary,
                               ),
                             ),
+                            const SizedBox(height: 16),
+                          ],
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final width = constraints.maxWidth;
+                              final columns = width >= _twoColumnWidth ? 2 : 1;
+                              const spacing = 16.0;
+                              final itemWidth =
+                                  (width - (columns - 1) * spacing) / columns;
+
+                              return Wrap(
+                                spacing: spacing,
+                                runSpacing: 0, // cards carry their own bottom margin
+                                children: [
+                                  for (final coupon in coupons)
+                                    SizedBox(
+                                      width: itemWidth,
+                                      child: _CouponCard(
+                                        coupon: coupon,
+                                        isSelectionMode: widget.isSelectionMode,
+                                        onSelect: widget.onCouponSelected,
+                                      ),
+                                    ),
+                                ],
+                              );
+                            },
+                          ),
                         ],
-                      );
-                    },
+                      ),
+                    ),
                   ),
-                  const WebFooter(),
-                ],
-              ),
+                ),
+                if (showInlineTitle) const WebFooter(),
+              ],
             ),
           ),
         ),

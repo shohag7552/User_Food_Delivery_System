@@ -1,6 +1,7 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/models/coupon_model.dart';
+import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -38,7 +39,7 @@ Future<void> showCouponDetailsDialog(
       return Dialog(
         insetPadding: const EdgeInsets.all(24),
         clipBehavior: Clip.antiAlias,
-        backgroundColor: Colors.grey[50],
+        backgroundColor: dialogContext.scaffoldBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
@@ -49,7 +50,7 @@ Future<void> showCouponDetailsDialog(
             children: [
               // Dialog header
               Container(
-                color: Colors.white,
+                color: dialogContext.cardBackground,
                 padding: const EdgeInsets.fromLTRB(20, 14, 8, 14),
                 child: Row(
                   children: [
@@ -58,7 +59,7 @@ Future<void> showCouponDetailsDialog(
                         'coupon_details'.tr,
                         style: poppinsBold.copyWith(
                           fontSize: 18,
-                          color: Colors.grey[900],
+                          color: dialogContext.textPrimary,
                         ),
                       ),
                     ),
@@ -84,7 +85,7 @@ Future<void> showCouponDetailsDialog(
               if (isSelectionMode && isValid)
                 Container(
                   width: double.infinity,
-                  color: Colors.white,
+                  color: dialogContext.cardBackground,
                   padding: const EdgeInsets.all(16),
                   child: ElevatedButton(
                     onPressed: () {
@@ -140,7 +141,7 @@ class CouponDetailsScreen extends StatelessWidget {
     final isValid = _isCouponValid(coupon);
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: context.scaffoldBackground,
       appBar: CustomAppbar(title: 'coupon_details'.tr),
       body: SingleChildScrollView(
         child: Column(
@@ -154,10 +155,10 @@ class CouponDetailsScreen extends StatelessWidget {
           ? Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.cardBackground,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: Theme.of(context).shadowColor.withValues(alpha: 0.08),
                     blurRadius: 10,
                     offset: const Offset(0, -4),
                   ),
@@ -294,7 +295,7 @@ class CouponDetailsContent extends StatelessWidget {
           margin: const EdgeInsets.all(16),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.cardBackground,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Wrap(
@@ -345,7 +346,7 @@ class CouponDetailsContent extends StatelessWidget {
             coupon.description,
             style: poppinsRegular.copyWith(
               fontSize: 15,
-              color: Colors.grey[800],
+              color: context.textSecondary,
               height: 1.5,
             ),
           ),
@@ -439,7 +440,9 @@ class CouponDetailsContent extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: coupon.usedCount / coupon.usageLimit!,
                     minHeight: 8,
-                    backgroundColor: Colors.grey[200],
+                    backgroundColor: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey.shade800
+                        : Colors.grey.shade200,
                     valueColor: AlwaysStoppedAnimation<Color>(
                       coupon.usedCount >= coupon.usageLimit!
                           ? Colors.red
@@ -481,7 +484,7 @@ class CouponDetailsContent extends StatelessWidget {
                   'no_usage_limit'.tr,
                   style: poppinsRegular.copyWith(
                     fontSize: 12,
-                    color: Colors.grey[500],
+                    color: context.textLight,
                   ),
                 ),
               ],
@@ -547,15 +550,18 @@ class CouponDetailsContent extends StatelessWidget {
     required IconData icon,
     required Widget child,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardBackground,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: theme.shadowColor.withValues(alpha: isDark ? 0.25 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -603,7 +609,7 @@ class CouponDetailsContent extends StatelessWidget {
           label,
           style: poppinsRegular.copyWith(
             fontSize: 14,
-            color: Colors.grey[700],
+            color: context.textSecondary,
           ),
         ),
         Text(
