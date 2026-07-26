@@ -1,6 +1,7 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
@@ -99,48 +100,78 @@ class _CategoryScreenState extends State<CategoryScreen> {
       body: GetBuilder<CategoryController>(
         builder: (controller) {
           final stateView = _buildStateView(controller);
-          if (stateView != null) return stateView;
 
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 4),
-                    child: Text(
-                      'categories'.tr,
-                      style: poppinsBold.copyWith(
-                        fontSize: Constants.fontSizeOverLarge,
-                        color: context.textPrimary,
-                      ),
-                    ),
+          return LayoutBuilder(
+            builder: (context, viewport) {
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: viewport.maxHeight,
                   ),
-                  Expanded(
-                    child: GridView.builder(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-                      gridDelegate:
-                          const SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: 170,
-                        crossAxisSpacing: 18,
-                        mainAxisSpacing: 20,
-                        childAspectRatio: 0.72,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(0, 24, 0, 4),
+                                  child: Text(
+                                    'categories'.tr,
+                                    style: poppinsBold.copyWith(
+                                      fontSize: Constants.fontSizeOverLarge,
+                                      color: context.textPrimary,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                if (stateView != null)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 60),
+                                    child: Center(child: stateView),
+                                  )
+                                else
+                                  GridView.builder(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    padding: const EdgeInsets.only(bottom: 40),
+                                    gridDelegate:
+                                        const SliverGridDelegateWithMaxCrossAxisExtent(
+                                      maxCrossAxisExtent: 170,
+                                      crossAxisSpacing: 18,
+                                      mainAxisSpacing: 20,
+                                      childAspectRatio: 0.72,
+                                    ),
+                                    itemCount: controller.categories.length,
+                                    itemBuilder: (context, index) {
+                                      final category = controller.categories[index];
+                                      return HoverLift(
+                                        showShadow: false,
+                                        borderRadius: Constants.radiusExtraLarge,
+                                        child: _buildCategoryCard(context, category),
+                                      );
+                                    },
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
-                      itemCount: controller.categories.length,
-                      itemBuilder: (context, index) {
-                        final category = controller.categories[index];
-                        return HoverLift(
-                          showShadow: false,
-                          borderRadius: Constants.radiusExtraLarge,
-                          child: _buildCategoryCard(context, category),
-                        );
-                      },
-                    ),
+                      const WebFooter(),
+                    ],
                   ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           );
         },
       ),

@@ -3,6 +3,7 @@ import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
 import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
@@ -233,19 +234,25 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
 
     late final Widget contentSliver;
     if (_isLoading) {
-      contentSliver = SliverFillRemaining(
-        hasScrollBody: false,
-        child: _buildLoadingState(),
+      contentSliver = SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 80),
+          child: _buildLoadingState(),
+        ),
       );
     } else if (_errorMessage != null) {
-      contentSliver = SliverFillRemaining(
-        hasScrollBody: false,
-        child: _buildErrorState(),
+      contentSliver = SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 80),
+          child: _buildErrorState(),
+        ),
       );
     } else if (_products.isEmpty) {
-      contentSliver = SliverFillRemaining(
-        hasScrollBody: false,
-        child: _buildEmptyState(),
+      contentSliver = SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 80),
+          child: _buildEmptyState(),
+        ),
       );
     } else {
       contentSliver = SliverMainAxisGroup(
@@ -300,7 +307,9 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
       ),
       body: CustomScrollView(
         controller: _scrollController,
-        physics: const BouncingScrollPhysics(),
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
         slivers: [
           SliverPadding(
             padding: EdgeInsets.symmetric(horizontal: gutter),
@@ -309,6 +318,19 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
           SliverPadding(
             padding: EdgeInsets.symmetric(horizontal: gutter),
             sliver: contentSliver,
+          ),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Container(
+              alignment: Alignment.bottomCenter,
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  SizedBox(height: 40),
+                  WebFooter(),
+                ],
+              ),
+            ),
           ),
         ],
       ),
