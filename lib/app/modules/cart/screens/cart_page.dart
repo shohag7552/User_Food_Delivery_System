@@ -1,6 +1,7 @@
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/helper/nav_bar_visibility.dart';
@@ -68,7 +69,7 @@ class _CartPageState extends State<CartPage> {
             }
 
             if (controller.cartItems.isEmpty) {
-              return _buildEmptyState();
+              return isWide ? _buildWebEmptyState() : _buildEmptyState();
             }
 
             return isWide
@@ -129,6 +130,32 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
+  Widget _buildWebEmptyState() {
+    return LayoutBuilder(
+      builder: (context, viewport) {
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: viewport.maxHeight,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const SizedBox(height: 20),
+                _buildEmptyState(),
+                const WebFooter(),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // Web: items list (left) + sticky order-summary card (right).
   // ---------------------------------------------------------------------------
@@ -138,48 +165,69 @@ class _CartPageState extends State<CartPage> {
     CartController controller,
     bool showInlineTitle,
   ) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(24, showInlineTitle ? 8 : 20, 24, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (showInlineTitle) ...[
-                _buildInlineTitle(controller.itemCount),
-                const SizedBox(height: 12),
-              ],
-              Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.only(bottom: 24),
-                        itemCount: controller.cartItems.length,
-                        itemBuilder: (context, index) {
-                          final item = controller.cartItems[index];
-                          return _buildCartItem(
-                              context, item, controller, index);
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 24),
-                    SizedBox(
-                      width: 360,
-                      child: SingleChildScrollView(
-                        child: _buildWebSummaryCard(controller),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+    return LayoutBuilder(
+      builder: (context, viewport) {
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
           ),
-        ),
-      ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: viewport.maxHeight,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(24, showInlineTitle ? 8 : 20, 24, 40),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (showInlineTitle) ...[
+                            _buildInlineTitle(controller.itemCount),
+                            const SizedBox(height: 16),
+                          ],
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Left: Cart items list
+                              Expanded(
+                                flex: 3,
+                                child: ListView.separated(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: controller.cartItems.length,
+                                  separatorBuilder: (context, index) => const SizedBox(height: 16),
+                                  itemBuilder: (context, index) {
+                                    final item = controller.cartItems[index];
+                                    return _buildCartItem(
+                                        context, item, controller, index);
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 32),
+                              // Right: Checkout card
+                              SizedBox(
+                                width: 360,
+                                child: _buildWebSummaryCard(controller),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const WebFooter(),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
