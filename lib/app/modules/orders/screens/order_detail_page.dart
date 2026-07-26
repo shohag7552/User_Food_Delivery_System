@@ -44,6 +44,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   late final OrderController _orderController;
   late final ReviewController _reviewController;
+
+  Color get _borderColor => Theme.of(context).brightness == Brightness.dark
+      ? Colors.grey.shade800
+      : Colors.grey.shade200;
   OrderModel? _fallbackOrder;
   String? _currentUserId;
   String? _reviewPrefetchedOrderId;
@@ -454,7 +458,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               value: order.orderNumber,
             ),
           ),
-          Container(width: 1, height: 40, color: Colors.grey.shade300),
+          Container(width: 1, height: 40, color: Theme.of(context).dividerColor),
           Expanded(
             child: _buildInfoItem(
               icon: Icons.shopping_bag_outlined,
@@ -518,7 +522,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               ),
             ),
           ),
-          const Divider(height: 1),
+          Divider(height: 1, color: _borderColor),
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -543,7 +547,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       decoration: BoxDecoration(
         color: context.scaffoldBackground,
         borderRadius: BorderRadius.circular(Constants.radiusDefault),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: _borderColor),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -834,7 +838,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             decoration: BoxDecoration(
               color: context.scaffoldBackground,
               borderRadius: BorderRadius.circular(Constants.radiusDefault),
-              border: Border.all(color: Colors.grey.shade200),
+              border: Border.all(color: _borderColor),
             ),
             child: Row(
               children: [
@@ -949,7 +953,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             decoration: BoxDecoration(
               color: context.scaffoldBackground,
               borderRadius: BorderRadius.circular(Constants.radiusDefault),
-              border: Border.all(color: Colors.grey.shade200),
+              border: Border.all(color: _borderColor),
             ),
             child: Column(
               children: [
@@ -987,7 +991,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                const Divider(height: 1),
+                Divider(height: 1, color: _borderColor),
                 const SizedBox(height: 12),
                 // Payment status row
                 Row(
@@ -1094,7 +1098,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             _buildPriceRow('tax_vat'.tr, order.taxAmount, false),
           ],
           const SizedBox(height: 12),
-          const Divider(),
+          Divider(color: _borderColor),
           const SizedBox(height: 12),
           _buildPriceRow('total_amount'.tr, order.totalAmount, true),
         ],
@@ -1141,7 +1145,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             decoration: BoxDecoration(
               color: context.scaffoldBackground,
               borderRadius: BorderRadius.circular(Constants.radiusDefault),
-              border: Border.all(color: Colors.grey.shade200),
+              border: Border.all(color: _borderColor),
             ),
             child: Row(
               children: [
