@@ -5,6 +5,7 @@ import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
 import 'package:appwrite_user_app/app/common/widgets/hover_arrow_carousel.dart';
 import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/brand_controller.dart';
@@ -499,36 +500,54 @@ class _EcommerceProductDetailPageState
         },
         onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
+      body: LayoutBuilder(
+        builder: (context, viewport) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: viewport.maxHeight,
+              ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Top: gallery (left) + buy panel (right).
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(flex: 5, child: _buildWebGallery()),
-                      const SizedBox(width: 36),
-                      Expanded(flex: 6, child: _buildWebInfoColumn()),
-                    ],
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Top: gallery (left) + buy panel (right).
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(flex: 5, child: _buildWebGallery()),
+                                const SizedBox(width: 36),
+                                Expanded(flex: 6, child: _buildWebInfoColumn()),
+                              ],
+                            ),
+                            // Full-width details below the two columns.
+                            _buildDescriptionBlock(),
+                            _buildSpecs(),
+                            _buildReviewsBlock(),
+                            // Suggested carousel constrained to the same content width.
+                            _buildSuggestedSection(),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                  // Full-width details below the two columns.
-                  _buildDescriptionBlock(),
-                  _buildSpecs(),
-                  _buildReviewsBlock(),
-                  // Suggested carousel constrained to the same content width.
-                  _buildSuggestedSection(),
+                  const WebFooter(),
                 ],
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
@@ -544,13 +563,7 @@ class _EcommerceProductDetailPageState
           child: Stack(
             children: [
               GestureDetector(
-                onTap: () => context.pushNamed(
-                  RouteNames.imageViewer,
-                  extra: ImageViewerArgs(
-                    imageUrl: images[_currentImage],
-                    heroTag: 'ecom-web-${product.id}-$_currentImage',
-                  ),
-                ),
+                onTap: () => _openWebImageDialog(context, _currentImage),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(Constants.radiusLarge),
                   child: CustomNetworkImage(
@@ -568,6 +581,38 @@ class _EcommerceProductDetailPageState
                   child: FavoriteButton(product: product, size: 22),
                 ),
               ),
+              if (images.length > 1) ...[
+                // Left Arrow
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 12),
+                    child: _circleButton(
+                      icon: Icons.arrow_back_ios_new_rounded,
+                      onTap: () {
+                        setState(() {
+                          _currentImage = (_currentImage - 1 + images.length) % images.length;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                // Right Arrow
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: _circleButton(
+                      icon: Icons.arrow_forward_ios_rounded,
+                      onTap: () {
+                        setState(() {
+                          _currentImage = (_currentImage + 1) % images.length;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -609,6 +654,157 @@ class _EcommerceProductDetailPageState
           ),
         ],
       ],
+    );
+  }
+
+  void _openWebImageDialog(BuildContext context, int initialIndex) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.55),
+      builder: (dialogContext) {
+        int currentIndex = initialIndex;
+        final images = _images;
+        final transformationController = TransformationController();
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              clipBehavior: Clip.antiAlias,
+              backgroundColor: context.scaffoldBackground,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 680, maxHeight: 600),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Product Image Viewport with Interactive zoom
+                      Positioned.fill(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: InteractiveViewer(
+                            transformationController: transformationController,
+                            minScale: 1.0,
+                            maxScale: 4.0,
+                            child: CustomNetworkImage(
+                              image: images[currentIndex],
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Floating Zoom + Close Toolbar overlay
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Zoom Out
+                            _circleToolbarButton(
+                              icon: Icons.zoom_out_rounded,
+                              onTap: () {
+                                final matrix = transformationController.value.clone();
+                                final currentScale = matrix.getMaxScaleOnAxis();
+                                final newScale = (currentScale - 0.25).clamp(1.0, 4.0);
+                                setDialogState(() {
+                                  transformationController.value = Matrix4.diagonal3Values(newScale, newScale, 1.0);
+                                });
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            // Zoom In
+                            _circleToolbarButton(
+                              icon: Icons.zoom_in_rounded,
+                              onTap: () {
+                                final matrix = transformationController.value.clone();
+                                final currentScale = matrix.getMaxScaleOnAxis();
+                                final newScale = (currentScale + 0.25).clamp(1.0, 4.0);
+                                setDialogState(() {
+                                  transformationController.value = Matrix4.diagonal3Values(newScale, newScale, 1.0);
+                                });
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            // Reset Zoom
+                            _circleToolbarButton(
+                              icon: Icons.restart_alt_rounded,
+                              onTap: () {
+                                setDialogState(() {
+                                  transformationController.value = Matrix4.identity();
+                                });
+                              },
+                            ),
+                            const SizedBox(width: 16),
+                            // Close Button
+                            IconButton(
+                              onPressed: () {
+                                transformationController.dispose();
+                                Navigator.pop(dialogContext);
+                              },
+                              icon: const Icon(Icons.close_rounded),
+                              style: IconButton.styleFrom(
+                                backgroundColor: Colors.black.withValues(alpha: 0.08),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Left Navigation Arrow (inside card boundaries)
+                      if (images.length > 1)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: _circleButton(
+                            icon: Icons.arrow_back_ios_new_rounded,
+                            onTap: () {
+                              setDialogState(() {
+                                currentIndex = (currentIndex - 1 + images.length) % images.length;
+                                transformationController.value = Matrix4.identity(); // Reset zoom on image change
+                              });
+                            },
+                          ),
+                        ),
+
+                      // Right Navigation Arrow (inside card boundaries)
+                      if (images.length > 1)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: _circleButton(
+                            icon: Icons.arrow_forward_ios_rounded,
+                            onTap: () {
+                              setDialogState(() {
+                                currentIndex = (currentIndex + 1) % images.length;
+                                transformationController.value = Matrix4.identity(); // Reset zoom on image change
+                              });
+                            },
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _circleToolbarButton({required IconData icon, required VoidCallback onTap}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.06),
+        shape: BoxShape.circle,
+      ),
+      child: IconButton(
+        icon: Icon(icon, size: 20),
+        onPressed: onTap,
+      ),
     );
   }
 
@@ -663,18 +859,19 @@ class _EcommerceProductDetailPageState
     final bool isWide = WebTopNav.isEnabled(context);
     final double cardWidth = isWide ? 230 : 170;
     final double stripHeight = isWide ? 350 : 280;
+    final double horizontalPadding = isWide ? 0 : 16;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 20),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
           child: Divider(color: context.textLight.withValues(alpha: 0.2)),
         ),
         const SizedBox(height: 12),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
           child: Text(
             'you_may_also_like'.tr,
             style: poppinsBold.copyWith(
@@ -700,7 +897,7 @@ class _EcommerceProductDetailPageState
               // Full-bleed list: the inset lives inside the scroll view so
               // the first/last cards clear the edges while the list itself
               // spans the full section width.
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+              padding: EdgeInsets.fromLTRB(horizontalPadding, 4, horizontalPadding, 8),
               separatorBuilder: (_, _) => const SizedBox(width: 14),
               itemBuilder: (context, index) => SizedBox(
                 width: cardWidth,
