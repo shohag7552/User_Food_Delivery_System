@@ -170,7 +170,7 @@ class AllProductsWidget extends StatelessWidget {
             //  • Mobile — infinite scroll drives loadMore, so just show the
             //    shimmer while the next page is in flight.
             if (WebTopNav.isEnabled(context))
-              _buildViewMoreSliver(controller)
+              _buildViewMoreSliver(context, controller)
             else if (controller.isLoadingMore)
               SliverToBoxAdapter(
                 child: Padding(
@@ -179,13 +179,19 @@ class AllProductsWidget extends StatelessWidget {
                 ),
               ),
 
-            // Bottom spacing that clears the floating nav bar — and collapses
-            // when the bar auto-hides so no empty space is left behind.
-            SliverToBoxAdapter(
-              child: NavClearance(
-                builder: (context, bottom) => SizedBox(height: bottom),
+            // Bottom spacing: clears the floating nav bar on mobile — and collapses
+            // when the bar auto-hides so no empty space is left behind. On web desktop,
+            // we use a clean 32px spacing before the footer instead of the 92px bar space.
+            if (!WebTopNav.isEnabled(context))
+              SliverToBoxAdapter(
+                child: NavClearance(
+                  builder: (context, bottom) => SizedBox(height: bottom),
+                ),
+              )
+            else
+              const SliverToBoxAdapter(
+                child: SizedBox(height: 32),
               ),
-            ),
           ],
         );
       },
@@ -196,7 +202,7 @@ class AllProductsWidget extends StatelessWidget {
   /// next page (offset) and keeps working continuously while more pages remain.
   /// Renders nothing once the final page has loaded; a spinner replaces the
   /// button while a page is loading so the layout stays put.
-  Widget _buildViewMoreSliver(ProductController controller) {
+  Widget _buildViewMoreSliver(BuildContext context, ProductController controller) {
     if (!controller.hasMore) {
       return const SliverToBoxAdapter(child: SizedBox.shrink());
     }
@@ -221,7 +227,7 @@ class AllProductsWidget extends StatelessWidget {
                         color: ColorResource.primaryDark,
                       ),
                     )
-                  : _viewMoreButton(controller.loadMoreProducts),
+                  : _viewMoreButton(context, controller.loadMoreProducts),
             ),
           ),
         ),
@@ -230,39 +236,53 @@ class AllProductsWidget extends StatelessWidget {
   }
 
   /// Outlined pill button used by [_buildViewMoreSliver].
-  Widget _viewMoreButton(VoidCallback onTap) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
-        hoverColor: ColorResource.primaryDark.withValues(alpha: 0.04),
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: Constants.paddingSizeExtraLarge,
-            vertical: Constants.paddingSizeSmall,
+  Widget _viewMoreButton(BuildContext context, VoidCallback onTap) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: ColorResource.primaryDark.withValues(alpha: 0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
-            border: Border.all(color: ColorResource.primaryDark, width: 1.4),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'view_more'.tr,
-                style: poppinsMedium.copyWith(
-                  fontSize: Constants.fontSizeDefault,
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(30),
+          hoverColor: ColorResource.primaryDark.withValues(alpha: 0.05),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 32,
+              vertical: 12,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: ColorResource.primaryDark, width: 1.8),
+              color: context.cardBackground,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'view_more'.tr,
+                  style: poppinsBold.copyWith(
+                    fontSize: Constants.fontSizeDefault,
+                    color: ColorResource.primaryDark,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.keyboard_double_arrow_down_rounded,
+                  size: 18,
                   color: ColorResource.primaryDark,
                 ),
-              ),
-              const SizedBox(width: 8),
-              Icon(
-                Icons.keyboard_arrow_down_rounded,
-                size: 20,
-                color: ColorResource.primaryDark,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
