@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/address_controller.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
@@ -96,98 +97,126 @@ class _AddressesPageState extends State<AddressesPage> {
   }
 
   /// Desktop web: a full-width scroll surface (drag anywhere, including the side
-  /// gutters, to scroll) with a centred, width-capped column — a header row with
-  /// the title + an "Add address" button, then a responsive card grid.
+  /// gutters, to scroll). The content is centred + width-capped; the footer is
+  /// full-width and pinned to the BOTTOM of the viewport (spaceBetween pushes it
+  /// down when content is short, and it flows after the content when tall).
   Widget _buildWebBody(BuildContext context, AddressController controller) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(
-        vertical: Constants.paddingSizeExtraLarge,
-      ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: Constants.paddingSizeLarge,
-            ),
+    return LayoutBuilder(
+      builder: (context, viewport) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            // Force the column to be at least a full viewport tall so the footer
+            // can be anchored to the bottom even when the content is short.
+            constraints: BoxConstraints(minHeight: viewport.maxHeight),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Header: title + add button.
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'saved_addresses'.tr,
-                        style: poppinsBold.copyWith(
-                          fontSize: Constants.fontSizeOverLarge,
-                          color: context.textPrimary,
-                        ),
-                      ),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: () =>
-                          context.pushNamed(RouteNames.addEditAddress),
-                      icon: Icon(Icons.add, color: ColorResource.textWhite),
-                      label: Text(
-                        'add_address'.tr,
-                        style: poppinsBold.copyWith(
-                          color: ColorResource.textWhite,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: ColorResource.primaryDark,
+                // ── Content (centred, width-capped) ──────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: Constants.paddingSizeExtraLarge,
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints:
+                          const BoxConstraints(maxWidth: _maxContentWidth),
+                      child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: Constants.paddingSizeLarge,
-                          vertical: Constants.paddingSizeDefault,
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(Constants.radiusLarge),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Header: title + add button.
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'saved_addresses'.tr,
+                                    style: poppinsBold.copyWith(
+                                      fontSize: Constants.fontSizeOverLarge,
+                                      color: context.textPrimary,
+                                    ),
+                                  ),
+                                ),
+                                ElevatedButton.icon(
+                                  onPressed: () => context
+                                      .pushNamed(RouteNames.addEditAddress),
+                                  icon: Icon(Icons.add,
+                                      color: ColorResource.textWhite),
+                                  label: Text(
+                                    'add_address'.tr,
+                                    style: poppinsBold.copyWith(
+                                      color: ColorResource.textWhite,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: ColorResource.primaryDark,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: Constants.paddingSizeLarge,
+                                      vertical: Constants.paddingSizeDefault,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                          Constants.radiusLarge),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: Constants.paddingSizeLarge),
+
+                            // Content: responsive card grid, or empty state.
+                            if (!controller.hasAddresses)
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 40),
+                                child: _buildEmptyState(),
+                              )
+                            else
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final width = constraints.maxWidth;
+                                  final columns =
+                                      width >= _twoColumnWidth ? 2 : 1;
+                                  const spacing = 16.0;
+                                  final itemWidth =
+                                      (width - (columns - 1) * spacing) /
+                                          columns;
+
+                                  return Wrap(
+                                    spacing: spacing,
+                                    runSpacing: 0,
+                                    children: [
+                                      for (final address
+                                          in controller.addresses)
+                                        SizedBox(
+                                          width: itemWidth,
+                                          child: _buildAddressCard(
+                                            context,
+                                            address,
+                                            controller,
+                                          ),
+                                        ),
+                                    ],
+                                  );
+                                },
+                              ),
+                          ],
                         ),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: Constants.paddingSizeLarge),
-
-                // Content: responsive card grid, or the empty state.
-                if (!controller.hasAddresses)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 40),
-                    child: _buildEmptyState(),
-                  )
-                else
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final width = constraints.maxWidth;
-                      final columns = width >= _twoColumnWidth ? 2 : 1;
-                      const spacing = 16.0;
-                      final itemWidth =
-                          (width - (columns - 1) * spacing) / columns;
-
-                      return Wrap(
-                        spacing: spacing,
-                        runSpacing: 0, // cards carry their own bottom margin
-                        children: [
-                          for (final address in controller.addresses)
-                            SizedBox(
-                              width: itemWidth,
-                              child: _buildAddressCard(
-                                context,
-                                address,
-                                controller,
-                              ),
-                            ),
-                        ],
-                      );
-                    },
                   ),
+                ),
+
+                // ── Full-width footer, anchored to the bottom ───────────────
+                const WebFooter(),
               ],
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

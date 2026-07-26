@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/common/widgets/directional_flip.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
@@ -114,21 +115,36 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
           }
 
           if (showWebNav) {
-            return SingleChildScrollView(
-              child: Center(
+            return LayoutBuilder(
+              builder: (context, viewport) => SingleChildScrollView(
                 child: ConstrainedBox(
-                  constraints:
-                      const BoxConstraints(maxWidth: _maxContentWidth),
-                  child: Padding(
-                    padding: const EdgeInsets.all(Constants.paddingSizeLarge),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _WebHeader(store: store),
-                        const SizedBox(height: Constants.spaceSection),
-                        _buildWebContent(store),
-                      ],
-                    ),
+                  // At least a full viewport tall so the footer anchors to the
+                  // bottom when content is short, and flows after it when tall.
+                  constraints: BoxConstraints(minHeight: viewport.maxHeight),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Center(
+                        child: ConstrainedBox(
+                          constraints:
+                              const BoxConstraints(maxWidth: _maxContentWidth),
+                          child: Padding(
+                            padding: const EdgeInsets.all(
+                                Constants.paddingSizeLarge),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _WebHeader(store: store),
+                                const SizedBox(height: Constants.spaceSection),
+                                _buildWebContent(store),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const WebFooter(),
+                    ],
                   ),
                 ),
               ),

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
@@ -287,6 +288,9 @@ class _HomePageState extends State<HomePage>
 
           // Small breathing space at the very bottom of the page.
           _gapSliver(Constants.paddingSizeLarge),
+
+          // Professional site footer — renders only on desktop web.
+          WebFooter.sliver(),
         ],
       ),
     );

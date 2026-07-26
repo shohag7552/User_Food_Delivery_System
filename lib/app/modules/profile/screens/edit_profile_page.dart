@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
@@ -93,27 +94,47 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   /// Desktop web: shared top-nav (above) + a centered, width-capped form with a
   /// rounded gradient header card standing in for the mobile hero app bar.
+  ///
+  /// The scroll view spans the FULL width (drag anywhere — including the side
+  /// gutters — to scroll) and centres the form to [_maxContentWidth]. The footer
+  /// is a full-width sliver pinned to the bottom of the viewport.
   Widget _buildWebBody(BuildContext context, ProfileController controller) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: Constants.paddingSizeLarge,
-            vertical: Constants.paddingSizeExtraLarge,
-          ),
-          child: Form(
-            key: controller.formKey,
-            child: Column(
-              children: [
-                _buildWebHeaderCard(context, controller),
-                const SizedBox(height: Constants.spaceSection),
-                _buildProfileInfoCard(context, controller),
-                const SizedBox(height: Constants.spaceSection),
-                _buildSaveButton(context, controller),
-                const SizedBox(height: Constants.paddingSizeLarge),
-              ],
-            ),
+    return LayoutBuilder(
+      builder: (context, viewport) => SingleChildScrollView(
+        child: ConstrainedBox(
+          // At least a full viewport tall so the footer anchors to the bottom
+          // when the form is short, and flows after it when tall.
+          constraints: BoxConstraints(minHeight: viewport.maxHeight),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Center(
+                child: ConstrainedBox(
+                  constraints:
+                      const BoxConstraints(maxWidth: _maxContentWidth),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: Constants.paddingSizeLarge,
+                      vertical: Constants.paddingSizeExtraLarge,
+                    ),
+                    child: Form(
+                      key: controller.formKey,
+                      child: Column(
+                        children: [
+                          _buildWebHeaderCard(context, controller),
+                          const SizedBox(height: Constants.spaceSection),
+                          _buildProfileInfoCard(context, controller),
+                          const SizedBox(height: Constants.spaceSection),
+                          _buildSaveButton(context, controller),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const WebFooter(),
+            ],
           ),
         ),
       ),

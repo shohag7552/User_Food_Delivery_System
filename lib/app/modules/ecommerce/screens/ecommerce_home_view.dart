@@ -1,4 +1,5 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:appwrite_user_app/app/controllers/brand_controller.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
@@ -139,6 +140,9 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
           _buildAllProductsGrid(crossAxisCount, hPad),
           _buildViewMoreButton(hPad, isWide),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
+
+          // Professional site footer — renders only on desktop web.
+          WebFooter.sliver(),
         ],
       ),
     );

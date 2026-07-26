@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/coupon_controller.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
@@ -188,6 +189,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
                       );
                     },
                   ),
+                  const WebFooter(),
                 ],
               ),
             ),

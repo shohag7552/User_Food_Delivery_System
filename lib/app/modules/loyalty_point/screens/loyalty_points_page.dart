@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_button.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/loyalty_controller.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
@@ -73,17 +74,31 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
 
               return RefreshIndicator(
                 onRefresh: loyaltyController.fetchHistory,
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(
-                    parent: BouncingScrollPhysics(),
-                  ),
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                  child: Center(
+                child: LayoutBuilder(
+                  builder: (context, viewport) => SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
+                    ),
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxWidth: isWeb ? _maxContentWidth : double.infinity,
+                        minHeight: isWeb ? viewport.maxHeight : 0,
                       ),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisAlignment: isWeb
+                            ? MainAxisAlignment.spaceBetween
+                            : MainAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                            child: Center(
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxWidth: isWeb
+                                      ? _maxContentWidth
+                                      : double.infinity,
+                                ),
+                                child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (isWeb) ...[
@@ -134,7 +149,14 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                             child: _buildTransactionCard(context, transaction),
                           ),
                         ),
-                    ],
+                            ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Full-width footer pinned to the bottom on web.
+                          if (isWeb) const WebFooter(),
+                        ],
                       ),
                     ),
                   ),

@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
@@ -182,47 +183,63 @@ class _OrdersPageState extends State<OrdersPage> {
     return RefreshIndicator(
       onRefresh: controller.refreshOrders,
       color: ColorResource.primaryDark,
-      child: SingleChildScrollView(
-        controller: _scrollController,
-        padding: const EdgeInsets.only(
-          top: 16,
-          bottom: Constants.bottomNavSpace,
-        ),
-        child: Center(
+      child: LayoutBuilder(
+        builder: (context, viewport) => SingleChildScrollView(
+          controller: _scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final width = constraints.maxWidth;
-                      final columns = width >= 1080
-                          ? 3
-                          : width >= 680
-                              ? 2
-                              : 1;
-                      const spacing = 16.0;
-                      final itemWidth =
-                          (width - (columns - 1) * spacing) / columns;
+            // At least a full viewport tall so the footer anchors to the bottom
+            // when content is short, and flows after it when tall.
+            constraints: BoxConstraints(minHeight: viewport.maxHeight),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints:
+                          const BoxConstraints(maxWidth: _maxContentWidth),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          children: [
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final width = constraints.maxWidth;
+                                final columns = width >= 1080
+                                    ? 3
+                                    : width >= 680
+                                        ? 2
+                                        : 1;
+                                const spacing = 16.0;
+                                final itemWidth =
+                                    (width - (columns - 1) * spacing) / columns;
 
-                      return Wrap(
-                        spacing: spacing,
-                        runSpacing: 0, // each card carries its own bottom margin
-                        children: [
-                          for (final order in controller.orders)
-                            SizedBox(
-                              width: itemWidth,
-                              child: HoverLift(child: _buildOrderCard(order)),
+                                return Wrap(
+                                  spacing: spacing,
+                                  runSpacing: 0,
+                                  children: [
+                                    for (final order in controller.orders)
+                                      SizedBox(
+                                        width: itemWidth,
+                                        child: HoverLift(
+                                            child: _buildOrderCard(order)),
+                                      ),
+                                  ],
+                                );
+                              },
                             ),
-                        ],
-                      );
-                    },
+                            _buildWebPaginationFooter(controller),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                  _buildWebPaginationFooter(controller),
-                ],
-              ),
+                ),
+                const WebFooter(),
+              ],
             ),
           ),
         ),

@@ -5,6 +5,7 @@ import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dar
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
 import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
@@ -128,42 +129,55 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     final crossAxisCount = _crossAxisCount(contentWidth);
 
     final grid = NavClearance(
-      builder: (context, bottom) => GridView.builder(
-      padding: EdgeInsets.fromLTRB(
-        sidePadding,
-        _isWebLayout ? 8 : 16,
-        sidePadding,
-        // Nav-bar clearance + a small breathing space at the very bottom.
-        bottom + 20,
-      ),
-      gridDelegate: isWide
-          ? SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: 20,
-              mainAxisSpacing: 20,
-              childAspectRatio: 0.66,
-            )
-          : const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              // Tall enough for the image + a 2-line name, rating and price so
-              // the card content never overflows/overlaps.
-              mainAxisExtent: 250,
+      // A CustomScrollView so the web footer can sit below the grid as a sliver
+      // (empty/no-op on mobile). AlwaysScrollable keeps pull-to-refresh working
+      // even when the grid doesn't fill the viewport.
+      builder: (context, bottom) => CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(
+              sidePadding,
+              _isWebLayout ? 8 : 16,
+              sidePadding,
+              // Nav-bar clearance + a small breathing space at the very bottom.
+              bottom + 20,
             ),
-      itemCount: favorites.length,
-      itemBuilder: (context, index) {
-        final favorite = favorites[index];
-        final product = favorite.product!;
-        // Ecommerce products use the storefront card (has its own hover);
-        // food keeps its own card, wrapped with hover on web.
-        if (product.moduleType == ModuleController.ecommerce) {
-          return EcommerceProductCard(product: product);
-        }
-        final card =
-            _buildProductCard(context, product, favorite.id, controller);
-        return kIsWeb ? HoverLift(child: card) : card;
-      },
+            sliver: SliverGrid(
+              gridDelegate: isWide
+                  ? SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: 20,
+                      mainAxisSpacing: 20,
+                      childAspectRatio: 0.66,
+                    )
+                  : const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      // Tall enough for the image + a 2-line name, rating and
+                      // price so the card content never overflows/overlaps.
+                      mainAxisExtent: 250,
+                    ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final favorite = favorites[index];
+                  final product = favorite.product!;
+                  // Ecommerce products use the storefront card (has its own
+                  // hover); food keeps its own card, wrapped with hover on web.
+                  if (product.moduleType == ModuleController.ecommerce) {
+                    return EcommerceProductCard(product: product);
+                  }
+                  final card = _buildProductCard(
+                      context, product, favorite.id, controller);
+                  return kIsWeb ? HoverLift(child: card) : card;
+                },
+                childCount: favorites.length,
+              ),
+            ),
+          ),
+          WebFooter.sliver(),
+        ],
       ),
     );
 

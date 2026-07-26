@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/notification_controller.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
@@ -90,33 +91,73 @@ class _NotificationScreenState extends State<NotificationScreen> {
           final width = MediaQuery.of(context).size.width;
           final sidePadding = _sidePadding(width, isWeb);
 
-          final list = RefreshIndicator(
-            onRefresh: () => controller.getNotifications(),
-            color: ColorResource.primaryDark,
-            child: ListView.separated(
-              padding: EdgeInsets.fromLTRB(
-                sidePadding,
-                isWeb ? 8 : 16,
-                sidePadding,
-                24,
+          if (!isWeb) {
+            return RefreshIndicator(
+              onRefresh: () => controller.getNotifications(),
+              color: ColorResource.primaryDark,
+              child: ListView.separated(
+                padding: EdgeInsets.fromLTRB(sidePadding, 16, sidePadding, 24),
+                itemCount: controller.notifications.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 12),
+                itemBuilder: (context, index) => _buildNotificationCard(
+                    controller.notifications[index], controller),
               ),
-              itemCount: controller.notifications.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final notification = controller.notifications[index];
-                return _buildNotificationCard(notification, controller);
-              },
-            ),
-          );
+            );
+          }
 
-          if (!isWeb) return list;
-
-          // Web: inline header (title + "mark all read") over the full-width,
-          // centred list.
+          // Web: inline header (title + "mark all read") over the full-width
+          // list, with the footer pinned to the bottom of the viewport.
           return Column(
             children: [
               _buildWebHeader(controller, sidePadding),
-              Expanded(child: list),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () => controller.getNotifications(),
+                  color: ColorResource.primaryDark,
+                  child: LayoutBuilder(
+                    builder: (context, viewport) => SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: ConstrainedBox(
+                        // At least a full viewport tall so the footer anchors to
+                        // the bottom when the list is short.
+                        constraints:
+                            BoxConstraints(minHeight: viewport.maxHeight),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.fromLTRB(
+                                  sidePadding, 8, sidePadding, 24),
+                              child: Column(
+                                children: [
+                                  for (int i = 0;
+                                      i < controller.notifications.length;
+                                      i++)
+                                    Padding(
+                                      padding: EdgeInsets.only(
+                                        bottom: i ==
+                                                controller.notifications.length -
+                                                    1
+                                            ? 0
+                                            : 12,
+                                      ),
+                                      child: _buildNotificationCard(
+                                          controller.notifications[i],
+                                          controller),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            const WebFooter(),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           );
         },
