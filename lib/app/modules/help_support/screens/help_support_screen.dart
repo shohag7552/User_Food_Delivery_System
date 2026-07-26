@@ -270,8 +270,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: Constants.spaceSection),
-            _stillNeedHelpCard(store),
+            // const SizedBox(height: Constants.spaceSection),
+            // _stillNeedHelpCard(store),
             const SizedBox(height: Constants.paddingSizeLarge),
           ],
         );

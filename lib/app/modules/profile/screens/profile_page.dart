@@ -10,6 +10,7 @@ import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:appwrite_user_app/app/modules/language/widgets/language_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -194,7 +195,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                    title: 'language'.tr,
                                   subtitle: selectedLang?.languageName ?? 'English',
                                   onTap: () {
-                                    context.pushNamed(RouteNames.language);
+                                    LanguageSelector.show(context);
                                   },
                                 );
                               },

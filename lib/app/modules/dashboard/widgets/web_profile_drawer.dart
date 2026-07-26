@@ -7,6 +7,7 @@ import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:appwrite_user_app/app/modules/language/widgets/language_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -165,7 +166,7 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                       subtitle: lang,
                       onTap: () {
                         _close();
-                        context.pushNamed(RouteNames.language);
+                        LanguageSelector.show(context);
                       },
                     );
                   },
