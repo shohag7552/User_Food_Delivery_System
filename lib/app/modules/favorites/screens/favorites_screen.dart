@@ -54,7 +54,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   int _crossAxisCount(double width) {
     if (width < _webBreakpoint) return 2;
     if (width >= 1400) return 5;
-    if (width >= 1100) return 4;
+    if (width >= 1100) return 5;
     return 3;
   }
 
@@ -277,12 +277,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Image skeleton
-          Container(
-            height: 140,
-            decoration: BoxDecoration(
-              color: context.textLight.withValues(alpha: 0.2),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(Constants.radiusLarge),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: context.textLight.withValues(alpha: 0.2),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(Constants.radiusLarge),
+                ),
               ),
             ),
           ),
@@ -290,6 +291,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   height: 16,
@@ -397,178 +399,177 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Product Image with badges
-            Stack(
-              children: [
-                Container(
-                  height: 140,
-                  decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(Constants.radiusLarge),
-                      ),
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.1),
-                        ],
-                      ),
-                    ),
+            Expanded(
+              child: Stack(
+                children: [
+                  Positioned.fill(
                     child: ClipRRect(
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(Constants.radiusLarge),
                       ),
-                      child: CustomNetworkImage(
-                        image: product.imageId,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                      ),
-                    ),
-                  ),
-
-                // Veg/Non-veg badge
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: ColorResource.textWhite,
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(
-                        color: isVeg ? Colors.green : Colors.red,
-                        width: 2,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.circle,
-                      size: 8,
-                      color: isVeg ? Colors.green : Colors.red,
-                    ),
-                  ),
-                ),
-
-                // Discount badge
-                if (hasDiscount)
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: ColorResource.discountBadge,
-                        borderRadius: BorderRadius.circular(Constants.radiusLarge),
-                      ),
-                      child: Text(
-                        product.discountType == 'percentage'
-                            ? '${product.discountValue!.toInt()}% OFF'
-                            : '${PriceHelper.formatPrice(product.discountValue!.toDouble())} OFF',
-                        style: poppinsBold.copyWith(
-                          fontSize: 10,
-                          color: ColorResource.textWhite,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                // Favorite button
-                Positioned(
-                  bottom: 8,
-                  right: 8,
-                  child: GestureDetector(
-                    onTap: () => controller.removeFavoriteById(favoriteId, product.id),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: ColorResource.textWhite,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          CustomNetworkImage(
+                            image: product.imageId,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withValues(alpha: 0.15),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                      child: controller.isToggleLoading(product.id)
-                          ? SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  ColorResource.primaryDark,
-                                ),
-                              ),
-                            )
-                          : Icon(
-                              Icons.favorite,
-                              size: 20,
-                              color: ColorResource.error,
-                            ),
                     ),
                   ),
-                ),
-              ],
+
+                  // Veg/Non-veg badge
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: ColorResource.textWhite,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: isVeg ? Colors.green : Colors.red,
+                          width: 2,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.circle,
+                        size: 8,
+                        color: isVeg ? Colors.green : Colors.red,
+                      ),
+                    ),
+                  ),
+
+                  // Discount badge
+                  if (hasDiscount)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: ColorResource.discountBadge,
+                          borderRadius: BorderRadius.circular(Constants.radiusLarge),
+                        ),
+                        child: Text(
+                          product.discountType == 'percentage'
+                              ? '${product.discountValue!.toInt()}% OFF'
+                              : '${PriceHelper.formatPrice(product.discountValue!.toDouble())} OFF',
+                          style: poppinsBold.copyWith(
+                            fontSize: 10,
+                            color: ColorResource.textWhite,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  // Favorite button
+                  Positioned(
+                    bottom: 8,
+                    right: 8,
+                    child: GestureDetector(
+                      onTap: () => controller.removeFavoriteById(favoriteId, product.id),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: ColorResource.textWhite,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: controller.isToggleLoading(product.id)
+                            ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    ColorResource.primaryDark,
+                                  ),
+                                ),
+                              )
+                            : Icon(
+                                Icons.favorite,
+                                size: 20,
+                                color: ColorResource.error,
+                              ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
 
             // Product Info
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    product.nameMap.trLanguage,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: poppinsMedium.copyWith(
+                      fontSize: Constants.fontSizeDefault,
+                      color: context.textPrimary,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  RatingStars(
+                    rating: product.avgRating,
+                    reviewCount: product.ratingCount,
+                    size: 13,
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Price
+                  Row(
+                    children: [
+                      if (hasDiscount) ...[
                         Text(
-                          product.nameMap.trLanguage,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: poppinsMedium.copyWith(
-                            fontSize: Constants.fontSizeDefault,
-                            color: context.textPrimary,
-                            height: 1.2,
+                          PriceHelper.formatPrice(product.price),
+                          style: poppinsRegular.copyWith(
+                            fontSize: Constants.fontSizeSmall,
+                            color: context.textLight,
+                            decoration: TextDecoration.lineThrough,
                           ),
                         ),
+                        const SizedBox(width: 6),
                       ],
-                    ),
-                    const SizedBox(height: 8),
-
-                    RatingStars(
-                      rating: product.avgRating,
-                      reviewCount: product.ratingCount,
-                      size: 13,
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Price
-                    Row(
-                      children: [
-                        if (hasDiscount) ...[
-                          Text(
-                            PriceHelper.formatPrice(product.price),
-                            style: poppinsRegular.copyWith(
-                              fontSize: Constants.fontSizeSmall,
-                              color: context.textLight,
-                              decoration: TextDecoration.lineThrough,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                        ],
-                        Text(
-                          PriceHelper.formatPrice(product.finalPrice),
-                          style: poppinsBold.copyWith(
-                            fontSize: Constants.fontSizeDefault + 2,
-                            color: ColorResource.primaryDark,
-                          ),
+                      Text(
+                        PriceHelper.formatPrice(product.finalPrice),
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeDefault + 2,
+                          color: ColorResource.primaryDark,
                         ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
