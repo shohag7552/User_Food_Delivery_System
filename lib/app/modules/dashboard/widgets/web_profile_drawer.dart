@@ -119,15 +119,15 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                     context.pushNamed(RouteNames.loyalty);
                   },
                 ),
-                _item(
-                  icon: Icons.share_outlined,
-                  title: 'refer_and_earn'.tr,
-                  subtitle: 'invite_friends_and_get_rewards'.tr,
-                  onTap: () {
-                    _close();
-                    Get.snackbar('refer_and_earn'.tr, 'feature_coming_soon'.tr);
-                  },
-                ),
+                // _item(
+                //   icon: Icons.share_outlined,
+                //   title: 'refer_and_earn'.tr,
+                //   subtitle: 'invite_friends_and_get_rewards'.tr,
+                //   onTap: () {
+                //     _close();
+                //     Get.snackbar('refer_and_earn'.tr, 'feature_coming_soon'.tr);
+                //   },
+                // ),
 
                 // ── App Settings ──────────────────────────────────────────
                 _sectionLabel('app_settings'.tr, isDark),
