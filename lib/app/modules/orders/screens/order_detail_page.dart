@@ -1,6 +1,7 @@
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
@@ -10,13 +11,13 @@ import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
 import 'package:appwrite_user_app/app/models/review_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
+import 'package:appwrite_user_app/app/modules/orders/screens/order_delivery_map_page.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/submit_review_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:appwrite_user_app/app/helper/store_time_helper.dart';
@@ -92,34 +93,21 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
             )
           : CustomAppbar(title: 'order_details'.tr),
-      bottomNavigationBar: GetBuilder<OrderController>(
-        builder: (controller) {
-          final order = controller.selectedOrder?.id == widget.orderId
-              ? controller.selectedOrder
-              : _fallbackOrder;
+      bottomNavigationBar: isWide
+          ? null
+          : GetBuilder<OrderController>(
+              builder: (controller) {
+                final order = controller.selectedOrder?.id == widget.orderId
+                    ? controller.selectedOrder
+                    : _fallbackOrder;
 
-          if (order == null) {
-            return const SizedBox.shrink();
-          }
+                if (order == null) {
+                  return const SizedBox.shrink();
+                }
 
-          final bar = _buildBottomActionBar(order, controller);
-          // Centre the action bar with the content column on web.
-          // heightFactor: 1.0 makes the Align shrink-wrap the bar's height —
-          // without it, a Scaffold gives bottomNavigationBar a bounded height
-          // and a plain Center would expand to fill the whole screen.
-          return kIsWeb
-              ? Align(
-                  alignment: Alignment.center,
-                  heightFactor: 1.0,
-                  child: ConstrainedBox(
-                    constraints:
-                        const BoxConstraints(maxWidth: _maxContentWidth),
-                    child: bar,
-                  ),
-                )
-              : bar;
-        },
-      ),
+                return _buildBottomActionBar(order, controller);
+              },
+            ),
       body: AuthGate(
         child: GetBuilder<OrderController>(
         builder: (controller) {
@@ -183,9 +171,14 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             color: ColorResource.primaryDark,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              child: isWide
-                  ? _buildWebContent(order, twoColumn)
-                  : _buildMobileContent(order),
+              child: Column(
+                children: [
+                  isWide
+                      ? _buildWebContent(order, twoColumn, controller)
+                      : _buildMobileContent(order),
+                  if (isWide) const WebFooter(),
+                ],
+              ),
             ),
           );
         },
@@ -236,7 +229,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   // ── Web/desktop: constrained layout with a rounded gradient header. ──
   // Wide screens get a two-column split (order contents on the left, a summary
   // rail on the right); narrower web widths fall back to a single column.
-  Widget _buildWebContent(OrderModel order, bool twoColumn) {
+  Widget _buildWebContent(OrderModel order, bool twoColumn, OrderController controller) {
     final isEcom = order.moduleType == 'ecommerce';
     final showTimeline = isEcom &&
         !['cancelled', 'returned', 'refunded']
@@ -269,6 +262,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       _buildPaymentInfo(order),
       const SizedBox(height: 16),
       _buildPricingBreakdown(order),
+      const SizedBox(height: 20),
+      _buildWebActionButtons(order, controller),
     ];
 
     return Align(
@@ -1699,6 +1694,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       await settingsController.fetchBusinessSetup();
     }
 
+    if (!mounted) return;
+
     final businessSetup = settingsController.businessSetup;
 
     if (businessSetup?.storeLatitude == null ||
@@ -1713,19 +1710,55 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       return;
     }
 
-    AppRouter.router.pushNamed(
-      RouteNames.deliveryMap,
-      extra: DeliveryMapArgs(
-        deliveryman: deliveryman,
-        businessName: businessSetup?.businessName ?? '',
-        businessAddress: businessSetup?.storeLocation ?? '',
-        businessLatitude: businessSetup!.storeLatitude!,
-        businessLongitude: businessSetup.storeLongitude!,
-        deliveryAddress: order.address.street,
-        deliveryLatitude: order.address.lat,
-        deliveryLongitude: order.address.lng,
-      ),
-    );
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWide = screenWidth >= _webBreakpoint;
+
+    if (isWide) {
+      showDialog(
+        context: context,
+        builder: (context) => Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(Constants.radiusLarge),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: 900,
+              maxHeight: 700,
+            ),
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.8,
+              height: MediaQuery.of(context).size.height * 0.8,
+              child: OrderDeliveryMapPage(
+                deliveryman: deliveryman,
+                businessName: businessSetup?.businessName ?? '',
+                businessAddress: businessSetup?.storeLocation ?? '',
+                businessLatitude: businessSetup!.storeLatitude!,
+                businessLongitude: businessSetup.storeLongitude!,
+                deliveryAddress: order.address.street,
+                deliveryLatitude: order.address.lat,
+                deliveryLongitude: order.address.lng,
+                showBackButton: false,
+              ),
+            ),
+          ),
+        ),
+      );
+    } else {
+      AppRouter.router.pushNamed(
+        RouteNames.deliveryMap,
+        extra: DeliveryMapArgs(
+          deliveryman: deliveryman,
+          businessName: businessSetup?.businessName ?? '',
+          businessAddress: businessSetup?.storeLocation ?? '',
+          businessLatitude: businessSetup!.storeLatitude!,
+          businessLongitude: businessSetup.storeLongitude!,
+          deliveryAddress: order.address.street,
+          deliveryLatitude: order.address.lat,
+          deliveryLongitude: order.address.lng,
+        ),
+      );
+    }
   }
 
   Future<void> _showReviewBottomSheet(OrderItem item) async {
@@ -1763,5 +1796,72 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         forceRefresh: true,
       );
     }
+  }
+
+  Widget _buildWebActionButtons(OrderModel order, OrderController controller) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          if (_canCancelOrder(order)) ...[
+            Expanded(
+              child: OutlinedButton(
+                onPressed: controller.isCancellingOrder
+                    ? null
+                    : () => _showCancelOrderConfirmation(order),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: ColorResource.error,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  side: BorderSide(color: ColorResource.error, width: 1.5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                      Constants.radiusLarge,
+                    ),
+                  ),
+                ),
+                child: controller.isCancellingOrder
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            ColorResource.error,
+                          ),
+                        ),
+                      )
+                    : Text(
+                        'cancel'.tr,
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeDefault,
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(width: 12),
+          ],
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () => _openDeliveryMap(order),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ColorResource.primaryDark,
+                foregroundColor: ColorResource.textWhite,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(Constants.radiusLarge),
+                ),
+              ),
+              child: Text(
+                'view_on_map'.tr,
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeDefault,
+                  color: ColorResource.textWhite,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

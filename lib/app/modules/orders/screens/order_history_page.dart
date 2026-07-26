@@ -165,6 +165,33 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     );
   }
 
+  Widget _buildWebEmptyState(OrderController controller) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        await controller.refreshOrders();
+      },
+      color: ColorResource.primaryDark,
+      child: LayoutBuilder(
+        builder: (context, viewport) => SingleChildScrollView(
+          controller: _scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: viewport.maxHeight),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const SizedBox(height: 20),
+                _buildEmptyState(),
+                const WebFooter(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildOrdersList(bool isWide) {
     return GetBuilder<OrderController>(
       builder: (controller) {
@@ -179,7 +206,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             : controller.orders.where((order) => order.status == _selectedFilter).toList();
 
         if (filteredOrders.isEmpty) {
-          return _buildEmptyState();
+          return isWide
+              ? _buildWebEmptyState(controller)
+              : _buildEmptyState();
         }
 
         return isWide

@@ -17,6 +17,7 @@ class OrderDeliveryMapPage extends StatefulWidget {
   final String deliveryAddress;
   final double deliveryLatitude;
   final double deliveryLongitude;
+  final bool showBackButton;
 
   const OrderDeliveryMapPage({
     super.key,
@@ -28,6 +29,7 @@ class OrderDeliveryMapPage extends StatefulWidget {
     required this.deliveryAddress,
     required this.deliveryLatitude,
     required this.deliveryLongitude,
+    this.showBackButton = true,
   });
 
   @override
@@ -74,7 +76,18 @@ class _OrderDeliveryMapPageState extends State<OrderDeliveryMapPage> {
 
     return Scaffold(
       backgroundColor: context.scaffoldBackground,
-      appBar: CustomAppbar(title: 'delivery_location'.tr),
+      appBar: CustomAppbar(
+        title: 'delivery_location'.tr,
+        showBackButton: widget.showBackButton,
+        actions: widget.showBackButton
+            ? null
+            : [
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+      ),
       body: Stack(
         children: [
           FlutterMap(
