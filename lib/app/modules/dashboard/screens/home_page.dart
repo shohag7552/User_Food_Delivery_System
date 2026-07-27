@@ -363,6 +363,7 @@ class _HomePageState extends State<HomePage>
           );
         },
       ),
+      actions: [const SizedBox()],
     );
   }
 
@@ -383,9 +384,11 @@ class _HomePageState extends State<HomePage>
         builder: (productController) {
           return _capped(
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.only(left: 20),
               child: Row(
                 children: [
+                  const SizedBox(width: Constants.paddingSizeExtraLarge),
+
                   Expanded(
                     child: Text(
                       'all_products'.tr,
