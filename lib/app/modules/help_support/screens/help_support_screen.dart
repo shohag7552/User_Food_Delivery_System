@@ -201,8 +201,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
       _buildSectionTitle('faq_title'.tr),
       const SizedBox(height: Constants.paddingSizeSmall),
       const HelpFaqSection(),
-      const SizedBox(height: Constants.spaceSection),
-      _stillNeedHelpCard(store),
+      // const SizedBox(height: Constants.spaceSection),
+      // _stillNeedHelpCard(store),
       const SizedBox(height: Constants.paddingSizeLarge),
     ];
   }

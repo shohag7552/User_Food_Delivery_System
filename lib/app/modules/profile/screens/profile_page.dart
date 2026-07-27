@@ -116,14 +116,14 @@ class _ProfilePageState extends State<ProfilePage> {
                                 );
                               }),
                             ),
-                            _ProfileOption(
-                              icon: Icons.star_outline,
-                              title: 'reviews_and_ratings'.tr,
-                              subtitle: 'your_reviews_on_items'.tr,
-                              onTap: () {
-                                Get.snackbar('reviews_and_ratings'.tr, 'feature_coming_soon'.tr);
-                              },
-                            ),
+                            // _ProfileOption(
+                            //   icon: Icons.star_outline,
+                            //   title: 'reviews_and_ratings'.tr,
+                            //   subtitle: 'your_reviews_on_items'.tr,
+                            //   onTap: () {
+                            //     Get.snackbar('reviews_and_ratings'.tr, 'feature_coming_soon'.tr);
+                            //   },
+                            // ),
                           ],
                         ),
 
@@ -149,14 +149,14 @@ class _ProfilePageState extends State<ProfilePage> {
                                 context.pushNamed(RouteNames.loyalty);
                               }),
                             ),
-                            _ProfileOption(
-                              icon: Icons.share_outlined,
-                              title: 'refer_and_earn'.tr,
-                              subtitle: 'invite_friends_and_get_rewards'.tr,
-                              onTap: () {
-                                Get.snackbar('refer_and_earn'.tr, 'feature_coming_soon'.tr);
-                              },
-                            ),
+                            // _ProfileOption(
+                            //   icon: Icons.share_outlined,
+                            //   title: 'refer_and_earn'.tr,
+                            //   subtitle: 'invite_friends_and_get_rewards'.tr,
+                            //   onTap: () {
+                            //     Get.snackbar('refer_and_earn'.tr, 'feature_coming_soon'.tr);
+                            //   },
+                            // ),
                           ],
                         ),
 
@@ -589,7 +589,6 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         Container(
           decoration: BoxDecoration(
-            color: theme.cardColor,
             borderRadius: BorderRadius.circular(Constants.radiusLarge),
             boxShadow: [
               BoxShadow(
@@ -601,23 +600,28 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ],
           ),
-          child: Column(
-            children: List.generate(items.length, (index) {
-              final isLast = index == items.length - 1;
-              return Column(
-                children: [
-                  items[index],
-                  if (!isLast)
-                    Divider(
-                      height: 1,
-                      indent: 60,
-                      color: theme.dividerColor.withValues(
-                        alpha: isDark ? 0.45 : 0.3,
+          child: Material(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(Constants.radiusLarge),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: List.generate(items.length, (index) {
+                final isLast = index == items.length - 1;
+                return Column(
+                  children: [
+                    items[index],
+                    if (!isLast)
+                      Divider(
+                        height: 1,
+                        indent: 60,
+                        color: theme.dividerColor.withValues(
+                          alpha: isDark ? 0.45 : 0.3,
+                        ),
                       ),
-                    ),
-                ],
-              );
-            }),
+                  ],
+                );
+              }),
+            ),
           ),
         ),
       ],
