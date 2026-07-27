@@ -270,8 +270,8 @@ class _EcommerceProductDetailPageState
           return FlexibleSpaceBar(
             centerTitle: false,
             titlePadding: const EdgeInsetsDirectional.only(
-              start: 56,
-              end: 56,
+              start: 72,
+              end: 72,
               bottom: 16,
             ),
             title: isCollapsed
