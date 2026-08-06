@@ -44,6 +44,28 @@ class _EcommerceProductDetailPageState
   final PageController _galleryController = PageController();
   // Web scaffold key so the top-nav menu button can open the profile drawer.
   final GlobalKey<ScaffoldState> _webScaffoldKey = GlobalKey<ScaffoldState>();
+
+  /// Expanded height of the mobile image header.
+  static const double _expandedAppBarHeight = 340;
+
+  /// Height reserved by the app bar's `bottom` (the refresh progress strip).
+  static const double _appBarBottomHeight = 2;
+
+  /// Scroll distance between fully expanded and fully collapsed. The status bar
+  /// inset cancels out — it is part of both the max and min extent — so this is
+  /// independent of the device.
+  static const double _collapseDistance =
+      _expandedAppBarHeight - kToolbarHeight - _appBarBottomHeight;
+
+  final ScrollController _scrollController = ScrollController();
+
+  /// 0 = header fully expanded (gallery on screen), 1 = fully collapsed.
+  ///
+  /// A [ValueNotifier] rather than `setState` so a scroll only rebuilds the two
+  /// header buttons, not the whole product page. It also lets `leading` and
+  /// `actions` react to the collapse — they sit outside `flexibleSpace`, so the
+  /// ratio its LayoutBuilder computes is not reachable from there.
+  final ValueNotifier<double> _collapseProgress = ValueNotifier<double>(0);
   int _currentImage = 0;
   bool _descExpanded = false;
 
@@ -148,10 +170,40 @@ class _EcommerceProductDetailPageState
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     _syncQtyWithCart();
     _fetchProductDetails();
     _loadSuggested(widget.product.categoryId);
   }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final progress =
+        (_scrollController.offset / _collapseDistance).clamp(0.0, 1.0);
+    // Skip sub-pixel churn — the buttons cannot show a 0.1% shadow change.
+    if ((_collapseProgress.value - progress).abs() > 0.005) {
+      _collapseProgress.value = progress;
+    }
+  }
+
+  /// Progress through the final quarter of the collapse: 0 until the header is
+  /// 75% collapsed, reaching 1 exactly when it is fully collapsed.
+  ///
+  /// Drives both halves of the hand-off from gallery to solid app bar — the
+  /// button shadows fade out on it while the compact title fades in — so the
+  /// two read as one movement instead of two unrelated transitions.
+  static double _collapseHandoff(double collapseProgress) {
+    const double fadeStart = 0.75;
+    if (collapseProgress <= fadeStart) return 0;
+    return ((collapseProgress - fadeStart) / (1 - fadeStart)).clamp(0.0, 1.0);
+  }
+
+  /// Drop-shadow strength for the floating header buttons. The shadow exists to
+  /// lift them off the product photo, so it holds at full strength while the
+  /// gallery is on screen and is gone by the time the solid app bar has taken
+  /// over and is providing the contrast itself.
+  static double _headerButtonShadowOpacity(double collapseProgress) =>
+      1 - _collapseHandoff(collapseProgress);
 
   /// Loads the full, up-to-date product record by id from the Appwrite products
   /// table. Keeps the seeded model on failure so the page never goes blank.
@@ -187,6 +239,9 @@ class _EcommerceProductDetailPageState
   @override
   void dispose() {
     _galleryController.dispose();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _collapseProgress.dispose();
     super.dispose();
   }
 
@@ -210,6 +265,7 @@ class _EcommerceProductDetailPageState
     return Scaffold(
       backgroundColor: context.scaffoldBackground,
       body: CustomScrollView(
+        controller: _scrollController,
         physics: const BouncingScrollPhysics(),
         slivers: [
           _buildSliverAppBar(context),
@@ -223,7 +279,7 @@ class _EcommerceProductDetailPageState
   /// Collapsing image header. Expanded it shows the swipeable gallery; once
   /// scrolled past it pins to a compact bar carrying the product name.
   Widget _buildSliverAppBar(BuildContext context) {
-    const double expandedHeight = 340;
+    const double expandedHeight = _expandedAppBarHeight;
 
     return SliverAppBar(
       expandedHeight: expandedHeight,
@@ -246,49 +302,53 @@ class _EcommerceProductDetailPageState
       ),
       leading: Padding(
         padding: const EdgeInsets.only(left: 12),
-        child: _circleButton(
-          icon: Icons.arrow_back,
-          onTap: () => context.pop(),
+        child: _collapseAware(
+          (shadowOpacity) => _circleButton(
+            icon: Icons.arrow_back,
+            onTap: () => context.pop(),
+            shadowOpacity: shadowOpacity,
+          ),
         ),
       ),
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 12),
-          child: _circleButton(child: FavoriteButton(product: product, size: 22)),
+          child: _collapseAware(
+            (shadowOpacity) => _circleButton(
+              child: FavoriteButton(product: product, size: 22),
+              shadowOpacity: shadowOpacity,
+            ),
+          ),
         ),
       ],
-      flexibleSpace: LayoutBuilder(
-        builder: (context, constraints) {
-          final double appBarHeight = constraints.maxHeight;
-          final double statusBarHeight = MediaQuery.of(context).padding.top;
-          final double minHeight = kToolbarHeight + statusBarHeight;
-          final double collapseRatio =
-              ((appBarHeight - minHeight) / (expandedHeight - minHeight))
-                  .clamp(0.0, 1.0);
-          final bool isCollapsed = collapseRatio < 0.1;
-
-          return FlexibleSpaceBar(
-            centerTitle: false,
-            titlePadding: const EdgeInsetsDirectional.only(
-              start: 72,
-              end: 72,
-              bottom: 16,
+      // The compact title lives on the app bar itself, not on
+      // [FlexibleSpaceBar]. NavigationToolbar lays out leading, title and
+      // actions in one row and centres them on a shared axis, so the name
+      // lines up with the back and favourite buttons by construction.
+      // FlexibleSpaceBar instead anchors its title to the *bottom* of the
+      // flexible space via `titlePadding`, which left it sitting a few pixels
+      // below the buttons and drifting with the status-bar inset.
+      centerTitle: false,
+      title: ValueListenableBuilder<double>(
+        valueListenable: _collapseProgress,
+        builder: (context, progress, _) {
+          final opacity = _collapseHandoff(progress);
+          if (opacity <= 0) return const SizedBox.shrink();
+          return Opacity(
+            opacity: opacity,
+            child: Text(
+              product.nameMap.trLanguage,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: poppinsBold.copyWith(
+                fontSize: Constants.fontSizeLarge,
+                color: context.textPrimary,
+              ),
             ),
-            title: isCollapsed
-                ? Text(
-                    product.nameMap.trLanguage,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeLarge,
-                      color: context.textPrimary,
-                    ),
-                  )
-                : null,
-            background: _buildGallery(),
           );
         },
       ),
+      flexibleSpace: FlexibleSpaceBar(background: _buildGallery()),
     );
   }
 
@@ -909,7 +969,25 @@ class _EcommerceProductDetailPageState
     );
   }
 
-  Widget _circleButton({IconData? icon, VoidCallback? onTap, Widget? child}) {
+  /// Rebuilds [builder] against the header's collapse, handing it the shadow
+  /// strength the floating buttons should currently paint with.
+  Widget _collapseAware(Widget Function(double shadowOpacity) builder) {
+    return ValueListenableBuilder<double>(
+      valueListenable: _collapseProgress,
+      builder: (context, progress, _) =>
+          builder(_headerButtonShadowOpacity(progress)),
+    );
+  }
+
+  /// [shadowOpacity] scales the drop shadow — 1 paints it in full, 0 drops it
+  /// entirely. Defaults to 1, so the web gallery and dialog buttons that share
+  /// this helper are unaffected.
+  Widget _circleButton({
+    IconData? icon,
+    VoidCallback? onTap,
+    Widget? child,
+    double shadowOpacity = 1,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -919,13 +997,15 @@ class _EcommerceProductDetailPageState
         decoration: BoxDecoration(
           color: context.cardBackground.withValues(alpha: 0.92),
           shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
+          boxShadow: shadowOpacity <= 0
+              ? null
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12 * shadowOpacity),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
         ),
         child: child ??
             Icon(icon, size: 20, color: context.textPrimary),
@@ -1458,7 +1538,7 @@ class _EcommerceProductDetailPageState
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: poppinsBold.copyWith(
-                          fontSize: Constants.fontSizeOverLarge,
+                          fontSize: Constants.fontSizeLarge,
                           color: ColorResource.primaryDark,
                         ),
                       ),
@@ -1481,12 +1561,12 @@ class _EcommerceProductDetailPageState
                         _qty > 1 ? () => setState(() => _qty--) : null,
                       ),
                       SizedBox(
-                        width: 36,
+                        width: 32,
                         child: Center(
                           child: Text(
                             '$_qty',
                             style: poppinsBold.copyWith(
-                              fontSize: Constants.fontSizeLarge,
+                              fontSize: Constants.fontSizeDefault,
                               color: context.textPrimary,
                             ),
                           ),
@@ -1501,7 +1581,7 @@ class _EcommerceProductDetailPageState
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: Constants.paddingSizeExtraSmall),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -1509,7 +1589,9 @@ class _EcommerceProductDetailPageState
                     _isAddingToCart ? null : () => _submitCart(matching),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: ColorResource.primaryDark,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: Constants.paddingSizeSmall,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius:
                         BorderRadius.circular(Constants.radiusLarge),
@@ -1517,8 +1599,8 @@ class _EcommerceProductDetailPageState
                 ),
                 icon: _isAddingToCart
                     ? const SizedBox(
-                        width: 20,
-                        height: 20,
+                        width: 18,
+                        height: 18,
                         child: CircularProgressIndicator(
                           color: ColorResource.textWhite,
                           strokeWidth: 2.5,
@@ -1529,12 +1611,12 @@ class _EcommerceProductDetailPageState
                             ? Icons.edit_outlined
                             : Icons.shopping_bag_outlined,
                         color: ColorResource.textWhite,
-                        size: 20,
+                        size: 18,
                       ),
                 label: Text(
                   isUpdate ? 'update_cart'.tr : 'add_to_cart'.tr,
                   style: poppinsBold.copyWith(
-                    fontSize: Constants.fontSizeLarge,
+                    fontSize: Constants.fontSizeDefault,
                     color: ColorResource.textWhite,
                   ),
                 ),
@@ -1548,7 +1630,12 @@ class _EcommerceProductDetailPageState
 
   Widget _buildBottomBar() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      padding: const EdgeInsets.fromLTRB(
+        Constants.paddingSizeDefault,
+        Constants.paddingSizeSmall,
+        Constants.paddingSizeDefault,
+        Constants.paddingSizeSmall,
+      ),
       decoration: BoxDecoration(
         color: context.cardBackground,
         boxShadow: [
@@ -1570,8 +1657,11 @@ class _EcommerceProductDetailPageState
   Widget _qtyButton(IconData icon, VoidCallback? onTap) {
     return GestureDetector(
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
+      // Sized to the accessible minimum rather than grown by padding, so the
+      // stepper — and with it the whole purchase bar — stays compact without
+      // shrinking the hit area.
+      child: SizedBox.square(
+        dimension: Constants.minTapTarget,
         child: Icon(
           icon,
           size: 18,
@@ -1591,7 +1681,11 @@ class _EcommerceProductDetailPageState
         style: ElevatedButton.styleFrom(
           disabledBackgroundColor:
               context.textLight.withValues(alpha: 0.4),
-          padding: const EdgeInsets.symmetric(vertical: 15),
+          // Matches the enabled add-to-cart button so the bar keeps the same
+          // height when a product is out of stock.
+          padding: const EdgeInsets.symmetric(
+            vertical: Constants.paddingSizeSmall,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(Constants.radiusLarge),
           ),
@@ -1599,7 +1693,7 @@ class _EcommerceProductDetailPageState
         child: Text(
           label,
           style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeLarge,
+            fontSize: Constants.fontSizeDefault,
             color: ColorResource.textWhite,
           ),
         ),
