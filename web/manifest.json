@@ -1,32 +1,32 @@
 {
-    "name": "Food User",
-    "short_name": "Food User",
+    "name": "Kiko Mart",
+    "short_name": "Kiko Mart",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#F5F7FA",
     "theme_color": "#C92A2A",
-    "description": "Food User — browse, order and get it delivered.",
+    "description": "Kiko Mart — browse, order and get it delivered.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
         {
-            "src": "icons/Icon-192.png",
+            "src": "icons/logo.png",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "icons/Icon-512.png",
+            "src": "icons/logo.png",
             "sizes": "512x512",
             "type": "image/png"
         },
         {
-            "src": "icons/Icon-maskable-192.png",
+            "src": "icons/logo.png",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "maskable"
         },
         {
-            "src": "icons/Icon-maskable-512.png",
+            "src": "icons/logo.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"

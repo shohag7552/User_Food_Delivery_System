@@ -3,7 +3,7 @@ import 'package:appwrite_user_app/app/resources/images.dart';
 
 class Constants {
 
-  static const String appName = 'Kiko Shop';
+  static const String appName = 'Kiko Mart';
   static const String appVersion = "1.0.0";
   static const String packageName = 'com.example.appwrite_user_app';
 
