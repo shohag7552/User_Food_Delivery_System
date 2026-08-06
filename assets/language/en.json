@@ -709,5 +709,8 @@
   "try_different_filters": "Try changing or clearing your filters",
   "clear_filters": "Clear filters",
   "offers": "Offers",
-  "filter_by_list_price": "Price filters use the original list price"
+  "filter_by_list_price": "Price filters use the original list price",
+  "zoom_in": "Zoom in",
+  "zoom_out": "Zoom out",
+  "reset_zoom": "Reset zoom"
 }

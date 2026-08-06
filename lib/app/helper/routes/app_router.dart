@@ -140,9 +140,26 @@ class CouponDetailsArgs {
 }
 
 class ImageViewerArgs {
-  final String imageUrl;
+  /// Every image in the set the viewer can swipe through.
+  final List<String> images;
+
+  /// Which of [images] to open on.
+  final int initialIndex;
+
+  /// Hero tag of the thumbnail that was tapped. Only the page at
+  /// [initialIndex] carries it, so the flight matches the origin.
   final String heroTag;
-  const ImageViewerArgs({required this.imageUrl, required this.heroTag});
+
+  const ImageViewerArgs({
+    required this.images,
+    required this.heroTag,
+    this.initialIndex = 0,
+  });
+
+  /// Shorthand for screens that only have one image to show.
+  ImageViewerArgs.single({required String imageUrl, required this.heroTag})
+      : images = [imageUrl],
+        initialIndex = 0;
 }
 
 class PaymentArgs {
@@ -539,7 +556,8 @@ abstract class AppRouter {
         builder: (context, state) {
           final args = state.extra as ImageViewerArgs;
           return FullScreenImageViewer(
-            imageUrl: args.imageUrl,
+            images: args.images,
+            initialIndex: args.initialIndex,
             heroTag: args.heroTag,
           );
         },

@@ -622,7 +622,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
       onTap: () {
         context.pushNamed(
           RouteNames.imageViewer,
-          extra: ImageViewerArgs(
+          extra: ImageViewerArgs.single(
             imageUrl: widget.product.imageId,
             heroTag: _imageHeroTag,
           ),

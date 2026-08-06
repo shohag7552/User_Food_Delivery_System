@@ -675,5 +675,8 @@
   "try_different_filters": "جرّب تغيير عوامل التصفية أو إزالتها",
   "clear_filters": "مسح عوامل التصفية",
   "offers": "العروض",
-  "filter_by_list_price": "تعمل تصفية السعر على السعر الأصلي"
+  "filter_by_list_price": "تعمل تصفية السعر على السعر الأصلي",
+  "zoom_in": "تكبير",
+  "zoom_out": "تصغير",
+  "reset_zoom": "إعادة التكبير"
 }

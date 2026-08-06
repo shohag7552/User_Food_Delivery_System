@@ -1026,8 +1026,11 @@ class _EcommerceProductDetailPageState
             return GestureDetector(
               onTap: () => context.pushNamed(
                 RouteNames.imageViewer,
+                // Hand over the whole gallery so the viewer can swipe through
+                // it, opening on the image that was tapped.
                 extra: ImageViewerArgs(
-                  imageUrl: images[index],
+                  images: images,
+                  initialIndex: index,
                   heroTag: 'ecom-${product.id}-$index',
                 ),
               ),

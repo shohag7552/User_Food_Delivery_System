@@ -698,5 +698,8 @@
   "try_different_filters": "ফিল্টার পরিবর্তন করুন বা মুছে ফেলুন",
   "clear_filters": "ফিল্টার মুছুন",
   "offers": "অফার",
-  "filter_by_list_price": "দামের ফিল্টার মূল দামের উপর কাজ করে"
+  "filter_by_list_price": "দামের ফিল্টার মূল দামের উপর কাজ করে",
+  "zoom_in": "জুম ইন",
+  "zoom_out": "জুম আউট",
+  "reset_zoom": "জুম রিসেট"
 }
