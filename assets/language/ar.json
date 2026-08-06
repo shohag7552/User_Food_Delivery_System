@@ -475,6 +475,8 @@
   "top_products": "أفضل المنتجات",
   "promotions": "العروض الترويجية",
   "no_products_available": "لا توجد منتجات متاحة",
+  "no_more_products": "لقد وصلت إلى النهاية",
+  "check_back_soon": "عد قريبًا لمشاهدة الوافدين الجدد",
   "out_of_stock": "نفدت الكمية",
   "in_stock": "متوفر",
   "only_n_left": "بقي @count فقط",

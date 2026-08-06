@@ -60,6 +60,10 @@ dependencies:
   firebase_messaging: ^16.1.1
 
   carousel_slider: ^5.1.2
+  # Content-sized product grids: SliverAlignedGrid gives every tile in a row
+  # the height of the tallest one, so cards size to their own text instead of
+  # being forced into a guessed childAspectRatio.
+  flutter_staggered_grid_view: ^0.7.0
   http: ^1.6.0
   googleapis_auth: ^2.0.0
   flutter_html: ^3.0.0-beta.2

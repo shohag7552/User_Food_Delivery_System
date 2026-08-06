@@ -510,6 +510,8 @@
   "top_products": "সেরা পণ্য",
   "promotions": "প্রমোশন",
   "no_products_available": "কোনো পণ্য নেই",
+  "no_more_products": "আপনি শেষ পর্যন্ত দেখে ফেলেছেন",
+  "check_back_soon": "নতুন পণ্যের জন্য শীঘ্রই আবার দেখুন",
   "out_of_stock": "স্টক নেই",
   "in_stock": "স্টকে আছে",
   "only_n_left": "মাত্র @count টি বাকি",

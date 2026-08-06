@@ -28,7 +28,19 @@ import 'package:go_router/go_router.dart';
 class EcommerceProductCard extends StatefulWidget {
   final ProductModel product;
 
-  const EcommerceProductCard({super.key, required this.product});
+  /// Fixes the image band to this width:height ratio and lets the card size
+  /// itself to its content — required by content-sized grids such as
+  /// `SliverAlignedGrid`, which measure children against an unbounded height.
+  ///
+  /// Left null (the default) the image instead fills whatever height the
+  /// parent imposes, which is what the fixed-height carousels rely on.
+  final double? imageAspectRatio;
+
+  const EcommerceProductCard({
+    super.key,
+    required this.product,
+    this.imageAspectRatio,
+  });
 
   @override
   State<EcommerceProductCard> createState() => _EcommerceProductCardState();
@@ -54,6 +66,8 @@ class _EcommerceProductCardState extends State<EcommerceProductCard> {
   @override
   Widget build(BuildContext context) {
     final outOfStock = product.isOutOfStock;
+    // Local copy so the null check promotes it for the AspectRatio below.
+    final aspectRatio = widget.imageAspectRatio;
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -97,8 +111,17 @@ class _EcommerceProductCardState extends State<EcommerceProductCard> {
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: aspectRatio == null
+                  ? MainAxisSize.max
+                  : MainAxisSize.min,
               children: [
-                Expanded(child: _buildImageBand(context, outOfStock)),
+                if (aspectRatio == null)
+                  Expanded(child: _buildImageBand(context, outOfStock))
+                else
+                  AspectRatio(
+                    aspectRatio: aspectRatio,
+                    child: _buildImageBand(context, outOfStock),
+                  ),
                 _buildDetails(context, outOfStock),
               ],
             ),

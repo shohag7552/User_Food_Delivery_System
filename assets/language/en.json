@@ -510,6 +510,8 @@
   "top_products": "Top Products",
   "promotions": "Promotions",
   "no_products_available": "No products available",
+  "no_more_products": "You've reached the end",
+  "check_back_soon": "Check back soon for new arrivals",
   "out_of_stock": "Out of stock",
   "in_stock": "in stock",
   "only_n_left": "Only @count left",

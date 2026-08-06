@@ -19,6 +19,7 @@ import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/images.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
@@ -139,6 +140,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
           SliverToBoxAdapter(child: _buildPopular(hPad)),
           SliverToBoxAdapter(child: _sectionHeader('all_products'.tr, hPad)),
           _buildAllProductsGrid(crossAxisCount, hPad),
+          _buildGridFooter(hPad, isWide),
           _buildViewMoreButton(hPad, isWide),
           if (isWide)
             const SliverToBoxAdapter(child: SizedBox(height: 32))
@@ -1192,45 +1194,203 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     );
   }
 
+  /// Gap between product tiles, used for both grid axes.
+  static const double _gridSpacing = Constants.paddingSizeDefault;
+
+  /// Image shapes cycled through the masonry grid, as width ÷ height — `1` is
+  /// square, below `1` is portrait. Staggering the *image* is what gives the
+  /// grid its rhythm, since the text block under it is a near-constant height.
+  ///
+  /// The cycle is **seven** long on purpose: 7 is coprime with every column
+  /// count the storefront uses (2–6), so a given ratio never lands in the same
+  /// column twice in a row. A shorter cycle would re-align into flat rows at
+  /// some breakpoints and the stagger would disappear.
+  ///
+  /// Nothing here is random — the ratio is derived from the item index, so a
+  /// tile keeps its shape across rebuilds, scrolling and pagination.
+  static const List<double> _staggerRatios = [1, 0.82, 1, 0.75, 0.9, 1, 0.8];
+
+  double _imageRatioFor(int index) =>
+      _staggerRatios[index % _staggerRatios.length];
+
+  /// Placeholder tiles rendered during the first load, so the section keeps
+  /// its shape instead of collapsing to a lone spinner.
+  static const int _skeletonTileCount = 8;
+
+  /// The storefront's main product grid — a true masonry layout.
+  ///
+  /// [SliverMasonryGrid] drops each tile into whichever column is currently
+  /// shortest, so tiles of different heights interlock instead of being forced
+  /// onto a shared row baseline. Tiles size to their own content, so a
+  /// two-line product name costs only its own card — no `childAspectRatio` to
+  /// guess, and no wasted space under the shorter cards in a row.
   Widget _buildAllProductsGrid(int crossAxisCount, double hPad) {
     return GetBuilder<ProductController>(
       builder: (controller) {
-        if (controller.products.isEmpty && controller.isLoading) {
-          return const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(40),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-          );
-        }
         if (controller.products.isEmpty) {
-          return SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(40),
-              child: Center(
-                child: Text(
-                  'no_products_available'.tr,
-                  style: poppinsMedium.copyWith(
-                    color: context.textSecondary,
-                  ),
-                ),
-              ),
-            ),
+          return SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: hPad),
+            sliver: controller.isLoading
+                ? _buildSkeletonGrid(crossAxisCount)
+                : SliverToBoxAdapter(child: _buildEmptyState()),
           );
         }
+
         return SliverPadding(
           padding: EdgeInsets.symmetric(horizontal: hPad),
-          sliver: SliverGrid(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              childAspectRatio: 0.6,
-              crossAxisSpacing: 14,
-              mainAxisSpacing: 14,
+          sliver: SliverMasonryGrid.count(
+            crossAxisCount: crossAxisCount,
+            mainAxisSpacing: _gridSpacing,
+            crossAxisSpacing: _gridSpacing,
+            childCount: controller.products.length,
+            itemBuilder: (context, index) => EcommerceProductCard(
+              product: controller.products[index],
+              imageAspectRatio: _imageRatioFor(index),
             ),
-            delegate: SliverChildBuilderDelegate(
-              (context, index) =>
-                  EcommerceProductCard(product: controller.products[index]),
-              childCount: controller.products.length,
+          ),
+        );
+      },
+    );
+  }
+
+  /// Same masonry rhythm as the real grid, so the loading state has the shape
+  /// the content will arrive in rather than snapping into place.
+  Widget _buildSkeletonGrid(int crossAxisCount) {
+    return SliverMasonryGrid.count(
+      crossAxisCount: crossAxisCount,
+      mainAxisSpacing: _gridSpacing,
+      crossAxisSpacing: _gridSpacing,
+      childCount: _skeletonTileCount,
+      itemBuilder: (context, index) =>
+          _buildSkeletonTile(_imageRatioFor(index)),
+    );
+  }
+
+  /// A product card reduced to its blocks — same silhouette, no content.
+  Widget _buildSkeletonTile(double imageRatio) {
+    Widget bar(double widthFactor, double height) => FractionallySizedBox(
+      alignment: AlignmentDirectional.centerStart,
+      widthFactor: widthFactor,
+      child: Container(
+        height: height,
+        decoration: BoxDecoration(
+          color: context.textLight.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(Constants.radiusSmall),
+        ),
+      ),
+    );
+
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: context.cardBackground,
+        borderRadius: BorderRadius.circular(Constants.radiusCard),
+        border: Border.all(color: context.textLight.withValues(alpha: 0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AspectRatio(
+            aspectRatio: imageRatio,
+            child: ColoredBox(
+              color: context.textLight.withValues(alpha: 0.10),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(Constants.paddingSizeSmall),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                bar(0.45, 10),
+                const SizedBox(height: Constants.paddingSizeSmall),
+                bar(0.9, 12),
+                const SizedBox(height: Constants.paddingSizeExtraSmall),
+                bar(0.6, 12),
+                const SizedBox(height: Constants.paddingSizeDefault),
+                bar(0.5, 16),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        vertical: Constants.paddingSizeExtraLarge * 2,
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.inventory_2_outlined,
+            size: 56,
+            color: context.textLight,
+          ),
+          const SizedBox(height: Constants.paddingSizeDefault),
+          Text(
+            'no_products_available'.tr,
+            style: poppinsBold.copyWith(
+              fontSize: Constants.fontSizeLarge,
+              color: context.textPrimary,
+            ),
+          ),
+          const SizedBox(height: Constants.paddingSizeExtraSmall),
+          Text(
+            'check_back_soon'.tr,
+            textAlign: TextAlign.center,
+            style: poppinsRegular.copyWith(
+              fontSize: Constants.fontSizeDefault,
+              color: context.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Mobile pagination feedback. Infinite scroll used to append pages with no
+  /// visible signal at all — this shows the fetch in progress and says so when
+  /// the last page has landed. Web uses the "View more" button instead.
+  Widget _buildGridFooter(double hPad, bool isWide) {
+    if (isWide) return const SliverToBoxAdapter(child: SizedBox.shrink());
+
+    return GetBuilder<ProductController>(
+      builder: (controller) {
+        if (controller.products.isEmpty) {
+          return const SliverToBoxAdapter(child: SizedBox.shrink());
+        }
+
+        return SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              hPad,
+              Constants.paddingSizeLarge,
+              hPad,
+              0,
+            ),
+            child: Center(
+              child: controller.isLoadingMore
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.4,
+                        color: ColorResource.primaryDark,
+                      ),
+                    )
+                  : controller.hasMore
+                  ? const SizedBox.shrink()
+                  : Text(
+                      'no_more_products'.tr,
+                      style: poppinsRegular.copyWith(
+                        fontSize: Constants.fontSizeSmall,
+                        color: context.textLight,
+                      ),
+                    ),
             ),
           ),
         );
