@@ -22,4 +22,18 @@ abstract class AuthRepoInterface {
     required String otp,
     required String password,
   });
+
+  /// Stores the sign-in credentials on the device so the login form can
+  /// prefill them next time. Survives logout by design.
+  Future<void> saveRememberedCredentials({
+    required String email,
+    required String password,
+  });
+
+  /// Forgets any device-stored credentials (the user unticked "remember me").
+  Future<void> clearRememberedCredentials();
+
+  /// The remembered credentials, or null when "remember me" is off. Reads from
+  /// already-loaded local storage, so it is synchronous.
+  ({String email, String password})? getRememberedCredentials();
 }

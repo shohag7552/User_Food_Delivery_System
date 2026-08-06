@@ -16,7 +16,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
-/// Grid card for the ecommerce storefront: brand + name + rating + price.
+/// Grid card for the ecommerce storefront: image + badges, brand, name,
+/// rating, price and an inline cart control.
+///
+/// Layout notes — the card is rendered at several sizes (a 170px carousel
+/// tile, a 0.6-ratio grid cell, a 250px favourites cell). The text block sizes
+/// to its content and the image band takes the slack, so a one-line name gives
+/// its card a slightly taller photo. Prices and cart buttons still line up
+/// across a grid row: the price row is the last child, so it always sits on
+/// the card's bottom padding.
 class EcommerceProductCard extends StatefulWidget {
   final ProductModel product;
 
@@ -27,6 +35,12 @@ class EcommerceProductCard extends StatefulWidget {
 }
 
 class _EcommerceProductCardState extends State<EcommerceProductCard> {
+  /// Stock at or below this count switches the card to its urgency state.
+  static const int _lowStockThreshold = 5;
+
+  static const double _ratingIconSize = 12;
+  static const double _stepButtonWidth = 30;
+
   // Pointer hover only fires on web/desktop; touch devices never set this,
   // so the mobile experience is byte-for-byte unchanged.
   bool _hovered = false;
@@ -39,7 +53,7 @@ class _EcommerceProductCardState extends State<EcommerceProductCard> {
 
   @override
   Widget build(BuildContext context) {
-    final hasDiscount = product.hasDiscount;
+    final outOfStock = product.isOutOfStock;
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -49,214 +63,256 @@ class _EcommerceProductCardState extends State<EcommerceProductCard> {
         scale: _hovered ? 1.02 : 1.0,
         duration: const Duration(milliseconds: 180),
         curve: Curves.easeOut,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(Constants.radiusLarge + 4),
-            boxShadow: _hovered
-                ? [
-                    BoxShadow(
-                      color: ColorResource.primaryDark.withValues(alpha: 0.18),
-                      blurRadius: 22,
-                      spreadRadius: 1,
-                      offset: const Offset(0, 12),
-                    ),
-                  ]
-                : const [],
+        child: CustomClickableWidget(
+          // The surface is painted here instead of by the shared wrapper so the
+          // card can clip its children to its own radius — without that the
+          // image's square corners bleed past the rounded card edge.
+          isBackgroundTransparent: true,
+          onTap: () => context.pushNamed(
+            RouteNames.productDetail,
+            pathParameters: {'id': product.id},
+            extra: product,
           ),
-          child: CustomClickableWidget(
-            onTap: () => context.pushNamed(
-              RouteNames.productDetail,
-              pathParameters: {'id': product.id},
-              extra: product,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Image with badges
-                Expanded(
-                  child: Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(Constants.radiusLarge),
-                        ),
-                        child: AnimatedScale(
-                          scale: _hovered ? 1.06 : 1.0,
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeOut,
-                          child: CustomNetworkImage(
-                            image: product.imageId,
-                            width: double.infinity,
-                            height: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                if (hasDiscount)
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: ColorResource.discountBadge,
-                        borderRadius: BorderRadius.circular(
-                          Constants.radiusSmall,
-                        ),
-                      ),
-                      child: Text(
-                        product.discountType == 'percentage'
-                            ? '${product.discountValue!.toInt()}% OFF'
-                            : '${PriceHelper.formatPrice(product.discountValue!.toDouble())} OFF',
-                        style: poppinsBold.copyWith(
-                          fontSize: Constants.fontSizeExtraSmall,
-                          color: ColorResource.textWhite,
-                        ),
-                      ),
-                    ),
-                  ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: FavoriteButton(product: product, size: 18),
-                ),
-              ],
-            ),
-          ),
-
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Brand
-                GetBuilder<BrandController>(
-                  builder: (brandController) {
-                    final brand = brandController.brandById(product.brandId);
-                    if (brand == null) return const SizedBox.shrink();
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Text(
-                        brand.nameMap.trLanguage,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: poppinsMedium.copyWith(
-                          fontSize: Constants.fontSizeExtraSmall,
-                          color: ColorResource.primaryDark,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                Text(
-                  product.nameMap.trLanguage,
-                  style: poppinsBold.copyWith(
-                    fontSize: Constants.fontSizeDefault,
-                    color: context.textPrimary,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if(product.avgRating > 0)...[
-                  const SizedBox(height: 4),
-                  RatingStars(
-                    rating: product.avgRating,
-                    reviewCount: product.ratingCount,
-                    size: 12,
-                  ),
-
-                ],
-                
-                const SizedBox(height: 8),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            PriceHelper.formatPrice(product.finalPrice),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: poppinsBold.copyWith(
-                              fontSize: Constants.fontSizeLarge,
-                              color: ColorResource.primaryDark,
-                            ),
-                          ),
-                          if (hasDiscount)
-                            Text(
-                              PriceHelper.formatPrice(product.price),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: poppinsRegular.copyWith(
-                                fontSize: Constants.fontSizeSmall,
-                                color: context.textLight,
-                                decoration: TextDecoration.lineThrough,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    _buildCartControl(context),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: context.cardBackground,
+              borderRadius: BorderRadius.circular(Constants.radiusCard),
+              // A hairline keeps the card readable in dark mode, where a drop
+              // shadow alone gives no edge against the near-black scaffold.
+              border: Border.all(
+                color: context.textLight.withValues(alpha: _hovered ? 0.3 : 0.15),
               ),
+              boxShadow: _hovered
+                  ? [
+                      BoxShadow(
+                        color: ColorResource.shadowDark,
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ]
+                  : ColorResource.customShadow,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: _buildImageBand(context, outOfStock)),
+                _buildDetails(context, outOfStock),
+              ],
             ),
           ),
         ),
-      );
+      ),
+    );
+  }
+
+  /// Image plus its overlays: discount badge, favourite toggle, and either the
+  /// low-stock hint or the out-of-stock scrim.
+  Widget _buildImageBand(BuildContext context, bool outOfStock) {
+    final isLowStock = !outOfStock && product.stock <= _lowStockThreshold;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // A neutral plate behind the photo so cut-out/transparent product
+        // shots read as intentional instead of floating on the card colour.
+        Container(
+          color: context.scaffoldBackground,
+          child: AnimatedScale(
+            scale: _hovered ? 1.06 : 1.0,
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOut,
+            child: CustomNetworkImage(
+              image: product.imageId,
+              width: double.infinity,
+              height: double.infinity,
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+
+        if (product.hasDiscount)
+          Positioned(
+            top: Constants.paddingSizeSmall,
+            left: Constants.paddingSizeSmall,
+            child: _badge(
+              label: product.discountType == 'percentage'
+                  ? '${product.discountValue!.toInt()}% ${'off'.tr}'
+                  : '${PriceHelper.formatPrice(product.discountValue!.toDouble())} ${'off'.tr}',
+              background: ColorResource.discountBadge,
+            ),
+          ),
+
+        Positioned(
+          top: Constants.paddingSizeExtraSmall,
+          right: Constants.paddingSizeExtraSmall,
+          child: FavoriteButton(product: product, size: 18),
+        ),
+
+        if (isLowStock)
+          Positioned(
+            bottom: Constants.paddingSizeSmall,
+            left: Constants.paddingSizeSmall,
+            child: _badge(
+              label: 'only_n_left'.trParams({'count': '${product.stock}'}),
+              background: ColorResource.warning,
+            ),
+          ),
+
+        if (outOfStock)
+          Positioned.fill(
+            child: Container(
+              color: ColorResource.overlayDark,
+              alignment: Alignment.center,
+              child: _badge(
+                label: 'out_of_stock'.tr,
+                background: context.cardBackground,
+                foreground: context.textPrimary,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildDetails(BuildContext context, bool outOfStock) {
+    final nameStyle = poppinsBold.copyWith(
+      fontSize: Constants.fontSizeDefault,
+      height: 1.25,
+      color: context.textPrimary,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.all(Constants.paddingSizeSmall),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Brand — small caps with tracking reads as a label rather than
+          // competing with the product name for attention.
+          GetBuilder<BrandController>(
+            builder: (brandController) {
+              final brand = brandController.brandById(product.brandId);
+              if (brand == null) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(
+                  bottom: Constants.paddingSizeExtraSmall / 2,
+                ),
+                child: Text(
+                  brand.nameMap.trLanguage.toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: poppinsMedium.copyWith(
+                    fontSize: Constants.fontSizeExtraSmall,
+                    letterSpacing: 0.6,
+                    color: context.textSecondary,
+                  ),
+                ),
+              );
+            },
+          ),
+
+          Text(
+            product.nameMap.trLanguage,
+            style: nameStyle,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+
+          if (product.avgRating > 0)
+            Padding(
+              padding: const EdgeInsets.only(
+                top: Constants.paddingSizeExtraSmall / 2,
+              ),
+              child: RatingStars(
+                rating: product.avgRating,
+                reviewCount: product.ratingCount,
+                size: _ratingIconSize,
+              ),
+            ),
+          const SizedBox(height: Constants.paddingSizeExtraSmall),
+
+          Row(
+            children: [
+              Expanded(child: _buildPrice(context)),
+              const SizedBox(width: Constants.paddingSizeExtraSmall),
+              if (!outOfStock) _buildCartControl(context),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Current price with the struck-through original beside it. Scaled down
+  /// rather than ellipsised — a truncated price is worse than a smaller one.
+  Widget _buildPrice(BuildContext context) {
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: AlignmentDirectional.centerStart,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            PriceHelper.formatPrice(product.finalPrice),
+            maxLines: 1,
+            style: poppinsBold.copyWith(
+              fontSize: Constants.fontSizeLarge,
+              color: ColorResource.primaryDark,
+            ),
+          ),
+          if (product.hasDiscount) ...[
+            const SizedBox(width: Constants.paddingSizeExtraSmall),
+            Text(
+              PriceHelper.formatPrice(product.price),
+              maxLines: 1,
+              style: poppinsRegular.copyWith(
+                fontSize: Constants.fontSizeSmall,
+                color: context.textLight,
+                decoration: TextDecoration.lineThrough,
+                decorationColor: context.textLight,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   Widget _buildCartControl(BuildContext context) {
     return GetBuilder<CartController>(
       builder: (_) {
         final quantity = CartHelper.getProductCartQuantity(product.id);
-        if (product.isOutOfStock) {
-          return const SizedBox.shrink();
-        }
+
         if (quantity == null) {
-          return GestureDetector(
-            onTap: () => CartHelper.handleAddToCart(product, context),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                gradient: ColorResource.primaryGradient,
-                borderRadius: BorderRadius.circular(Constants.radiusDefault),
-              ),
-              child: const Icon(
-                Icons.add_shopping_cart,
-                color: ColorResource.textWhite,
-                size: 18,
-              ),
+          return _gradientSurface(
+            width: Constants.minTapTarget,
+            child: _tapTarget(
+              onTap: () => CartHelper.handleAddToCart(product, context),
+              semanticLabel: 'add_to_cart'.tr,
+              width: Constants.minTapTarget,
+              icon: Icons.add_rounded,
+              iconSize: 22,
             ),
           );
         }
-        return Container(
-          decoration: BoxDecoration(
-            gradient: ColorResource.primaryGradient,
-            borderRadius: BorderRadius.circular(Constants.radiusDefault),
-          ),
+
+        return _gradientSurface(
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _stepButton(
-                Icons.remove,
-                () => CartHelper.decrementQuantity(product, context),
+              _tapTarget(
+                onTap: () => CartHelper.decrementQuantity(product, context),
+                semanticLabel: 'decrease_quantity'.tr,
+                width: _stepButtonWidth,
+                icon: Icons.remove_rounded,
               ),
               Container(
-                constraints: const BoxConstraints(minWidth: 20),
+                constraints: const BoxConstraints(minWidth: 22),
                 alignment: Alignment.center,
                 child: Text(
                   '$quantity',
@@ -266,9 +322,11 @@ class _EcommerceProductCardState extends State<EcommerceProductCard> {
                   ),
                 ),
               ),
-              _stepButton(
-                Icons.add,
-                () => CartHelper.incrementQuantity(product, context),
+              _tapTarget(
+                onTap: () => CartHelper.incrementQuantity(product, context),
+                semanticLabel: 'increase_quantity'.tr,
+                width: _stepButtonWidth,
+                icon: Icons.add_rounded,
               ),
             ],
           ),
@@ -277,12 +335,73 @@ class _EcommerceProductCardState extends State<EcommerceProductCard> {
     );
   }
 
-  Widget _stepButton(IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.all(6),
-        child: Icon(icon, color: ColorResource.textWhite, size: 16),
+  /// Brand-gradient pill used by both cart states, sized to the accessible
+  /// minimum tap height.
+  Widget _gradientSurface({required Widget child, double? width}) {
+    return Container(
+      width: width,
+      height: Constants.minTapTarget,
+      // Keeps the ripple inside the pill's rounded corners.
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        gradient: ColorResource.primaryGradient,
+        borderRadius: BorderRadius.circular(Constants.radiusDefault),
+        boxShadow: [
+          BoxShadow(
+            color: ColorResource.primaryDark.withValues(alpha: 0.25),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      // Transparent Material hosts the ripple so taps read as pressed even
+      // though the fill is a gradient.
+      child: Material(color: Colors.transparent, child: child),
+    );
+  }
+
+  Widget _tapTarget({
+    required VoidCallback onTap,
+    required String semanticLabel,
+    required double width,
+    required IconData icon,
+    double iconSize = 18,
+  }) {
+    return Tooltip(
+      message: semanticLabel,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(Constants.radiusDefault),
+        child: SizedBox(
+          width: width,
+          height: Constants.minTapTarget,
+          child: Icon(icon, color: ColorResource.textWhite, size: iconSize),
+        ),
+      ),
+    );
+  }
+
+  Widget _badge({
+    required String label,
+    required Color background,
+    Color foreground = ColorResource.textWhite,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: Constants.paddingSizeExtraSmall + 1,
+        vertical: Constants.paddingSizeExtraSmall / 2,
+      ),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(Constants.radiusSmall),
+        boxShadow: ColorResource.customShadow,
+      ),
+      child: Text(
+        label,
+        style: poppinsBold.copyWith(
+          fontSize: Constants.fontSizeExtraSmall,
+          color: foreground,
+        ),
       ),
     );
   }

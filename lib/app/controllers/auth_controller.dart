@@ -116,7 +116,17 @@ class AuthController extends GetxController implements GetxService {
   //   return isSuccess;
   // }
   //
-  Future<bool> login(String email, String password) async {
+  /// Credentials the user asked the app to remember, or null when the option
+  /// is off. The sign-in form reads this to prefill itself; [logout] leaves it
+  /// untouched so the values are still there on the next visit.
+  ({String email, String password})? get rememberedCredentials =>
+      authRepoInterface.getRememberedCredentials();
+
+  /// [rememberMe] `true` stores the credentials for next time, `false` forgets
+  /// any stored ones. Leave it null (the default) to not touch them at all —
+  /// callers without a "remember me" control, such as the web auth dialog,
+  /// should not silently wipe what the sign-in page saved.
+  Future<bool> login(String email, String password, {bool? rememberMe}) async {
     bool isSuccess = false;
     _isLoading = true;
     update();
@@ -125,6 +135,14 @@ class AuthController extends GetxController implements GetxService {
       isSuccess = await authRepoInterface.loginUser(email, password);
       if (isSuccess) {
         _isLoggedIn = true;
+        if (rememberMe == true) {
+          await authRepoInterface.saveRememberedCredentials(
+            email: email,
+            password: password,
+          );
+        } else if (rememberMe == false) {
+          await authRepoInterface.clearRememberedCredentials();
+        }
         SessionManager.loadUserData();
       }
 

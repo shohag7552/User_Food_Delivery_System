@@ -31,6 +31,14 @@ class Constants {
   static const double radiusLarge = 15.0;
   static const double radiusExtraLarge = 20.0;
 
+  /// Corner radius of an elevated card surface — matches the radius
+  /// [CustomClickableWidget] paints, so nested content can clip to it exactly.
+  static const double radiusCard = radiusLarge + 4;
+
+  /// Minimum comfortable tap target for controls embedded in dense layouts
+  /// (product cards, list tiles). Keeps hit areas within accessibility limits.
+  static const double minTapTarget = 40.0;
+
   /// Vertical gap between home sections.
   static const double spaceSection = 28.0;
 
@@ -52,6 +60,12 @@ class Constants {
   static const String topic = 'loklagbe_topic';
   static const String categoryTopic = 'category_topic';
   static const String activeModule = 'active_module';
+
+  /// "Remember me" on the sign-in form. These deliberately survive a logout —
+  /// clearing them is only triggered by the user unticking the box.
+  static const String rememberMe = 'remember_me';
+  static const String rememberedEmail = 'remembered_email';
+  static const String rememberedPassword = 'remembered_password';
 }
 
 class LanguageModel {

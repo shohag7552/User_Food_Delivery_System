@@ -3,6 +3,7 @@ import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
+import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,7 +27,37 @@ class AuthRepository implements AuthRepoInterface {
   @override
   Future<void> logout() async {
     // TODO: Implement actual logout logic
+    // Remembered credentials are intentionally left alone here — the whole
+    // point of "remember me" is that they outlive the session.
     return await appwriteService.signOut();
+  }
+
+  @override
+  Future<void> saveRememberedCredentials({
+    required String email,
+    required String password,
+  }) async {
+    await sharedPreferences.setBool(Constants.rememberMe, true);
+    await sharedPreferences.setString(Constants.rememberedEmail, email);
+    await sharedPreferences.setString(Constants.rememberedPassword, password);
+  }
+
+  @override
+  Future<void> clearRememberedCredentials() async {
+    await sharedPreferences.remove(Constants.rememberMe);
+    await sharedPreferences.remove(Constants.rememberedEmail);
+    await sharedPreferences.remove(Constants.rememberedPassword);
+  }
+
+  @override
+  ({String email, String password})? getRememberedCredentials() {
+    if (sharedPreferences.getBool(Constants.rememberMe) != true) return null;
+
+    final email = sharedPreferences.getString(Constants.rememberedEmail);
+    final password = sharedPreferences.getString(Constants.rememberedPassword);
+    if (email == null || password == null) return null;
+
+    return (email: email, password: password);
   }
 
   @override
