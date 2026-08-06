@@ -1,10 +1,22 @@
 import 'package:appwrite_user_app/app/models/product_model.dart';
 
 abstract class ProductRepoInterface {
+  /// The paginated product list for the active module.
+  ///
+  /// The optional filter arguments are all applied server-side as Appwrite
+  /// queries, so paging stays correct. Omitting them all reproduces the
+  /// unfiltered list exactly.
+  ///
+  /// [minPrice] / [maxPrice] bound the stored list price, not the discounted
+  /// price — the latter is derived client-side and is not a queryable column.
   Future<List<ProductModel>> getProducts({
     int offset = 0,
     int limit = 10,
     bool? isVeg,
+    bool onlyOffers = false,
+    double? minPrice,
+    double? maxPrice,
+    String? categoryId,
   });
   Future<List<ProductModel>> getSpecialProducts();
   Future<List<ProductModel>> getPopularProducts();

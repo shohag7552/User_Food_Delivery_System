@@ -5,7 +5,6 @@
   "order_placed_notification_body": "سنقوم بتوصيل طلبك رقم @orderId قريبًا.",
   "new_order_notification_title": "طلب جديد! 🛒",
   "new_order_notification_body": "تم تقديم الطلب رقم @orderId. اضغط لعرضه.",
-
   "choose_your_language": "اختر لغتك",
   "choose_your_language_to_proceed": "اختر لغتك للمتابعة",
   "login": "تسجيل الدخول",
@@ -661,5 +660,20 @@
   "update_required_message": "يتوفر إصدار جديد من التطبيق. الرجاء التحديث إلى أحدث إصدار للمتابعة.",
   "update_now": "حدّث الآن",
   "maintenance_mode_title": "قيد الصيانة",
-  "maintenance_mode_message": "نقوم حاليًا بأعمال صيانة مجدولة. الرجاء التحقّق مرة أخرى بعد قليل."
+  "maintenance_mode_message": "نقوم حاليًا بأعمال صيانة مجدولة. الرجاء التحقّق مرة أخرى بعد قليل.",
+  "filters": "عوامل التصفية",
+  "reset": "إعادة تعيين",
+  "price_range": "نطاق السعر",
+  "min_price": "الأدنى",
+  "max_price": "الأعلى",
+  "category": "الفئة",
+  "on_sale_only": "المخفّضة فقط",
+  "all_categories": "كل الفئات",
+  "any_price": "أي سعر",
+  "invalid_price_range": "يجب أن يكون الحد الأدنى أقل من الحد الأعلى",
+  "no_products_match": "لا توجد منتجات مطابقة لعوامل التصفية",
+  "try_different_filters": "جرّب تغيير عوامل التصفية أو إزالتها",
+  "clear_filters": "مسح عوامل التصفية",
+  "offers": "العروض",
+  "filter_by_list_price": "تعمل تصفية السعر على السعر الأصلي"
 }

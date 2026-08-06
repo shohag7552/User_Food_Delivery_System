@@ -18,18 +18,38 @@ class ProductRepository implements ProductRepoInterface {
     int offset = 0,
     int limit = 10,
     bool? isVeg,
+    bool onlyOffers = false,
+    double? minPrice,
+    double? maxPrice,
+    String? categoryId,
   }) async {
     try {
       final queries = <String>[
         Query.equal('is_available', true),
         Query.equal('module_type', ModuleController.current),
-        Query.offset(offset),
-        Query.limit(limit),
       ];
 
       if (isVeg != null) {
-        queries.insert(1, Query.equal('is_veg', isVeg));
+        queries.add(Query.equal('is_veg', isVeg));
       }
+      if (categoryId != null && categoryId.isNotEmpty) {
+        queries.add(Query.equal('category_id', categoryId));
+      }
+      if (onlyOffers) {
+        // A discount needs both a type and a non-zero value to be real — the
+        // admin app can leave either side half-filled.
+        queries.add(Query.isNotNull('discount_type'));
+        queries.add(Query.greaterThan('discount_value', 0));
+      }
+      if (minPrice != null) {
+        queries.add(Query.greaterThanEqual('price', minPrice));
+      }
+      if (maxPrice != null) {
+        queries.add(Query.lessThanEqual('price', maxPrice));
+      }
+
+      queries.add(Query.offset(offset));
+      queries.add(Query.limit(limit));
 
       final response = await appwriteService.listTable(
         tableId: AppwriteConfig.productsCollection,

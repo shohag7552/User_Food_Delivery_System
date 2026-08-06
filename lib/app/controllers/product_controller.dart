@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
+import 'package:appwrite_user_app/app/models/product_filter_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/products/domain/repository/product_repo_interface.dart';
 import 'package:get/get.dart';
@@ -48,6 +49,21 @@ class ProductController extends GetxController implements GetxService {
 
   final List<ProductModel> _products = [];
   List<ProductModel> get products => _products;
+
+  // Storefront filter for the paginated [products] list. Applied server-side
+  // by the repository, so pagination stays consistent with what is displayed.
+  ProductFilter _productFilter = ProductFilter.none;
+  ProductFilter get productFilter => _productFilter;
+
+  /// Swaps the active filter and reloads page one. No-ops when the filter is
+  /// unchanged, so re-tapping the same chip does not refetch.
+  Future<void> applyProductFilter(ProductFilter filter) async {
+    if (filter == _productFilter) return;
+    _productFilter = filter;
+    await getProducts(refresh: true);
+  }
+
+  Future<void> clearProductFilter() => applyProductFilter(ProductFilter.none);
 
   List<ProductModel> _specialProducts = [];
   List<ProductModel> get specialProducts => _specialProducts;
@@ -99,8 +115,17 @@ class ProductController extends GetxController implements GetxService {
     _offerProducts = [];
     _currentPage = 0;
     _hasMore = true;
+    // The filter is scoped to one module's catalogue (its categories and price
+    // band), so it must not survive a module switch.
+    _productFilter = ProductFilter.none;
     update();
   }
+
+  // Bumped every time the list restarts (refresh / reload / filter change).
+  // An in-flight page captures the value and drops its result if it changed
+  // while awaiting — otherwise a page requested under the previous filter
+  // lands in the freshly filtered list.
+  int _productsRequestId = 0;
 
   Future<void> getProducts({bool refresh = false, bool reload = false}) async {
     try {
@@ -109,7 +134,8 @@ class ProductController extends GetxController implements GetxService {
         _products.clear();
         _hasMore = true;
       }
-      
+      final requestId = ++_productsRequestId;
+
       _isLoading = true;
       _errorMessage = null;
       update();
@@ -118,16 +144,22 @@ class ProductController extends GetxController implements GetxService {
         offset: _currentPage * _pageSize,
         limit: _pageSize,
         isVeg: _selectedIsVegFilter,
+        onlyOffers: _productFilter.onlyOffers,
+        minPrice: _productFilter.minPrice,
+        maxPrice: _productFilter.maxPrice,
+        categoryId: _productFilter.categoryId,
       );
-      
+
+      if (requestId != _productsRequestId) return;
+
       if (newProducts.length < _pageSize) {
         _hasMore = false;
       }
-      
+
       _products.addAll(newProducts);
       _currentPage++;
       log('====> Products loaded: ${_products.length}, hasMore: $_hasMore');
-      
+
       _isLoading = false;
       update();
     } catch (e) {
@@ -140,8 +172,10 @@ class ProductController extends GetxController implements GetxService {
 
   /// Load more products (pagination)
   Future<void> loadMoreProducts() async {
-    if (_isLoadingMore || !_hasMore) return;
-    
+    if (_isLoadingMore || _isLoading || !_hasMore) return;
+
+    final requestId = _productsRequestId;
+
     try {
       _isLoadingMore = true;
       update();
@@ -150,16 +184,27 @@ class ProductController extends GetxController implements GetxService {
         offset: _currentPage * _pageSize,
         limit: _pageSize,
         isVeg: _selectedIsVegFilter,
+        onlyOffers: _productFilter.onlyOffers,
+        minPrice: _productFilter.minPrice,
+        maxPrice: _productFilter.maxPrice,
+        categoryId: _productFilter.categoryId,
       );
-      
+
+      // The list restarted under a different filter while this page was in
+      // flight — discard it rather than mixing two result sets.
+      if (requestId != _productsRequestId) {
+        _isLoadingMore = false;
+        return;
+      }
+
       if (newProducts.length < _pageSize) {
         _hasMore = false;
       }
-      
+
       _products.addAll(newProducts);
       _currentPage++;
       log('====> More products loaded: ${_products.length}, hasMore: $_hasMore');
-      
+
       _isLoadingMore = false;
       update();
     } catch (e) {

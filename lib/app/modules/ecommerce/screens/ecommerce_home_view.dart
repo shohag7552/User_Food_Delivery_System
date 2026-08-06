@@ -12,6 +12,7 @@ import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/brand_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/promotional_banner.dart';
+import 'package:appwrite_user_app/app/modules/ecommerce/widgets/all_products_header.dart';
 import 'package:appwrite_user_app/app/modules/ecommerce/widgets/ecommerce_product_card.dart';
 import 'package:appwrite_user_app/app/modules/flash_sale/widgets/flash_sale_section.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -138,7 +139,12 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
             SliverToBoxAdapter(child: _buildBrands(hPad)),
           ],
           SliverToBoxAdapter(child: _buildPopular(hPad)),
-          SliverToBoxAdapter(child: _sectionHeader('all_products'.tr, hPad)),
+          // Pinned: the title and its filter controls stay put while the grid
+          // scrolls under them.
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: AllProductsHeaderDelegate(horizontalPadding: hPad),
+          ),
           _buildAllProductsGrid(crossAxisCount, hPad),
           _buildGridFooter(hPad, isWide),
           _buildViewMoreButton(hPad, isWide),
@@ -1232,7 +1238,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
             padding: EdgeInsets.symmetric(horizontal: hPad),
             sliver: controller.isLoading
                 ? _buildSkeletonGrid(crossAxisCount)
-                : SliverToBoxAdapter(child: _buildEmptyState()),
+                : SliverToBoxAdapter(child: _buildEmptyState(controller)),
           );
         }
 
@@ -1318,7 +1324,11 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     );
   }
 
-  Widget _buildEmptyState() {
+  /// Empty state. A filtered-to-nothing list is a different problem from an
+  /// empty catalogue — it is the user's own filter, and it needs a way out.
+  Widget _buildEmptyState(ProductController controller) {
+    final isFiltered = controller.productFilter.isActive;
+
     return Padding(
       padding: const EdgeInsets.symmetric(
         vertical: Constants.paddingSizeExtraLarge * 2,
@@ -1326,13 +1336,16 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
       child: Column(
         children: [
           Icon(
-            Icons.inventory_2_outlined,
+            isFiltered
+                ? Icons.filter_alt_off_outlined
+                : Icons.inventory_2_outlined,
             size: 56,
             color: context.textLight,
           ),
           const SizedBox(height: Constants.paddingSizeDefault),
           Text(
-            'no_products_available'.tr,
+            isFiltered ? 'no_products_match'.tr : 'no_products_available'.tr,
+            textAlign: TextAlign.center,
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeLarge,
               color: context.textPrimary,
@@ -1340,13 +1353,37 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
           ),
           const SizedBox(height: Constants.paddingSizeExtraSmall),
           Text(
-            'check_back_soon'.tr,
+            isFiltered ? 'try_different_filters'.tr : 'check_back_soon'.tr,
             textAlign: TextAlign.center,
             style: poppinsRegular.copyWith(
               fontSize: Constants.fontSizeDefault,
               color: context.textSecondary,
             ),
           ),
+          if (isFiltered) ...[
+            const SizedBox(height: Constants.paddingSizeDefault),
+            OutlinedButton.icon(
+              onPressed: controller.clearProductFilter,
+              icon: const Icon(Icons.close_rounded, size: 18),
+              label: Text(
+                'clear_filters'.tr,
+                style: poppinsMedium.copyWith(
+                  fontSize: Constants.fontSizeDefault,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: ColorResource.primaryDark,
+                side: const BorderSide(color: ColorResource.primaryDark),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Constants.paddingSizeLarge,
+                  vertical: Constants.paddingSizeSmall,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(Constants.radiusDefault),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
