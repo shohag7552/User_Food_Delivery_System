@@ -20,6 +20,7 @@ import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/common/widgets/directional_flip.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
@@ -35,6 +36,11 @@ class CategoryProductsPage extends StatefulWidget {
 class _CategoryProductsPageState extends State<CategoryProductsPage> {
   static const int _pageSize = 10;
   static const double _maxContentWidth = 1100;
+
+  static const List<double> _staggerRatios = [1, 0.82, 1, 0.75, 0.9, 1, 0.8];
+
+  double _imageRatioFor(int index) =>
+      _staggerRatios[index % _staggerRatios.length];
 
   final GlobalKey<ScaffoldState> _webScaffoldKey = GlobalKey<ScaffoldState>();
   final ScrollController _scrollController = ScrollController();
@@ -186,21 +192,35 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
               slivers: [
                 SliverPadding(
                   padding: const EdgeInsets.all(16),
-                  sliver: SliverGrid(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 0.7,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final product = _products[index];
-                        return _buildProductCard(product);
-                      },
-                      childCount: _products.length,
-                    ),
-                  ),
+                  sliver: Get.find<ModuleController>().activeModule == ModuleController.ecommerce
+                      ? SliverMasonryGrid.count(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
+                          childCount: _products.length,
+                          itemBuilder: (context, index) {
+                            final product = _products[index];
+                            return _buildProductCard(
+                              product,
+                              imageAspectRatio: _imageRatioFor(index),
+                            );
+                          },
+                        )
+                      : SliverGrid(
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 0.7,
+                          ),
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final product = _products[index];
+                              return _buildProductCard(product);
+                            },
+                            childCount: _products.length,
+                          ),
+                        ),
                 ),
                 if (_isLoadingMore)
                   SliverToBoxAdapter(
@@ -259,19 +279,35 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-            sliver: SliverGrid(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 20,
-                mainAxisSpacing: 20,
-                childAspectRatio: 0.72,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) =>
-                    HoverLift(child: _buildProductCard(_products[index])),
-                childCount: _products.length,
-              ),
-            ),
+            sliver: Get.find<ModuleController>().activeModule == ModuleController.ecommerce
+                ? SliverMasonryGrid.count(
+                    crossAxisCount: crossAxisCount,
+                    mainAxisSpacing: 20,
+                    crossAxisSpacing: 20,
+                    childCount: _products.length,
+                    itemBuilder: (context, index) {
+                      final product = _products[index];
+                      return HoverLift(
+                        child: _buildProductCard(
+                          product,
+                          imageAspectRatio: _imageRatioFor(index),
+                        ),
+                      );
+                    },
+                  )
+                : SliverGrid(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: 20,
+                      mainAxisSpacing: 20,
+                      childAspectRatio: 0.72,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) =>
+                          HoverLift(child: _buildProductCard(_products[index])),
+                      childCount: _products.length,
+                    ),
+                  ),
           ),
           if (_isLoadingMore)
             SliverToBoxAdapter(
@@ -652,9 +688,10 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
     }
   }
 
-  Widget _buildProductCard(ProductModel product) {
+  Widget _buildProductCard(ProductModel product, {double? imageAspectRatio}) {
     final hasDiscount = product.discountValue != null && product.discountValue! > 0;
     final discountPercentage = hasDiscount ? product.discountValue!.toInt() : 0;
+    final aspectRatio = imageAspectRatio;
 
     return CustomClickableWidget(
       onTap: () => _openProduct(product),
@@ -667,56 +704,18 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: aspectRatio == null ? MainAxisSize.max : MainAxisSize.min,
           children: [
             // Image with badges and favorite button
-            Expanded(
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(Constants.radiusLarge),
-                      topRight: Radius.circular(Constants.radiusLarge),
-                    ),
-                    child: CustomNetworkImage(
-                      image: product.imageId,
-                      height: 160,
-                      width: double.infinity,
-                    ),
-                  ),
-
-                  // Discount Badge
-                  if (hasDiscount)
-                    Positioned(
-                      top: 8,
-                      left: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: ColorResource.error,
-                          borderRadius: BorderRadius.circular(Constants.radiusSmall),
-                        ),
-                        child: Text(
-                          '$discountPercentage% OFF',
-                          style: poppinsBold.copyWith(
-                            fontSize: Constants.fontSizeExtraSmall,
-                            color: ColorResource.textWhite,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                  // Favorite Button
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: FavoriteButton(
-                      product: product,
-                      size: 18,
-                    ),
-                  ),
-                ],
+            if (aspectRatio == null)
+              Expanded(
+                child: _buildProductImageBand(product, hasDiscount, discountPercentage),
+              )
+            else
+              AspectRatio(
+                aspectRatio: aspectRatio,
+                child: _buildProductImageBand(product, hasDiscount, discountPercentage),
               ),
-            ),
 
             // Product Details
             Padding(
@@ -813,6 +812,55 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildProductImageBand(ProductModel product, bool hasDiscount, int discountPercentage) {
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(Constants.radiusLarge),
+            topRight: Radius.circular(Constants.radiusLarge),
+          ),
+          child: CustomNetworkImage(
+            image: product.imageId,
+            height: 160,
+            width: double.infinity,
+          ),
+        ),
+
+        // Discount Badge
+        if (hasDiscount)
+          Positioned(
+            top: 8,
+            left: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: ColorResource.error,
+                borderRadius: BorderRadius.circular(Constants.radiusSmall),
+              ),
+              child: Text(
+                '$discountPercentage% OFF',
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeExtraSmall,
+                  color: ColorResource.textWhite,
+                ),
+              ),
+            ),
+          ),
+
+        // Favorite Button
+        Positioned(
+          top: 8,
+          right: 8,
+          child: FavoriteButton(
+            product: product,
+            size: 18,
+          ),
+        ),
+      ],
     );
   }
 }
