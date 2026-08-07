@@ -20,6 +20,7 @@ import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:appwrite_user_app/app/common/widgets/directional_flip.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -48,6 +49,11 @@ class _SearchPageState extends State<SearchPage> {
   bool _isSearching = false;
   bool _hasSearched = false;
   String _activeQuery = '';
+
+  static const List<double> _staggerRatios = [1, 0.82, 1, 0.75, 0.9, 1, 0.8];
+
+  double _imageRatioFor(int index) =>
+      _staggerRatios[index % _staggerRatios.length];
 
   @override
   void initState() {
@@ -335,19 +341,19 @@ class _SearchPageState extends State<SearchPage> {
           ),
         ],
         const SizedBox(height: 20),
-        GridView.builder(
+        MasonryGridView.count(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           padding: EdgeInsets.zero,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: _gridCrossAxisCount(),
-            childAspectRatio: 0.7,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-          ),
+          crossAxisCount: _gridCrossAxisCount(),
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
           itemCount: _searchResults.length,
           itemBuilder: (context, index) {
-            return _buildResultCard(_searchResults[index]);
+            return _buildResultCard(
+              _searchResults[index],
+              imageAspectRatio: _imageRatioFor(index),
+            );
           },
         ),
       ],
@@ -364,10 +370,11 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   /// Product card, lifted on hover for web (pointer-only, no effect on touch).
-  Widget _buildResultCard(ProductModel product) {
+  Widget _buildResultCard(ProductModel product, {double? imageAspectRatio}) {
     final card = _buildProductCard(
       product: product,
       onTap: () => _openProduct(product),
+      imageAspectRatio: imageAspectRatio,
     );
     return kIsWeb ? HoverLift(child: card) : card;
   }
@@ -639,19 +646,19 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ),
             const SizedBox(height: 16),
-            GridView.builder(
+            MasonryGridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               padding: EdgeInsets.zero,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: _gridCrossAxisCount(),
-                childAspectRatio: 0.75,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-              ),
+              crossAxisCount: _gridCrossAxisCount(),
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
               itemCount: recentProducts.length,
               itemBuilder: (context, index) {
-                return _buildResultCard(recentProducts[index]);
+                return _buildResultCard(
+                  recentProducts[index],
+                  imageAspectRatio: _imageRatioFor(index),
+                );
               },
             ),
           ],
@@ -744,17 +751,17 @@ class _SearchPageState extends State<SearchPage> {
         Expanded(
           child: _searchResults.isEmpty
               ? const SizedBox()
-              : GridView.builder(
+              : MasonryGridView.count(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: _gridCrossAxisCount(),
-                    childAspectRatio: 0.65,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                  ),
+                  crossAxisCount: _gridCrossAxisCount(),
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
                   itemCount: _searchResults.length,
                   itemBuilder: (context, index) {
-                    return _buildResultCard(_searchResults[index]);
+                    return _buildResultCard(
+                      _searchResults[index],
+                      imageAspectRatio: _imageRatioFor(index),
+                    );
                   },
                 ),
         ),
@@ -765,11 +772,51 @@ class _SearchPageState extends State<SearchPage> {
   Widget _buildProductCard({
     required ProductModel product,
     required VoidCallback onTap,
+    double? imageAspectRatio,
   }) {
     final hasDiscount = product.hasDiscount;
     final discountPercentage = hasDiscount
         ? ((product.price - product.finalPrice) / product.price * 100).toStringAsFixed(0)
         : null;
+
+    Widget buildImageBand({double? height}) {
+      return Stack(
+        fit: height == null ? StackFit.expand : StackFit.loose,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(Constants.radiusLarge),
+              topRight: Radius.circular(Constants.radiusLarge),
+            ),
+            child: CustomNetworkImage(
+              image: product.imageId,
+              height: height,
+              width: double.infinity,
+            ),
+          ),
+          // Discount Badge
+          if (hasDiscount)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: ColorResource.discountBadge,
+                  borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
+                ),
+                child: Text(
+                  '$discountPercentage% OFF',
+                  style: poppinsBold.copyWith(
+                    fontSize: Constants.fontSizeExtraSmall,
+                    color: ColorResource.textWhite,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      );
+    }
 
     return CustomClickableWidget(
       onTap: onTap,
@@ -781,45 +828,18 @@ class _SearchPageState extends State<SearchPage> {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: imageAspectRatio == null ? MainAxisSize.max : MainAxisSize.min,
           children: [
             // Image with badges
-            Expanded(
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(Constants.radiusLarge),
-                      topRight: Radius.circular(Constants.radiusLarge),
-                    ),
-                    child: CustomNetworkImage(
-                      image: product.imageId,
-                      height: 160,
-                      width: double.infinity,
-                    ),
-                  ),
-                  // Discount Badge
-                  if (hasDiscount)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: ColorResource.discountBadge,
-                          borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
-                        ),
-                        child: Text(
-                          '$discountPercentage% OFF',
-                          style: poppinsBold.copyWith(
-                            fontSize: Constants.fontSizeExtraSmall,
-                            color: ColorResource.textWhite,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
+            if (imageAspectRatio == null)
+              Expanded(
+                child: buildImageBand(height: 160),
+              )
+            else
+              AspectRatio(
+                aspectRatio: imageAspectRatio,
+                child: buildImageBand(),
               ),
-            ),
             // Product Details
             Padding(
               padding: const EdgeInsets.all(12),
@@ -836,22 +856,15 @@ class _SearchPageState extends State<SearchPage> {
                     overflow: TextOverflow.ellipsis,
                   ),
 
-                  const SizedBox(height: 6),
-                  RatingStars(
-                    rating: product.avgRating,
-                    reviewCount: product.ratingCount,
-                    size: 14,
-                  ),
-                  // const SizedBox(height: 4),
-                  // Text(
-                  //   product.descriptionMap.trLanguage,
-                  //   style: poppinsRegular.copyWith(
-                  //     fontSize: Constants.fontSizeSmall,
-                  //     color: context.textSecondary,
-                  //   ),
-                  //   maxLines: 2,
-                  //   overflow: TextOverflow.ellipsis,
-                  // ),
+                  if(product.ratingCount > 0) ...[
+                    const SizedBox(height: 6),
+                    RatingStars(
+                      rating: product.avgRating,
+                      reviewCount: product.ratingCount,
+                      size: 14,
+                    ),
+                  ],
+
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
