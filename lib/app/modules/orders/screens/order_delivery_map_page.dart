@@ -235,7 +235,7 @@ class _OrderDeliveryMapPageState extends State<OrderDeliveryMapPage> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.cardBackground,
             borderRadius: BorderRadius.circular(12),
             boxShadow: ColorResource.customShadow,
           ),
