@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_button.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
@@ -102,8 +103,14 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWide = screenWidth >= 900;
+
     return Scaffold(
       backgroundColor: context.scaffoldBackground,
+      appBar: isWide
+          ? null
+          : CustomAppbar(title: 'sign_in'.tr, showBackButton: context.canPop()),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -121,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (context.canPop()) _buildBackButton(context),
+                      if (isWide && context.canPop()) _buildBackButton(context),
                       _buildHeader(context),
                       const SizedBox(height: Constants.paddingSizeExtraLarge),
                       _buildForm(context),
@@ -141,11 +148,36 @@ class _LoginScreenState extends State<LoginScreen>
   Widget _buildBackButton(BuildContext context) {
     return Align(
       alignment: AlignmentDirectional.centerStart,
-      child: IconButton(
-        onPressed: () => context.pop(),
-        icon: const Icon(Icons.arrow_back_rounded),
-        color: context.textPrimary,
-        tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: Constants.paddingSizeDefault),
+        child: InkWell(
+          onTap: () => context.pop(),
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: context.cardBackground,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.grey.shade800
+                    : Colors.grey.shade200,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.arrow_back_rounded,
+              color: context.textPrimary,
+              size: 20,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -274,8 +306,7 @@ class _LoginScreenState extends State<LoginScreen>
               children: [
                 Flexible(child: _buildRememberMe(context)),
                 TextButton(
-                  onPressed: () =>
-                      context.pushNamed(RouteNames.forgotPassword),
+                  onPressed: () => context.pushNamed(RouteNames.forgotPassword),
                   style: TextButton.styleFrom(
                     foregroundColor: ColorResource.primaryDark,
                     padding: const EdgeInsets.symmetric(
