@@ -341,21 +341,40 @@ class _SearchPageState extends State<SearchPage> {
           ),
         ],
         const SizedBox(height: 20),
-        MasonryGridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.zero,
-          crossAxisCount: _gridCrossAxisCount(),
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          itemCount: _searchResults.length,
-          itemBuilder: (context, index) {
-            return _buildResultCard(
-              _searchResults[index],
-              imageAspectRatio: _imageRatioFor(index),
-            );
-          },
-        ),
+        Get.find<ModuleController>().activeModule == ModuleController.ecommerce
+            ? MasonryGridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
+                crossAxisCount: _gridCrossAxisCount(),
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                itemCount: _searchResults.length,
+                itemBuilder: (context, index) {
+                  return _buildResultCard(
+                    _searchResults[index],
+                    imageAspectRatio: _imageRatioFor(index),
+                  );
+                },
+              )
+            : GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: _gridCrossAxisCount(),
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  mainAxisExtent: 280,
+                ),
+                itemCount: _searchResults.length,
+                itemBuilder: (context, index) {
+                  return _buildResultCard(
+                    _searchResults[index],
+                    imageAspectRatio: null,
+                  );
+                },
+              ),
       ],
     );
   }
@@ -646,21 +665,40 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ),
             const SizedBox(height: 16),
-            MasonryGridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.zero,
-              crossAxisCount: _gridCrossAxisCount(),
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              itemCount: recentProducts.length,
-              itemBuilder: (context, index) {
-                return _buildResultCard(
-                  recentProducts[index],
-                  imageAspectRatio: _imageRatioFor(index),
-                );
-              },
-            ),
+            Get.find<ModuleController>().activeModule == ModuleController.ecommerce
+                ? MasonryGridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: EdgeInsets.zero,
+                    crossAxisCount: _gridCrossAxisCount(),
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    itemCount: recentProducts.length,
+                    itemBuilder: (context, index) {
+                      return _buildResultCard(
+                        recentProducts[index],
+                        imageAspectRatio: _imageRatioFor(index),
+                      );
+                    },
+                  )
+                : GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: EdgeInsets.zero,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: _gridCrossAxisCount(),
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      mainAxisExtent: 280,
+                    ),
+                    itemCount: recentProducts.length,
+                    itemBuilder: (context, index) {
+                      return _buildResultCard(
+                        recentProducts[index],
+                        imageAspectRatio: null,
+                      );
+                    },
+                  ),
           ],
         ],
     );
@@ -751,19 +789,36 @@ class _SearchPageState extends State<SearchPage> {
         Expanded(
           child: _searchResults.isEmpty
               ? const SizedBox()
-              : MasonryGridView.count(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                  crossAxisCount: _gridCrossAxisCount(),
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  itemCount: _searchResults.length,
-                  itemBuilder: (context, index) {
-                    return _buildResultCard(
-                      _searchResults[index],
-                      imageAspectRatio: _imageRatioFor(index),
-                    );
-                  },
-                ),
+              : (Get.find<ModuleController>().activeModule == ModuleController.ecommerce
+                  ? MasonryGridView.count(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                      crossAxisCount: _gridCrossAxisCount(),
+                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 16,
+                      itemCount: _searchResults.length,
+                      itemBuilder: (context, index) {
+                        return _buildResultCard(
+                          _searchResults[index],
+                          imageAspectRatio: _imageRatioFor(index),
+                        );
+                      },
+                    )
+                  : GridView.builder(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: _gridCrossAxisCount(),
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        mainAxisExtent: 280,
+                      ),
+                      itemCount: _searchResults.length,
+                      itemBuilder: (context, index) {
+                        return _buildResultCard(
+                          _searchResults[index],
+                          imageAspectRatio: null,
+                        );
+                      },
+                    )),
         ),
       ],
     );
