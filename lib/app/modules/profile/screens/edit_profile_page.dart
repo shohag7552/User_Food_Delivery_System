@@ -9,6 +9,8 @@ import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:appwrite_user_app/app/common/widgets/directional_flip.dart';
+import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
+import 'package:appwrite_user_app/app/modules/profile/widgets/change_password_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -126,6 +128,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           const SizedBox(height: Constants.spaceSection),
                           _buildProfileInfoCard(context, controller),
                           const SizedBox(height: Constants.spaceSection),
+                          _buildChangePasswordWebOption(context),
+                          const SizedBox(height: Constants.spaceSection),
                           _buildSaveButton(context, controller),
                         ],
                       ),
@@ -185,6 +189,48 @@ class _EditProfilePageState extends State<EditProfilePage> {
             icon: Icons.phone_outlined,
             validator: controller.validatePhone,
             keyboardType: TextInputType.phone,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChangePasswordWebOption(BuildContext context) {
+    return _buildGlassmorphicCard(
+      context: context,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle('security_settings'.trClean),
+          const SizedBox(height: 12),
+          Text(
+            'update_your_account_password_desc'.trClean,
+            style: poppinsRegular.copyWith(
+              fontSize: Constants.fontSizeSmall,
+              color: context.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: OutlinedButton.icon(
+              onPressed: () => ChangePasswordDialog.show(context),
+              icon: const Icon(Icons.lock_outline_rounded, size: 20),
+              label: Text(
+                'change_password'.trClean,
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeDefault,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: ColorResource.primaryDark),
+                foregroundColor: ColorResource.primaryDark,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
           ),
         ],
       ),

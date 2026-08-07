@@ -20,3 +20,14 @@ extension TranslatableMap on Map<String, dynamic>? {
     return value?.toString() ?? '';
   }
 }
+
+extension LocalizedString on String {
+  String get trClean {
+    final translated = tr;
+    if (translated == this) {
+      final parts = split('_');
+      return parts.map((p) => p.capitalizeFirst ?? p).join(' ');
+    }
+    return translated;
+  }
+}

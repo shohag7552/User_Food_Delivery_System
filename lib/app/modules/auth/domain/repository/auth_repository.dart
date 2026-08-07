@@ -256,4 +256,20 @@ class AuthRepository implements AuthRepoInterface {
     }
     return null;
   }
+
+  @override
+  Future<bool> updatePassword({
+    required String password,
+    required String oldPassword,
+  }) async {
+    try {
+      await appwriteService.updatePassword(
+        password: password,
+        oldPassword: oldPassword,
+      );
+      return true;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

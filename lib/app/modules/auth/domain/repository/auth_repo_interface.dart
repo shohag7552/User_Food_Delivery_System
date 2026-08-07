@@ -36,4 +36,9 @@ abstract class AuthRepoInterface {
   /// The remembered credentials, or null when "remember me" is off. Reads from
   /// already-loaded local storage, so it is synchronous.
   ({String email, String password})? getRememberedCredentials();
+
+  Future<bool> updatePassword({
+    required String password,
+    required String oldPassword,
+  });
 }

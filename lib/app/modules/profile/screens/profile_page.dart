@@ -11,6 +11,8 @@ import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:appwrite_user_app/app/modules/language/widgets/language_selector.dart';
+import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
+import 'package:appwrite_user_app/app/modules/profile/widgets/change_password_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -87,6 +89,14 @@ class _ProfilePageState extends State<ProfilePage> {
                               subtitle: 'manage_delivery_addresses'.tr,
                               onTap: _authGuard(isLoggedIn, () {
                                 context.pushNamed(RouteNames.addresses);
+                              }),
+                            ),
+                            _ProfileOption(
+                              icon: Icons.lock_outline_rounded,
+                              title: 'change_password'.trClean,
+                              subtitle: 'update_your_account_password'.trClean,
+                              onTap: _authGuard(isLoggedIn, () {
+                                ChangePasswordDialog.show(context);
                               }),
                             ),
                           ],

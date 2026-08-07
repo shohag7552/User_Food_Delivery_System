@@ -506,4 +506,27 @@ class AuthController extends GetxController implements GetxService {
     update();
     return isSuccess;
   }
+
+  Future<bool> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    _isLoading = true;
+    update();
+    try {
+      final success = await authRepoInterface.updatePassword(
+        password: newPassword,
+        oldPassword: oldPassword,
+      );
+      _isLoading = false;
+      update();
+      return success;
+    } catch (e) {
+      _isLoading = false;
+      update();
+      log('Change password error: $e');
+      customToster('failed_to_change_password'.tr, isSuccess: false);
+      return false;
+    }
+  }
 }

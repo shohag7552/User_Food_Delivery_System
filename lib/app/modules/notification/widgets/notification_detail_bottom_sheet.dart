@@ -17,16 +17,7 @@ import 'package:intl/intl.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:url_launcher/url_launcher.dart';
 
-extension LocalizedString on String {
-  String get trClean {
-    final translated = tr;
-    if (translated == this) {
-      final parts = split('_');
-      return parts.map((p) => p.capitalizeFirst ?? p).join(' ');
-    }
-    return translated;
-  }
-}
+
 
 class NotificationDetailBottomSheet extends StatefulWidget {
   final NotificationModel notification;
