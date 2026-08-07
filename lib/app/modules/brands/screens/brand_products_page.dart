@@ -1,5 +1,7 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
@@ -30,6 +32,11 @@ class BrandProductsPage extends StatefulWidget {
 class _BrandProductsPageState extends State<BrandProductsPage> {
   static const int _pageSize = 10;
   static const double _maxContentWidth = 1100;
+
+  static const List<double> _staggerRatios = [1, 0.82, 1, 0.75, 0.9, 1, 0.8];
+
+  double _imageRatioFor(int index) =>
+      _staggerRatios[index % _staggerRatios.length];
 
   final GlobalKey<ScaffoldState> _webScaffoldKey = GlobalKey<ScaffoldState>();
   final ScrollController _scrollController = ScrollController();
@@ -73,13 +80,12 @@ class _BrandProductsPageState extends State<BrandProductsPage> {
     if (refresh) {
       _currentPage = 0;
       _hasMore = true;
-      _products = [];
+    } else {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
     }
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
 
     try {
       final products = await Get.find<ProductController>().getProductsByBrand(
@@ -149,23 +155,28 @@ class _BrandProductsPageState extends State<BrandProductsPage> {
   Widget _buildMobileScaffold(BuildContext context) {
     return Scaffold(
       backgroundColor: context.scaffoldBackground,
-      body: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
-          _buildSliverAppBar(),
-          if (_isLoading)
-            SliverFillRemaining(child: _buildLoadingState())
-          else if (_errorMessage != null)
-            SliverFillRemaining(child: _buildErrorState())
-          else if (_products.isEmpty)
-            SliverFillRemaining(child: _buildEmptyState())
-          else
-            _buildProductsSliver(
-              crossAxisCount: 2,
-              padding: const EdgeInsets.all(16),
-              spacing: 16,
-            ),
-        ],
+      body: RefreshIndicator(
+        color: ColorResource.primaryDark,
+        onRefresh: () => _loadProducts(refresh: true),
+        child: CustomScrollView(
+          controller: _scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            _buildSliverAppBar(),
+            if (_isLoading)
+              SliverFillRemaining(child: _buildLoadingState())
+            else if (_errorMessage != null)
+              SliverFillRemaining(child: _buildErrorState())
+            else if (_products.isEmpty)
+              SliverFillRemaining(child: _buildEmptyState())
+            else
+              _buildProductsSliver(
+                crossAxisCount: 2,
+                padding: const EdgeInsets.all(16),
+                spacing: 16,
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -235,6 +246,7 @@ class _BrandProductsPageState extends State<BrandProductsPage> {
             padding: EdgeInsets.symmetric(horizontal: gutter),
             sliver: contentSliver,
           ),
+          WebFooter.sliver(),
         ],
       ),
     );
@@ -251,17 +263,14 @@ class _BrandProductsPageState extends State<BrandProductsPage> {
       slivers: [
         SliverPadding(
           padding: padding,
-          sliver: SliverGrid(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: spacing,
-              mainAxisSpacing: spacing,
-              childAspectRatio: 0.6,
-            ),
-            delegate: SliverChildBuilderDelegate(
-              (context, index) =>
-                  EcommerceProductCard(product: _products[index]),
-              childCount: _products.length,
+          sliver: SliverMasonryGrid.count(
+            crossAxisCount: crossAxisCount,
+            mainAxisSpacing: spacing,
+            crossAxisSpacing: spacing,
+            childCount: _products.length,
+            itemBuilder: (context, index) => EcommerceProductCard(
+              product: _products[index],
+              imageAspectRatio: _imageRatioFor(index),
             ),
           ),
         ),

@@ -84,13 +84,12 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
     if (refresh) {
       _currentPage = 0;
       _hasMore = true;
-      _products = [];
+    } else {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
     }
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
 
     try {
       final products = await Get.find<ProductController>().getProductsByCategory(
@@ -168,74 +167,79 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
   Widget _buildMobileScaffold(BuildContext context) {
     return Scaffold(
       backgroundColor: context.scaffoldBackground,
-      body: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
-          // App Bar with Category Info
-          _buildSliverAppBar(),
+      body: RefreshIndicator(
+        color: ColorResource.primaryDark,
+        onRefresh: () => _loadProducts(refresh: true),
+        child: CustomScrollView(
+          controller: _scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            // App Bar with Category Info
+            _buildSliverAppBar(),
 
-          // Products Grid
-          if (_isLoading)
-            SliverFillRemaining(
-              child: _buildLoadingState(),
-            )
-          else if (_errorMessage != null)
-            SliverFillRemaining(
-              child: _buildErrorState(),
-            )
-          else if (_products.isEmpty)
-            SliverFillRemaining(
-              child: _buildEmptyState(),
-            )
-          else
-            SliverMainAxisGroup(
-              slivers: [
-                SliverPadding(
-                  padding: const EdgeInsets.all(16),
-                  sliver: Get.find<ModuleController>().activeModule == ModuleController.ecommerce
-                      ? SliverMasonryGrid.count(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 16,
-                          crossAxisSpacing: 16,
-                          childCount: _products.length,
-                          itemBuilder: (context, index) {
-                            final product = _products[index];
-                            return _buildProductCard(
-                              product,
-                              imageAspectRatio: _imageRatioFor(index),
-                            );
-                          },
-                        )
-                      : SliverGrid(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            // Products Grid
+            if (_isLoading)
+              SliverFillRemaining(
+                child: _buildLoadingState(),
+              )
+            else if (_errorMessage != null)
+              SliverFillRemaining(
+                child: _buildErrorState(),
+              )
+            else if (_products.isEmpty)
+              SliverFillRemaining(
+                child: _buildEmptyState(),
+              )
+            else
+              SliverMainAxisGroup(
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.all(16),
+                    sliver: Get.find<ModuleController>().activeModule == ModuleController.ecommerce
+                        ? SliverMasonryGrid.count(
                             crossAxisCount: 2,
-                            crossAxisSpacing: 16,
                             mainAxisSpacing: 16,
-                            childAspectRatio: 0.7,
-                          ),
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              final product = _products[index];
-                              return _buildProductCard(product);
-                            },
+                            crossAxisSpacing: 16,
                             childCount: _products.length,
+                            itemBuilder: (context, index) {
+                              final product = _products[index];
+                              return _buildProductCard(
+                                product,
+                                imageAspectRatio: _imageRatioFor(index),
+                              );
+                            },
+                          )
+                        : SliverGrid(
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              childAspectRatio: 0.7,
+                            ),
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final product = _products[index];
+                                return _buildProductCard(product);
+                              },
+                              childCount: _products.length,
+                            ),
                           ),
-                        ),
-                ),
-                if (_isLoadingMore)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 24),
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          color: ColorResource.primaryDark,
+                  ),
+                  if (_isLoadingMore)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 24),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: ColorResource.primaryDark,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
-            ),
-        ],
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }
