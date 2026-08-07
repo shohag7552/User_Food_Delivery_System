@@ -22,6 +22,8 @@ class OrderModel {
   final DateTime? scheduledStart;
   final DateTime? scheduledEnd;
   final String moduleType; // 'food' | 'ecommerce'
+  final String? deliveryType; // 'now' | 'schedule' | 'pos' etc.
+  final String? orderSource; // 'pos', 'web', 'app' etc.
   // --- Ecommerce fulfillment (nullable; food ignores them) ---
   final double shippingCost;
   final String? shippingMethod;
@@ -48,6 +50,8 @@ class OrderModel {
     this.scheduledStart,
     this.scheduledEnd,
     this.moduleType = 'food',
+    this.deliveryType,
+    this.orderSource,
     this.shippingCost = 0.0,
     this.shippingMethod,
     this.trackingNumber,
@@ -84,6 +88,8 @@ class OrderModel {
           .map((e) => OrderItem.fromJson(e))
           .toList(),
       moduleType: json['module_type'] as String? ?? 'food',
+      deliveryType: json['delivery_type'] as String?,
+      orderSource: json['order_source'] as String?,
       shippingCost: (json['shipping_cost'] as num?)?.toDouble() ?? 0.0,
       shippingMethod: json['shipping_method'] as String?,
       trackingNumber: json['tracking_number'] as String?,
@@ -111,6 +117,8 @@ class OrderModel {
     DateTime? scheduledStart,
     DateTime? scheduledEnd,
     String? moduleType,
+    String? deliveryType,
+    String? orderSource,
     double? shippingCost,
     String? shippingMethod,
     String? trackingNumber,
@@ -136,6 +144,8 @@ class OrderModel {
       scheduledStart: scheduledStart ?? this.scheduledStart,
       scheduledEnd: scheduledEnd ?? this.scheduledEnd,
       moduleType: moduleType ?? this.moduleType,
+      deliveryType: deliveryType ?? this.deliveryType,
+      orderSource: orderSource ?? this.orderSource,
       shippingCost: shippingCost ?? this.shippingCost,
       shippingMethod: shippingMethod ?? this.shippingMethod,
       trackingNumber: trackingNumber ?? this.trackingNumber,

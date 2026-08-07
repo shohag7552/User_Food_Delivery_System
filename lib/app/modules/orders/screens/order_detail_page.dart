@@ -105,7 +105,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     ? controller.selectedOrder
                     : _fallbackOrder;
 
-                if (order == null) {
+                if (order == null || !_shouldShowBottomActionBar(order)) {
                   return const SizedBox.shrink();
                 }
 
@@ -114,79 +114,79 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             ),
       body: AuthGate(
         child: GetBuilder<OrderController>(
-        builder: (controller) {
-          final order = controller.selectedOrder?.id == widget.orderId
-              ? controller.selectedOrder
-              : _fallbackOrder;
+          builder: (controller) {
+            final order = controller.selectedOrder?.id == widget.orderId
+                ? controller.selectedOrder
+                : _fallbackOrder;
 
-          if (controller.isOrderDetailsLoading && order == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
+            if (controller.isOrderDetailsLoading && order == null) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (order == null && controller.isOrderDetailsLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+            if (order == null && controller.isOrderDetailsLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (order == null) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
+            if (order == null) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.receipt_long_outlined,
+                        size: 64,
+                        color: context.textLight,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'unable_to_load_order_details'.tr,
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeLarge,
+                          color: context.textPrimary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'pull_to_refresh_or_try_again'.tr,
+                        style: poppinsRegular.copyWith(
+                          fontSize: Constants.fontSizeDefault,
+                          color: context.textSecondary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            return RefreshIndicator(
+              onRefresh: () async {
+                await controller.refreshOrderDetails(widget.orderId);
+                if (controller.selectedOrder?.id == widget.orderId && mounted) {
+                  setState(() {
+                    _fallbackOrder = controller.selectedOrder;
+                  });
+                }
+              },
+              color: ColorResource.primaryDark,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.receipt_long_outlined,
-                      size: 64,
-                      color: context.textLight,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'unable_to_load_order_details'.tr,
-                      style: poppinsBold.copyWith(
-                        fontSize: Constants.fontSizeLarge,
-                        color: context.textPrimary,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'pull_to_refresh_or_try_again'.tr,
-                      style: poppinsRegular.copyWith(
-                        fontSize: Constants.fontSizeDefault,
-                        color: context.textSecondary,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
+                    isWide
+                        ? _buildWebContent(order, twoColumn, controller)
+                        : _buildMobileContent(order),
+                    if (isWide) const WebFooter(),
                   ],
                 ),
               ),
             );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              await controller.refreshOrderDetails(widget.orderId);
-              if (controller.selectedOrder?.id == widget.orderId && mounted) {
-                setState(() {
-                  _fallbackOrder = controller.selectedOrder;
-                });
-              }
-            },
-            color: ColorResource.primaryDark,
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                children: [
-                  isWide
-                      ? _buildWebContent(order, twoColumn, controller)
-                      : _buildMobileContent(order),
-                  if (isWide) const WebFooter(),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+          },
+        ),
       ),
     );
   }
@@ -194,9 +194,13 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   // ── Mobile: single stacked column (unchanged from the original design) ──
   Widget _buildMobileContent(OrderModel order) {
     final isEcom = order.moduleType == 'ecommerce';
-    final showTimeline = isEcom &&
-        !['cancelled', 'returned', 'refunded']
-            .contains(order.status.toLowerCase());
+    final showTimeline =
+        isEcom &&
+        ![
+          'cancelled',
+          'returned',
+          'refunded',
+        ].contains(order.status.toLowerCase());
     final hasTracking = isEcom && (order.trackingNumber ?? '').isNotEmpty;
 
     return Column(
@@ -225,7 +229,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         const SizedBox(height: 16),
         _buildPricingBreakdown(order),
         const SizedBox(height: 24),
-        const SizedBox(height: 90),
+        if (_shouldShowBottomActionBar(order)) const SizedBox(height: 90),
       ],
     );
   }
@@ -233,11 +237,19 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   // ── Web/desktop: constrained layout with a rounded gradient header. ──
   // Wide screens get a two-column split (order contents on the left, a summary
   // rail on the right); narrower web widths fall back to a single column.
-  Widget _buildWebContent(OrderModel order, bool twoColumn, OrderController controller) {
+  Widget _buildWebContent(
+    OrderModel order,
+    bool twoColumn,
+    OrderController controller,
+  ) {
     final isEcom = order.moduleType == 'ecommerce';
-    final showTimeline = isEcom &&
-        !['cancelled', 'returned', 'refunded']
-            .contains(order.status.toLowerCase());
+    final showTimeline =
+        isEcom &&
+        ![
+          'cancelled',
+          'returned',
+          'refunded',
+        ].contains(order.status.toLowerCase());
     final hasTracking = isEcom && (order.trackingNumber ?? '').isNotEmpty;
 
     // Left / primary column: what was ordered and where it's going.
@@ -266,8 +278,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       _buildPaymentInfo(order),
       const SizedBox(height: 16),
       _buildPricingBreakdown(order),
-      const SizedBox(height: 20),
-      _buildWebActionButtons(order, controller),
+      if (_shouldShowWebActionButtons(order)) ...[
+        const SizedBox(height: 20),
+        _buildWebActionButtons(order, controller),
+      ],
     ];
 
     return Align(
@@ -349,7 +363,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     const SizedBox(width: 6),
                     Text(
                       StoreTime.format(
-                          order.createdAt, 'EEEE, MMMM dd, yyyy • hh:mm a'),
+                        order.createdAt,
+                        'EEEE, MMMM dd, yyyy • hh:mm a',
+                      ),
                       style: poppinsRegular.copyWith(
                         fontSize: Constants.fontSizeDefault,
                         color: ColorResource.textWhite.withValues(alpha: 0.9),
@@ -458,7 +474,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               value: order.orderNumber,
             ),
           ),
-          Container(width: 1, height: 40, color: Theme.of(context).dividerColor),
+          Container(
+            width: 1,
+            height: 40,
+            color: Theme.of(context).dividerColor,
+          ),
           Expanded(
             child: _buildInfoItem(
               icon: Icons.shopping_bag_outlined,
@@ -625,7 +645,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                               ),
                               const SizedBox(width: 6),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                  vertical: 1,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.green.shade50,
                                   borderRadius: BorderRadius.circular(4),
@@ -751,9 +774,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           padding: const EdgeInsets.symmetric(vertical: 8),
           side: BorderSide(color: ColorResource.primaryDark),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              Constants.radiusDefault,
-            ),
+            borderRadius: BorderRadius.circular(Constants.radiusDefault),
           ),
         ),
         icon: Icon(
@@ -785,11 +806,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.check_circle,
-            size: 18,
-            color: Colors.green,
-          ),
+          Icon(Icons.check_circle, size: 18, color: Colors.green),
           const SizedBox(width: 8),
           Text(
             '${'already_rated'.tr} (${review.rating.toDouble()}✭)',
@@ -932,11 +949,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         children: [
           Row(
             children: [
-              Icon(
-                Icons.payment,
-                color: ColorResource.primaryDark,
-                size: 24,
-              ),
+              Icon(Icons.payment, color: ColorResource.primaryDark, size: 24),
               const SizedBox(width: 8),
               Text(
                 'payment_info'.tr,
@@ -996,11 +1009,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 // Payment status row
                 Row(
                   children: [
-                    Icon(
-                      statusIcon,
-                      color: statusTextColor,
-                      size: 20,
-                    ),
+                    Icon(statusIcon, color: statusTextColor, size: 20),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -1061,7 +1070,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   Widget _buildPricingBreakdown(OrderModel order) {
     // Subtotal = total - deliveryFee - tax + discounts (add discounts back since they were subtracted from total)
-    final subtotal = order.totalAmount - order.deliveryFee - order.taxAmount + order.discountAmount + order.couponDiscount;
+    final subtotal =
+        order.totalAmount -
+        order.deliveryFee -
+        order.taxAmount +
+        order.discountAmount +
+        order.couponDiscount;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -1085,11 +1099,21 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           _buildPriceRow('subtotal'.tr, subtotal, false),
           if (order.discountAmount > 0) ...[
             const SizedBox(height: 12),
-            _buildPriceRow('item_discount'.tr, -order.discountAmount, false, isDiscount: true),
+            _buildPriceRow(
+              'item_discount'.tr,
+              -order.discountAmount,
+              false,
+              isDiscount: true,
+            ),
           ],
           if (order.couponDiscount > 0) ...[
             const SizedBox(height: 12),
-            _buildPriceRow('coupon_discount'.tr, -order.couponDiscount, false, isDiscount: true),
+            _buildPriceRow(
+              'coupon_discount'.tr,
+              -order.couponDiscount,
+              false,
+              isDiscount: true,
+            ),
           ],
           const SizedBox(height: 12),
           _buildPriceRow('delivery_fee'.tr, order.deliveryFee, false),
@@ -1208,7 +1232,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     );
   }
 
-  Widget _buildPriceRow(String label, double amount, bool isTotal, {bool isDiscount = false}) {
+  Widget _buildPriceRow(
+    String label,
+    double amount,
+    bool isTotal, {
+    bool isDiscount = false,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -1291,8 +1320,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                           border: Border.all(
                             color: done
                                 ? ColorResource.primaryDark
-                                : context.textLight
-                                    .withValues(alpha: 0.4),
+                                : context.textLight.withValues(alpha: 0.4),
                             width: 1.5,
                           ),
                         ),
@@ -1310,8 +1338,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                             width: 2,
                             color: i < current
                                 ? ColorResource.primaryDark
-                                : context.textLight
-                                    .withValues(alpha: 0.25),
+                                : context.textLight.withValues(alpha: 0.25),
                           ),
                         ),
                     ],
@@ -1550,11 +1577,42 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         order.status.toLowerCase() == 'completed';
   }
 
+  bool _isCompleted(OrderModel order) {
+    final status = order.status.toLowerCase();
+    return status == 'completed' || status == 'delivered';
+  }
+
+  bool _isPosOrder(OrderModel order) {
+    final isPosOrderSource = order.orderSource?.toLowerCase() == 'pos';
+    final isPosOrderNumber = order.orderNumber.toUpperCase().contains('POS');
+    final isPosPaymentMethod = order.paymentMethod.toLowerCase() == 'pos';
+    return isPosOrderSource || isPosOrderNumber || isPosPaymentMethod;
+  }
+
+  bool _shouldShowBottomActionBar(OrderModel order) {
+    final showCancel = _canCancelOrder(order);
+    final showMap = !(_isCompleted(order) && _isPosOrder(order));
+    return showCancel || showMap;
+  }
+
+  bool _shouldShowWebActionButtons(OrderModel order) {
+    final showCancel = _canCancelOrder(order);
+    final showMap = !(_isCompleted(order) && _isPosOrder(order));
+    return showCancel || showMap;
+  }
+
   bool _hasDeliveryman(OrderModel order) {
     return (order.driverId?.isNotEmpty ?? false) || order.deliveryman != null;
   }
 
   Widget _buildBottomActionBar(OrderModel order, OrderController controller) {
+    final showCancel = _canCancelOrder(order);
+    final showMap = !(_isCompleted(order) && _isPosOrder(order));
+
+    if (!showCancel && !showMap) {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       decoration: BoxDecoration(
@@ -1571,7 +1629,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         top: false,
         child: Row(
           children: [
-            if (_canCancelOrder(order)) ...[
+            if (showCancel) ...[
               Expanded(
                 child: OutlinedButton(
                   onPressed: controller.isCancellingOrder
@@ -1606,28 +1664,31 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                         ),
                 ),
               ),
-              const SizedBox(width: 12),
+              if (showMap) const SizedBox(width: 12),
             ],
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () => _openDeliveryMap(order),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: ColorResource.primaryDark,
-                  foregroundColor: ColorResource.textWhite,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(Constants.radiusLarge),
+            if (showMap)
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => _openDeliveryMap(order),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ColorResource.primaryDark,
+                    foregroundColor: ColorResource.textWhite,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        Constants.radiusLarge,
+                      ),
+                    ),
                   ),
-                ),
-                child: Text(
-                  'view_on_map'.tr,
-                  style: poppinsBold.copyWith(
-                    fontSize: Constants.fontSizeDefault,
-                    color: ColorResource.textWhite,
+                  child: Text(
+                    'view_on_map'.tr,
+                    style: poppinsBold.copyWith(
+                      fontSize: Constants.fontSizeDefault,
+                      color: ColorResource.textWhite,
+                    ),
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -1726,10 +1787,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           ),
           clipBehavior: Clip.antiAlias,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 900,
-              maxHeight: 700,
-            ),
+            constraints: const BoxConstraints(maxWidth: 900, maxHeight: 700),
             child: SizedBox(
               width: MediaQuery.of(context).size.width * 0.8,
               height: MediaQuery.of(context).size.height * 0.8,
@@ -1803,11 +1861,18 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   Widget _buildWebActionButtons(OrderModel order, OrderController controller) {
+    final showCancel = _canCancelOrder(order);
+    final showMap = !(_isCompleted(order) && _isPosOrder(order));
+
+    if (!showCancel && !showMap) {
+      return const SizedBox.shrink();
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          if (_canCancelOrder(order)) ...[
+          if (showCancel) ...[
             Expanded(
               child: OutlinedButton(
                 onPressed: controller.isCancellingOrder
@@ -1818,9 +1883,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   side: BorderSide(color: ColorResource.error, width: 1.5),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      Constants.radiusLarge,
-                    ),
+                    borderRadius: BorderRadius.circular(Constants.radiusLarge),
                   ),
                 ),
                 child: controller.isCancellingOrder
@@ -1842,28 +1905,29 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                       ),
               ),
             ),
-            const SizedBox(width: 12),
+            if (showMap) const SizedBox(width: 12),
           ],
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () => _openDeliveryMap(order),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ColorResource.primaryDark,
-                foregroundColor: ColorResource.textWhite,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(Constants.radiusLarge),
+          if (showMap)
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => _openDeliveryMap(order),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ColorResource.primaryDark,
+                  foregroundColor: ColorResource.textWhite,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(Constants.radiusLarge),
+                  ),
                 ),
-              ),
-              child: Text(
-                'view_on_map'.tr,
-                style: poppinsBold.copyWith(
-                  fontSize: Constants.fontSizeDefault,
-                  color: ColorResource.textWhite,
+                child: Text(
+                  'view_on_map'.tr,
+                  style: poppinsBold.copyWith(
+                    fontSize: Constants.fontSizeDefault,
+                    color: ColorResource.textWhite,
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
