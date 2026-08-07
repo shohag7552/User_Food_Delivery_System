@@ -3,6 +3,7 @@ import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dar
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
 import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
@@ -41,14 +42,18 @@ class _SearchPageState extends State<SearchPage> {
   static const double _maxContentWidth = 1100;
   final GlobalKey<ScaffoldState> _webScaffoldKey = GlobalKey<ScaffoldState>();
   final ScrollController _webScrollController = ScrollController();
+  final ScrollController _mobileScrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   Timer? _debounce;
+  List<ProductModel> _allSearchResults = [];
   List<ProductModel> _searchResults = [];
   List<String> _searchHistory = [];
   bool _isSearching = false;
   bool _hasSearched = false;
+  bool _isLoadingMore = false;
   String _activeQuery = '';
+  static const int _pageSize = 12;
 
   static const List<double> _staggerRatios = [1, 0.82, 1, 0.75, 0.9, 1, 0.8];
 
@@ -59,6 +64,13 @@ class _SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
     _loadSearchHistory();
+
+    _mobileScrollController.addListener(() {
+      if (_mobileScrollController.position.pixels >=
+          _mobileScrollController.position.maxScrollExtent - 200) {
+        _loadNextPage();
+      }
+    });
 
     if (kIsWeb) {
       // The top-nav field owns the query on web — listen for what's typed
@@ -85,8 +97,28 @@ class _SearchPageState extends State<SearchPage> {
     _searchController.dispose();
     _searchFocusNode.dispose();
     _webScrollController.dispose();
+    _mobileScrollController.dispose();
     _debounce?.cancel();
     super.dispose();
+  }
+
+  bool get _hasMoreResults => _searchResults.length < _allSearchResults.length;
+
+  void _loadNextPage() {
+    if (_isLoadingMore || !_hasMoreResults) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+      final nextItemsCount = _searchResults.length + _pageSize;
+      setState(() {
+        _searchResults = _allSearchResults.take(nextItemsCount).toList();
+        _isLoadingMore = false;
+      });
+    });
   }
 
   /// Query submitted from the web top-nav search field.
@@ -104,6 +136,7 @@ class _SearchPageState extends State<SearchPage> {
 
     if (normalizedQuery.isEmpty) {
       setState(() {
+        _allSearchResults = [];
         _searchResults = [];
         _hasSearched = false;
         _isSearching = false;
@@ -198,7 +231,8 @@ class _SearchPageState extends State<SearchPage> {
       if (mounted && _activeQuery == query) {
         await _saveSearchHistory(query);
         setState(() {
-          _searchResults = results;
+          _allSearchResults = results;
+          _searchResults = results.take(_pageSize).toList();
           _isSearching = false;
           _hasSearched = true;
         });
@@ -206,6 +240,7 @@ class _SearchPageState extends State<SearchPage> {
     } catch (e) {
       if (mounted && _activeQuery == query) {
         setState(() {
+          _allSearchResults = [];
           _searchResults = [];
           _isSearching = false;
           _hasSearched = true;
@@ -218,6 +253,7 @@ class _SearchPageState extends State<SearchPage> {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _searchController.clear();
     setState(() {
+      _allSearchResults = [];
       _searchResults = [];
       _hasSearched = false;
       _isSearching = false;
@@ -292,14 +328,19 @@ class _SearchPageState extends State<SearchPage> {
       thumbVisibility: true,
       child: SingleChildScrollView(
         controller: _webScrollController,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 28, 20, 48),
-              child: content,
+        child: Column(
+          children: [
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 28, 20, 48),
+                  child: content,
+                ),
+              ),
             ),
-          ),
+            const WebFooter(),
+          ],
         ),
       ),
     );
@@ -314,7 +355,7 @@ class _SearchPageState extends State<SearchPage> {
           TextSpan(
             children: [
               TextSpan(
-                text: '${_searchResults.length} ',
+                text: '${_allSearchResults.length} ',
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeOverLarge,
                   color: ColorResource.primaryDark,
@@ -375,7 +416,62 @@ class _SearchPageState extends State<SearchPage> {
                   );
                 },
               ),
+        if (_hasMoreResults) ...[
+          const SizedBox(height: 24),
+          Center(
+            child: SizedBox(
+              height: 48,
+              child: _isLoadingMore
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.4,
+                        color: ColorResource.primaryDark,
+                      ),
+                    )
+                  : _viewMoreButton(_loadNextPage),
+            ),
+          ),
+        ],
       ],
+    );
+  }
+
+  Widget _viewMoreButton(VoidCallback onTap) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: ColorResource.primaryDark.withValues(alpha: 0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: OutlinedButton(
+        onPressed: onTap,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: ColorResource.primaryDark,
+          backgroundColor: context.cardBackground,
+          side: BorderSide(
+            color: ColorResource.primaryDark.withValues(alpha: 0.4),
+            width: 1.5,
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+        ),
+        child: Text(
+          'view_more'.tr,
+          style: poppinsBold.copyWith(
+            fontSize: Constants.fontSizeDefault,
+            color: ColorResource.primaryDark,
+          ),
+        ),
+      ),
     );
   }
 
@@ -767,7 +863,7 @@ class _SearchPageState extends State<SearchPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${_searchResults.length} ${'results_found'.tr}',
+                '${_allSearchResults.length} ${'results_found'.tr}',
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeLarge,
                   color: context.textPrimary,
@@ -787,38 +883,60 @@ class _SearchPageState extends State<SearchPage> {
           ),
         ),
         Expanded(
-          child: _searchResults.isEmpty
-              ? const SizedBox()
-              : (Get.find<ModuleController>().activeModule == ModuleController.ecommerce
-                  ? MasonryGridView.count(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                      crossAxisCount: _gridCrossAxisCount(),
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      itemCount: _searchResults.length,
-                      itemBuilder: (context, index) {
-                        return _buildResultCard(
-                          _searchResults[index],
-                          imageAspectRatio: _imageRatioFor(index),
-                        );
-                      },
-                    )
-                  : GridView.builder(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: _gridCrossAxisCount(),
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        mainAxisExtent: 280,
+          child: Column(
+            children: [
+              Expanded(
+                child: _searchResults.isEmpty
+                    ? const SizedBox()
+                    : (Get.find<ModuleController>().activeModule == ModuleController.ecommerce
+                        ? MasonryGridView.count(
+                            controller: _mobileScrollController,
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                            crossAxisCount: _gridCrossAxisCount(),
+                            mainAxisSpacing: 16,
+                            crossAxisSpacing: 16,
+                            itemCount: _searchResults.length,
+                            itemBuilder: (context, index) {
+                              return _buildResultCard(
+                                _searchResults[index],
+                                imageAspectRatio: _imageRatioFor(index),
+                              );
+                            },
+                          )
+                        : GridView.builder(
+                            controller: _mobileScrollController,
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: _gridCrossAxisCount(),
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              mainAxisExtent: 280,
+                            ),
+                            itemCount: _searchResults.length,
+                            itemBuilder: (context, index) {
+                              return _buildResultCard(
+                                _searchResults[index],
+                                imageAspectRatio: null,
+                              );
+                            },
+                          )),
+              ),
+              if (_isLoadingMore)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: ColorResource.primaryDark,
                       ),
-                      itemCount: _searchResults.length,
-                      itemBuilder: (context, index) {
-                        return _buildResultCard(
-                          _searchResults[index],
-                          imageAspectRatio: null,
-                        );
-                      },
-                    )),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ],
     );
