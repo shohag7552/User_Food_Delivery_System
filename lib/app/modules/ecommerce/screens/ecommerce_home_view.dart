@@ -1,3 +1,7 @@
+import 'dart:async';
+import 'dart:ui';
+import 'package:flutter/cupertino.dart';
+import 'package:appwrite_user_app/app/controllers/notification_controller.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
@@ -32,7 +36,7 @@ class EcommerceHomeView extends StatefulWidget {
 }
 
 class _EcommerceHomeViewState extends State<EcommerceHomeView>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
   // Drives the Top Products carousel (used by the web scroll-arrow buttons).
   final ScrollController _topScrollController = ScrollController();
@@ -48,10 +52,16 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
   @override
   bool get wantKeepAlive => true;
 
+  late final AnimationController _bellPulseController;
+
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _bellPulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
     _loadData();
   }
 
@@ -88,6 +98,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     _scrollController.dispose();
     _topScrollController.dispose();
     _offerScrollController.dispose();
+    _bellPulseController.dispose();
     super.dispose();
   }
 
@@ -287,9 +298,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
         decoration: BoxDecoration(
           color: context.cardBackground,
           borderRadius: BorderRadius.circular(Constants.radiusLarge),
-          border: Border.all(
-            color: context.textLight.withValues(alpha: 0.15),
-          ),
+          border: Border.all(color: context.textLight.withValues(alpha: 0.15)),
         ),
         child: Row(
           children: [
@@ -388,9 +397,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
       decoration: BoxDecoration(
         color: context.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
-        border: Border.all(
-          color: context.textLight.withValues(alpha: 0.15),
-        ),
+        border: Border.all(color: context.textLight.withValues(alpha: 0.15)),
       ),
       clipBehavior: Clip.antiAlias,
       child: controller.isLoading && controller.categories.isEmpty
@@ -528,10 +535,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
           ),
         ),
         if (hasMore) ...[
-          Divider(
-            height: 1,
-            color: context.textLight.withValues(alpha: 0.10),
-          ),
+          Divider(height: 1, color: context.textLight.withValues(alpha: 0.10)),
           InkWell(
             onTap: () {},
             hoverColor: ColorResource.primaryDark.withValues(alpha: 0.04),
@@ -645,7 +649,16 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                   left: hPad,
                   right: hPad,
                   bottom: 10,
-                  child: _constrained(searchMaxWidth, _buildSearchBar()),
+                  child: _constrained(
+                    searchMaxWidth,
+                    Row(
+                      children: [
+                        Expanded(child: _buildSearchBar()),
+                        const SizedBox(width: 12),
+                        _buildNotificationBell(),
+                      ],
+                    ),
+                  ),
                 ),
             ],
           );
@@ -706,7 +719,16 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                 const SizedBox(height: 12),
                 Opacity(
                   opacity: collapseRatio,
-                  child: _constrained(searchMaxWidth, _buildSearchBar()),
+                  child: _constrained(
+                    searchMaxWidth,
+                    Row(
+                      children: [
+                        Expanded(child: _buildSearchBar()),
+                        const SizedBox(width: 12),
+                        _buildNotificationBell(),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -728,38 +750,124 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     );
   }
 
+  Widget _frostedHeaderTile({
+    required EdgeInsetsGeometry padding,
+    required Widget child,
+  }) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(Constants.radiusLarge),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            color: context.cardBackground.withValues(
+              alpha: isDark ? 0.72 : 0.82,
+            ),
+            borderRadius: BorderRadius.circular(Constants.radiusLarge),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.10)
+                  : Colors.white.withValues(alpha: 0.55),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: isDark
+                    ? Colors.black.withValues(alpha: 0.30)
+                    : ColorResource.shadowDark,
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+
   Widget _buildSearchBar() {
     return GestureDetector(
       onTap: () => context.pushNamed(RouteNames.search),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-        decoration: BoxDecoration(
-          color: context.cardBackground,
-          borderRadius: BorderRadius.circular(Constants.radiusLarge),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+      child: _frostedHeaderTile(
+        padding: const EdgeInsets.symmetric(
+          horizontal: Constants.paddingSizeDefault,
+          vertical: Constants.paddingSizeSmall,
         ),
         child: Row(
           children: [
-            Icon(Icons.search, color: context.textSecondary),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'search_products'.tr,
-                style: poppinsRegular.copyWith(
-                  fontSize: Constants.fontSizeDefault,
-                  color: context.textLight,
-                ),
-              ),
+            Icon(
+              CupertinoIcons.search,
+              color: ColorResource.primaryDark,
+              size: 22,
             ),
+            const SizedBox(width: 12),
+            const Expanded(child: _AnimatedSearchHint()),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildNotificationBell() {
+    return GetBuilder<NotificationController>(
+      builder: (notificationController) {
+        final hasUnreadNotifications = notificationController.unreadCount > 0;
+
+        return InkWell(
+          borderRadius: BorderRadius.circular(Constants.radiusLarge),
+          onTap: () => context.pushNamed(RouteNames.notifications),
+          child: Stack(
+            children: [
+              _frostedHeaderTile(
+                padding: const EdgeInsets.all(Constants.paddingSizeSmall),
+                child: Icon(
+                  CupertinoIcons.bell,
+                  color: ColorResource.primaryDark,
+                  size: 24,
+                ),
+              ),
+              if (hasUnreadNotifications)
+                Positioned(
+                  top: 7,
+                  right: 7,
+                  child: IgnorePointer(
+                    child: ScaleTransition(
+                      scale: Tween<double>(begin: 0.82, end: 1.18).animate(
+                        CurvedAnimation(
+                          parent: _bellPulseController,
+                          curve: Curves.easeInOut,
+                        ),
+                      ),
+                      child: Container(
+                        width: 11,
+                        height: 11,
+                        decoration: BoxDecoration(
+                          color: ColorResource.error,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: context.cardBackground,
+                            width: 1.6,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: ColorResource.error.withValues(alpha: 0.6),
+                              blurRadius: 6,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -932,9 +1040,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                           Constants.radiusLarge,
                         ),
                         border: Border.all(
-                          color: context.textLight.withValues(
-                            alpha: 0.15,
-                          ),
+                          color: context.textLight.withValues(alpha: 0.15),
                         ),
                       ),
                       child: Row(
@@ -1299,9 +1405,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
         children: [
           AspectRatio(
             aspectRatio: imageRatio,
-            child: ColoredBox(
-              color: context.textLight.withValues(alpha: 0.10),
-            ),
+            child: ColoredBox(color: context.textLight.withValues(alpha: 0.10)),
           ),
           Padding(
             padding: const EdgeInsets.all(Constants.paddingSizeSmall),
@@ -1500,10 +1604,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
           borderRadius: BorderRadius.circular(30),
           hoverColor: ColorResource.primaryDark.withValues(alpha: 0.05),
           child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 32,
-              vertical: 12,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(30),
               border: Border.all(color: ColorResource.primaryDark, width: 1.8),
@@ -1544,6 +1645,124 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
           color: context.textPrimary,
         ),
       ),
+    );
+  }
+}
+
+class _AnimatedSearchHint extends StatefulWidget {
+  const _AnimatedSearchHint();
+
+  @override
+  State<_AnimatedSearchHint> createState() => _AnimatedSearchHintState();
+}
+
+class _AnimatedSearchHintState extends State<_AnimatedSearchHint> {
+  static const Duration _interval = Duration(milliseconds: 2600);
+
+  Timer? _timer;
+  int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(_interval, (_) {
+      if (!mounted) return;
+      final count = _hintNames().length;
+      if (count == 0) return;
+      setState(() => _index = (_index + 1) % count);
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  List<String> _hintNames() {
+    if (!Get.isRegistered<CategoryController>()) return const [];
+    return Get.find<CategoryController>().categories
+        .map((c) => c.nameMap.trLanguage)
+        .where((n) => n.trim().isNotEmpty)
+        .toList(growable: false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final TextStyle prefixStyle = poppinsRegular.copyWith(
+      fontSize: Constants.fontSizeDefault,
+      color: context.textSecondary,
+    );
+    final TextStyle categoryStyle = poppinsMedium.copyWith(
+      fontSize: Constants.fontSizeDefault,
+      color: context.textPrimary,
+    );
+
+    return GetBuilder<CategoryController>(
+      builder: (_) {
+        final names = _hintNames();
+
+        if (names.isEmpty) {
+          return Text(
+            'search_products'.tr,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: prefixStyle,
+          );
+        }
+
+        final name = names[_index % names.length];
+
+        return Row(
+          children: [
+            Text('search_for'.tr, style: prefixStyle),
+            const SizedBox(width: 5),
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 550),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                layoutBuilder: (currentChild, previousChildren) => Stack(
+                  alignment: AlignmentDirectional.centerStart,
+                  children: <Widget>[
+                    ...previousChildren,
+                    currentChild ?? const SizedBox.shrink(),
+                  ],
+                ),
+                transitionBuilder: (child, animation) {
+                  final inAnimation = Tween<Offset>(
+                    begin: const Offset(0.0, 0.4),
+                    end: Offset.zero,
+                  ).animate(animation);
+                  final outAnimation = Tween<Offset>(
+                    begin: const Offset(0.0, -0.4),
+                    end: Offset.zero,
+                  ).animate(animation);
+
+                  if (child.key == ValueKey<int>(_index)) {
+                    return SlideTransition(
+                      position: inAnimation,
+                      child: FadeTransition(opacity: animation, child: child),
+                    );
+                  } else {
+                    return SlideTransition(
+                      position: outAnimation,
+                      child: FadeTransition(opacity: animation, child: child),
+                    );
+                  }
+                },
+                child: Text(
+                  name,
+                  key: ValueKey<int>(_index),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: categoryStyle,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
