@@ -8,6 +8,7 @@ class Images{
   static const String placeholder = 'assets/images/placeholder.jpg';
   static const String placeholder1 = 'assets/images/placeholder1.png';
   static const String placeholder2 = 'assets/images/placeholder2.png';
+  static const String placeholder3 = 'assets/images/placeholder3.png';
   static const String veg = 'assets/images/vegan.png';
   static const String shoppingBanner = 'assets/images/shopping_banner.jpg';
 }
