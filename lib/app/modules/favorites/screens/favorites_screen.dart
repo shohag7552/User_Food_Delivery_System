@@ -22,6 +22,7 @@ import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
@@ -39,6 +40,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   static const double _maxContentWidth = 1100;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  static const List<double> _staggerRatios = [1, 0.82, 1, 0.75, 0.9, 1, 0.8];
+
+  double _imageRatioFor(int index) =>
+      _staggerRatios[index % _staggerRatios.length];
 
   @override
   void initState() {
@@ -143,38 +149,48 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               // Nav-bar clearance + a small breathing space at the very bottom.
               bottom + 20,
             ),
-            sliver: SliverGrid(
-              gridDelegate: isWide
-                  ? SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: crossAxisCount,
-                      crossAxisSpacing: 20,
-                      mainAxisSpacing: 20,
-                      childAspectRatio: 0.66,
-                    )
-                  : const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      // Tall enough for the image + a 2-line name, rating and
-                      // price so the card content never overflows/overlaps.
-                      mainAxisExtent: 250,
+            sliver: Get.find<ModuleController>().activeModule == ModuleController.ecommerce
+                ? SliverMasonryGrid.count(
+                    crossAxisCount: isWide ? crossAxisCount : 2,
+                    crossAxisSpacing: isWide ? 20 : 16,
+                    mainAxisSpacing: isWide ? 20 : 16,
+                    childCount: favorites.length,
+                    itemBuilder: (context, index) {
+                      final favorite = favorites[index];
+                      final product = favorite.product!;
+                      return EcommerceProductCard(
+                        product: product,
+                        imageAspectRatio: _imageRatioFor(index),
+                      );
+                    },
+                  )
+                : SliverGrid(
+                    gridDelegate: isWide
+                        ? SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: crossAxisCount,
+                            crossAxisSpacing: 20,
+                            mainAxisSpacing: 20,
+                            childAspectRatio: 0.66,
+                          )
+                        : const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            // Tall enough for the image + a 2-line name, rating and
+                            // price so the card content never overflows/overlaps.
+                            mainAxisExtent: 250,
+                          ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final favorite = favorites[index];
+                        final product = favorite.product!;
+                        final card = _buildProductCard(
+                            context, product, favorite.id, controller);
+                        return kIsWeb ? HoverLift(child: card) : card;
+                      },
+                      childCount: favorites.length,
                     ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final favorite = favorites[index];
-                  final product = favorite.product!;
-                  // Ecommerce products use the storefront card (has its own
-                  // hover); food keeps its own card, wrapped with hover on web.
-                  if (product.moduleType == ModuleController.ecommerce) {
-                    return EcommerceProductCard(product: product);
-                  }
-                  final card = _buildProductCard(
-                      context, product, favorite.id, controller);
-                  return kIsWeb ? HoverLift(child: card) : card;
-                },
-                childCount: favorites.length,
-              ),
-            ),
+                  ),
           ),
           WebFooter.sliver(),
         ],
@@ -238,9 +254,27 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     final double sidePadding = isWide
         ? (width > _maxContentWidth ? (width - _maxContentWidth) / 2 : 24)
         : 16;
+    final crossAxisCount = _crossAxisCount(contentWidth);
+    final activeModule = Get.find<ModuleController>().activeModule;
 
-    // Full-width grid (content centred via side padding) so the skeleton
-    // matches the loaded layout exactly.
+    if (activeModule == ModuleController.ecommerce) {
+      return MasonryGridView.count(
+        padding: EdgeInsets.fromLTRB(
+          sidePadding,
+          _isWebLayout ? 8 : 16,
+          sidePadding,
+          Constants.bottomNavSpace,
+        ),
+        crossAxisCount: isWide ? crossAxisCount : 2,
+        crossAxisSpacing: isWide ? 20 : 16,
+        mainAxisSpacing: isWide ? 20 : 16,
+        itemCount: isWide ? 10 : 6,
+        itemBuilder: (context, index) => _buildSkeletonCard(
+          imageAspectRatio: _imageRatioFor(index),
+        ),
+      );
+    }
+
     return GridView.builder(
       padding: EdgeInsets.fromLTRB(
         sidePadding,
@@ -250,7 +284,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ),
       gridDelegate: isWide
           ? SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: _crossAxisCount(contentWidth),
+              crossAxisCount: crossAxisCount,
               crossAxisSpacing: 20,
               mainAxisSpacing: 20,
               childAspectRatio: 0.66,
@@ -266,7 +300,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  Widget _buildSkeletonCard() {
+  Widget _buildSkeletonCard({double? imageAspectRatio}) {
     return Container(
       decoration: BoxDecoration(
         color: context.cardBackground,
@@ -275,18 +309,32 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: imageAspectRatio == null ? MainAxisSize.max : MainAxisSize.min,
         children: [
           // Image skeleton
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: context.textLight.withValues(alpha: 0.2),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(Constants.radiusLarge),
+          if (imageAspectRatio == null)
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: context.textLight.withValues(alpha: 0.2),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(Constants.radiusLarge),
+                  ),
+                ),
+              ),
+            )
+          else
+            AspectRatio(
+              aspectRatio: imageAspectRatio,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: context.textLight.withValues(alpha: 0.2),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(Constants.radiusLarge),
+                  ),
                 ),
               ),
             ),
-          ),
           Padding(
             padding: const EdgeInsets.all(12),
             child: Column(

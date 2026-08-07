@@ -11,6 +11,7 @@ import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/models/flash_sale_item_model.dart';
+import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -23,8 +24,13 @@ import 'package:go_router/go_router.dart';
 /// the flash price (capped at the sale's remaining stock).
 class FlashSaleItemCard extends StatelessWidget {
   final FlashSaleItemModel item;
+  final double? imageAspectRatio;
 
-  const FlashSaleItemCard({super.key, required this.item});
+  const FlashSaleItemCard({
+    super.key,
+    required this.item,
+    this.imageAspectRatio,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +38,7 @@ class FlashSaleItemCard extends StatelessWidget {
     // Sold out when the flash-sale allowance is exhausted OR the product's own
     // inventory is depleted — the buyer can never receive more than either.
     final bool soldOut = item.remainingStock <= 0 || product.isOutOfStock;
+    final aspectRatio = imageAspectRatio;
 
     return GestureDetector(
       onTap: () => _openProductDetail(context),
@@ -44,56 +51,18 @@ class FlashSaleItemCard extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: aspectRatio == null ? MainAxisSize.max : MainAxisSize.min,
           children: [
             // Image with the discount badge.
-            Expanded(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  CustomNetworkImage(
-                    image: product.imageId,
-                    width: double.infinity,
-                    height: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                  if (item.discountPercent > 0)
-                    Positioned(
-                      top: 8,
-                      left: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: ColorResource.primaryGradient,
-                          borderRadius:
-                              BorderRadius.circular(Constants.radiusLarge),
-                        ),
-                        child: Text(
-                          '-${item.discountPercent}%',
-                          style: poppinsBold.copyWith(
-                            fontSize: Constants.fontSizeExtraSmall,
-                            color: ColorResource.textWhite,
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (soldOut)
-                    Container(
-                      color: Colors.black.withValues(alpha: 0.55),
-                      alignment: Alignment.center,
-                      child: Text(
-                        'sold_out'.tr,
-                        style: poppinsBold.copyWith(
-                          fontSize: Constants.fontSizeLarge,
-                          color: ColorResource.textWhite,
-                        ),
-                      ),
-                    ),
-                ],
+            if (aspectRatio == null)
+              Expanded(
+                child: _buildImageBand(context, product, soldOut),
+              )
+            else
+              AspectRatio(
+                aspectRatio: aspectRatio,
+                child: _buildImageBand(context, product, soldOut),
               ),
-            ),
 
             // Details
             Padding(
@@ -200,6 +169,55 @@ class FlashSaleItemCard extends StatelessWidget {
             color: ColorResource.textSecondary,
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildImageBand(BuildContext context, ProductModel product, bool soldOut) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        CustomNetworkImage(
+          image: product.imageId,
+          width: double.infinity,
+          height: double.infinity,
+          fit: BoxFit.cover,
+        ),
+        if (item.discountPercent > 0)
+          Positioned(
+            top: 8,
+            left: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                gradient: ColorResource.primaryGradient,
+                borderRadius:
+                    BorderRadius.circular(Constants.radiusLarge),
+              ),
+              child: Text(
+                '-${item.discountPercent}%',
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeExtraSmall,
+                  color: ColorResource.textWhite,
+                ),
+              ),
+            ),
+          ),
+        if (soldOut)
+          Container(
+            color: Colors.black.withValues(alpha: 0.55),
+            alignment: Alignment.center,
+            child: Text(
+              'sold_out'.tr,
+              style: poppinsBold.copyWith(
+                fontSize: Constants.fontSizeLarge,
+                color: ColorResource.textWhite,
+              ),
+            ),
+          ),
       ],
     );
   }

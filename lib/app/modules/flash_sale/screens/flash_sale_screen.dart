@@ -9,6 +9,7 @@ import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 /// Full flash-sale page ("see all"): banner with live countdown + a
@@ -24,6 +25,14 @@ class FlashSaleScreen extends StatefulWidget {
 class _FlashSaleScreenState extends State<FlashSaleScreen> {
   static const double _maxContentWidth = 1200;
   final GlobalKey<ScaffoldState> _webScaffoldKey = GlobalKey<ScaffoldState>();
+
+  static const List<double> _staggerRatios = [1, 0.82, 1, 0.75, 0.9, 1, 0.8];
+
+  double _imageRatioFor(int index) =>
+      _staggerRatios[index % _staggerRatios.length];
+
+  int _gridColumns(double contentWidth) =>
+      (contentWidth / 210).floor().clamp(2, 6);
 
   @override
   void initState() {
@@ -70,6 +79,12 @@ class _FlashSaleScreenState extends State<FlashSaleScreen> {
   }
 
   Widget _buildBody({required bool isWide}) {
+    final width = MediaQuery.of(context).size.width;
+    final double contentWidth = isWide
+        ? (width > _maxContentWidth ? _maxContentWidth : width)
+        : width;
+    final crossAxisCount = _gridColumns(contentWidth - 32);
+
     return GetBuilder<FlashSaleController>(
       builder: (controller) {
         if (controller.isLoading && !controller.hasActiveSale) {
@@ -209,21 +224,18 @@ class _FlashSaleScreenState extends State<FlashSaleScreen> {
               // Items grid — responsive columns, hover lift on web.
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-                sliver: SliverGrid(
-                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: isWide ? 240 : 200,
-                    mainAxisExtent: isWide ? 344 : 290,
-                    crossAxisSpacing: 14,
-                    mainAxisSpacing: 14,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final card =
-                          FlashSaleItemCard(item: controller.items[index]);
-                      return isWide ? HoverLift(child: card) : card;
-                    },
-                    childCount: controller.items.length,
-                  ),
+                sliver: SliverMasonryGrid.count(
+                  crossAxisCount: crossAxisCount,
+                  mainAxisSpacing: 14,
+                  crossAxisSpacing: 14,
+                  childCount: controller.items.length,
+                  itemBuilder: (context, index) {
+                    final card = FlashSaleItemCard(
+                      item: controller.items[index],
+                      imageAspectRatio: _imageRatioFor(index),
+                    );
+                    return isWide ? HoverLift(child: card) : card;
+                  },
                 ),
               ),
             ],
