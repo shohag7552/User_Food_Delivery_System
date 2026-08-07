@@ -537,7 +537,9 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
         if (hasMore) ...[
           Divider(height: 1, color: context.textLight.withValues(alpha: 0.10)),
           InkWell(
-            onTap: () {},
+            onTap: () {
+              context.pushNamed(RouteNames.categories);
+            },
             hoverColor: ColorResource.primaryDark.withValues(alpha: 0.04),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),

@@ -11,5 +11,6 @@ void customToster(String message, {bool isSuccess = true}) {
     backgroundColor: isSuccess ? Colors.green : Colors.red,
     textColor: Colors.white,
     fontSize: Constants.fontSizeDefault,
+    webBgColor: isSuccess ? "linear-gradient(to right, #08A313, #08A313)" : "linear-gradient(to right, #CF2D0C, #CF2D0C)",
   );
 }
