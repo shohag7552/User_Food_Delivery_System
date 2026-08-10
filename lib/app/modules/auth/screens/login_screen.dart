@@ -2,6 +2,7 @@ import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_button.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
+import 'package:appwrite_user_app/app/modules/auth/widgets/auth_field_decoration.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/images.dart';
@@ -225,7 +226,7 @@ class _LoginScreenState extends State<LoginScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _fieldLabel(context, 'email'.tr),
+            authFieldLabel(context, 'email'.tr),
             TextFormField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
@@ -236,7 +237,7 @@ class _LoginScreenState extends State<LoginScreen>
                 fontSize: Constants.fontSizeDefault,
                 color: context.textPrimary,
               ),
-              decoration: _inputDecoration(
+              decoration: authInputDecoration(
                 context,
                 hint: 'enter_your_email'.tr,
                 icon: Icons.mail_outline_rounded,
@@ -256,7 +257,7 @@ class _LoginScreenState extends State<LoginScreen>
 
             const SizedBox(height: Constants.paddingSizeDefault),
 
-            _fieldLabel(context, 'password'.tr),
+            authFieldLabel(context, 'password'.tr),
             TextFormField(
               controller: _passwordController,
               focusNode: _passwordFocus,
@@ -268,7 +269,7 @@ class _LoginScreenState extends State<LoginScreen>
                 fontSize: Constants.fontSizeDefault,
                 color: context.textPrimary,
               ),
-              decoration: _inputDecoration(
+              decoration: authInputDecoration(
                 context,
                 hint: 'enter_your_password'.tr,
                 icon: Icons.lock_outline_rounded,
@@ -412,55 +413,4 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _fieldLabel(BuildContext context, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: Constants.paddingSizeSmall),
-      child: Text(
-        text,
-        style: poppinsMedium.copyWith(
-          fontSize: Constants.fontSizeSmall,
-          color: context.textSecondary,
-        ),
-      ),
-    );
-  }
-
-  /// Shared field styling — a resting hairline that turns brand-coloured on
-  /// focus, so the active field is obvious without shouting.
-  InputDecoration _inputDecoration(
-    BuildContext context, {
-    required String hint,
-    required IconData icon,
-    Widget? suffix,
-  }) {
-    OutlineInputBorder border(Color color, double width) => OutlineInputBorder(
-      borderRadius: BorderRadius.circular(Constants.radiusDefault),
-      borderSide: BorderSide(color: color, width: width),
-    );
-
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: poppinsRegular.copyWith(
-        fontSize: Constants.fontSizeDefault,
-        color: context.textLight,
-      ),
-      prefixIcon: Icon(icon, color: context.textSecondary),
-      suffixIcon: suffix,
-      filled: true,
-      fillColor: context.cardBackground,
-      border: border(context.textLight.withValues(alpha: 0.4), 1),
-      enabledBorder: border(context.textLight.withValues(alpha: 0.4), 1),
-      focusedBorder: border(ColorResource.primaryDark, 1.5),
-      errorBorder: border(ColorResource.error, 1),
-      focusedErrorBorder: border(ColorResource.error, 1.5),
-      errorStyle: poppinsRegular.copyWith(
-        fontSize: Constants.fontSizeExtraSmall,
-        color: ColorResource.error,
-      ),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: Constants.paddingSizeDefault,
-        vertical: Constants.paddingSizeDefault,
-      ),
-    );
-  }
 }

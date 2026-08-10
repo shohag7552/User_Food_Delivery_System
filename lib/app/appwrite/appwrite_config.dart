@@ -1,7 +1,25 @@
 class AppwriteConfig {
   static const String projectId = '694d7ed80012589bdb9c';
   static const String endpoint = 'https://sgp.cloud.appwrite.io/v1';
-  static const String forgotPasswordOtpFunctionId = 'forgot-password-otp';
+
+  /// Deployed Flutter web build.
+  ///
+  /// MUST be registered as a **Web platform** on the Appwrite project —
+  /// `account.createRecovery` validates its `url` argument against the
+  /// project's web platform hostnames, so an unregistered host fails the call
+  /// even when it originates from the Android or iOS app.
+  static const String webAppBaseUrl = 'https://food-app-c2fe8.web.app';
+
+  /// Page Appwrite links to in the password-recovery email; it appends
+  /// `?userId=…&secret=…&expire=…`. The link is valid for one hour and can be
+  /// used once.
+  ///
+  /// This same URL is claimed by the Android App Link and iOS Universal Link,
+  /// so it opens the installed app and falls back to the browser otherwise.
+  /// Keep the path in sync with `AppRouter.resetPassword`, the
+  /// `<data android:pathPrefix>` in `AndroidManifest.xml`, and the components
+  /// in `web/.well-known/apple-app-site-association`.
+  static const String passwordRecoveryUrl = '$webAppBaseUrl/reset-password';
   static const String databaseId = 'food_delivery_db';
   static const String apiKey = 'standard_94c9a3d62a86353f64c689846a4c8643086c533cebdcd99d1f6d38cc7d5cc91672e967c41f0092cfd47a11d0b84cb046ffbf19087b63ad8eab7f0b3454d00a37f6a0f37859d7c7ec36a2a96d5b5ec41e08dd81bc27bb2f5a2d78e3ce88e1f4bec6cd2e3c05ed016628a0e100e52e038146309b4be98c88598a6fa0c990f10188'; // MUST have 'databases.write' scope
   static const String dbId = 'food_delivery_db';

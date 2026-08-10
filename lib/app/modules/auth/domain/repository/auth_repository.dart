@@ -1,8 +1,10 @@
+import 'package:appwrite/appwrite.dart' show AppwriteException;
 import 'package:appwrite/models.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
+import 'package:appwrite_user_app/app/modules/auth/domain/services/password_reset_failure.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -189,44 +191,66 @@ class AuthRepository implements AuthRepoInterface {
   }
 
   @override
-  Future<bool> requestPasswordResetOtp(String email) async {
+  Future<void> sendPasswordResetLink(String email) async {
     try {
-      await appwriteService.requestPasswordResetOtp(
+      await appwriteService.createPasswordRecovery(
         email: email.trim().toLowerCase(),
+        url: AppwriteConfig.passwordRecoveryUrl,
       );
-      return true;
-    } catch (e) {
-      final message = e.toString().contains('Function with the requested ID could not be found')
-          ? 'Forgot password OTP function is not deployed yet.'
-          : 'Could not send OTP right now. Please try again.';
-      customToster(message, isSuccess: false);
-      return false;
+    } on AppwriteException catch (e) {
+      // Unknown address: report success anyway. Answering identically for
+      // registered and unregistered emails is what stops this form being used
+      // to discover who has an account. It also normalises a behaviour change
+      // across Appwrite versions — older ones 404 here, newer ones return 201.
+      if (e.type == 'user_not_found' || e.code == 404) return;
+      throw PasswordResetFailure(_sendFailureKey(e));
     }
   }
 
   @override
-  Future<bool> resetPasswordWithOtp({
-    required String email,
-    required String otp,
+  Future<void> resetPasswordWithLink({
+    required String userId,
+    required String secret,
     required String password,
   }) async {
     try {
-      await appwriteService.resetPasswordWithOtp(
-        email: email.trim().toLowerCase(),
-        otp: otp.trim(),
+      await appwriteService.completePasswordRecovery(
+        userId: userId,
+        secret: secret,
         password: password,
       );
-      return true;
-    } catch (e) {
-      final message = e.toString().contains('expired')
-          ? 'OTP expired. Please request a new one.'
-          : e.toString().contains('Invalid OTP')
-          ? 'Invalid OTP. Please try again.'
-          : 'Could not reset password. Please try again.';
-      customToster(message, isSuccess: false);
-      return false;
+    } on AppwriteException catch (e) {
+      throw PasswordResetFailure(_resetFailureKey(e));
     }
   }
+
+  String _sendFailureKey(AppwriteException e) => switch (e.type) {
+    'general_rate_limit_exceeded' => 'too_many_reset_requests',
+    'general_smtp_disabled' => 'reset_email_service_unavailable',
+    'user_blocked' => 'account_blocked_contact_support',
+    // Malformed email, or a redirect url whose host is not registered as a
+    // Web platform on the Appwrite project.
+    'general_argument_invalid' => 'could_not_send_reset_link',
+    'general_unauthorized_scope' => 'could_not_send_reset_link',
+    _ =>
+      e.code == 429 ? 'too_many_reset_requests' : 'could_not_send_reset_link',
+  };
+
+  String _resetFailureKey(AppwriteException e) => switch (e.type) {
+    // Secret wrong, already redeemed, or older than the one-hour window.
+    'user_invalid_token' => 'reset_link_invalid_or_expired',
+    'user_not_found' => 'reset_link_invalid_or_expired',
+    'general_argument_invalid' => 'reset_link_invalid_or_expired',
+    'password_recently_used' => 'password_recently_used',
+    'password_personal_data' => 'password_too_personal',
+    'general_rate_limit_exceeded' => 'too_many_reset_requests',
+    'user_blocked' => 'account_blocked_contact_support',
+    _ => switch (e.code) {
+      400 || 401 => 'reset_link_invalid_or_expired',
+      429 => 'too_many_reset_requests',
+      _ => 'could_not_reset_password',
+    },
+  };
 
   Future<String?> _getDeviceToken() async {
     // Web push needs a VAPID key + service worker this app doesn't configure,

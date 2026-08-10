@@ -361,6 +361,33 @@ class AppwriteService {
     await account.updatePassword(password: password, oldPassword: oldPassword);
   }
 
+  /// Sends Appwrite's built-in password-recovery email.
+  ///
+  /// [url] must be a hostname registered as a Web platform on the project;
+  /// Appwrite appends `?userId=…&secret=…&expire=…` to it. The resulting link
+  /// is valid for one hour and can be redeemed once.
+  Future<void> createPasswordRecovery({
+    required String email,
+    required String url,
+  }) async {
+    await account.createRecovery(email: email, url: url);
+  }
+
+  /// Completes recovery using the `userId`/`secret` pair carried by the emailed
+  /// link. Deliberately needs no session — this runs for a signed-out user, and
+  /// succeeding here does **not** create one.
+  Future<void> completePasswordRecovery({
+    required String userId,
+    required String secret,
+    required String password,
+  }) async {
+    await account.updateRecovery(
+      userId: userId,
+      secret: secret,
+      password: password,
+    );
+  }
+
   Future<String?> uploadImage(XFile file) async {
     try {
       // Web has no real filesystem path (XFile.path is a blob URL), so upload
@@ -550,58 +577,6 @@ class AppwriteService {
   //     return null;
   //   }
   // }
-}
-
-extension AppwritePasswordRecovery on AppwriteService {
-  Future<void> requestPasswordResetOtp({required String email}) async {
-    await _executeForgotPasswordOtpFunction(
-      body: {'action': 'request_otp', 'email': email},
-    );
-  }
-
-  Future<void> resetPasswordWithOtp({
-    required String email,
-    required String otp,
-    required String password,
-  }) async {
-    await _executeForgotPasswordOtpFunction(
-      body: {
-        'action': 'reset_password',
-        'email': email,
-        'otp': otp,
-        'password': password,
-      },
-    );
-  }
-
-  Future<Map<String, dynamic>> _executeForgotPasswordOtpFunction({
-    required Map<String, dynamic> body,
-  }) async {
-    try {
-      final execution = await functions.createExecution(
-        functionId: AppwriteConfig.forgotPasswordOtpFunctionId,
-        body: jsonEncode(body),
-      );
-
-      final responseBody = execution.responseBody;
-      final parsed = responseBody.isEmpty
-          ? <String, dynamic>{}
-          : jsonDecode(responseBody) as Map<String, dynamic>;
-
-      if (execution.status != ExecutionStatus.completed ||
-          parsed['success'] != true) {
-        throw Exception(parsed['message'] ?? 'OTP request failed.');
-      }
-
-      return parsed;
-    } on AppwriteException catch (e) {
-      log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
-      rethrow;
-    } catch (e) {
-      log('Forgot password OTP function error: $e');
-      rethrow;
-    }
-  }
 }
 
 class AppWriteResponse {

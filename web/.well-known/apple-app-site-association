@@ -1,0 +1,19 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["U7VLRFHZG7.REPLACE_WITH_REAL_BUNDLE_ID"],
+        "components": [
+          {
+            "/": "/reset-password",
+            "comment": "Appwrite password recovery landing page"
+          },
+          {
+            "/": "/reset-password?*",
+            "comment": "Recovery link carrying userId and secret"
+          }
+        ]
+      }
+    ]
+  }
+}

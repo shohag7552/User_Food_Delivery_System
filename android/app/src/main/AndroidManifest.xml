@@ -24,6 +24,34 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
+            <!-- Pin Flutter's built-in deep-link handling. It already defaults
+                 to true, but being explicit stops a future SDK bump or a plugin
+                 from silently turning it off and breaking password recovery. -->
+            <meta-data
+                android:name="flutter_deeplinking_enabled"
+                android:value="true" />
+
+            <!-- Appwrite password-recovery link. autoVerify makes Android fetch
+                 https://food-app-c2fe8.web.app/.well-known/assetlinks.json at
+                 install time; on success the link opens the app with no
+                 disambiguation dialog, and on failure it falls back to the
+                 browser, which serves the same Flutter web page.
+
+                 Kept as a SEPARATE intent-filter — merging VIEW into the
+                 LAUNCHER filter above would remove the launcher icon.
+
+                 Scoped to /reset-password: a bare pathPrefix="/" would hijack
+                 every link to the site. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="food-app-c2fe8.web.app"
+                    android:pathPrefix="/reset-password" />
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

@@ -1,4 +1,5 @@
 import 'package:appwrite/models.dart';
+import 'package:appwrite_user_app/app/modules/auth/domain/services/password_reset_failure.dart';
 
 abstract class AuthRepoInterface {
   // Future<bool> auth(String email, String password);
@@ -16,10 +17,24 @@ abstract class AuthRepoInterface {
     required String password,
   });
   Future<User?> getCurrentUser();
-  Future<bool> requestPasswordResetOtp(String email);
-  Future<bool> resetPasswordWithOtp({
-    required String email,
-    required String otp,
+
+  /// Asks Appwrite to email a password-reset link.
+  ///
+  /// Returns normally both when the mail was accepted **and** when no account
+  /// matches the address — callers must show the same neutral message either
+  /// way, or the form becomes a way to discover who has an account.
+  ///
+  /// Throws [PasswordResetFailure] for anything the user can act on.
+  Future<void> sendPasswordResetLink(String email);
+
+  /// Sets a new password from the `userId`/`secret` carried by the emailed
+  /// link. Needs no session — this runs for a signed-out user.
+  ///
+  /// Throws [PasswordResetFailure] when the link is invalid or expired, or the
+  /// password is rejected by the project's password policy.
+  Future<void> resetPasswordWithLink({
+    required String userId,
+    required String secret,
     required String password,
   });
 

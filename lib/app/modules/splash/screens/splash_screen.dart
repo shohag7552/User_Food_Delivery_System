@@ -12,7 +12,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  /// Where to go once the bootstrap finishes, instead of the dashboard.
+  ///
+  /// Set by screens that were reached outside the normal boot path — a cold
+  /// deep link into `/reset-password` skips the splash entirely, so it sends
+  /// the user back through here afterwards to get settings and module state
+  /// loaded before they land anywhere else.
+  final String? nextLocation;
+
+  const SplashScreen({super.key, this.nextLocation});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -100,6 +108,15 @@ class _SplashScreenState extends State<SplashScreen> {
     }
     if (updateController.forceUpdateRequired) {
       AppRouter.router.goNamed(RouteNames.forceUpdate);
+      return;
+    }
+
+    // A caller that handed off to the splash purely for the bootstrap gets its
+    // destination back — the maintenance / force-update gates above still take
+    // precedence, which is correct.
+    final next = widget.nextLocation;
+    if (next != null && next.isNotEmpty) {
+      AppRouter.router.go(next);
       return;
     }
 

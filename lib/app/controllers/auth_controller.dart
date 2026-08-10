@@ -3,6 +3,7 @@ import 'package:appwrite/models.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
+import 'package:appwrite_user_app/app/modules/auth/domain/services/password_reset_failure.dart';
 import 'package:get/get.dart';
 
 class AuthController extends GetxController implements GetxService {
@@ -238,244 +239,87 @@ class AuthController extends GetxController implements GetxService {
     return user?.email ?? '';
   }
 
-  Future<bool> requestPasswordResetOtp(String email) async {
-    _isLoading = true;
+  // ── Password recovery (Appwrite account recovery link) ──────────────────
+
+  bool _isSendingResetLink = false;
+  bool get isSendingResetLink => _isSendingResetLink;
+
+  bool _isResettingPassword = false;
+  bool get isResettingPassword => _isResettingPassword;
+
+  /// Translation key of the last recovery failure, so the reset screen can show
+  /// a persistent inline explanation rather than a toast that has already
+  /// faded by the time the user looks up from the keyboard.
+  String? _resetErrorKey;
+  String? get resetErrorKey => _resetErrorKey;
+
+  void clearResetError() {
+    if (_resetErrorKey == null) return;
+    _resetErrorKey = null;
+    update();
+  }
+
+  /// Requests the recovery email.
+  ///
+  /// Returns true when Appwrite accepted the request. The view must show the
+  /// same neutral copy on true whether or not the address is registered — see
+  /// [AuthRepoInterface.sendPasswordResetLink].
+  Future<bool> sendPasswordResetLink(String email) async {
+    _isSendingResetLink = true;
+    _resetErrorKey = null;
     update();
 
-    final isSuccess = await authRepoInterface.requestPasswordResetOtp(email);
+    bool isSuccess = false;
+    try {
+      await authRepoInterface.sendPasswordResetLink(email);
+      isSuccess = true;
+    } on PasswordResetFailure catch (e) {
+      _resetErrorKey = e.messageKey;
+      customToster(e.messageKey.tr, isSuccess: false);
+    } catch (e) {
+      log('Send reset link error: $e');
+      _resetErrorKey = 'something_went_wrong';
+      customToster('something_went_wrong'.tr, isSuccess: false);
+    }
 
-    _isLoading = false;
+    _isSendingResetLink = false;
     update();
     return isSuccess;
   }
 
-  Future<bool> resetPasswordWithOtp({
-    required String email,
-    required String otp,
+  /// Redeems the link's `userId`/`secret` and sets the new password. Appwrite
+  /// does not create a session for a completed recovery, so the user stays
+  /// signed out and must sign in with the new password.
+  Future<bool> resetPasswordWithLink({
+    required String userId,
+    required String secret,
     required String password,
   }) async {
-    _isLoading = true;
+    _isResettingPassword = true;
+    _resetErrorKey = null;
     update();
 
-    final isSuccess = await authRepoInterface.resetPasswordWithOtp(
-      email: email,
-      otp: otp,
-      password: password,
-    );
+    bool isSuccess = false;
+    try {
+      await authRepoInterface.resetPasswordWithLink(
+        userId: userId,
+        secret: secret,
+        password: password,
+      );
+      isSuccess = true;
+    } on PasswordResetFailure catch (e) {
+      _resetErrorKey = e.messageKey;
+      customToster(e.messageKey.tr, isSuccess: false);
+    } catch (e) {
+      log('Reset password error: $e');
+      _resetErrorKey = 'something_went_wrong';
+      customToster('something_went_wrong'.tr, isSuccess: false);
+    }
 
-    _isLoading = false;
+    _isResettingPassword = false;
     update();
     return isSuccess;
   }
-
-  //
-  // Future<bool> registrationSubmit(RegistrationModel registrationModel) async {
-  //   bool isSuccess = false;
-  //   _isLoading = true;
-  //   update();
-  //   Response response = await authRepoInterface.registrationSubmit(registrationModel: registrationModel);
-  //   if (response.statusCode == 200) {
-  //     isSuccess = true;
-  //     Get.offAll(() => const SignInScreen());
-  //   } else if(response.statusCode == 201){
-  //     isSuccess = true;
-  //     String tempToken = response.body['temporary_token'];
-  //     int? token = response.body['token'];
-  //     Get.to(() => VerificationScreen(registrationModel: registrationModel, tempToken: tempToken, token: token.toString()));
-  //   } else {
-  //     isSuccess = false;
-  //     ApiChecker.checkApi(response);
-  //   }
-  //   _isLoading = false;
-  //   update();
-  //   return isSuccess;
-  // }
-  //
-  // Future<bool> requestForgetPass(String phone) async {
-  //   bool isSuccess = false;
-  //   _isLoading = true;
-  //   update();
-  //   Response response = await authRepoInterface.requestForgetPassword(phone: phone);
-  //   if (response.statusCode == 200) {
-  //     isSuccess = true;
-  //     print('-------success--------');
-  //
-  //     Get.to(VerificationScreen(tempToken: response.body['temporary_token'], token: response.body['token'], fromForgotPassword: true,));
-  //   } else {
-  //     isSuccess = false;
-  //     ApiChecker.checkApi(response);
-  //   }
-  //   _isLoading = false;
-  //   update();
-  //   return isSuccess;
-  // }
-  //
-  // Future<Response> verifyForgetPasswordOtp({required String temporaryToken, required String otp}) async {
-  //   _isLoading = true;
-  //   update();
-  //   Response response = await authRepoInterface.verifyForgetPasswordOtp(temporaryToken: temporaryToken, otp: otp);
-  //   if(response.statusCode == 200) {
-  //     print('-------success--------');
-  //     Get.off(() => ResetPasswordScreen(tempToken: response.body['temporary_token']));
-  //   } else {
-  //     ApiChecker.checkApi(response);
-  //   }
-  //   _isLoading = false;
-  //   update();
-  //   return response;
-  // }
-  //
-  // Future<Response> changePassForForgetPassword({required String temporaryToken, required String password, required String confirmPass}) async {
-  //   _isLoading = true;
-  //   update();
-  //   Response response = await authRepoInterface.changePassForForgetPassword(temporaryToken: temporaryToken, password: password, confirmPass: confirmPass);
-  //   if(response.statusCode == 200) {
-  //     print('-------success--------');
-  //     customToast(response.body['message'], isError: false);
-  //     Get.offAllNamed(AppPages.goToSignInPage());
-  //     // Get.off(() => ResetPasswordScreen(tempToken: response.body['temporary_token']));
-  //   } else {
-  //     ApiChecker.checkApi(response);
-  //   }
-  //   _isLoading = false;
-  //   update();
-  //   return response;
-  // }
-  //
-  // void loadingStop() {
-  //   _isLoading = false;
-  //   update();
-  // }
-  //
-  // Future<bool> verifyPhone(String tempToken, String otp) async {
-  //   bool isSuccess = false;
-  //   _isLoading = true;
-  //   update();
-  //   Response response = await authRepoInterface.verifyPhone(tempToken, otp);
-  //   if (response.statusCode == 200) {
-  //     isSuccess = true;
-  //
-  //     await authRepoInterface.saveUserToken(response.body['access_token']);
-  //     Get.offAll(() => const DashboardScreen());
-  //     // Get.to(() => ResetPasswordScreen(phone: phone, otp: otp));
-  //     // await authRepoInterface.updateDeviceToken().then((value) {
-  //     //   debugPrint('token update successfully');
-  //     // });
-  //     // Get.to(VerificationScreen(phone: phone));
-  //   } else {
-  //     isSuccess = false;
-  //     ApiChecker.checkApi(response);
-  //   }
-  //   _isLoading = false;
-  //   update();
-  //   return isSuccess;
-  // }
-  //
-  // // Future<bool> resetPassword(String phone, String otp, String password, String confirmPassword) async {
-  // //   bool isSuccess = false;
-  // //   _isLoading = true;
-  // //   update();
-  // //   Response response = await authRepoInterface.resetPassword(phone: phone, otp: otp, password: password, confirmPass: confirmPassword);
-  // //   if (response.statusCode == 200 && response.body['status']) {
-  // //     isSuccess = true;
-  // //
-  // //     // await authRepoInterface.saveUserToken(response.body['token']);
-  // //
-  // //     Get.offAllNamed(AppPages.goToSignInPage());
-  // //     // await authRepoInterface.updateDeviceToken().then((value) {
-  // //     //   debugPrint('token update successfully');
-  // //     // });
-  // //     // Get.to(VerificationScreen(phone: phone));
-  // //   } else {
-  // //     isSuccess = false;
-  // //     ApiChecker.checkApi(response);
-  // //   }
-  // //   _isLoading = false;
-  // //   update();
-  // //   return isSuccess;
-  // // }
-  //
-  // bool alreadyLoggedIn(){
-  //   return authRepoInterface.alreadyLoggedIn();
-  // }
-  // //
-  // //
-  // // void removeToken() {
-  // //   authRepoInterface.clearToken();
-  // // }
-  // //
-  // Future<void> logOut()async {
-  //   await authRepoInterface.clearToken();
-  //   Get.offNamed(AppPages.goToSignInPage());
-  // }
-  //
-  // Future<bool> deleteAccount() async {
-  //   final response = await authRepoInterface.delete();
-  //   if (response.statusCode == 200) {
-  //     await authRepoInterface.clearToken();
-  //     return true;
-  //   } else {
-  //     // Handle error response
-  //     print('Failed to delete account: ${response.body}');
-  //     return false;
-  //   }
-  //
-  // }
-  //
-  // Future<bool> languageChange(String languageCode) async {
-  //   final response = await authRepoInterface.languageChange(languageCode);
-  //   if (response.statusCode == 200) {
-  //     return true;
-  //   } else {
-  //     // Handle error response
-  //     print('Failed to delete account: ${response.body}');
-  //     return false;
-  //   }
-  //
-  // }
-  //
-  // Future<bool> updateDeviceToken({String? token}) async {
-  //   String? deviceToken = '@';
-  //   if(token == null) {
-  //     deviceToken = await _saveDeviceToken();
-  //     FirebaseMessaging.instance.subscribeToTopic(Constants.topic);
-  //   } else {
-  //     FirebaseMessaging.instance.unsubscribeFromTopic(Constants.topic);
-  //   }
-  //
-  //
-  //   final response = await authRepoInterface.updateDeviceToken(deviceToken ?? token ?? '@');
-  //   if (response.statusCode == 200) {
-  //     return true;
-  //   } else {
-  //     // Handle error response
-  //     print('Failed to update token: ${response.body}');
-  //     return false;
-  //   }
-  //
-  // }
-  //
-  // Future<String?> _saveDeviceToken() async {
-  //   String? deviceToken = '@';
-  //   if(!GetPlatform.isWeb) {
-  //     try {
-  //       deviceToken = (await FirebaseMessaging.instance.getToken())!;
-  //     }catch(_) {}
-  //   }
-  //   if (deviceToken != null) {
-  //     log('--------Device Token----------> $deviceToken');
-  //   }
-  //   return deviceToken;
-  // }
-  //
-  // void subscriveToTopic({required String topic, required bool isSubscribe}) {
-  //   if(isSubscribe) {
-  //     FirebaseMessaging.instance.subscribeToTopic(topic);
-  //   } else {
-  //     FirebaseMessaging.instance.unsubscribeFromTopic(topic);
-  //   }
-  //   customToast('Topic ${isSubscribe ? 'Subscribed' : 'Unsubscribed'} Successfully', isError: false);
-  // }
 
   Future<void> logout() async {
     await authRepoInterface.logout();

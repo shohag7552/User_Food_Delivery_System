@@ -14,6 +14,7 @@ import 'package:appwrite_user_app/app/modules/address/screens/add_edit_address_p
 import 'package:appwrite_user_app/app/modules/address/screens/addresses_page.dart';
 import 'package:appwrite_user_app/app/modules/address/screens/full_screen_map_page.dart';
 import 'package:appwrite_user_app/app/modules/auth/screens/forgot_password_screen.dart';
+import 'package:appwrite_user_app/app/modules/auth/screens/reset_password_screen.dart';
 import 'package:appwrite_user_app/app/modules/auth/screens/login_screen.dart';
 import 'package:appwrite_user_app/app/modules/auth/screens/signup_screen.dart';
 import 'package:appwrite_user_app/app/modules/brands/screens/brand_products_page.dart';
@@ -65,6 +66,7 @@ abstract class RouteNames {
   static const login = 'login';
   static const signup = 'signup';
   static const forgotPassword = 'forgot-password';
+  static const resetPassword = 'reset-password';
   static const dashboard = 'dashboard';
   static const search = 'search';
   static const categories = 'categories';
@@ -216,6 +218,12 @@ abstract class AppRouter {
   static const String login = '/login';
   static const String signup = '/signup';
   static const String forgotPassword = '/forgot-password';
+
+  /// Landing path of Appwrite's password-recovery email link. Must stay in sync
+  /// with [AppwriteConfig.passwordRecoveryUrl], the `<data android:pathPrefix>`
+  /// in `android/app/src/main/AndroidManifest.xml`, and the components in
+  /// `web/.well-known/apple-app-site-association`.
+  static const String resetPassword = '/reset-password';
   static const String dashboard = '/';
   static const String search = '/search';
   static const String categories = '/categories';
@@ -253,7 +261,12 @@ abstract class AppRouter {
       GoRoute(
         path: splash,
         name: RouteNames.splash,
-        builder: (context, state) => const SplashScreen(),
+        // `?next=` lets a screen that started outside the normal boot path —
+        // e.g. a cold deep link into /reset-password, which skips the splash
+        // entirely — hand control back for the real bootstrap and still land
+        // somewhere specific afterwards.
+        builder: (context, state) =>
+            SplashScreen(nextLocation: state.uri.queryParameters['next']),
       ),
       GoRoute(
         path: forceUpdate,
@@ -279,6 +292,22 @@ abstract class AppRouter {
         path: forgotPassword,
         name: RouteNames.forgotPassword,
         builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: resetPassword,
+        name: RouteNames.resetPassword,
+        // Landing route for Appwrite's recovery email:
+        //   https://…/reset-password?userId=…&secret=…&expire=…
+        //
+        // Hydrated purely from the query string — a platform deep link (browser
+        // URL, Android App Link, iOS Universal Link) never carries `extra`.
+        //
+        // ⚠️ If a top-level auth `redirect` is ever added to this router, this
+        // path must be allowlisted: it is reached with no session by design.
+        builder: (context, state) => ResetPasswordScreen(
+          userId: state.uri.queryParameters['userId'] ?? '',
+          secret: state.uri.queryParameters['secret'] ?? '',
+        ),
       ),
       GoRoute(
         path: dashboard,

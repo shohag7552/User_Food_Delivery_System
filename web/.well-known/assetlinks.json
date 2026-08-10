@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.mehedi.food",
+      "sha256_cert_fingerprints": [
+        "E9:E3:BA:B3:B6:8B:15:89:75:2F:9D:49:78:75:B9:8B:A6:66:44:2C:2C:4B:83:EC:5B:EE:89:61:4B:E6:52:11"
+      ]
+    }
+  }
+]

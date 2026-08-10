@@ -39,6 +39,13 @@ class Constants {
   /// (product cards, list tiles). Keeps hit areas within accessibility limits.
   static const double minTapTarget = 40.0;
 
+  /// Diameter of the tinted circle behind a status/result icon (empty states,
+  /// auth outcome panels).
+  static const double iconCircleSize = 88.0;
+
+  /// Icon glyph size inside [iconCircleSize].
+  static const double iconSizeLarge = 44.0;
+
   /// Vertical gap between home sections.
   static const double spaceSection = 28.0;
 
