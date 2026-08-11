@@ -150,6 +150,26 @@ class _OrderSuccessPageState extends State<OrderSuccessPage>
   @override
   Widget build(BuildContext context) {
     final useWebShell = WebTopNav.isEnabled(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // On mobile this page has no AppBar, and an AppBar is what normally
+    // publishes a status-bar style. Without one the bar keeps whatever the
+    // previous route set — arriving from checkout's dark app bar, that means
+    // light icons sitting on this page's light background, i.e. an invisible
+    // clock and battery.
+    //
+    // AnnotatedRegion is scoped to this route, so the style reverts on its own
+    // when the page is left, unlike the imperative SystemChrome call in
+    // Global.setSystemUi.
+    final statusBarStyle = SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      // Android names this after the ICONS…
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      // …while iOS names the same idea after the BACKGROUND behind them, so
+      // the two values are always inverses of each other. Setting only one is
+      // the usual reason this looks right on one platform and not the other.
+      statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+    );
 
     final scaffold = Scaffold(
       key: _webScaffoldKey,
@@ -236,7 +256,10 @@ class _OrderSuccessPageState extends State<OrderSuccessPage>
         if (didPop || kIsWeb) return;
         _goHome();
       },
-      child: scaffold,
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: statusBarStyle,
+        child: scaffold,
+      ),
     );
   }
 
