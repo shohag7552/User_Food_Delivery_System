@@ -32,11 +32,18 @@ class BusinessSetupModel {
   final String storeLocation;
   final double? storeLatitude;
   final double? storeLongitude;
+  /// Require the deliveryman to enter the order's 6-digit verification code
+  /// before marking it delivered. Configured in the store admin panel.
+  final bool isOrderVerificationActive;
   final bool isStoreOpen;
   final bool isMaintenanceModeOn;
   // Module enablement — which storefront(s) this store runs.
   final bool isFoodModuleEnabled;
   final bool isEcommerceModuleEnabled;
+
+  /// Ecommerce orders are fulfilled by courier against a chosen shipping
+  /// method (tracking number, courier name) rather than by a deliveryman.
+  final bool isShippingMethodEnabled;
   final String defaultModule; // 'food' | 'ecommerce'
   // Force app update — the store admin flips these to require customers to
   // upgrade before continuing (see [requiresForceUpdate]).
@@ -87,10 +94,12 @@ class BusinessSetupModel {
     required this.storeLocation,
     this.storeLatitude,
     this.storeLongitude,
+    this.isOrderVerificationActive = false,
     required this.isStoreOpen,
     required this.isMaintenanceModeOn,
     this.isFoodModuleEnabled = true,
     this.isEcommerceModuleEnabled = false,
+    this.isShippingMethodEnabled = false,
     this.defaultModule = 'food',
     this.isForceUpdateActive = false,
     this.appMinVersion,
@@ -131,10 +140,12 @@ class BusinessSetupModel {
       storeLocation: json['store_location'] ?? '',
       storeLatitude: json['store_latitude']?.toDouble(),
       storeLongitude: json['store_longitude']?.toDouble(),
+      isOrderVerificationActive: json['is_order_verification_active'] ?? false,
       isStoreOpen: json['is_store_open'] ?? true,
       isMaintenanceModeOn: json['is_maintenance_mode_on'] ?? false,
       isFoodModuleEnabled: json['is_food_module_enabled'] ?? true,
       isEcommerceModuleEnabled: json['is_ecommerce_module_enabled'] ?? false,
+      isShippingMethodEnabled: json['is_shipping_method_enabled'] ?? false,
       defaultModule: json['default_module'] ?? 'food',
       isForceUpdateActive: json['is_force_update_active'] ?? false,
       appMinVersion: json['app_min_version'],
@@ -175,10 +186,12 @@ class BusinessSetupModel {
       'store_location': storeLocation,
       if (storeLatitude != null) 'store_latitude': storeLatitude,
       if (storeLongitude != null) 'store_longitude': storeLongitude,
+      'is_order_verification_active': isOrderVerificationActive,
       'is_store_open': isStoreOpen,
       'is_maintenance_mode_on': isMaintenanceModeOn,
       'is_food_module_enabled': isFoodModuleEnabled,
       'is_ecommerce_module_enabled': isEcommerceModuleEnabled,
+      'is_shipping_method_enabled': isShippingMethodEnabled,
       'default_module': defaultModule,
       'is_force_update_active': isForceUpdateActive,
       if (appMinVersion != null) 'app_min_version': appMinVersion,
@@ -213,10 +226,12 @@ class BusinessSetupModel {
     String? storeLocation,
     double? storeLatitude,
     double? storeLongitude,
+    bool? isOrderVerificationActive,
     bool? isStoreOpen,
     bool? isMaintenanceModeOn,
     bool? isFoodModuleEnabled,
     bool? isEcommerceModuleEnabled,
+    bool? isShippingMethodEnabled,
     String? defaultModule,
     bool? isForceUpdateActive,
     String? appMinVersion,
@@ -253,11 +268,15 @@ class BusinessSetupModel {
       storeLocation: storeLocation ?? this.storeLocation,
       storeLatitude: storeLatitude ?? this.storeLatitude,
       storeLongitude: storeLongitude ?? this.storeLongitude,
+      isOrderVerificationActive:
+          isOrderVerificationActive ?? this.isOrderVerificationActive,
       isStoreOpen: isStoreOpen ?? this.isStoreOpen,
       isMaintenanceModeOn: isMaintenanceModeOn ?? this.isMaintenanceModeOn,
       isFoodModuleEnabled: isFoodModuleEnabled ?? this.isFoodModuleEnabled,
       isEcommerceModuleEnabled:
           isEcommerceModuleEnabled ?? this.isEcommerceModuleEnabled,
+      isShippingMethodEnabled:
+          isShippingMethodEnabled ?? this.isShippingMethodEnabled,
       defaultModule: defaultModule ?? this.defaultModule,
       isForceUpdateActive: isForceUpdateActive ?? this.isForceUpdateActive,
       appMinVersion: appMinVersion ?? this.appMinVersion,

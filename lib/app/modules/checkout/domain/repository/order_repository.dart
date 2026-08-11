@@ -1,4 +1,7 @@
 import 'dart:developer';
+// `show Random` on purpose — dart:math also exports `log`, which would collide
+// with dart:developer's logging `log` used throughout this file.
+import 'dart:math' show Random;
 import 'package:appwrite/models.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
@@ -12,6 +15,23 @@ class OrderRepository implements OrderRepoInterface {
   final AppwriteService appwriteService;
 
   OrderRepository({required this.appwriteService});
+
+  /// Mints the order's delivery verification code — six digits the customer
+  /// reads out on the doorstep for the deliveryman to type in.
+  ///
+  /// Uses [Random.secure] rather than the default generator on purpose: the
+  /// code is the only thing standing between a parcel and the wrong person, so
+  /// it must not be predictable from other orders' codes. For the same reason
+  /// it is NOT derived from the sequential order number.
+  ///
+  /// No uniqueness check against existing orders, and none is needed: the code
+  /// is only ever checked against the one order being delivered, so two orders
+  /// sharing a code proves nothing to anybody. A round-trip to the database per
+  /// checkout would cost real latency to buy nothing.
+  String _generateDeliveryVerificationCode() {
+    final random = Random.secure();
+    return List.generate(6, (_) => random.nextInt(10)).join();
+  }
 
   /// Generates the next sequential order number (e.g. 10001, 10002, …)
   Future<String> _getNextOrderNumber() async {
@@ -70,6 +90,11 @@ class OrderRepository implements OrderRepoInterface {
         // the trailing 'Z' keeps it unambiguous across devices/timezones).
         'created_at': DateTime.now().toUtc().toIso8601String(),
         'module_type': ModuleController.current,
+        // Written on every order regardless of the store's
+        // `is_order_verification_active` setting — that switch can be flipped
+        // at any time, and orders already in flight when it happens still need
+        // a code the deliveryman can check.
+        'delivery_verification_code': _generateDeliveryVerificationCode(),
       };
 
       // Add delivery schedule information if provided

@@ -206,6 +206,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     return Column(
       children: [
         _buildHeader(order),
+        // Directly under the header: the customer needs this the moment the
+        // deliveryman is at the door, not after scrolling past the item list.
+        if (_shouldShowVerificationCode(order)) ...[
+          const SizedBox(height: 16),
+          _buildVerificationCode(order),
+        ],
         if (showTimeline) ...[
           const SizedBox(height: 16),
           _buildStatusTimeline(order),
@@ -265,6 +271,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
     // Right / summary column: status, meta and money.
     final summary = <Widget>[
+      // Top of the rail — same reasoning as mobile: this is the one thing the
+      // customer needs at hand when the deliveryman arrives.
+      if (_shouldShowVerificationCode(order)) ...[
+        _buildVerificationCode(order),
+        const SizedBox(height: 16),
+      ],
       if (showTimeline) ...[
         _buildStatusTimeline(order),
         const SizedBox(height: 16),
@@ -1383,6 +1395,114 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       default:
         return step;
     }
+  }
+
+  /// Whether to surface the handover code on this order.
+  ///
+  /// Four conditions, all necessary:
+  /// - the store actually requires verification (`is_order_verification_active`)
+  /// - the order carries a code — orders placed before this feature shipped,
+  ///   and POS counter sales, have none
+  /// - the order is not a courier-shipped ecommerce order (see below)
+  /// - the order is still in flight; once it is delivered or cancelled the code
+  ///   has done its job and showing it invites confusion
+  bool _shouldShowVerificationCode(OrderModel order) {
+    final businessSetup = Get.find<SettingsController>().businessSetup;
+    if (businessSetup?.isOrderVerificationActive != true) return false;
+    if ((order.deliveryVerificationCode ?? '').isEmpty) return false;
+
+    // An ecommerce order placed while shipping methods are on is handed to a
+    // courier, not a deliveryman — it is tracked by tracking number and there
+    // is nobody at the door to read a code to. Food orders, and ecommerce
+    // orders fulfilled by the store's own rider, still need it.
+    final shipsByCourier =
+        order.moduleType == 'ecommerce' &&
+        businessSetup?.isShippingMethodEnabled == true;
+    if (shipsByCourier) return false;
+
+    final status = order.status.toLowerCase();
+    return status != 'delivered' &&
+        status != 'completed' &&
+        status != 'cancelled' &&
+        status != 'returned' &&
+        status != 'refunded';
+  }
+
+  /// The code the customer reads out on the doorstep. Set large and widely
+  /// tracked because it is going to be read aloud, often in bad light through a
+  /// half-open door — legibility matters more here than fitting the card's
+  /// usual type scale.
+  Widget _buildVerificationCode(OrderModel order) {
+    final code = order.deliveryVerificationCode!;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: Constants.paddingSizeDefault),
+      padding: const EdgeInsets.all(Constants.paddingSizeDefault),
+      decoration: BoxDecoration(
+        color: context.cardBackground,
+        borderRadius: BorderRadius.circular(Constants.radiusLarge),
+        boxShadow: ColorResource.customShadow,
+        border: Border.all(
+          color: ColorResource.primaryDark.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.verified_user_outlined,
+                color: ColorResource.primaryDark,
+                size: 20,
+              ),
+              const SizedBox(width: Constants.paddingSizeSmall),
+              Expanded(
+                child: Text(
+                  'delivery_verification_code'.tr,
+                  style: poppinsBold.copyWith(
+                    fontSize: Constants.fontSizeLarge,
+                    color: context.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: Constants.paddingSizeDefault),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: Constants.paddingSizeLarge,
+                vertical: Constants.paddingSizeSmall,
+              ),
+              decoration: BoxDecoration(
+                color: ColorResource.primaryDark.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(Constants.radiusDefault),
+              ),
+              child: Text(
+                code,
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeOverLarge + 6,
+                  color: ColorResource.primaryDark,
+                  letterSpacing: 8,
+                  // Digits read aloud must not wobble between glyph widths.
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: Constants.paddingSizeDefault),
+          Text(
+            'share_code_with_deliveryman'.tr,
+            style: poppinsRegular.copyWith(
+              fontSize: Constants.fontSizeSmall,
+              color: context.textSecondary,
+              height: 1.45,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildTrackingInfo(OrderModel order) {

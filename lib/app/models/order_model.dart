@@ -30,6 +30,11 @@ class OrderModel {
   final String? trackingNumber;
   final String? courierName;
 
+  /// 6-digit code the customer reads out on the doorstep so the deliveryman
+  /// can confirm handover. Minted at order placement; null on older orders
+  /// and on POS counter sales.
+  final String? deliveryVerificationCode;
+
   OrderModel({
     required this.id,
     required this.orderNumber,
@@ -56,6 +61,7 @@ class OrderModel {
     this.shippingMethod,
     this.trackingNumber,
     this.courierName,
+    this.deliveryVerificationCode,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
@@ -94,6 +100,8 @@ class OrderModel {
       shippingMethod: json['shipping_method'] as String?,
       trackingNumber: json['tracking_number'] as String?,
       courierName: json['courier_name'] as String?,
+      deliveryVerificationCode:
+          json['delivery_verification_code'] as String?,
     );
   }
 
@@ -123,6 +131,7 @@ class OrderModel {
     String? shippingMethod,
     String? trackingNumber,
     String? courierName,
+    String? deliveryVerificationCode,
   }) {
     return OrderModel(
       id: id ?? this.id,
@@ -150,6 +159,8 @@ class OrderModel {
       shippingMethod: shippingMethod ?? this.shippingMethod,
       trackingNumber: trackingNumber ?? this.trackingNumber,
       courierName: courierName ?? this.courierName,
+      deliveryVerificationCode:
+          deliveryVerificationCode ?? this.deliveryVerificationCode,
     );
   }
 }

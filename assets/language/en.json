@@ -742,5 +742,7 @@
   "reset_email_service_unavailable": "Password reset emails are temporarily unavailable. Please contact support.",
   "account_blocked_contact_support": "This account is blocked. Please contact support.",
   "password_recently_used": "You've used this password recently. Please choose a different one.",
-  "password_too_personal": "Please choose a password that doesn't contain your name or email."
+  "password_too_personal": "Please choose a password that doesn't contain your name or email.",
+  "delivery_verification_code": "Delivery verification code",
+  "share_code_with_deliveryman": "Share this code with the delivery person when your order arrives. Don't share it with anyone else."
 }
