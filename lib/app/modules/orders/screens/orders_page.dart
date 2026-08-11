@@ -11,6 +11,7 @@ import 'package:appwrite_user_app/app/models/order_model.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -65,16 +66,34 @@ class _OrdersPageState extends State<OrdersPage> {
   Widget build(BuildContext context) {
     final isWide = MediaQuery.of(context).size.width >= _webBreakpoint;
     _isWide = isWide;
+    final canPop = Navigator.of(context).canPop();
     // As a dashboard tab on web the shared top-nav is already shown, so drop the
     // page's own app bar — unless this page was pushed as a standalone route.
-    final hideAppBar =
-        WebTopNav.isEnabled(context) && !Navigator.of(context).canPop();
+    final hideAppBar = WebTopNav.isEnabled(context) && !canPop;
 
-    return Scaffold(
+    // Nothing to pop back to. Happens whenever this page was reached by a
+    // stack-replacing `go` — the order-success page does exactly that so the
+    // success screen can't be returned to — or opened straight from a URL.
+    // Without a fallback the app bar renders no back button and Android's back
+    // gesture closes the app instead of leaving the page.
+    final needsHomeFallback = !canPop;
+
+    final scaffold = Scaffold(
       backgroundColor: context.scaffoldBackground,
       appBar: hideAppBar
           ? null
           : AppBar(
+              // Null keeps Flutter's automatic back button whenever the route
+              // really can pop; only the dead-end case is overridden.
+              leading: needsHomeFallback
+                  ? IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      color: ColorResource.textWhite,
+                      onPressed: _goHome,
+                      tooltip:
+                          MaterialLocalizations.of(context).backButtonTooltip,
+                    )
+                  : null,
               title: Text(
                 'my_orders'.tr,
                 style: poppinsBold.copyWith(
@@ -96,7 +115,26 @@ class _OrdersPageState extends State<OrdersPage> {
               ),
       ),
     );
+
+    // PopScope is deliberately skipped on web: there the browser's own back
+    // button drives go_router through browser history, and forcing
+    // `canPop: false` would fight it. Web already has the top-nav (wide) or the
+    // app-bar button added above (narrow) to get out of this page.
+    if (kIsWeb || !needsHomeFallback) return scaffold;
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _goHome();
+      },
+      child: scaffold,
+    );
   }
+
+  /// Leaves this page for the dashboard. Used only when there is no back stack
+  /// to pop, so it can't strand the user or double up with a real pop.
+  void _goHome() => context.goNamed(RouteNames.dashboard);
 
   Widget _buildWebBody(bool showInlineTitle) {
     return Column(
