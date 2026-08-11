@@ -710,5 +710,7 @@
   "password_recently_used": "لقد استخدمت كلمة المرور هذه مؤخرًا. اختر كلمة مرور مختلفة.",
   "password_too_personal": "اختر كلمة مرور لا تحتوي على اسمك أو بريدك الإلكتروني.",
   "delivery_verification_code": "رمز تأكيد التسليم",
-  "share_code_with_deliveryman": "أخبر مندوب التوصيل بهذا الرمز عند وصول طلبك. لا تشاركه مع أي شخص آخر."
+  "share_code_with_deliveryman": "أخبر مندوب التوصيل بهذا الرمز عند وصول طلبك. لا تشاركه مع أي شخص آخر.",
+  "loyalty_points_count": "ستحصل على @points نقطة",
+  "loyalty_points_earn_on_delivery": "تُضاف إلى رصيدك بمجرد تسليم هذا الطلب"
 }

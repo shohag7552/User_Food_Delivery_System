@@ -23,6 +23,10 @@ class BusinessSetupModel {
   /// unset (e.g. ecommerce). See [asapEstimateLabel].
   final int? minDeliveryTime;
   final int? maxDeliveryTime;
+  /// Master switch for the loyalty programme, owned by the store admin. When
+  /// off the app must not advertise or promise points. Defaults to true so a
+  /// store running the programme before this flag existed keeps working.
+  final bool isLoyaltyPointEnabled;
   final double loyaltyPointEarningRate;
   final double loyaltyPointWalletRate;
 
@@ -91,6 +95,7 @@ class BusinessSetupModel {
     this.maxDeliveryRadius,
     this.minDeliveryTime,
     this.maxDeliveryTime,
+    this.isLoyaltyPointEnabled = true,
     this.loyaltyPointEarningRate = 1.0,
     this.loyaltyPointWalletRate = 0.10,
     this.vatPercentage = 0.0,
@@ -136,6 +141,7 @@ class BusinessSetupModel {
       maxDeliveryRadius: json['max_delivery_radius']?.toDouble(),
       minDeliveryTime: (json['min_delivery_time'] as num?)?.toInt(),
       maxDeliveryTime: (json['max_delivery_time'] as num?)?.toInt(),
+      isLoyaltyPointEnabled: json['is_loyalty_point_enabled'] ?? true,
       loyaltyPointEarningRate: (json['loyalty_point_earning_rate'] ?? 1.0)
           .toDouble(),
       loyaltyPointWalletRate: (json['loyalty_point_wallet_rate'] ?? 0.10)
@@ -185,6 +191,7 @@ class BusinessSetupModel {
       if (maxDeliveryRadius != null) 'max_delivery_radius': maxDeliveryRadius,
       if (minDeliveryTime != null) 'min_delivery_time': minDeliveryTime,
       if (maxDeliveryTime != null) 'max_delivery_time': maxDeliveryTime,
+      'is_loyalty_point_enabled': isLoyaltyPointEnabled,
       'loyalty_point_earning_rate': loyaltyPointEarningRate,
       'loyalty_point_wallet_rate': loyaltyPointWalletRate,
       'vat_percentage': vatPercentage,
@@ -226,6 +233,7 @@ class BusinessSetupModel {
     double? maxDeliveryRadius,
     int? minDeliveryTime,
     int? maxDeliveryTime,
+    bool? isLoyaltyPointEnabled,
     double? loyaltyPointEarningRate,
     double? loyaltyPointWalletRate,
     double? vatPercentage,
@@ -267,6 +275,8 @@ class BusinessSetupModel {
       maxDeliveryRadius: maxDeliveryRadius ?? this.maxDeliveryRadius,
       minDeliveryTime: minDeliveryTime ?? this.minDeliveryTime,
       maxDeliveryTime: maxDeliveryTime ?? this.maxDeliveryTime,
+      isLoyaltyPointEnabled:
+          isLoyaltyPointEnabled ?? this.isLoyaltyPointEnabled,
       loyaltyPointEarningRate:
           loyaltyPointEarningRate ?? this.loyaltyPointEarningRate,
       loyaltyPointWalletRate:

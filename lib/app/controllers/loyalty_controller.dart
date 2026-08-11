@@ -21,9 +21,38 @@ class LoyaltyController extends GetxController implements GetxService {
   bool get isLoading => _isLoading;
   bool get isConverting => _isConverting;
 
+  /// Whether the store is running the loyalty programme at all. Everything the
+  /// app shows about points has to respect this — promising points that will
+  /// never arrive is worse than staying quiet.
+  bool get isLoyaltyEnabled {
+    if (!Get.isRegistered<SettingsController>()) return false;
+    return Get.find<SettingsController>().businessSetup?.isLoyaltyPointEnabled ??
+        true;
+  }
+
   double get earningRate {
     final settingsController = Get.find<SettingsController>();
     return settingsController.businessSetup?.loyaltyPointEarningRate ?? 1.0;
+  }
+
+  /// Points an order of [orderTotal] will earn once it is delivered.
+  ///
+  /// Mirrors the store app's award arithmetic exactly
+  /// (`order_repository._addLoyaltyPointsForDeliveredOrder`): the grand total
+  /// times the earning rate, floored. Returns 0 when the programme is off, so
+  /// callers can simply hide the row.
+  int pointsForOrderTotal(double orderTotal) {
+    // Business setup not loaded yet — say nothing rather than quoting a figure
+    // computed from the fallback rate, which would be wrong for any store that
+    // configured a different one.
+    if (!Get.isRegistered<SettingsController>()) return 0;
+    final setup = Get.find<SettingsController>().businessSetup;
+    if (setup == null) return 0;
+
+    if (!setup.isLoyaltyPointEnabled) return 0;
+    final rate = setup.loyaltyPointEarningRate;
+    if (rate <= 0 || orderTotal <= 0) return 0;
+    return (orderTotal * rate).floor();
   }
 
   double get walletConversionRate {

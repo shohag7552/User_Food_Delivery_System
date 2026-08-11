@@ -1,4 +1,5 @@
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
+import 'package:appwrite_user_app/app/controllers/loyalty_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
@@ -239,6 +240,7 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
               ],
             ),
           ),
+          _buildLoyaltyEarning(),
         ],
       ),
     );
@@ -330,6 +332,77 @@ class _OrderSuccessPageState extends State<OrderSuccessPage> {
           ),
         ],
       ),
+    );
+  }
+
+  /// "You'll earn N points" — only when the store is actually running the
+  /// loyalty programme.
+  ///
+  /// Points are awarded by the store app when the order reaches `delivered`,
+  /// not now, so the copy promises a future credit rather than implying the
+  /// balance has already moved. [LoyaltyController.pointsForOrderTotal] mirrors
+  /// the store's award arithmetic, and returns 0 when the programme is off or
+  /// the rate rounds the order down to nothing — either way the row is hidden
+  /// instead of showing "0 points".
+  Widget _buildLoyaltyEarning() {
+    if (!Get.isRegistered<LoyaltyController>()) return const SizedBox.shrink();
+
+    return GetBuilder<LoyaltyController>(
+      builder: (loyaltyController) {
+        final points = loyaltyController.pointsForOrderTotal(totalAmount);
+        if (points <= 0) return const SizedBox.shrink();
+
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(top: 14),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: ColorResource.success.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: ColorResource.success.withValues(alpha: 0.18),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: ColorResource.success,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.stars_rounded,
+                    color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'loyalty_points_count'.trParams({'points': '$points'}),
+                      style: poppinsBold.copyWith(
+                        fontSize: Constants.fontSizeDefault,
+                        color: context.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'loyalty_points_earn_on_delivery'.tr,
+                      style: poppinsRegular.copyWith(
+                        fontSize: Constants.fontSizeSmall,
+                        color: context.textSecondary,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
