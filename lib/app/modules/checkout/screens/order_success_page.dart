@@ -1,13 +1,17 @@
+import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/loyalty_controller.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
+import 'package:appwrite_user_app/app/modules/checkout/widgets/animated_success_mark.dart';
+import 'package:appwrite_user_app/app/modules/checkout/widgets/confetti_burst.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
@@ -35,19 +39,36 @@ class OrderSuccessPage extends StatefulWidget {
 }
 
 class _OrderSuccessPageState extends State<OrderSuccessPage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   /// Confirmation content reads like a receipt — keep it a narrow centred
   /// column on desktop web instead of stretching edge to edge.
   static const double _maxContentWidth = 480;
 
-  /// Diameter of the success mark, and of the soft glow behind it.
-  static const double _successMarkSize = 96;
-  static const double _glowSize = 220;
+  /// Diameter of the success mark's filled disc. The widget sizes its own
+  /// canvas around this to leave room for the ring and ripples.
+  static const double _successMarkSize = 80;
 
   final GlobalKey<ScaffoldState> _webScaffoldKey = GlobalKey<ScaffoldState>();
 
-  late final AnimationController _animationController;
-  late final Animation<double> _markScale;
+  /// Mark + confetti. Separate from the content so tapping the mark can replay
+  /// the celebration without the receipt fading out and back in underneath it —
+  /// a replay should look like the moment happening again, not like the page
+  /// reloading.
+  static const Duration _celebrationDuration = Duration(milliseconds: 2200);
+  static const Interval _markInterval = Interval(0, 0.46);
+
+  /// Fires as the tick completes, so the confetti reads as its reward.
+  static const Interval _confettiInterval = Interval(0.4, 1);
+
+  /// Content rises once, on first open, and then stays put.
+  static const Duration _contentDuration = Duration(milliseconds: 900);
+  static const Interval _contentInterval =
+      Interval(0.34, 1, curve: Curves.easeOut);
+
+  late final AnimationController _celebrationController;
+  late final AnimationController _contentController;
+  late final Animation<double> _markProgress;
+  late final Animation<double> _confettiProgress;
   late final Animation<double> _contentFade;
   late final Animation<Offset> _contentSlide;
 
@@ -57,33 +78,68 @@ class _OrderSuccessPageState extends State<OrderSuccessPage>
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
+
+    _celebrationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 700),
+      duration: _celebrationDuration,
+    );
+    _contentController = AnimationController(
+      vsync: this,
+      duration: _contentDuration,
     );
 
-    // The mark lands first with a slight overshoot, then the receipt rises
-    // under it — a short sequence reads as one confirmation, where fading
-    // everything at once reads as a page that was simply slow to paint.
-    _markScale = CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0, 0.55, curve: Curves.easeOutBack),
+    _markProgress = CurvedAnimation(
+      parent: _celebrationController,
+      curve: _markInterval,
+    );
+    _confettiProgress = CurvedAnimation(
+      parent: _celebrationController,
+      curve: _confettiInterval,
     );
     _contentFade = CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0.35, 1, curve: Curves.easeOut),
+      parent: _contentController,
+      curve: _contentInterval,
     );
     _contentSlide = Tween<Offset>(
       begin: const Offset(0, 0.06),
       end: Offset.zero,
     ).animate(_contentFade);
+  }
 
-    _animationController.forward();
+  /// Started here rather than in [initState] because the decision depends on
+  /// MediaQuery. With reduce-motion on, both controllers are jumped to their
+  /// end value so everything renders its final frame and nothing ever moves.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_celebrationController.status != AnimationStatus.dismissed) return;
+
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _celebrationController.value = 1;
+      _contentController.value = 1;
+    } else {
+      _celebrationController.forward();
+      _contentController.forward();
+    }
+  }
+
+  /// Replays the mark and confetti on demand. Ignored under reduce-motion —
+  /// an explicit tap does not override an accessibility preference.
+  void _replayCelebration() {
+    if (MediaQuery.disableAnimationsOf(context)) return;
+    _celebrationController.forward(from: 0);
+  }
+
+  Future<void> _copyOrderNumber() async {
+    await Clipboard.setData(ClipboardData(text: orderNumber));
+    if (!mounted) return;
+    customToster('order_number_copied'.tr, isSuccess: true);
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _celebrationController.dispose();
+    _contentController.dispose();
     super.dispose();
   }
 
@@ -106,45 +162,67 @@ class _OrderSuccessPageState extends State<OrderSuccessPage>
               onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
             )
           : null,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: Constants.paddingSizeLarge,
-              vertical: Constants.paddingSizeExtraLarge,
-            ),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildSuccessMark(),
-                  const SizedBox(height: Constants.paddingSizeExtraLarge),
-                  FadeTransition(
-                    opacity: _contentFade,
-                    child: SlideTransition(
-                      position: _contentSlide,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _buildHeadline(),
-                          const SizedBox(height: Constants.paddingSizeExtraLarge),
-                          _buildOrderNumberCard(),
-                          _buildLoyaltyEarning(),
-                          const SizedBox(height: Constants.paddingSizeDefault),
-                          _buildTrackHint(),
-                          const SizedBox(height: Constants.spaceSection),
-                          _buildActions(),
-                        ],
+      // The confetti sits above the content as a full-bleed overlay so pieces
+      // can travel past the receipt and off the edges of the screen. It never
+      // takes pointer events, so the buttons underneath stay usable while it
+      // is still falling.
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Constants.paddingSizeLarge,
+                  vertical: Constants.paddingSizeExtraLarge,
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(child: _buildTappableMark()),
+                      const SizedBox(height: Constants.paddingSizeSmall),
+                      FadeTransition(
+                        opacity: _contentFade,
+                        child: SlideTransition(
+                          position: _contentSlide,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildHeadline(),
+                              const SizedBox(
+                                height: Constants.paddingSizeLarge,
+                              ),
+                              _buildOrderNumberCard(),
+                              _buildLoyaltyEarning(),
+                              const SizedBox(
+                                height: Constants.paddingSizeDefault,
+                              ),
+                              _buildTrackHint(),
+                              const SizedBox(height: Constants.spaceSection),
+                              _buildActions(),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: ConfettiBurst(
+                progress: _confettiProgress,
+                // Roughly where the success mark sits, so the burst reads as
+                // coming from behind it rather than from the top of the page.
+                origin: const Offset(0.5, 0.26),
+              ),
+            ),
+          ),
+        ],
       ),
     );
 
@@ -162,59 +240,24 @@ class _OrderSuccessPageState extends State<OrderSuccessPage>
     );
   }
 
-  /// Success mark: a filled brand-green disc on a soft glow of the same hue.
-  ///
-  /// Scaled in rather than cross-faded — the overshoot is what makes it read as
-  /// a stamp landing. Honours the platform's "reduce motion" setting, where the
-  /// controller is left at its end value instead.
-  Widget _buildSuccessMark() {
-    final reduceMotion = MediaQuery.disableAnimationsOf(context);
-
-    final mark = Container(
-      width: _successMarkSize,
-      height: _successMarkSize,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: ColorResource.success,
-        boxShadow: [
-          BoxShadow(
-            color: ColorResource.success.withValues(alpha: 0.35),
-            blurRadius: 28,
-            offset: const Offset(0, 12),
+  /// The mark doubles as a replay button. Deliberately undecorated — no ring,
+  /// no ripple hint — because it must still read as a status icon first; the
+  /// tooltip and the long-press label carry the affordance for anyone looking
+  /// for it.
+  Widget _buildTappableMark() {
+    return Semantics(
+      button: true,
+      label: 'tap_to_replay'.tr,
+      child: Tooltip(
+        message: 'tap_to_replay'.tr,
+        child: GestureDetector(
+          onTap: _replayCelebration,
+          behavior: HitTestBehavior.opaque,
+          child: AnimatedSuccessMark(
+            progress: _markProgress,
+            size: _successMarkSize,
           ),
-        ],
-      ),
-      child: const Icon(
-        Icons.check_rounded,
-        size: 52,
-        color: ColorResource.textWhite,
-      ),
-    );
-
-    return SizedBox(
-      height: _glowSize * 0.62,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Ambient glow, drawn behind and clipped by nothing — it fades to
-          // transparent so it sits on either theme's ground without a seam.
-          IgnorePointer(
-            child: Container(
-              width: _glowSize,
-              height: _glowSize,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    ColorResource.success.withValues(alpha: 0.16),
-                    ColorResource.success.withValues(alpha: 0),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          if (reduceMotion) mark else ScaleTransition(scale: _markScale, child: mark),
-        ],
+        ),
       ),
     );
   }
@@ -247,56 +290,61 @@ class _OrderSuccessPageState extends State<OrderSuccessPage>
 
   /// The one thing worth keeping from this screen.
   ///
-  /// A single value gets a single-purpose panel rather than a label/value row:
-  /// with nothing to align against, a two-column layout just pushes the number
-  /// to an edge. Centred and stacked, the number is the largest thing on the
-  /// card and reads at a glance — which is what people do with it, quoting it
-  /// back when they contact support.
+  /// Sized to the number rather than stretched across the column. A full-width
+  /// card holding one short centred value leaves a lot of empty panel around a
+  /// little bit of text, which is what made this section feel unsettled — a
+  /// pill that hugs its contents sits still.
+  ///
+  /// Tapping copies. That is the one thing people do with an order number, and
+  /// it also gives the container a job, so it reads as a control rather than
+  /// decoration around a value.
   Widget _buildOrderNumberCard() {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Constants.paddingSizeDefault,
-        vertical: Constants.paddingSizeLarge,
-      ),
-      decoration: BoxDecoration(
-        color: context.cardBackground,
-        borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
-        // Brand-tinted edge rather than a neutral hairline: this panel is the
-        // page's reference number, not just another surface.
-        border: Border.all(
-          color: ColorResource.primaryDark.withValues(alpha: 0.22),
-        ),
-        boxShadow: ColorResource.customShadow,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'order_number'.tr.toUpperCase(),
-            textAlign: TextAlign.center,
-            style: poppinsMedium.copyWith(
-              fontSize: Constants.fontSizeExtraSmall,
-              color: context.textSecondary,
-              letterSpacing: 1.4,
-            ),
-          ),
-          const SizedBox(height: Constants.paddingSizeSmall),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              '#$orderNumber',
-              maxLines: 1,
-              style: poppinsBold.copyWith(
-                fontSize: Constants.fontSizeOverLarge,
-                color: ColorResource.primaryDark,
-                letterSpacing: 1.5,
-                // Even glyph widths — the number is read digit by digit.
-                fontFeatures: const [FontFeature.tabularFigures()],
+    final borderRadius = BorderRadius.circular(Constants.radiusExtraLarge);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Material(
+          color: ColorResource.primaryDark.withValues(alpha: 0.07),
+          borderRadius: borderRadius,
+          child: InkWell(
+            onTap: _copyOrderNumber,
+            borderRadius: borderRadius,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: Constants.paddingSizeLarge,
+                vertical: Constants.paddingSizeSmall + 2,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      '#$orderNumber',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: poppinsBold.copyWith(
+                        fontSize: Constants.fontSizeOverLarge,
+                        color: ColorResource.primaryDark,
+                        // Enough to separate the digits, not so much that the
+                        // number stops reading as one token.
+                        letterSpacing: 0.8,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: Constants.paddingSizeSmall),
+                  Icon(
+                    Icons.copy_rounded,
+                    size: 18,
+                    color: ColorResource.primaryDark.withValues(alpha: 0.65),
+                  ),
+                ],
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

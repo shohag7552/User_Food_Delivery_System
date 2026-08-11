@@ -715,5 +715,7 @@
   "loyalty_points_earn_on_delivery": "تُضاف إلى رصيدك بمجرد تسليم هذا الطلب",
   "order_confirmed": "تم تأكيد الطلب",
   "amount_paid": "المبلغ المدفوع",
-  "track_order_hint": "تابع هذا الطلب في أي وقت من صفحة طلباتي."
+  "track_order_hint": "تابع هذا الطلب في أي وقت من صفحة طلباتي.",
+  "order_number_copied": "تم نسخ رقم الطلب",
+  "tap_to_replay": "اضغط للإعادة"
 }

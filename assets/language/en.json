@@ -749,5 +749,7 @@
   "loyalty_points_earn_on_delivery": "Added to your balance once this order is delivered",
   "order_confirmed": "Order confirmed",
   "amount_paid": "Amount paid",
-  "track_order_hint": "Track this order anytime from My Orders."
+  "track_order_hint": "Track this order anytime from My Orders.",
+  "order_number_copied": "Order number copied",
+  "tap_to_replay": "Tap to replay"
 }
