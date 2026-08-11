@@ -44,6 +44,9 @@ class BusinessSetupModel {
   /// Ecommerce orders are fulfilled by courier against a chosen shipping
   /// method (tracking number, courier name) rather than by a deliveryman.
   final bool isShippingMethodEnabled;
+
+  /// The store delivers orders itself, without the deliveryman app.
+  final bool isSelfDelivery;
   final String defaultModule; // 'food' | 'ecommerce'
   // Force app update — the store admin flips these to require customers to
   // upgrade before continuing (see [requiresForceUpdate]).
@@ -100,6 +103,7 @@ class BusinessSetupModel {
     this.isFoodModuleEnabled = true,
     this.isEcommerceModuleEnabled = false,
     this.isShippingMethodEnabled = false,
+    this.isSelfDelivery = false,
     this.defaultModule = 'food',
     this.isForceUpdateActive = false,
     this.appMinVersion,
@@ -146,6 +150,7 @@ class BusinessSetupModel {
       isFoodModuleEnabled: json['is_food_module_enabled'] ?? true,
       isEcommerceModuleEnabled: json['is_ecommerce_module_enabled'] ?? false,
       isShippingMethodEnabled: json['is_shipping_method_enabled'] ?? false,
+      isSelfDelivery: json['is_self_delivery'] ?? false,
       defaultModule: json['default_module'] ?? 'food',
       isForceUpdateActive: json['is_force_update_active'] ?? false,
       appMinVersion: json['app_min_version'],
@@ -192,6 +197,7 @@ class BusinessSetupModel {
       'is_food_module_enabled': isFoodModuleEnabled,
       'is_ecommerce_module_enabled': isEcommerceModuleEnabled,
       'is_shipping_method_enabled': isShippingMethodEnabled,
+      'is_self_delivery': isSelfDelivery,
       'default_module': defaultModule,
       'is_force_update_active': isForceUpdateActive,
       if (appMinVersion != null) 'app_min_version': appMinVersion,
@@ -232,6 +238,7 @@ class BusinessSetupModel {
     bool? isFoodModuleEnabled,
     bool? isEcommerceModuleEnabled,
     bool? isShippingMethodEnabled,
+    bool? isSelfDelivery,
     String? defaultModule,
     bool? isForceUpdateActive,
     String? appMinVersion,
@@ -277,6 +284,7 @@ class BusinessSetupModel {
           isEcommerceModuleEnabled ?? this.isEcommerceModuleEnabled,
       isShippingMethodEnabled:
           isShippingMethodEnabled ?? this.isShippingMethodEnabled,
+      isSelfDelivery: isSelfDelivery ?? this.isSelfDelivery,
       defaultModule: defaultModule ?? this.defaultModule,
       isForceUpdateActive: isForceUpdateActive ?? this.isForceUpdateActive,
       appMinVersion: appMinVersion ?? this.appMinVersion,

@@ -1399,10 +1399,14 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   /// Whether to surface the handover code on this order.
   ///
-  /// Four conditions, all necessary:
-  /// - the store actually requires verification (`is_order_verification_active`)
+  /// The code exists for one moment only: a deliveryman at the door needing
+  /// proof the parcel reached the right person. Every condition below removes a
+  /// case where that moment never happens.
+  ///
+  /// - the store requires verification at all (`is_order_verification_active`)
   /// - the order carries a code — orders placed before this feature shipped,
   ///   and POS counter sales, have none
+  /// - the store is not self-delivering (see below)
   /// - the order is not a courier-shipped ecommerce order (see below)
   /// - the order is still in flight; once it is delivered or cancelled the code
   ///   has done its job and showing it invites confusion
@@ -1410,6 +1414,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     final businessSetup = Get.find<SettingsController>().businessSetup;
     if (businessSetup?.isOrderVerificationActive != true) return false;
     if ((order.deliveryVerificationCode ?? '').isEmpty) return false;
+
+    // Self delivery means the store drops orders off itself, without the
+    // deliveryman app — so nothing exists to type the code into.
+    if (businessSetup?.isSelfDelivery == true) return false;
 
     // An ecommerce order placed while shipping methods are on is handed to a
     // courier, not a deliveryman — it is tracked by tracking number and there
