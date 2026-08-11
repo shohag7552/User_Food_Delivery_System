@@ -746,5 +746,8 @@
   "delivery_verification_code": "Delivery verification code",
   "share_code_with_deliveryman": "Share this code with the delivery person when your order arrives. Don't share it with anyone else.",
   "loyalty_points_count": "You'll earn @points points",
-  "loyalty_points_earn_on_delivery": "Added to your balance once this order is delivered"
+  "loyalty_points_earn_on_delivery": "Added to your balance once this order is delivered",
+  "order_confirmed": "Order confirmed",
+  "amount_paid": "Amount paid",
+  "track_order_hint": "Track this order anytime from My Orders."
 }

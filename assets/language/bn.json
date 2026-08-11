@@ -735,5 +735,8 @@
   "delivery_verification_code": "ডেলিভারি ভেরিফিকেশন কোড",
   "share_code_with_deliveryman": "অর্ডার পৌঁছালে ডেলিভারি ব্যক্তিকে এই কোডটি বলুন। অন্য কারও সাথে শেয়ার করবেন না।",
   "loyalty_points_count": "আপনি @points পয়েন্ট পাবেন",
-  "loyalty_points_earn_on_delivery": "অর্ডারটি ডেলিভারি হলে আপনার ব্যালেন্সে যোগ হবে"
+  "loyalty_points_earn_on_delivery": "অর্ডারটি ডেলিভারি হলে আপনার ব্যালেন্সে যোগ হবে",
+  "order_confirmed": "অর্ডার নিশ্চিত হয়েছে",
+  "amount_paid": "পরিশোধিত পরিমাণ",
+  "track_order_hint": "যেকোনো সময় ‘আমার অর্ডার’ থেকে এই অর্ডার ট্র্যাক করুন।"
 }
