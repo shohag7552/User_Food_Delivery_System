@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/modules/ecommerce/widgets/ecommerce_card_metrics.dart';
 import 'package:appwrite_user_app/app/common/widgets/hover_arrow_carousel.dart';
 import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
 import 'package:appwrite_user_app/app/controllers/flash_sale_controller.dart';
@@ -163,7 +164,13 @@ class FlashSaleSection extends StatelessWidget {
 
                 // Cards strip — hover arrows on wide/web layouts.
                 HoverArrowCarousel(
-                  height: isWide ? 356 : 296,
+                  // Web follows the All Products grid so a flash-sale card is
+                  // the same size as the cards further down the page.
+                  height: isWide
+                      ? EcommerceCardMetrics.webCardHeight(
+                          MediaQuery.of(context).size.width,
+                        )
+                      : 296,
                   builder: (context, carouselController) =>
                       ListView.separated(
                     controller: carouselController,
@@ -171,10 +178,16 @@ class FlashSaleSection extends StatelessWidget {
                     physics: const BouncingScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
                     itemCount: controller.items.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: 14),
+                    separatorBuilder: (_, _) => SizedBox(
+                      width: isWide ? EcommerceCardMetrics.spacing : 14,
+                    ),
                     itemBuilder: (context, index) {
                       final card = SizedBox(
-                        width: isWide ? 230 : 175,
+                        width: isWide
+                            ? EcommerceCardMetrics.webCardWidth(
+                                MediaQuery.of(context).size.width,
+                              )
+                            : 175,
                         child: FlashSaleItemCard(
                           item: controller.items[index],
                         ),

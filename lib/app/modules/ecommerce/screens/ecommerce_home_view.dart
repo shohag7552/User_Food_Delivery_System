@@ -17,6 +17,7 @@ import 'package:appwrite_user_app/app/models/brand_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/promotional_banner.dart';
 import 'package:appwrite_user_app/app/modules/ecommerce/widgets/all_products_header.dart';
+import 'package:appwrite_user_app/app/modules/ecommerce/widgets/ecommerce_card_metrics.dart';
 import 'package:appwrite_user_app/app/modules/ecommerce/widgets/ecommerce_product_card.dart';
 import 'package:appwrite_user_app/app/modules/flash_sale/widgets/flash_sale_section.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -111,10 +112,33 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
   double _sidePadding(double width) =>
       width > _maxContentWidth + 32 ? (width - _maxContentWidth) / 2 : 16;
 
-  /// Columns for the product grid, derived from the available content width
-  /// (~210px target per card) so it scales from 2 on mobile up to 6 on desktop.
-  int _gridColumns(double contentWidth) =>
-      (contentWidth / 210).floor().clamp(2, 6);
+  /// Columns for the product grid.
+  ///
+  /// Explicit breakpoints rather than the old `(contentWidth / 210)` division,
+  /// which produced **5** columns at the 1200px content cap and squeezed each
+  /// card to ~228px — too tight for a square image, a two-line name, a rating
+  /// row and a price to sit comfortably together. Four columns give each card
+  /// ~285px, which is the width the card was designed around.
+  ///
+  /// Named widths also make the ladder readable: you can see what a tablet
+  /// gets without doing arithmetic.
+  int _gridColumns(double contentWidth) {
+    // Desktop reads the shared metric — the strips size their cards from the
+    // same number, so the two can never disagree.
+    if (contentWidth >= 1000) return EcommerceCardMetrics.webColumns;
+    if (contentWidth >= 700) return 3; // tablet / small laptop
+    return 2; // phones
+  }
+
+  /// Gutter between product tiles.
+  ///
+  /// Scales with the tile size: at four columns the cards are nearly twice as
+  /// wide as on a phone, and the tighter 15px gap that suits a 157px card
+  /// starts to read as crowding once the cards are ~285px.
+  double _gridSpacing(int crossAxisCount) =>
+      crossAxisCount >= EcommerceCardMetrics.webColumns
+      ? EcommerceCardMetrics.spacing
+      : Constants.paddingSizeDefault;
 
   @override
   Widget build(BuildContext context) {
@@ -177,13 +201,24 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
 
   /// Web/desktop layout: Promotions (left, wider) and Brands (right) in one row.
   /// Falls back to a single full-width section when only one of them has data.
-  /// Shared content height for the promotions + brands row — exactly three
-  /// 66px brand rows plus the two 12px gaps (3×66 + 2×12), so the promo
-  /// banner and the 2×3 brands grid align top and bottom like the hero row.
-  static const double _promosBrandsHeight = 222;
 
-  /// Max brand tiles shown in the web brands panel (2 columns × 3 rows).
-  static const int _maxBrandTiles = 6;
+  /// Shared content height for the promotions + brands row — four 66px brand
+  /// rows plus the three 12px gaps (4×66 + 3×12), so the promo banner and the
+  /// 2×4 brands grid still align top and bottom.
+  ///
+  /// That arithmetic lands on exactly [_heroHeight], so this row and the hero
+  /// above it are the same height and the page keeps one horizontal rhythm
+  /// down its length.
+  ///
+  /// Was 222 (three brand rows). The promotions column takes 5/7 of the row,
+  /// so at the content cap it is ~840px wide — 222 made the banner a ~3.8:1
+  /// sliver, too thin for promo artwork to read. At 300 it is ~2.8:1.
+  static const double _promosBrandsHeight = 300;
+
+  /// Max brand tiles shown in the web brands panel (2 columns × 4 rows).
+  /// Tied to [_promosBrandsHeight]: change one and the panel stops filling
+  /// its half of the row.
+  static const int _maxBrandTiles = 8;
 
   Widget _buildPromosBrandsRow(double hPad) {
     return GetBuilder<BannerController>(
@@ -258,7 +293,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
   /// available width via [SliverGridDelegateWithMaxCrossAxisExtent], and the grid
   /// sizes to its content so it sits inside the surrounding column.
   /// Brands rendered as a fixed 2-column grid, capped at [_maxBrandTiles]
-  /// entries (2×3) so the panel height always matches [_promosBrandsHeight].
+  /// entries (2×4) so the panel height always matches [_promosBrandsHeight].
   Widget _brandsPanel(List<BrandModel> brands) {
     final visibleBrands = brands.take(_maxBrandTiles).toList();
 
@@ -1182,7 +1217,11 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                 if (hovered) onHoverChanged(false);
               },
               child: SizedBox(
-                height: isWide ? 350 : 280,
+                height: isWide
+                    ? EcommerceCardMetrics.webCardHeight(
+                        MediaQuery.of(context).size.width,
+                      )
+                    : 280,
                 child: loading
                     ? const Center(child: CircularProgressIndicator())
                     : Stack(
@@ -1193,10 +1232,18 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                             physics: const BouncingScrollPhysics(),
                             padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
                             itemCount: products.length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(width: 14),
+                            separatorBuilder: (_, _) => SizedBox(
+                              // Web matches the grid gutter; mobile keeps 14.
+                              width: isWide
+                                  ? EcommerceCardMetrics.spacing
+                                  : 14,
+                            ),
                             itemBuilder: (context, index) => SizedBox(
-                              width: isWide ? 230 : 170,
+                              width: isWide
+                                  ? EcommerceCardMetrics.webCardWidth(
+                                      MediaQuery.of(context).size.width,
+                                    )
+                                  : 170,
                               child: EcommerceProductCard(
                                 product: products[index],
                               ),
@@ -1308,15 +1355,12 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     );
   }
 
-  /// Gap between product tiles, used for both grid axes.
-  static const double _gridSpacing = Constants.paddingSizeDefault;
-
   /// Image shapes cycled through the masonry grid, as width ÷ height — `1` is
   /// square, below `1` is portrait. Staggering the *image* is what gives the
   /// grid its rhythm, since the text block under it is a near-constant height.
   ///
   /// The cycle is **seven** long on purpose: 7 is coprime with every column
-  /// count the storefront uses (2–6), so a given ratio never lands in the same
+  /// count the storefront uses (2–4), so a given ratio never lands in the same
   /// column twice in a row. A shorter cycle would re-align into flat rows at
   /// some breakpoints and the stagger would disappear.
   ///
@@ -1354,8 +1398,8 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
           padding: EdgeInsets.symmetric(horizontal: hPad),
           sliver: SliverMasonryGrid.count(
             crossAxisCount: crossAxisCount,
-            mainAxisSpacing: _gridSpacing,
-            crossAxisSpacing: _gridSpacing,
+            mainAxisSpacing: _gridSpacing(crossAxisCount),
+            crossAxisSpacing: _gridSpacing(crossAxisCount),
             childCount: controller.products.length,
             itemBuilder: (context, index) => EcommerceProductCard(
               product: controller.products[index],
@@ -1372,8 +1416,8 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
   Widget _buildSkeletonGrid(int crossAxisCount) {
     return SliverMasonryGrid.count(
       crossAxisCount: crossAxisCount,
-      mainAxisSpacing: _gridSpacing,
-      crossAxisSpacing: _gridSpacing,
+      mainAxisSpacing: _gridSpacing(crossAxisCount),
+      crossAxisSpacing: _gridSpacing(crossAxisCount),
       childCount: _skeletonTileCount,
       itemBuilder: (context, index) =>
           _buildSkeletonTile(_imageRatioFor(index)),

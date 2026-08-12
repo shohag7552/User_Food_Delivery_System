@@ -253,8 +253,7 @@ class _HomePageState extends State<HomePage>
     _isWebShell = isWebShell;
     // Grid: 2 columns on phones, 3 on tablets; web derives its count from
     // FoodCardMetrics so the cards match the carousel sections.
-    final int? gridColumns =
-        isWebShell ? FoodCardMetrics.webColumns(size.width) : null;
+    final int? gridColumns = isWebShell ? FoodCardMetrics.webColumns : null;
     // Side gutters that center the all-products grid within the content cap.
     final double gridPadding = isWebShell && size.width > _maxContentWidth
         ? (size.width - _maxContentWidth) / 2 + 20

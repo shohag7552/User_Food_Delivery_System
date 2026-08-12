@@ -123,7 +123,11 @@ class OfferProductsWidget extends StatelessWidget {
                     physics: const BouncingScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
                     itemCount: controller.offerProducts.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: 14),
+                    separatorBuilder: (_, _) => SizedBox(
+                    // Web matches the All Products grid gutter so the
+                    // page keeps one rhythm; mobile keeps its 14.
+                    width: isWebShell ? FoodCardMetrics.spacing : 14,
+                  ),
                     itemBuilder: (context, index) {
                       final product = controller.offerProducts[index];
 

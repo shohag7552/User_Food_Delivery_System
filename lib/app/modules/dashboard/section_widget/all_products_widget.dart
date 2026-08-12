@@ -127,8 +127,16 @@ class AllProductsWidget extends StatelessWidget {
                   mainAxisExtent: _webMainAxisExtent(context),
                   childAspectRatio:
                       (crossAxisCount ?? (isTablet ? 3 : 2)) >= 3 ? 0.75 : 0.65,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
+                  // Web reads the shared metric so the gap the grid actually
+                  // renders matches the one FoodCardMetrics.webCardWidth
+                  // assumes; a mismatch there silently skews the card width
+                  // and, through it, mainAxisExtent. Mobile/tablet keep 16.
+                  crossAxisSpacing: crossAxisCount != null
+                      ? FoodCardMetrics.spacing
+                      : 16,
+                  mainAxisSpacing: crossAxisCount != null
+                      ? FoodCardMetrics.spacing
+                      : 16,
                 ),
                 delegate: SliverChildBuilderDelegate((context, index) {
                   final ProductModel product = controller.products[index];

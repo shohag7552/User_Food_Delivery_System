@@ -129,10 +129,17 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
                   final width = constraints.maxWidth;
                   final isWebShell = WebTopNav.isEnabled(context);
                   final screenWidth = MediaQuery.of(context).size.width;
-                  // Web: cards match the All Products grid size (the item's
-                  // 6px side paddings make the card = fraction·width − 12).
+                  // Web: cards match the All Products grid size. Each item
+                  // carries half the shared gap on each side, so neighbouring
+                  // cards sit exactly FoodCardMetrics.spacing apart — the same
+                  // rhythm as the grid. The viewport fraction has to include
+                  // that gap or the cards come out narrower than the grid's.
+                  final double itemSidePadding = isWebShell
+                      ? FoodCardMetrics.spacing / 2
+                      : 6;
                   final double viewportFraction = isWebShell
-                      ? ((FoodCardMetrics.webCardWidth(screenWidth) + 12) /
+                      ? ((FoodCardMetrics.webCardWidth(screenWidth) +
+                                      FoodCardMetrics.spacing) /
                               width)
                           .clamp(0.15, 0.95)
                       : width >= 900
@@ -189,8 +196,8 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
                             );
 
                           return Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: itemSidePadding,
                               vertical: 4,
                             ),
                             // Web-only hover lift; touch gets the bare card.
