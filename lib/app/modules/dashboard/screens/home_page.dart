@@ -194,10 +194,14 @@ class _HomePageState extends State<HomePage>
   /// with symmetric gutters beyond it (same treatment as the ecommerce home).
   static const double _maxContentWidth = 1200;
 
-  /// Promo banner height on desktop web. With the content cap this yields a
-  /// ~3.5:1 hero strip (like the ecommerce hero) instead of the thin 200px
-  /// band the widget's mobile-oriented default produces at full cap width.
-  static const double _webBannerHeight = 320;
+  /// Promo banner height on desktop web.
+  ///
+  /// The page shows two banners side by side, so each tile is roughly half of
+  /// [_maxContentWidth] — about 590px. At this height that is a ~3:1 tile,
+  /// which is the shape promo artwork is usually authored at. The previous 320
+  /// was tuned for a single full-width strip and left each half-width tile
+  /// looking squat once the page was split.
+  static const double _webBannerHeight = 250;
 
   /// Centers [child] within [_maxContentWidth]. A no-op below that width, so
   /// mobile/tablet layouts are unaffected.
@@ -900,6 +904,13 @@ class _HomePageState extends State<HomePage>
           errorMessage: bannerController.errorMessage,
           onRetry: () => bannerController.getBanners(),
           height: isWebShell ? _webBannerHeight : null,
+          // Desktop web has the width for two banners at once, and pages them
+          // in pairs — (0,1), then (2,3) — so a tick advances a whole pair
+          // rather than sliding one along. Mobile keeps one per page.
+          itemsPerPage: isWebShell ? 2 : 1,
+          // With two tiles per page an overlaid dot row would float over the
+          // gap between them, belonging to neither.
+          indicatorsBelow: isWebShell,
         );
 
         if (!isWebShell) return banner;
