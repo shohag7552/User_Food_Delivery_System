@@ -10,6 +10,7 @@ import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/helper/web_search_bus.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
+import 'package:appwrite_user_app/app/resources/images.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -76,14 +77,25 @@ class WebTopNav extends StatelessWidget implements PreferredSizeWidget {
                             shaderCallback: (bounds) => ColorResource
                                 .primaryGradient
                                 .createShader(bounds),
-                            child: Text(
-                              Constants.appName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: poppinsBold.copyWith(
-                                fontSize: Constants.fontSizeOverLarge,
-                                color: ColorResource.textWhite,
-                              ),
+                            child: Row(
+                              children: [
+                                Image.asset(
+                                  Images.logo,
+                                  height: 28,
+                                  cacheHeight: 30,
+                                ),
+                                const SizedBox(width: 8),
+
+                                Text(
+                                  Constants.appName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: poppinsBold.copyWith(
+                                    fontSize: Constants.fontSizeOverLarge,
+                                    color: ColorResource.textWhite,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
