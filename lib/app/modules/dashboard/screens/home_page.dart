@@ -383,6 +383,7 @@ class _HomePageState extends State<HomePage>
       backgroundColor: context.scaffoldBackground,
       elevation: 0,
       scrolledUnderElevation: 0,
+      actions: [const SizedBox()],
       title: GetBuilder<ProductController>(
         builder: (productController) {
           return _capped(
