@@ -73,6 +73,20 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
   bool get _isEcommerce => Get.find<ModuleController>().isEcommerce;
 
+  /// Whether this checkout collects a courier shipping method.
+  ///
+  /// Only ecommerce orders ship, and only when the store has shipping methods
+  /// switched on in business setup. With it off the store fulfils ecommerce
+  /// orders some other way (its own rider, collection), so there is nothing
+  /// for the customer to choose and the section is hidden entirely.
+  ///
+  /// Food is never affected: it uses the delivery-schedule section instead,
+  /// which this flag has no bearing on.
+  bool get _showsShipping =>
+      _isEcommerce &&
+      Get.find<SettingsController>().businessSetup?.isShippingMethodEnabled ==
+          true;
+
   @override
   void initState() {
     super.initState();
@@ -82,8 +96,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
       _selectedAddress = addressController.defaultAddress;
     }
 
-    // Load shipping methods for the ecommerce checkout.
-    if (_isEcommerce) {
+    // Load shipping methods for the ecommerce checkout. Skipped when the
+    // store has them turned off — the list would never be rendered, so the
+    // Appwrite read would be wasted.
+    if (_showsShipping) {
       final shippingController = Get.find<ShippingController>();
       shippingController.getShippingMethods().then((_) {
         if (!mounted) return;
@@ -93,6 +109,34 @@ class _CheckoutPageState extends State<CheckoutPage> {
         }
       });
     }
+
+    _hydrate();
+  }
+
+  /// Loads the data this page needs but does not own.
+  ///
+  /// Checkout is reachable directly by URL — a browser reload on `/checkout`,
+  /// or a deep link — and on that path nothing has fetched the cart or the
+  /// addresses yet. Both are normally loaded by the dashboard on mount, or by
+  /// `SessionManager.loadUserData` at login, and a cold load onto this route
+  /// runs neither. The result was a checkout that reported "your cart is
+  /// empty" over a cart with items in it, and no delivery address selected.
+  ///
+  /// Safe to call unconditionally: both fetches return immediately for guests,
+  /// and re-fetching on the normal cart → checkout path is worth it on a page
+  /// where stale prices or a stale address would be charged for real.
+  Future<void> _hydrate() async {
+    final addressController = Get.find<AddressController>();
+
+    await Future.wait([
+      Get.find<CartController>().getCartItems(),
+      addressController.fetchAddresses(),
+    ]);
+
+    if (!mounted) return;
+    // initState read `defaultAddress` before the list existed; re-read it now
+    // that the fetch has landed.
+    setState(() => _syncSelectedAddress(addressController));
   }
 
   void _syncSelectedAddress(AddressController addressController) {
@@ -262,8 +306,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
     CartController cartController,
     SettingsController settingsController,
   ) {
-    // Ecommerce: fee comes from the selected shipping method.
+    // Ecommerce: fee comes from the selected shipping method. With shipping
+    // turned off there is no method and therefore no fee — stated explicitly
+    // rather than falling out of a null selection.
     if (_isEcommerce) {
+      if (!_showsShipping) return 0;
       return _selectedShipping?.feeFor(cartController.total) ?? 0;
     }
 
@@ -361,6 +408,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
         child: GetBuilder<CartController>(
         builder: (controller) {
           if (controller.cartItems.isEmpty) {
+            // An in-flight first fetch also has an empty list. Reporting that
+            // as "your cart is empty" is the bug this guard exists for — on a
+            // cold load the real contents arrive a moment later.
+            if (controller.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -393,10 +446,18 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     children: [
                       _buildDeliveryAddress(),
                       const SizedBox(height: 20),
-                      _isEcommerce
-                          ? _buildShippingSection()
-                          : _buildDeliverySchedule(),
-                      const SizedBox(height: 20),
+                      // Ecommerce shows shipping methods (when enabled); food
+                      // shows the delivery schedule. Ecommerce never shows the
+                      // schedule — its fulfilment date is not the customer's
+                      // to pick. The trailing gap lives inside the branch so
+                      // hiding the block does not leave a double space.
+                      if (_showsShipping) ...[
+                        _buildShippingSection(),
+                        const SizedBox(height: 20),
+                      ] else if (!_isEcommerce) ...[
+                        _buildDeliverySchedule(),
+                        const SizedBox(height: 20),
+                      ],
                       _buildCouponSection(controller),
                       const SizedBox(height: 20),
                       _buildPaymentMethod(),
@@ -447,10 +508,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         children: [
                           _buildDeliveryAddress(),
                           const SizedBox(height: 20),
-                          _isEcommerce
-                              ? _buildShippingSection()
-                              : _buildDeliverySchedule(),
-                          const SizedBox(height: 20),
+                          // Same rule as the mobile column — see there.
+                          if (_showsShipping) ...[
+                            _buildShippingSection(),
+                            const SizedBox(height: 20),
+                          ] else if (!_isEcommerce) ...[
+                            _buildDeliverySchedule(),
+                            const SizedBox(height: 20),
+                          ],
                           _buildPaymentMethod(),
                           const SizedBox(height: 20),
                           _buildDeliveryInstructions(),
@@ -1776,8 +1841,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
       return;
     }
 
-    // Ecommerce requires a shipping method.
-    if (_isEcommerce && _selectedShipping == null) {
+    // Ecommerce requires a shipping method — but only when the store actually
+    // offers them. Without this guard, turning shipping off would make every
+    // ecommerce order impossible to place.
+    if (_showsShipping && _selectedShipping == null) {
       customToster('please_select_shipping_method'.tr, isSuccess: false);
       return;
     }
