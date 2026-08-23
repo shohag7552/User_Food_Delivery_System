@@ -425,7 +425,9 @@ abstract class AppRouter {
       GoRoute(
         path: orders,
         name: RouteNames.orders,
-        builder: (context, state) => const OrdersPage(),
+        // Its own route, so it renders the web header/footer itself —
+        // the dashboard shell is not around it here.
+        builder: (context, state) => const OrdersPage(isStandalone: true),
       ),
       GoRoute(
         path: orderHistory,

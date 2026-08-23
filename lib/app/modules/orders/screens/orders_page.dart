@@ -6,7 +6,9 @@ import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/helper/nav_bar_visibility.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -18,7 +20,21 @@ import 'package:go_router/go_router.dart';
 import 'package:appwrite_user_app/app/helper/store_time_helper.dart';
 
 class OrdersPage extends StatefulWidget {
-  const OrdersPage({super.key});
+  /// True when this page is its own route rather than a tab inside
+  /// `DashboardScreen`.
+  ///
+  /// It decides who supplies the web chrome. As a dashboard tab the shell
+  /// already renders [WebTopNav], so this page must not add a second one; as a
+  /// standalone route nothing else will, so it has to render its own.
+  ///
+  /// This used to be inferred from `Navigator.canPop()`, which cannot tell the
+  /// two apart — both are unpoppable. Arriving from the order-success page,
+  /// which navigates with a stack-replacing `go`, the page concluded it was a
+  /// dashboard tab and dropped its app bar, leaving the route with no header
+  /// at all.
+  final bool isStandalone;
+
+  const OrdersPage({super.key, this.isStandalone = false});
 
   @override
   State<OrdersPage> createState() => _OrdersPageState();
@@ -27,6 +43,9 @@ class OrdersPage extends StatefulWidget {
 class _OrdersPageState extends State<OrdersPage> {
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
+  // Lets the top-nav menu button open the end drawer, as on every other
+  // standalone web page.
+  final _webScaffoldKey = GlobalKey<ScaffoldState>();
   // Tracks the web/desktop layout so scroll-driven pagination stays mobile-only;
   // web loads the next page via the explicit "View more" button instead.
   bool _isWide = false;
@@ -67,9 +86,16 @@ class _OrdersPageState extends State<OrdersPage> {
     final isWide = MediaQuery.of(context).size.width >= _webBreakpoint;
     _isWide = isWide;
     final canPop = Navigator.of(context).canPop();
-    // As a dashboard tab on web the shared top-nav is already shown, so drop the
-    // page's own app bar — unless this page was pushed as a standalone route.
-    final hideAppBar = WebTopNav.isEnabled(context) && !canPop;
+    final showWebNav = WebTopNav.isEnabled(context);
+    // As a dashboard tab the shell already renders the top nav, so this page
+    // adds none of its own; standalone it renders the full web chrome.
+    final ownsWebChrome = showWebNav && widget.isStandalone;
+    final hideAppBar = showWebNav && !widget.isStandalone;
+    // The page's own "My Orders" heading, rendered inside the body. Needed
+    // for every web layout: neither the dashboard shell nor [WebTopNav] names
+    // the current page, so without it the web view has no title anywhere.
+    // Off on mobile, where the AppBar already carries it.
+    final showInlineTitle = showWebNav;
 
     // Nothing to pop back to. Happens whenever this page was reached by a
     // stack-replacing `go` — the order-success page does exactly that so the
@@ -79,8 +105,18 @@ class _OrdersPageState extends State<OrdersPage> {
     final needsHomeFallback = !canPop;
 
     final scaffold = Scaffold(
+      key: _webScaffoldKey,
       backgroundColor: context.scaffoldBackground,
-      appBar: hideAppBar
+      endDrawer: ownsWebChrome ? const WebProfileDrawer() : null,
+      appBar: ownsWebChrome
+          ? WebTopNav(
+              // Orders is dashboard tab 3, so the destination highlights.
+              selectedIndex: 3,
+              onDestinationSelected: (index) =>
+                  DashboardTabs.open(context, index),
+              onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
+            )
+          : hideAppBar
           ? null
           : AppBar(
               // Null keeps Flutter's automatic back button whenever the route
@@ -106,7 +142,7 @@ class _OrdersPageState extends State<OrdersPage> {
             ),
       body: AuthGate(
         child: isWide
-            ? _buildWebBody(hideAppBar)
+            ? _buildWebBody(showInlineTitle)
             : Column(
                 children: [
                   _buildFilterChips(),
