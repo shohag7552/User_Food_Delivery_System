@@ -21,7 +21,7 @@ class ShippingController extends GetxController implements GetxService {
     try {
       _isLoading = true;
       _errorMessage = null;
-      update();
+      // update();
 
       _methods = await shippingRepoInterface.getShippingMethods();
 

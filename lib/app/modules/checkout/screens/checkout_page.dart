@@ -306,14 +306,19 @@ class _CheckoutPageState extends State<CheckoutPage> {
     CartController cartController,
     SettingsController settingsController,
   ) {
-    // Ecommerce: fee comes from the selected shipping method. With shipping
-    // turned off there is no method and therefore no fee — stated explicitly
-    // rather than falling out of a null selection.
-    if (_isEcommerce) {
-      if (!_showsShipping) return 0;
+    // Ecommerce with shipping methods on: the courier sets the price, so the
+    // fee comes straight off the selected method's own rate table.
+    if (_showsShipping) {
       return _selectedShipping?.feeFor(cartController.total) ?? 0;
     }
 
+    // Everything else falls through to the distance-based rate below: food
+    // orders, and ecommerce orders placed while shipping methods are off.
+    //
+    // With shipping off there are no couriers configured, so the store's own
+    // deliveryman brings the parcel — the same fulfilment as a food order, and
+    // therefore the same pricing: free above `free_delivery_above`, otherwise
+    // distance x `delivery_fee_per_km`, floored at `min_delivery_fee`.
     final businessSetup = settingsController.businessSetup;
     final orderAmount = cartController.total;
     final freeDeliveryAbove = businessSetup?.freeDeliveryAbove;
@@ -587,7 +592,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           ],
           const SizedBox(height: 8),
           _buildSummaryRow(
-            _isEcommerce ? 'shipping'.tr : 'delivery_fee'.tr,
+            _showsShipping ? 'shipping'.tr : 'delivery_fee'.tr,
             deliveryFee,
           ),
           if (isOutsideRadius) ...[
@@ -1612,7 +1617,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         ],
                         const SizedBox(height: 8),
                         _buildSummaryRow(
-                          _isEcommerce ? 'shipping'.tr : 'delivery_fee'.tr,
+                          _showsShipping ? 'shipping'.tr : 'delivery_fee'.tr,
                           deliveryFee,
                         ),
                         if (isOutsideRadius) ...[
@@ -1921,8 +1926,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
         deliveryType: _isEcommerce ? null : _deliveryType,
         scheduledDate: _isEcommerce ? null : _selectedDate,
         scheduledTimeSlot: _isEcommerce ? null : _selectedTimeSlot,
-        shippingCost: _isEcommerce ? deliveryFee : null,
-        shippingMethod: _isEcommerce ? _selectedShipping?.name : null,
+        // Courier-only fields. With shipping off the amount is a delivery fee,
+        // already sent as `deliveryFee` above — repeating it as `shippingCost`
+        // would report the same charge to the store twice.
+        shippingCost: _showsShipping ? deliveryFee : null,
+        shippingMethod: _showsShipping ? _selectedShipping?.name : null,
       );
 
       if (result['success'] != true) {
