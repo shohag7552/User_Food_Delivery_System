@@ -15,9 +15,6 @@ class CustomNetworkImage extends StatelessWidget {
       builder: (context, constraints) {
         final double devicePixelRatio = MediaQuery.maybeOf(context)?.devicePixelRatio ?? 2.0;
 
-        int? cacheHeight;
-        int? cacheWidth;
-
         // Resolve target dimensions:
         // Try using the widget's properties if they are finite.
         // Otherwise, fall back to layout constraints if they are finite.
@@ -35,11 +32,29 @@ class CustomNetworkImage extends StatelessWidget {
           targetWidth = constraints.maxWidth;
         }
 
-        if (targetHeight != null) {
-          cacheHeight = (targetHeight * devicePixelRatio).round();
-        }
-        if (targetWidth != null) {
+        // Give the decoder ONE axis, never both.
+        //
+        // `memCacheWidth`/`memCacheHeight` end up in
+        // `ResizeImage.resizeIfNeeded`, which builds a `ResizeImage` without a
+        // policy — so it uses the default `ResizeImagePolicy.exact`. With both
+        // axes set that policy produces the target width AND height
+        // "regardless of whether it matches the source image's intrinsic
+        // aspect ratio"; the framework's own docs liken it to `BoxFit.fill`.
+        //
+        // The decoded bitmap therefore arrives already squashed to the box's
+        // aspect, leaving `BoxFit.cover` nothing to crop — which is why photos
+        // look stretched on Android/iOS. Constraining a single axis keeps the
+        // decoder on its aspect-preserving path (`fitWidth`/`fitHeight`
+        // semantics), so the bitmap stays true to the source and `fit` does the
+        // cropping it was asked to do.
+        final bool constrainWidth = _shouldConstrainWidth(targetWidth, targetHeight);
+
+        int? cacheWidth;
+        int? cacheHeight;
+        if (constrainWidth && targetWidth != null) {
           cacheWidth = (targetWidth * devicePixelRatio).round();
+        } else if (targetHeight != null) {
+          cacheHeight = (targetHeight * devicePixelRatio).round();
         }
 
         final double? placeholderHeight = (targetHeight != null && targetHeight > 5) ? targetHeight - 5 : targetHeight;
@@ -69,5 +84,22 @@ class CustomNetworkImage extends StatelessWidget {
         );
       },
     );
+  }
+
+  /// Which axis to hand the decoder, given only the box (the source image's own
+  /// aspect ratio isn't known until it is decoded).
+  ///
+  /// `fitWidth`/`fitHeight` name their axis outright. Everything else — `cover`
+  /// above all — is served best by the box's longer side: that is the axis with
+  /// the most pixels to fill, so sizing to it leaves the decode with enough
+  /// detail for the other one in every aspect ratio short of the extreme.
+  bool _shouldConstrainWidth(double? targetWidth, double? targetHeight) {
+    if (targetWidth == null) return false;
+    if (targetHeight == null) return true;
+    return switch (fit) {
+      BoxFit.fitWidth => true,
+      BoxFit.fitHeight => false,
+      _ => targetWidth >= targetHeight,
+    };
   }
 }
