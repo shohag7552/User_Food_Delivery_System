@@ -9,6 +9,7 @@ import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/helper/web_search_bus.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
+import 'package:appwrite_user_app/app/modules/cart/widgets/web_cart_drawer.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/images.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -25,6 +26,12 @@ import 'package:go_router/go_router.dart';
 /// [selectedIndex] highlights the active destination (pass null on sub-pages so
 /// nothing is highlighted). Destinations map to the dashboard tab indices:
 /// 0 Home · 1 Favorites · 2 Cart · 3 Orders · 4 Profile.
+///
+/// The cart is the one exception: instead of navigating to tab 2 it slides
+/// [WebCartDrawer] in from the trailing edge, so a shopper can review the cart
+/// and go to checkout without losing the page they were browsing. Every other
+/// destination still routes through [onDestinationSelected], and mobile — which
+/// never renders this bar — is unaffected.
 class WebTopNav extends StatelessWidget implements PreferredSizeWidget {
   final int? selectedIndex;
   final ValueChanged<int> onDestinationSelected;
@@ -119,7 +126,7 @@ class WebTopNav extends StatelessWidget implements PreferredSizeWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        _cartItem(),
+                        _cartItem(context),
                         _navItem(
                           Icons.receipt_long_rounded,
                           'orders'.tr,
@@ -245,7 +252,7 @@ class WebTopNav extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  Widget _cartItem() {
+  Widget _cartItem(BuildContext context) {
     return GetBuilder<CartController>(
       builder: (cartController) {
         final itemCount = cartController.itemCount;
@@ -259,7 +266,9 @@ class WebTopNav extends StatelessWidget implements PreferredSizeWidget {
           child: Tooltip(
             message: 'cart'.tr,
             child: InkWell(
-              onTap: () => onDestinationSelected(2),
+              // Opens the side panel rather than routing to the cart tab —
+              // see the class doc for why the cart is the exception here.
+              onTap: () => WebCartDrawer.show(context),
               borderRadius: BorderRadius.circular(Constants.radiusLarge),
               hoverColor: ColorResource.primaryDark.withValues(alpha: 0.06),
               child: Padding(

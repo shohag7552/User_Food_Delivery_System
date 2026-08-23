@@ -751,5 +751,8 @@
   "amount_paid": "Amount paid",
   "track_order_hint": "Track this order anytime from My Orders.",
   "order_number_copied": "Order number copied",
-  "tap_to_replay": "Tap to replay"
+  "tap_to_replay": "Tap to replay",
+  "view_cart": "View full cart",
+  "cart_item_count_one": "1 item",
+  "cart_empty_hint": "Browse the store and add something you like."
 }
