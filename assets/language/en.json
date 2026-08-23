@@ -754,5 +754,6 @@
   "tap_to_replay": "Tap to replay",
   "view_cart": "View full cart",
   "cart_item_count_one": "1 item",
-  "cart_empty_hint": "Browse the store and add something you like."
+  "cart_empty_hint": "Browse the store and add something you like.",
+  "select_language": "Select language"
 }

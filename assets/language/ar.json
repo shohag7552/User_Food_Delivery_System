@@ -720,5 +720,6 @@
   "tap_to_replay": "اضغط للإعادة",
   "view_cart": "عرض السلة كاملة",
   "cart_item_count_one": "عنصر واحد",
-  "cart_empty_hint": "تصفّح المتجر وأضف ما يعجبك."
+  "cart_empty_hint": "تصفّح المتجر وأضف ما يعجبك.",
+  "select_language": "اختر اللغة"
 }
