@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
@@ -9,9 +11,13 @@ import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart'
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
+import 'package:appwrite_user_app/app/modules/ecommerce/domain/services/hover_gallery.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/gestures.dart' show PointerHoverEvent;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -36,10 +42,20 @@ class EcommerceProductCard extends StatefulWidget {
   /// parent imposes, which is what the fixed-height carousels rely on.
   final double? imageAspectRatio;
 
+  /// Overrides the desktop-web test that gates pointer scrubbing.
+  ///
+  /// Exists only so a widget test can drive the hover path: [kIsWeb] is a
+  /// compile-time constant that is false under `flutter test`, so without a
+  /// seam the behaviour could only ever be checked by hand in a browser.
+  /// No call site sets it.
+  @visibleForTesting
+  final bool? enableHoverGallery;
+
   const EcommerceProductCard({
     super.key,
     required this.product,
     this.imageAspectRatio,
+    this.enableHoverGallery,
   });
 
   @override
@@ -53,14 +69,110 @@ class _EcommerceProductCardState extends State<EcommerceProductCard> {
   static const double _ratingIconSize = 12;
   static const double _stepButtonWidth = 30;
 
+  /// Fades the scrub indicator in, and how long the pointer must settle before
+  /// the rest of the gallery is fetched.
+  static const Duration _indicatorFade = Duration(milliseconds: 160);
+  static const Duration _preloadDelay = Duration(milliseconds: 120);
+  static const Duration _imageFade = Duration(milliseconds: 180);
+
+  /// Height of the scrub indicator hugging the bottom of the image band.
+  static const double _indicatorHeight = 3;
+
   // Pointer hover only fires on web/desktop; touch devices never set this,
   // so the mobile experience is byte-for-byte unchanged.
   bool _hovered = false;
 
+  /// Which gallery image the pointer is over. Always 0 at rest, so the card
+  /// shows its cover whenever nobody is pointing at it.
+  int _hoverIndex = 0;
+
+  /// Set once this card's gallery has been asked for, so sweeping back and
+  /// forth over one card does not re-request it.
+  bool _galleryPreloaded = false;
+  Timer? _preloadTimer;
+
   ProductModel get product => widget.product;
+
+  /// The images this card can scrub through, or empty when it has only its
+  /// cover to show — which is every food product and every single-photo one.
+  List<String> get _galleryImages => hoverGalleryImages(product);
+
+  /// Scrubbing is desktop-web only: it is driven by a pointer, and there is no
+  /// pointer anywhere else. Read here rather than inside the helpers so the
+  /// swap itself stays reachable from a test.
+  bool get _canScrub =>
+      (widget.enableHoverGallery ?? kIsWeb) && _galleryImages.length > 1;
+
+  @override
+  void didUpdateWidget(covariant EcommerceProductCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A recycled card showing a different product must not keep pointing at
+    // the old one's third photo.
+    if (oldWidget.product.id != widget.product.id) {
+      _hoverIndex = 0;
+      _galleryPreloaded = false;
+      _preloadTimer?.cancel();
+      _preloadTimer = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _preloadTimer?.cancel();
+    super.dispose();
+  }
 
   void _setHover(bool value) {
     if (_hovered != value) setState(() => _hovered = value);
+  }
+
+  /// Tracks the pointer across the image band, one image per equal slice.
+  void _onImageHover(PointerHoverEvent event, double bandWidth) {
+    final images = _galleryImages;
+    if (images.length < 2) return;
+
+    _schedulePreload(images);
+
+    final index = hoverIndexFor(
+      localDx: event.localPosition.dx,
+      width: bandWidth,
+      count: images.length,
+    );
+    if (index != _hoverIndex) setState(() => _hoverIndex = index);
+  }
+
+  /// Fetches the rest of the gallery once the pointer has settled.
+  ///
+  /// Delayed on purpose: a shopper sweeping across a grid row crosses a dozen
+  /// cards in a moment, and firing on the first hover event would pull every
+  /// gallery they brushed past. Waiting for [_preloadDelay] means only a card
+  /// someone actually stopped on costs anything.
+  void _schedulePreload(List<String> images) {
+    if (_galleryPreloaded || _preloadTimer != null) return;
+
+    _preloadTimer = Timer(_preloadDelay, () {
+      _preloadTimer = null;
+      if (!mounted || _galleryPreloaded) return;
+      _galleryPreloaded = true;
+      // The cover is already on screen; only the rest needs fetching.
+      for (final url in images.skip(1)) {
+        precacheImage(
+          CachedNetworkImageProvider(url),
+          context,
+          // A preload is an optimisation; a dead URL must not surface as an
+          // error. The image widget falls back on its own when scrubbed to.
+          onError: (_, _) {},
+        );
+      }
+    });
+  }
+
+  /// Back to the cover when the pointer leaves, so a card at rest is always
+  /// the card the grid was laid out with.
+  void _resetScrub() {
+    _preloadTimer?.cancel();
+    _preloadTimer = null;
+    if (_hoverIndex != 0) setState(() => _hoverIndex = 0);
   }
 
   @override
@@ -72,7 +184,10 @@ class _EcommerceProductCardState extends State<EcommerceProductCard> {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => _setHover(true),
-      onExit: (_) => _setHover(false),
+      onExit: (_) {
+        _setHover(false);
+        _resetScrub();
+      },
       child: AnimatedScale(
         scale: _hovered ? 1.02 : 1.0,
         duration: const Duration(milliseconds: 180),
@@ -147,14 +262,29 @@ class _EcommerceProductCardState extends State<EcommerceProductCard> {
             scale: _hovered ? 1.06 : 1.0,
             duration: const Duration(milliseconds: 250),
             curve: Curves.easeOut,
-            child: CustomNetworkImage(
-              image: product.imageId,
-              width: double.infinity,
-              height: double.infinity,
-              fit: BoxFit.cover,
-            ),
+            child: _buildPhoto(),
           ),
         ),
+
+        // Scrub indicator, sitting inside the bottom of the photo.
+        //
+        // Inset by the same padding the badges use rather than flush to the
+        // band's edge, so it reads as part of the picture instead of as a
+        // seam between the photo and the details block below it.
+        if (_canScrub)
+          Positioned(
+            left: Constants.paddingSizeSmall,
+            right: Constants.paddingSizeSmall,
+            bottom: Constants.paddingSizeSmall,
+            child: IgnorePointer(
+              child: AnimatedOpacity(
+                opacity: _hovered ? 1 : 0,
+                duration: _indicatorFade,
+                curve: Curves.easeOut,
+                child: _buildScrubIndicator(context),
+              ),
+            ),
+          ),
 
         if (product.hasDiscount)
           Positioned(
@@ -178,9 +308,18 @@ class _EcommerceProductCardState extends State<EcommerceProductCard> {
           Positioned(
             bottom: Constants.paddingSizeSmall,
             left: Constants.paddingSizeSmall,
-            child: _badge(
-              label: 'only_n_left'.trParams({'count': '${product.stock}'}),
-              background: ColorResource.warning,
+            // The indicator now occupies this strip while the pointer is on
+            // the card. The badge is the card's resting state and the
+            // indicator only exists during a hover, so the badge yields —
+            // fading rather than vanishing, since they cross over.
+            child: AnimatedOpacity(
+              opacity: _canScrub && _hovered ? 0 : 1,
+              duration: _indicatorFade,
+              curve: Curves.easeOut,
+              child: _badge(
+                label: 'only_n_left'.trParams({'count': '${product.stock}'}),
+                background: ColorResource.warning,
+              ),
             ),
           ),
 
@@ -197,6 +336,97 @@ class _EcommerceProductCardState extends State<EcommerceProductCard> {
             ),
           ),
       ],
+    );
+  }
+
+  /// The photo itself.
+  ///
+  /// Without a gallery to scrub this is the very same single
+  /// [CustomNetworkImage] the card has always rendered — no MouseRegion, no
+  /// switcher, no extra layer — so food products, single-photo products and
+  /// every touch device keep their existing decode path exactly.
+  Widget _buildPhoto() {
+    final images = _galleryImages;
+
+    if (!_canScrub) {
+      return CustomNetworkImage(
+        image: product.imageId,
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+      );
+    }
+
+    final index = _hoverIndex.clamp(0, images.length - 1);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return MouseRegion(
+          // Nested inside the card's own MouseRegion, which keeps owning the
+          // 1.02 lift. Hover events are delivered to every region under the
+          // pointer, so neither cancels the other — and the favourite button
+          // sitting above this one does not block scrubbing either.
+          opaque: false,
+          onHover: (event) => _onImageHover(event, constraints.maxWidth),
+          onExit: (_) => _resetScrub(),
+          child: AnimatedSwitcher(
+            duration: _imageFade,
+            // Cross-dissolve in place: the outgoing photo must not slide or
+            // scale, or it would fight the 1.06 zoom wrapping this whole tree.
+            layoutBuilder: (currentChild, previousChildren) => Stack(
+              fit: StackFit.expand,
+              children: [...previousChildren, ?currentChild],
+            ),
+            child: CustomNetworkImage(
+              // Keyed on the URL so the switcher animates a changed photo and
+              // ignores an unchanged one.
+              key: ValueKey<String>(images[index]),
+              image: images[index],
+              width: double.infinity,
+              height: double.infinity,
+              fit: BoxFit.cover,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// One segment per gallery image, the current one filled.
+  ///
+  /// Reads left to right in the same order the pointer scrubs, so the segment
+  /// under the cursor is the photo on screen.
+  Widget _buildScrubIndicator(BuildContext context) {
+    final count = _galleryImages.length;
+
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        // A track behind the segments, because they float over the product
+        // photo: on a white-background shot, pale segments alone would leave
+        // nothing to read.
+        color: ColorResource.overlayDark,
+        borderRadius: BorderRadius.circular(Constants.radiusSmall),
+      ),
+      child: Row(
+        children: List<Widget>.generate(count, (index) {
+          final isActive = index == _hoverIndex;
+          return Expanded(
+            child: AnimatedContainer(
+              duration: _indicatorFade,
+              curve: Curves.easeOut,
+              height: _indicatorHeight,
+              margin: EdgeInsets.only(right: index == count - 1 ? 0 : 3),
+              decoration: BoxDecoration(
+                color: isActive
+                    ? ColorResource.textWhite
+                    : ColorResource.textWhite.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(Constants.radiusSmall),
+              ),
+            ),
+          );
+        }),
+      ),
     );
   }
 
