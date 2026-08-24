@@ -920,6 +920,9 @@ class _EcommerceProductDetailPageState
     final double cardWidth = isWide ? 230 : 170;
     final double stripHeight = isWide ? 350 : 280;
     final double horizontalPadding = isWide ? 0 : 16;
+    // Declared once and used for both the separator and the autoplay stride,
+    // so a card and the step that reveals it can never disagree.
+    const double cardSpacing = 14;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -949,6 +952,12 @@ class _EcommerceProductDetailPageState
         else
           HoverArrowCarousel(
             height: stripHeight,
+            // Steps one card at a time, desktop web only — a strip is watched
+            // there and swiped everywhere else. The carousel still holds it
+            // back while the pointer is over the strip and for a few beats
+            // after the reader pages it themselves.
+            itemExtent: cardWidth + cardSpacing,
+            autoScrollInterval: isWide ? const Duration(seconds: 3) : null,
             builder: (context, carouselController) => ListView.separated(
               controller: carouselController,
               scrollDirection: Axis.horizontal,
@@ -958,7 +967,7 @@ class _EcommerceProductDetailPageState
               // the first/last cards clear the edges while the list itself
               // spans the full section width.
               padding: EdgeInsets.fromLTRB(horizontalPadding, 4, horizontalPadding, 8),
-              separatorBuilder: (_, _) => const SizedBox(width: 14),
+              separatorBuilder: (_, _) => const SizedBox(width: cardSpacing),
               itemBuilder: (context, index) => SizedBox(
                 width: cardWidth,
                 child: EcommerceProductCard(product: _suggested[index]),
