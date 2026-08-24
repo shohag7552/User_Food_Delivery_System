@@ -96,21 +96,34 @@ class _CheckoutPageState extends State<CheckoutPage> {
       _selectedAddress = addressController.defaultAddress;
     }
 
-    // Load shipping methods for the ecommerce checkout. Skipped when the
-    // store has them turned off — the list would never be rendered, so the
-    // Appwrite read would be wasted.
-    if (_showsShipping) {
-      final shippingController = Get.find<ShippingController>();
-      shippingController.getShippingMethods().then((_) {
-        if (!mounted) return;
-        if (_selectedShipping == null &&
-            shippingController.methods.isNotEmpty) {
-          setState(() => _selectedShipping = shippingController.methods.first);
-        }
-      });
-    }
+    // Held until the first frame is on screen: [ShippingController] calls
+    // `update()` when the fetch lands, and asking a GetBuilder to rebuild
+    // while this page is still building throws. Waiting for the frame also
+    // means the shipping section is already laid out — in its loading state —
+    // before the read starts, instead of the page appearing with it missing.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _loadShippingMethods();
+    });
 
     _hydrate();
+  }
+
+  /// Loads the courier options and preselects the first one.
+  ///
+  /// Skipped when this checkout does not collect a shipping method — a food
+  /// order, or a store with shipping switched off — because the list would
+  /// never be rendered and the Appwrite read would be wasted.
+  Future<void> _loadShippingMethods() async {
+    if (!_showsShipping) return;
+
+    final shippingController = Get.find<ShippingController>();
+    await shippingController.getShippingMethods();
+
+    if (!mounted) return;
+    if (_selectedShipping == null && shippingController.methods.isNotEmpty) {
+      setState(() => _selectedShipping = shippingController.methods.first);
+    }
   }
 
   /// Loads the data this page needs but does not own.
