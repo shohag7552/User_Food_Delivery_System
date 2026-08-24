@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
+import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
@@ -26,7 +29,49 @@ class CategoryScreen extends StatefulWidget {
 
 class _CategoryScreenState extends State<CategoryScreen> {
   static const double _maxContentWidth = 1100;
+
+  /// Web grid geometry. [_webTileExtent] and [_webTileSpacing] are the values
+  /// the grid has always laid out with; they are named here because the column
+  /// count is now derived from them rather than left to the delegate.
+  static const double _webTileExtent = 170;
+  static const double _webTileSpacing = 18;
+
+  /// Widest the shop grid goes on desktop web.
+  static const int _maxEcommerceColumns = 4;
+
+  /// How much of a shop tile its artwork is allowed to take, and the ceiling
+  /// it may never pass.
+  ///
+  /// The storefront home draws these very images at 30 and 60 pixels, so they
+  /// are icon-sized files. Letting one fill a ~250px tile magnifies its pixels
+  /// rather than showing more of it; held near its natural size it stays
+  /// crisp, and the tile's tinted plate reads as deliberate space around it.
+  static const double _ecommerceArtworkScale = 0.58;
+  static const double _maxEcommerceArtwork = 110;
+
   final GlobalKey<ScaffoldState> _webScaffoldKey = GlobalKey<ScaffoldState>();
+
+  /// Whether the shop storefront is the active one.
+  bool get _isEcommerce => Get.find<ModuleController>().isEcommerce;
+
+  /// How many tiles fit across [availableWidth].
+  ///
+  /// Reproduces exactly what [SliverGridDelegateWithMaxCrossAxisExtent] used
+  /// to derive — same ceiling, same minimum of one — so the food grid lays out
+  /// tile for tile as it always has. The shop then caps at
+  /// [_maxEcommerceColumns], because a fifth column of category tiles left
+  /// their labels too narrow to read.
+  ///
+  /// Safe to swap the delegate for a fixed count: given the same count, both
+  /// delegates divide the row by the identical formula.
+  int _webColumnCount(double availableWidth) {
+    final int count = (availableWidth / (_webTileExtent + _webTileSpacing))
+        .ceil()
+        .clamp(1, 1000);
+
+    if (!_isEcommerce) return count;
+    return count > _maxEcommerceColumns ? _maxEcommerceColumns : count;
+  }
 
   @override
   void initState() {
@@ -140,26 +185,34 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                     child: Center(child: stateView),
                                   )
                                 else
-                                  GridView.builder(
-                                    shrinkWrap: true,
-                                    physics: const NeverScrollableScrollPhysics(),
-                                    padding: const EdgeInsets.only(bottom: 40),
-                                    gridDelegate:
-                                        const SliverGridDelegateWithMaxCrossAxisExtent(
-                                      maxCrossAxisExtent: 170,
-                                      crossAxisSpacing: 18,
-                                      mainAxisSpacing: 20,
-                                      childAspectRatio: 0.72,
+                                  LayoutBuilder(
+                                    builder: (context, grid) =>
+                                        GridView.builder(
+                                      shrinkWrap: true,
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      padding: const EdgeInsets.only(bottom: 40),
+                                      gridDelegate:
+                                          SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount:
+                                            _webColumnCount(grid.maxWidth),
+                                        crossAxisSpacing: _webTileSpacing,
+                                        mainAxisSpacing: 20,
+                                        childAspectRatio: 0.72,
+                                      ),
+                                      itemCount: controller.categories.length,
+                                      itemBuilder: (context, index) {
+                                        final category =
+                                            controller.categories[index];
+                                        return HoverLift(
+                                          showShadow: false,
+                                          borderRadius:
+                                              Constants.radiusExtraLarge,
+                                          child: _buildCategoryCard(
+                                              context, category),
+                                        );
+                                      },
                                     ),
-                                    itemCount: controller.categories.length,
-                                    itemBuilder: (context, index) {
-                                      final category = controller.categories[index];
-                                      return HoverLift(
-                                        showShadow: false,
-                                        borderRadius: Constants.radiusExtraLarge,
-                                        child: _buildCategoryCard(context, category),
-                                      );
-                                    },
                                   ),
                               ],
                             ),
@@ -240,6 +293,56 @@ class _CategoryScreenState extends State<CategoryScreen> {
     return null;
   }
 
+  /// The category artwork inside a tile's plate.
+  ///
+  /// Food categories are dish photography: they fill the plate edge to edge
+  /// and crop, which is what a photograph wants and what this screen has
+  /// always done.
+  ///
+  /// Shop categories are not photographs — they are the icon-sized files the
+  /// storefront home draws at 30 and 60 pixels. Stretching one across the
+  /// tile only magnified its pixels, so those are capped near their natural
+  /// size and centred, and contained rather than cropped so a non-square icon
+  /// keeps its whole shape. Sizing the box down also hands the decoder a
+  /// smaller target, so it stops upscaling the bitmap on the way in.
+  Widget _buildCategoryImage(BuildContext context, String image) {
+    if (!_isEcommerce) {
+      return CustomNetworkImage(
+        image: image,
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, plate) {
+        final double shortestSide = math.min(
+          plate.maxWidth,
+          plate.maxHeight,
+        );
+        // An unbounded plate would make the scale meaningless; fall back to
+        // the ceiling rather than to infinity.
+        final double side = shortestSide.isFinite
+            ? math.min(shortestSide * _ecommerceArtworkScale,
+                _maxEcommerceArtwork)
+            : _maxEcommerceArtwork;
+
+        return Center(
+          child: SizedBox.square(
+            dimension: side,
+            child: CustomNetworkImage(
+              image: image,
+              width: side,
+              height: side,
+              fit: BoxFit.cover,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildCategoryCard(BuildContext context, CategoryModel category) {
     return CustomClickableWidget(
       onTap: () {
@@ -278,16 +381,17 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   Constants.radiusExtraLarge - 2,
                 ),
                 child: category.imagePath != null && category.imagePath!.isNotEmpty
-                    ? CustomNetworkImage(
-                        image: category.imagePath!,
-                        width: double.infinity,
-                        height: double.infinity,
-                      )
+                    ? _buildCategoryImage(context, category.imagePath!)
                     : Container(
                         color: context.cardBackground,
                         alignment: Alignment.center,
                         child: Icon(
-                          Icons.restaurant_menu,
+                          // A cutlery glyph on a shop category read as a bug in
+                          // itself. Matches the fallback the ecommerce home
+                          // already uses for these same categories.
+                          _isEcommerce
+                              ? Icons.category_outlined
+                              : Icons.restaurant_menu,
                           size: 32,
                           color: ColorResource.primaryDark,
                         ),

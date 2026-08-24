@@ -41,6 +41,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  /// Widest the shop grid goes on desktop web.
+  static const int _maxEcommerceColumns = 4;
+
   static const List<double> _staggerRatios = [1, 0.82, 1, 0.75, 0.9, 1, 0.8];
 
   double _imageRatioFor(int index) =>
@@ -57,10 +60,18 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   /// title regardless of how the screen was reached).
   bool get _isWebLayout => WebTopNav.isEnabled(context);
 
+  /// Whether the shop storefront is the active one.
+  bool get _isEcommerce => Get.find<ModuleController>().isEcommerce;
+
+  /// Columns for the wide grid.
+  ///
+  /// The shop caps at [_maxEcommerceColumns]: its cards carry a brand line, a
+  /// two-line name, a rating row, and a price beside an inline cart control,
+  /// and a fifth column squeezes that block past the width it stays readable
+  /// at. Food tiles hold less and keep their five.
   int _crossAxisCount(double width) {
     if (width < _webBreakpoint) return 2;
-    if (width >= 1400) return 5;
-    if (width >= 1100) return 5;
+    if (width >= 1100) return _isEcommerce ? _maxEcommerceColumns : 5;
     return 3;
   }
 
