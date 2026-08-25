@@ -73,6 +73,11 @@ dependencies:
   location: ^8.0.1
   connectivity_plus: ^7.1.1
   flutter_inappwebview: ^6.1.5
+  # Rive state-machine animations (the rating stars in the review sheets).
+  # 0.14.x pulls in `rive_native` — prebuilt native binaries per platform — so
+  # this is not a pure-Dart dependency; see RiveRatingStars for the fallback
+  # that keeps the sheets working if it fails to load on a given platform.
+  rive: ^0.14.11
 
 dev_dependencies:
   flutter_test:
@@ -100,6 +105,7 @@ flutter:
   assets:
     - assets/images/
     - assets/language/
+    - assets/animations/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

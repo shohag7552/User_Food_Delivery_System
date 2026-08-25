@@ -4,6 +4,7 @@ import 'package:appwrite_user_app/app/controllers/splash_controller.dart';
 import 'package:appwrite_user_app/app/controllers/update_controller.dart';
 import 'package:appwrite_user_app/app/helper/dependencies.dart';
 import 'package:appwrite_user_app/app/helper/notification_helper.dart';
+import 'package:appwrite_user_app/app/helper/rive_assets.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -53,6 +54,11 @@ class Global {
     }
 
     setSystemUi(isDarkMode: false);
+
+    // Boots the Rive runtime and warms the rating artwork before any screen can
+    // ask for it. It never throws — a failure just leaves RiveAssets.isAvailable
+    // false and the animated widgets render their Flutter fallbacks.
+    await RiveAssets.init();
 
     final languages = await initializeDependencies();
 

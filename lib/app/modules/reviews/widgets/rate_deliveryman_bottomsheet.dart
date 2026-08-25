@@ -1,5 +1,5 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
-import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
+import 'package:appwrite_user_app/app/common/widgets/rive_rating_stars.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/deliveryman_review_controller.dart';
 import 'package:appwrite_user_app/app/models/deliveryman_review_model.dart';
@@ -298,9 +298,8 @@ class _RateDeliverymanBottomSheetState
     return Column(
       children: [
         Center(
-          child: InteractiveRatingStars(
+          child: RiveRatingStars(
             rating: _rating,
-            size: 42,
             onRatingChanged: (rating) => setState(() => _rating = rating),
           ),
         ),
