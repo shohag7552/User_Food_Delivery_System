@@ -11,13 +11,19 @@ import 'package:rive/rive.dart' show Fit;
 
 /// Shown whenever the app has no usable connection.
 ///
-/// Everything sits in the upper part of the screen — artwork, then the two
-/// lines worth reading, then the one button worth pressing — with the slack
-/// left underneath. A dead-end screen that spreads its content to the far
-/// corners makes the eye travel for no reason; keeping it together at the top
-/// means it is read in one glance.
+/// The verdict goes to the top and everything actionable to the bottom, with
+/// the aquarium filling the space between them: what is wrong is read once, and
+/// the two things a person might do about it — wait, or retry — sit under the
+/// thumb.
 ///
-/// The fish is the only thing here a person can act on, so it leads.
+/// Two layouts, because one cannot serve both:
+///
+/// * **Phone / tablet** — the aquarium *is* the screen, and the copy sits over
+///   it on scrims. There is nothing else to do on this page, so handing the
+///   whole display to the one thing that answers a touch is the point of it.
+/// * **Desktop web** — the same scene stretched across a 1600px window would be
+///   absurd, and text floating over a browser-wide animation is hard to read.
+///   There it becomes a contained hero with the copy above and below it.
 class NoInternetScreen extends StatelessWidget {
   final VoidCallback onRetry;
   final bool isReloading;
@@ -28,117 +34,231 @@ class NoInternetScreen extends StatelessWidget {
     this.isReloading = false,
   });
 
-  /// Text column width on tablet and desktop. Without it the copy and the
-  /// button run the full width of a browser window.
+  /// Matches `WebTopNav.isEnabled` and the order pages, so the app changes to
+  /// its desktop shape at one width rather than a different one per screen.
+  static const double _wideBreakpoint = 900;
+
+  /// Desktop only: the hero's bounds, and the column the copy reads in.
+  static const double _stageWidth = 720;
+  static const double _maxStageHeight = 420;
+  static const double _minStageHeight = 240;
   static const double _maxContentWidth = 460;
-
-  /// Share of the viewport the tank claims, and the bounds it stays inside.
-  ///
-  /// Height-driven rather than aspect-driven: a 16:9 box sized off a phone's
-  /// width is only ~210px tall, which reads as a banner rather than a window
-  /// you are looking through. Filling half the screen and cropping the scene
-  /// horizontally is what makes it feel like an aquarium.
-  static const double _stageHeightFactor = 0.52;
-  static const double _minStageHeight = 200;
-  static const double _maxStageHeight = 480;
-
-  /// Vertical room the copy and the button need. The tank gives way to it on a
-  /// short window so the retry button stays reachable without scrolling.
-  static const double _actionsReserve = 260;
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: context.scaffoldBackground,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return constraints.maxWidth >= _wideBreakpoint
+              ? _buildWideLayout(context, constraints)
+              : _buildImmersiveLayout(context);
+        },
+      ),
+    );
+  }
+
+  // ── Phone / tablet: the aquarium takes the whole screen ──────────────────
+
+  Widget _buildImmersiveLayout(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Edge to edge, behind the status bar and the home indicator alike.
+        // `cover` crops the wide scene to the middle of the phone rather than
+        // letterboxing it, which is what makes it read as a window.
+        RiveArtwork(
+          asset: RiveAssets.interactiveAquarium,
+          fit: Fit.cover,
+          isInteractive: true,
+          fallback: _buildFallbackArtwork(),
+        ),
+        // Both scrims and all the text are painted boxes, not gesture targets,
+        // so a touch that lands between them falls straight through to the
+        // aquarium underneath. Only the button actually consumes one, which
+        // leaves nearly the whole screen usable for feeding fish.
+        Align(alignment: Alignment.topCenter, child: _buildTopBar(context)),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: _buildBottomBar(context),
+        ),
+      ],
+    );
+  }
+
+  /// The verdict, at the top, on a scrim that fades downward into the water.
+  Widget _buildTopBar(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xB3000000), Color(0x00000000)],
+        ),
+      ),
       child: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            // Scrollable so a short window (desktop split-screen, landscape
-            // phone) can still reach the retry button instead of overflowing.
-            return SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                // Centred now that the tank claims half the viewport: the
-                // block is tall enough that the leftover space reads better
-                // split above and below it than all pooled underneath.
-                child: Align(
-                  alignment: Alignment.center,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Outside the padded column on purpose: the tank runs to
-                      // the screen edges on a phone, which is what makes it
-                      // read as a window rather than a picture of one.
-                      _buildStage(constraints),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: Constants.paddingSizeLarge,
-                        ),
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            maxWidth: _maxContentWidth,
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (RiveAssets.isAvailable) ...[
-                                const SizedBox(
-                                  height: Constants.paddingSizeDefault,
-                                ),
-                                _buildHint(context),
-                              ],
-                              const SizedBox(height: Constants.paddingSizeLarge),
-                              _buildCopy(context),
-                              const SizedBox(height: Constants.paddingSizeLarge),
-                              _buildRetryButton(),
-                              // The slack lives here, below everything, rather
-                              // than being shared out between the blocks above.
-                              const SizedBox(height: Constants.paddingSizeLarge),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            Constants.paddingSizeLarge,
+            Constants.paddingSizeDefault,
+            Constants.paddingSizeLarge,
+            Constants.paddingSizeExtraLarge * 2,
+          ),
+          child: _buildTitle(context, onScrim: true),
         ),
       ),
     );
   }
 
-  /// The tank. Full-bleed width, half the viewport tall, and every pointer
-  /// inside it goes to the aquarium's own listeners.
-  ///
-  /// `Fit.cover` fills the box completely, so the scene is zoomed in and
-  /// cropped at the sides rather than letterboxed. That also means there is no
-  /// dead margin inside the tank where a tap would land on nothing.
-  Widget _buildStage(BoxConstraints constraints) {
-    final preferred = (constraints.maxHeight * _stageHeightFactor).clamp(
-      _minStageHeight,
-      _maxStageHeight,
+  /// What to do about it, at the bottom, under the thumb.
+  Widget _buildBottomBar(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          // Fades in slowly, so the water still shows through the top of it
+          // and the copy still has something solid to sit on.
+          colors: [Color(0x00000000), Color(0x99000000), Color(0xD9000000)],
+          stops: [0, 0.55, 1],
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            Constants.paddingSizeLarge,
+            Constants.paddingSizeExtraLarge * 2,
+            Constants.paddingSizeLarge,
+            Constants.paddingSizeLarge,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (RiveAssets.isAvailable) ...[
+                _buildHint(context, onScrim: true),
+                const SizedBox(height: Constants.paddingSizeSmall),
+              ],
+              _buildSubtitle(context, onScrim: true),
+              const SizedBox(height: Constants.paddingSizeLarge),
+              _buildRetryButton(onScrim: true),
+            ],
+          ),
+        ),
+      ),
     );
-    final roomLeft = math.max(
-      constraints.maxHeight - _actionsReserve,
+  }
+
+  // ── Desktop web: a contained hero with the copy around it ────────────────
+
+  Widget _buildWideLayout(BuildContext context, BoxConstraints constraints) {
+    final stageHeight = math.max(
+      math.min(constraints.maxHeight * 0.45, _maxStageHeight),
       _minStageHeight,
     );
 
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(
-        bottom: Radius.circular(Constants.radiusExtraLarge),
-      ),
-      child: SizedBox(
-        width: constraints.maxWidth,
-        height: math.min(preferred, roomLeft),
-        child: RiveArtwork(
-          asset: RiveAssets.interactiveAquarium,
-          fit: Fit.cover,
-          // The whole point of the screen: tap the water, feed the fish.
-          isInteractive: true,
-          fallback: _buildFallbackArtwork(),
+    return SingleChildScrollView(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: Constants.paddingSizeLarge,
+              vertical: Constants.paddingSizeExtraLarge,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Same reading order as the phone: verdict, scene, then the
+                // things to do about it.
+                _buildTitle(context, onScrim: false),
+                const SizedBox(height: Constants.paddingSizeLarge),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(
+                    Constants.radiusExtraLarge,
+                  ),
+                  child: SizedBox(
+                    width: _stageWidth,
+                    height: stageHeight,
+                    child: RiveArtwork(
+                      asset: RiveAssets.interactiveAquarium,
+                      fit: Fit.cover,
+                      isInteractive: true,
+                      fallback: _buildFallbackArtwork(),
+                    ),
+                  ),
+                ),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: _maxContentWidth,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (RiveAssets.isAvailable) ...[
+                        const SizedBox(height: Constants.paddingSizeDefault),
+                        _buildHint(context, onScrim: false),
+                      ],
+                      const SizedBox(height: Constants.paddingSizeSmall),
+                      _buildSubtitle(context, onScrim: false),
+                      const SizedBox(height: Constants.paddingSizeLarge),
+                      _buildRetryButton(onScrim: false),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
+      ),
+    );
+  }
+
+  // ── Shared pieces ────────────────────────────────────────────────────────
+  //
+  // `onScrim` switches every one of these to a white-on-dark palette. Over the
+  // artwork the theme's own colours are unusable: the scene looks the same in
+  // light and dark mode, so anything that followed the theme would disappear
+  // into the water in one of the two.
+
+  Widget _buildTitle(BuildContext context, {required bool onScrim}) {
+    return Text(
+      'no_internet_title'.tr,
+      textAlign: TextAlign.center,
+      style: poppinsBold.copyWith(
+        fontSize: Constants.fontSizeExtraLarge,
+        color: onScrim ? ColorResource.textWhite : context.textPrimary,
+      ),
+    );
+  }
+
+  Widget _buildSubtitle(BuildContext context, {required bool onScrim}) {
+    return Text(
+      isReloading
+          ? 'reconnecting_data'.tr
+          : 'we_will_reconnect_automatically'.tr,
+      textAlign: TextAlign.center,
+      style: poppinsRegular.copyWith(
+        fontSize: Constants.fontSizeLarge,
+        color: onScrim
+            ? ColorResource.textWhite.withValues(alpha: 0.8)
+            : context.textSecondary,
+      ),
+    );
+  }
+
+  /// Caption for the artwork, offered only when there is something to interact
+  /// with — inviting a tap on a static icon would be a lie.
+  Widget _buildHint(BuildContext context, {required bool onScrim}) {
+    return Text(
+      'tap_the_water_to_feed_the_fish'.tr,
+      textAlign: TextAlign.center,
+      style: poppinsMedium.copyWith(
+        fontSize: Constants.fontSizeSmall,
+        color: onScrim
+            ? ColorResource.textWhite.withValues(alpha: 0.75)
+            : context.textLight,
       ),
     );
   }
@@ -161,71 +281,44 @@ class NoInternetScreen extends StatelessWidget {
     );
   }
 
-  /// Caption for the artwork, offered only when there is something to interact
-  /// with — inviting a tap on a static icon would be a lie.
-  Widget _buildHint(BuildContext context) {
-    return Text(
-      'tap_the_water_to_feed_the_fish'.tr,
-      textAlign: TextAlign.center,
-      style: poppinsRegular.copyWith(
-        fontSize: Constants.fontSizeSmall,
-        color: context.textLight,
-      ),
-    );
-  }
+  /// A pill, in one shape on both layouts and two palettes.
+  ///
+  /// The brand's filled red sat badly on blue water and competed with the
+  /// artwork for attention. Over the scrim the button instead borrows the white
+  /// the copy already uses, which reads as one piece of overlay rather than a
+  /// control dropped on top of a picture. The stadium shape distinguishes it
+  /// from the app's ordinary rounded-rectangle buttons: this is the only thing
+  /// on the screen worth pressing, so it should not look like a form field.
+  Widget _buildRetryButton({required bool onScrim}) {
+    final background = onScrim
+        ? ColorResource.textWhite
+        : ColorResource.primaryDark;
+    final foreground = onScrim
+        ? ColorResource.primaryDark
+        : ColorResource.textWhite;
 
-  Widget _buildCopy(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          'no_internet_title'.tr,
-          textAlign: TextAlign.center,
-          style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeExtraLarge,
-            color: context.textPrimary,
-          ),
-        ),
-        const SizedBox(height: Constants.paddingSizeExtraSmall),
-        Text(
-          isReloading
-              ? 'reconnecting_data'.tr
-              : 'we_will_reconnect_automatically'.tr,
-          textAlign: TextAlign.center,
-          style: poppinsRegular.copyWith(
-            fontSize: Constants.fontSizeSmall,
-            color: context.textSecondary,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRetryButton() {
     return SizedBox(
       width: double.infinity,
-      height: 50,
+      height: 54,
       child: ElevatedButton.icon(
         onPressed: isReloading ? null : onRetry,
         style: ElevatedButton.styleFrom(
-          backgroundColor: ColorResource.primaryDark,
-          foregroundColor: ColorResource.textWhite,
-          disabledBackgroundColor: ColorResource.primaryDark.withValues(
-            alpha: 0.5,
-          ),
-          disabledForegroundColor: ColorResource.textWhite,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(Constants.radiusLarge),
-          ),
+          backgroundColor: background,
+          foregroundColor: foreground,
+          // Dimmed rather than greyed: a grey pill on the scrim would read as
+          // broken, where a faded one reads as busy.
+          disabledBackgroundColor: background.withValues(alpha: 0.6),
+          disabledForegroundColor: foreground,
+          shape: const StadiumBorder(),
           elevation: 0,
         ),
         icon: isReloading
-            ? const SizedBox(
+            ? SizedBox(
                 width: 18,
                 height: 18,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.2,
-                  color: ColorResource.textWhite,
+                  color: foreground,
                 ),
               )
             : const Icon(Icons.refresh_rounded, size: 20),
@@ -233,7 +326,7 @@ class NoInternetScreen extends StatelessWidget {
           isReloading ? 'reconnecting'.tr : 'check_connection'.tr,
           style: poppinsBold.copyWith(
             fontSize: Constants.fontSizeDefault,
-            color: ColorResource.textWhite,
+            color: foreground,
           ),
         ),
       ),
