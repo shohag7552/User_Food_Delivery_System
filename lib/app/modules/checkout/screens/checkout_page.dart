@@ -3,6 +3,7 @@ import 'dart:async' show unawaited;
 import 'package:appwrite_user_app/app/appwrite/payment_service.dart';
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
@@ -429,27 +430,44 @@ class _CheckoutPageState extends State<CheckoutPage> {
             // An in-flight first fetch also has an empty list. Reporting that
             // as "your cart is empty" is the bug this guard exists for — on a
             // cold load the real contents arrive a moment later.
-            if (controller.isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.shopping_cart_outlined, size: 80, color: context.textLight),
-                  const SizedBox(height: 16),
-                  Text(
-                    'your_cart_is_empty'.tr,
-                    style: poppinsBold.copyWith(fontSize: Constants.fontSizeLarge),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () => context.pop(),
-                    child: Text('go_back'.tr),
-                  ),
-                ],
-              ),
-            );
+            final Widget state = controller.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.shopping_cart_outlined,
+                          size: 80,
+                          color: context.textLight,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'your_cart_is_empty'.tr,
+                          style: poppinsBold.copyWith(
+                            fontSize: Constants.fontSizeLarge,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          onPressed: () => context.pop(),
+                          child: Text('go_back'.tr),
+                        ),
+                      ],
+                    ),
+                  );
+
+            // Web keeps its footer even with nothing to check out: a page that
+            // simply stops halfway down reads as broken rather than as empty.
+            // Mobile gets the bare state exactly as before.
+            return useWebShell
+                ? _buildWebPage(
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 80),
+                      child: state,
+                    ),
+                  )
+                : state;
           }
 
           if (useWebShell) return _buildWebBody(controller);
@@ -496,12 +514,40 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
+  /// The desktop-web page shell: [child], then the site footer.
+  ///
+  /// The footer is pushed to the bottom of the window when the page is shorter
+  /// than the viewport and simply follows the content when it is longer —
+  /// `minHeight` plus `spaceBetween` is what buys both without measuring
+  /// anything. Same arrangement the other web pages use, so checkout ends the
+  /// way the rest of the site does.
+  ///
+  /// [WebFooter] self-gates on the web shell, so this is only ever reached
+  /// from the desktop branches; mobile never builds it.
+  Widget _buildWebPage(Widget child) {
+    return LayoutBuilder(
+      builder: (context, viewport) => SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: viewport.maxHeight),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [child, const WebFooter()],
+          ),
+        ),
+      ),
+    );
+  }
+
   // ── Web/desktop: centered two-column checkout ──
   //   Left:  address · shipping/schedule · payment · instructions
   //   Right: order summary rail — coupon, always-open breakdown, place order
   Widget _buildWebBody(CartController controller) {
-    return SingleChildScrollView(
-      child: Center(
+    return _buildWebPage(
+      Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: _maxContentWidth),
           child: Padding(
