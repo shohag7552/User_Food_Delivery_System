@@ -768,5 +768,7 @@
   "failed_to_delete_review": "تعذّر حذف المراجعة",
   "marked_as_helpful": "تم وضع علامة مفيد",
   "removed_from_helpful": "تمت الإزالة من المفيد",
-  "failed_to_update_helpful": "تعذّر تحديث المفيد"
+  "failed_to_update_helpful": "تعذّر تحديث المفيد",
+  "placed_on": "تم الطلب في",
+  "picked_up": "تم الاستلام"
 }

@@ -802,5 +802,7 @@
   "failed_to_delete_review": "Could not delete the review",
   "marked_as_helpful": "Marked as helpful",
   "removed_from_helpful": "Removed from helpful",
-  "failed_to_update_helpful": "Could not update helpful"
+  "failed_to_update_helpful": "Could not update helpful",
+  "placed_on": "Placed on",
+  "picked_up": "Picked up"
 }
