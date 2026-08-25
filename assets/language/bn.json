@@ -782,5 +782,14 @@
   "your_review": "আপনার রিভিউ",
   "submit_review": "রিভিউ জমা দিন",
   "verified_purchase": "যাচাইকৃত ক্রয়",
-  "product": "পণ্য"
+  "product": "পণ্য",
+  "rated": "রেটিং দেওয়া হয়েছে",
+  "review_submitted_successfully": "রিভিউ সফলভাবে জমা হয়েছে",
+  "failed_to_submit_review": "আপনার রিভিউ জমা দেওয়া যায়নি",
+  "you_have_already_reviewed_this_product": "আপনি ইতিমধ্যে এই পণ্যে রিভিউ দিয়েছেন",
+  "review_deleted": "রিভিউ মুছে ফেলা হয়েছে",
+  "failed_to_delete_review": "রিভিউ মুছে ফেলা যায়নি",
+  "marked_as_helpful": "সহায়ক হিসেবে চিহ্নিত করা হয়েছে",
+  "removed_from_helpful": "সহায়ক তালিকা থেকে সরানো হয়েছে",
+  "failed_to_update_helpful": "সহায়ক আপডেট করা যায়নি"
 }

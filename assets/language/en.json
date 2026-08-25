@@ -793,5 +793,14 @@
   "your_review": "Your review",
   "submit_review": "Submit review",
   "verified_purchase": "Verified purchase",
-  "product": "Product"
+  "product": "Product",
+  "rated": "Rated",
+  "review_submitted_successfully": "Review submitted successfully",
+  "failed_to_submit_review": "Could not submit your review",
+  "you_have_already_reviewed_this_product": "You have already reviewed this product",
+  "review_deleted": "Review deleted",
+  "failed_to_delete_review": "Could not delete the review",
+  "marked_as_helpful": "Marked as helpful",
+  "removed_from_helpful": "Removed from helpful",
+  "failed_to_update_helpful": "Could not update helpful"
 }

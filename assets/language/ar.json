@@ -759,5 +759,14 @@
   "your_review": "مراجعتك",
   "submit_review": "إرسال المراجعة",
   "verified_purchase": "شراء موثّق",
-  "product": "المنتج"
+  "product": "المنتج",
+  "rated": "تم التقييم",
+  "review_submitted_successfully": "تم إرسال المراجعة بنجاح",
+  "failed_to_submit_review": "تعذّر إرسال مراجعتك",
+  "you_have_already_reviewed_this_product": "لقد قمت بمراجعة هذا المنتج من قبل",
+  "review_deleted": "تم حذف المراجعة",
+  "failed_to_delete_review": "تعذّر حذف المراجعة",
+  "marked_as_helpful": "تم وضع علامة مفيد",
+  "removed_from_helpful": "تمت الإزالة من المفيد",
+  "failed_to_update_helpful": "تعذّر تحديث المفيد"
 }

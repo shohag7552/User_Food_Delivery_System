@@ -111,7 +111,7 @@ class ReviewController extends GetxController implements GetxService {
       );
 
       if (hasReviewed) {
-        customToster('You have already reviewed this product', isSuccess: false);
+        customToster('you_have_already_reviewed_this_product'.tr, isSuccess: false);
         return false;
       }
 
@@ -142,11 +142,11 @@ class ReviewController extends GetxController implements GetxService {
       await fetchProductReviews(productId, forceRefresh: true);
       _syncProductRatingSummaryInCache(productId);
 
-      customToster('Review submitted successfully!', isSuccess: true);
+      customToster('review_submitted_successfully'.tr, isSuccess: true);
       return true;
     } catch (e) {
       log('Error submitting review: $e');
-      customToster('Failed to submit review', isSuccess: false);
+      customToster('failed_to_submit_review'.tr, isSuccess: false);
       return false;
     }
   }
@@ -178,12 +178,12 @@ class ReviewController extends GetxController implements GetxService {
 
       final isNowHelpful = updatedReview.isMarkedHelpfulBy(userId);
       customToster(
-        isNowHelpful ? 'Marked as helpful' : 'Removed from helpful',
+        isNowHelpful ? 'marked_as_helpful'.tr : 'removed_from_helpful'.tr,
         isSuccess: true,
       );
     } catch (e) {
       log('Error toggling review helpful: $e');
-      customToster('Failed to update helpful', isSuccess: false);
+      customToster('failed_to_update_helpful'.tr, isSuccess: false);
     }
   }
 
@@ -199,10 +199,10 @@ class ReviewController extends GetxController implements GetxService {
       );
       _syncProductRatingSummaryInCache(productId);
 
-      customToster('Review deleted', isSuccess: true);
+      customToster('review_deleted'.tr, isSuccess: true);
     } catch (e) {
       log('Error deleting review: $e');
-      customToster('Failed to delete review', isSuccess: false);
+      customToster('failed_to_delete_review'.tr, isSuccess: false);
     }
   }
 

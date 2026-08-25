@@ -227,8 +227,6 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           _buildTrackingInfo(order),
         ],
         const SizedBox(height: 16),
-        _buildOrderInfo(order),
-        const SizedBox(height: 16),
         _buildItemsList(order),
         const SizedBox(height: 16),
         _buildDeliveryInfo(order),
@@ -293,8 +291,6 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         _buildTrackingInfo(order),
         const SizedBox(height: 16),
       ],
-      _buildOrderInfo(order),
-      const SizedBox(height: 16),
       _buildPaymentInfo(order),
       const SizedBox(height: 16),
       _buildPricingBreakdown(order),
@@ -476,69 +472,6 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     );
   }
 
-  Widget _buildOrderInfo(OrderModel order) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.cardBackground,
-        borderRadius: BorderRadius.circular(Constants.radiusLarge),
-        boxShadow: ColorResource.customShadow,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildInfoItem(
-              icon: Icons.receipt_long,
-              label: 'order_id'.tr,
-              value: order.orderNumber,
-            ),
-          ),
-          Container(
-            width: 1,
-            height: 40,
-            color: Theme.of(context).dividerColor,
-          ),
-          Expanded(
-            child: _buildInfoItem(
-              icon: Icons.shopping_bag_outlined,
-              label: 'items'.tr,
-              value: '${order.items.length}',
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoItem({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
-    return Column(
-      children: [
-        Icon(icon, color: ColorResource.primaryDark, size: 24),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: poppinsRegular.copyWith(
-            fontSize: Constants.fontSizeSmall,
-            color: context.textSecondary,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeDefault,
-            color: context.textPrimary,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildItemsList(OrderModel order) {
     _prefetchUserReviews(order);
 
@@ -553,163 +486,157 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              'order_items'.tr,
-              style: poppinsBold.copyWith(
-                fontSize: Constants.fontSizeLarge,
-                color: context.textPrimary,
-              ),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'order_items'.tr,
+                    style: poppinsBold.copyWith(
+                      fontSize: Constants.fontSizeLarge,
+                      color: context.textPrimary,
+                    ),
+                  ),
+                ),
+                // The count belongs on the heading, not as its own stat card
+                // row: it answers "how many lines am I about to read?".
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: Constants.paddingSizeSmall,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: ColorResource.primaryDark.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(
+                      Constants.radiusExtraLarge,
+                    ),
+                  ),
+                  child: Text(
+                    '${order.items.length}',
+                    style: poppinsBold.copyWith(
+                      fontSize: Constants.fontSizeSmall,
+                      color: ColorResource.primaryDark,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          Divider(height: 1, color: _borderColor),
+          // Hairline-separated rows rather than a nested bordered card per
+          // item: a box inside a box inside a box reads as clutter, and the
+          // items are a list, not a set of independent objects.
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.zero,
             itemCount: order.items.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 16),
-            itemBuilder: (context, index) {
-              final item = order.items[index];
-              return _buildOrderItem(order, item);
-            },
+            separatorBuilder: (context, index) =>
+                Divider(height: 1, indent: 16, endIndent: 16, color: _borderColor),
+            itemBuilder: (context, index) =>
+                _buildOrderItem(order, order.items[index]),
           ),
+          const SizedBox(height: Constants.paddingSizeSmall),
         ],
       ),
     );
   }
 
+  /// One line of the order: what it was, how many, what it came to.
+  ///
+  /// Deliberately not everything the model knows — the unit price before
+  /// discount and the percentage saved were removed from here because the
+  /// payment summary below already totals both, and repeating them turned a
+  /// two-second scan into a paragraph.
   Widget _buildOrderItem(OrderModel order, OrderItem item) {
     final itemTotal = item.price * item.quantity;
+    final variants = item.selectedVariants.join(' • ');
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: context.scaffoldBackground,
-        borderRadius: BorderRadius.circular(Constants.radiusDefault),
-        border: Border.all(color: _borderColor),
-      ),
-      child: Row(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              gradient: ColorResource.primaryGradient,
-              borderRadius: BorderRadius.circular(Constants.radiusDefault),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(Constants.radiusDefault),
-              child: CustomNetworkImage(image: item.productImage),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.productName,
-                  style: poppinsBold.copyWith(
-                    fontSize: Constants.fontSizeDefault,
-                    color: context.textPrimary,
-                  ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: context.scaffoldBackground,
+                  borderRadius: BorderRadius.circular(Constants.radiusDefault),
+                  border: Border.all(color: _borderColor),
                 ),
-                if (item.selectedVariants.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: item.selectedVariants.map((variant) {
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: ColorResource.primaryDark.withValues(
-                            alpha: 0.1,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          variant,
-                          style: poppinsRegular.copyWith(
-                            fontSize: Constants.fontSizeSmall,
-                            color: ColorResource.primaryDark,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                clipBehavior: Clip.antiAlias,
+                child: CustomNetworkImage(
+                  image: item.productImage,
+                  width: 52,
+                  height: 52,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (item.hasDiscount) ...[
-                          Row(
-                            children: [
-                              Text(
-                                PriceHelper.formatPrice(item.basePrice),
-                                style: poppinsRegular.copyWith(
-                                  fontSize: Constants.fontSizeExtraSmall,
-                                  color: context.textLight,
-                                  decoration: TextDecoration.lineThrough,
-                                  decorationColor: context.textLight,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 5,
-                                  vertical: 1,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.green.shade50,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  '${((1 - item.price / item.basePrice) * 100).round()}% OFF',
-                                  style: poppinsBold.copyWith(
-                                    fontSize: 9,
-                                    color: Colors.green.shade700,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                        Text(
-                          '${PriceHelper.formatPrice(item.price)} × ${item.quantity}',
-                          style: poppinsRegular.copyWith(
-                            fontSize: Constants.fontSizeSmall,
-                            color: context.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
                     Text(
-                      PriceHelper.formatPrice(itemTotal),
-                      style: poppinsBold.copyWith(
-                        fontSize: Constants.fontSizeLarge,
-                        color: ColorResource.primaryDark,
+                      item.productName,
+                      style: poppinsMedium.copyWith(
+                        fontSize: Constants.fontSizeDefault,
+                        color: context.textPrimary,
+                        height: 1.3,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (variants.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      // Variants read as one muted line instead of a row of
+                      // chips — they qualify the product, they are not
+                      // actions, and chips promised a tap that never existed.
+                      Text(
+                        variants,
+                        style: poppinsRegular.copyWith(
+                          fontSize: Constants.fontSizeSmall,
+                          color: context.textSecondary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    const SizedBox(height: 4),
+                    Text(
+                      '${item.quantity} × ${PriceHelper.formatPrice(item.price)}',
+                      style: poppinsRegular.copyWith(
+                        fontSize: Constants.fontSizeSmall,
+                        color: context.textLight,
                       ),
                     ),
                   ],
                 ),
-                // Add review button for delivered orders
-                if (_isOrderDelivered(order)) ...[
-                  const SizedBox(height: 12),
-                  _buildReviewAction(order, item),
-                ],
-              ],
-            ),
+              ),
+              const SizedBox(width: Constants.paddingSizeSmall),
+              // The line total is the number the eye goes looking for, so it
+              // stays right-aligned in its own column, level with the name.
+              Text(
+                PriceHelper.formatPrice(itemTotal),
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeDefault,
+                  color: context.textPrimary,
+                ),
+              ),
+            ],
           ),
+          if (_isOrderDelivered(order)) ...[
+            const SizedBox(height: Constants.paddingSizeSmall),
+            // Indented to the text column so the rating action reads as
+            // belonging to this product rather than to the whole card.
+            Padding(
+              padding: const EdgeInsets.only(left: 64),
+              child: _buildReviewAction(order, item),
+            ),
+          ],
         ],
       ),
     );
@@ -788,13 +715,22 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         }
 
         if (!hasLoaded || isLoading) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
+          // Sized and aligned like the pill it stands in for, so the row does
+          // not jump sideways or change height when the answer arrives.
+          return Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: SizedBox(
+              height: 26,
+              width: 26,
+              child: Center(
+                child: SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: ColorResource.primaryDark.withValues(alpha: 0.5),
+                  ),
+                ),
               ),
             ),
           );
@@ -805,58 +741,77 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     );
   }
 
+  /// Compact by design: this is an optional afterthought on a delivered order,
+  /// not the card's primary action, and a full-width button per line item made
+  /// a three-item order look like a form with three submit buttons.
   Widget _buildRateProductButton(OrderItem item) {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: () => _showReviewBottomSheet(item),
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          side: BorderSide(color: ColorResource.primaryDark),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(Constants.radiusDefault),
-          ),
-        ),
-        icon: Icon(
-          Icons.rate_review,
-          size: 18,
-          color: ColorResource.primaryDark,
-        ),
-        label: Text(
-          'rate_this_product'.tr,
-          style: poppinsMedium.copyWith(
-            fontSize: Constants.fontSizeSmall,
-            color: ColorResource.primaryDark,
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Material(
+        color: ColorResource.primaryDark.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => _showReviewBottomSheet(item),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: Constants.paddingSizeDefault - 3,
+              vertical: Constants.paddingSizeSmall - 3,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.star_rounded,
+                  size: 16,
+                  color: ColorResource.primaryDark,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  'rate_this_product'.tr,
+                  style: poppinsMedium.copyWith(
+                    fontSize: Constants.fontSizeSmall,
+                    color: ColorResource.primaryDark,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
+  /// The score already given, stated as stars rather than as a number in
+  /// brackets — the previous "(5.0✭)" both read as a decimal and left the
+  /// untranslated key visible when the label had no entry in the language file.
   Widget _buildExistingReviewCard(ReviewModel review) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: ColorResource.primaryDark.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(Constants.radiusDefault),
-        border: Border.all(
-          color: ColorResource.primaryDark.withValues(alpha: 0.2),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.check_circle, size: 18, color: Colors.green),
-          const SizedBox(width: 8),
-          Text(
-            '${'already_rated'.tr} (${review.rating.toDouble()}✭)',
-            style: poppinsMedium.copyWith(
-              fontSize: Constants.fontSizeSmall,
-              color: ColorResource.primaryDark,
-            ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.check_circle_rounded, size: 15, color: ColorResource.success),
+        const SizedBox(width: 5),
+        Text(
+          'rated'.tr,
+          style: poppinsMedium.copyWith(
+            fontSize: Constants.fontSizeSmall,
+            color: context.textSecondary,
           ),
-        ],
-      ),
+        ),
+        const SizedBox(width: 6),
+        ...List.generate(
+          5,
+          (index) => Icon(
+            index < review.rating
+                ? Icons.star_rounded
+                : Icons.star_border_rounded,
+            size: 14,
+            color: index < review.rating
+                ? ColorResource.ratingStarColor
+                : context.textLight,
+          ),
+        ),
+      ],
     );
   }
 
