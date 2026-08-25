@@ -21,6 +21,10 @@ class SubmitReviewBottomSheet extends StatefulWidget {
   final String productImage;
   final bool verifiedPurchase;
 
+  /// Sheet on a phone, dialog on desktop web. Only affects chrome — corners,
+  /// grabber, safe-area inset — never the form itself.
+  final ReviewSheetMode mode;
+
   const SubmitReviewBottomSheet({
     super.key,
     this.orderId,
@@ -28,6 +32,7 @@ class SubmitReviewBottomSheet extends StatefulWidget {
     required this.productName,
     this.productImage = '',
     this.verifiedPurchase = false,
+    this.mode = ReviewSheetMode.sheet,
   });
 
   @override
@@ -44,21 +49,15 @@ class SubmitReviewBottomSheet extends StatefulWidget {
     String productImage = '',
     bool verifiedPurchase = false,
   }) {
-    return showModalBottomSheet<bool>(
+    return showReviewSurface(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      // Caps the sheet short of the top edge: even with the keyboard up and
-      // both fields filled, the product being reviewed stays on screen.
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.92,
-      ),
-      builder: (context) => SubmitReviewBottomSheet(
+      builder: (mode) => SubmitReviewBottomSheet(
         orderId: orderId,
         productId: productId,
         productName: productName,
         productImage: productImage,
         verifiedPurchase: verifiedPurchase,
+        mode: mode,
       ),
     );
   }
@@ -159,20 +158,33 @@ class _SubmitReviewBottomSheetState extends State<SubmitReviewBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final isDialog = widget.mode.isDialog;
+
     return Container(
       decoration: BoxDecoration(
         color: context.cardBackground,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(Constants.radiusExtraLarge),
-          topRight: Radius.circular(Constants.radiusExtraLarge),
-        ),
+        // A dialog floats, so it is rounded all the way round; a sheet is
+        // anchored to the bottom edge and only rounds the corners that leave it.
+        borderRadius: isDialog
+            ? BorderRadius.circular(Constants.radiusExtraLarge)
+            : const BorderRadius.only(
+                topLeft: Radius.circular(Constants.radiusExtraLarge),
+                topRight: Radius.circular(Constants.radiusExtraLarge),
+              ),
       ),
+      clipBehavior: Clip.antiAlias,
       child: SafeArea(
+        // The dialog's inset padding already clears the system bars; adding the
+        // safe area on top of it would double the gap.
         top: false,
+        bottom: !isDialog,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ReviewSheetTopBar(onClose: () => Navigator.pop(context)),
+            ReviewSheetTopBar(
+              mode: widget.mode,
+              onClose: () => Navigator.pop(context),
+            ),
             _buildHeader(context),
             const ReviewSheetDivider(),
             // Only the form scrolls — the product being reviewed stays pinned
@@ -421,10 +433,7 @@ class _SubmitReviewBottomSheetState extends State<SubmitReviewBottomSheet> {
             fontSize: Constants.fontSizeDefault,
             color: context.textPrimary,
           ),
-          decoration: _fieldDecoration(
-            context,
-            hint: 'share_your_thoughts'.tr,
-          ),
+          decoration: _fieldDecoration(context, hint: 'share_your_thoughts'.tr),
         ),
       ],
     );
@@ -457,7 +466,10 @@ class _SubmitReviewBottomSheetState extends State<SubmitReviewBottomSheet> {
     );
   }
 
-  InputDecoration _fieldDecoration(BuildContext context, {required String hint}) {
+  InputDecoration _fieldDecoration(
+    BuildContext context, {
+    required String hint,
+  }) {
     return InputDecoration(
       hintText: hint,
       hintStyle: poppinsRegular.copyWith(

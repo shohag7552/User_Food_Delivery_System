@@ -32,9 +32,7 @@ class ReviewCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusDefault),
-        border: Border.all(
-          color: context.textLight.withOpacity(0.1),
-        ),
+        border: Border.all(color: context.textLight.withOpacity(0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,7 +63,8 @@ class ReviewCard extends StatelessWidget {
                         Flexible(
                           child: Text(
                             review.userName,
-                            maxLines: 1, overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: poppinsMedium.copyWith(
                               fontSize: Constants.fontSizeDefault,
                               color: context.textPrimary,
@@ -73,7 +72,9 @@ class ReviewCard extends StatelessWidget {
                           ),
                         ),
                         if (review.verifiedPurchase) ...[
-                          const SizedBox(width: Constants.paddingSizeExtraSmall),
+                          const SizedBox(
+                            width: Constants.paddingSizeExtraSmall,
+                          ),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 6,
@@ -104,10 +105,7 @@ class ReviewCard extends StatelessWidget {
                 ),
               ),
               // Rating
-              RatingStars(
-                rating: review.rating.toDouble(),
-                size: 16,
-              ),
+              RatingStars(rating: review.rating.toDouble(), size: 16),
             ],
           ),
 

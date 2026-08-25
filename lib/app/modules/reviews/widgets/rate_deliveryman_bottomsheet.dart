@@ -24,6 +24,7 @@ class RateDeliverymanBottomSheet extends StatefulWidget {
     required this.order,
     this.existingReview,
     this.initialRating = 0,
+    this.mode = ReviewSheetMode.sheet,
   });
 
   final OrderModel order;
@@ -35,25 +36,23 @@ class RateDeliverymanBottomSheet extends StatefulWidget {
   /// the form — it is not a submission, so they can still change it here.
   final int initialRating;
 
+  /// Sheet on a phone, dialog on desktop web. Only affects chrome — corners,
+  /// grabber, safe-area inset — never the form itself.
+  final ReviewSheetMode mode;
+
   static Future<bool?> show(
     BuildContext context, {
     required OrderModel order,
     DeliverymanReviewModel? existingReview,
     int initialRating = 0,
   }) {
-    return showModalBottomSheet<bool>(
+    return showReviewSurface(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      // Caps the sheet short of the top edge: even with the keyboard up, the
-      // driver being rated stays on screen.
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.92,
-      ),
-      builder: (_) => RateDeliverymanBottomSheet(
+      builder: (mode) => RateDeliverymanBottomSheet(
         order: order,
         existingReview: existingReview,
         initialRating: initialRating,
+        mode: mode,
       ),
     );
   }
@@ -154,20 +153,33 @@ class _RateDeliverymanBottomSheetState
     final deliveryman = widget.order.deliveryman;
     final availableTags = _controller.tagsForRating(_rating);
 
+    final isDialog = widget.mode.isDialog;
+
     return Container(
       decoration: BoxDecoration(
         color: context.cardBackground,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(Constants.radiusExtraLarge),
-          topRight: Radius.circular(Constants.radiusExtraLarge),
-        ),
+        // A dialog floats, so it is rounded all the way round; a sheet is
+        // anchored to the bottom edge and only rounds the corners that leave it.
+        borderRadius: isDialog
+            ? BorderRadius.circular(Constants.radiusExtraLarge)
+            : const BorderRadius.only(
+                topLeft: Radius.circular(Constants.radiusExtraLarge),
+                topRight: Radius.circular(Constants.radiusExtraLarge),
+              ),
       ),
+      clipBehavior: Clip.antiAlias,
       child: SafeArea(
+        // The dialog's inset padding already clears the system bars; adding the
+        // safe area on top of it would double the gap.
         top: false,
+        bottom: !isDialog,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ReviewSheetTopBar(onClose: () => Navigator.pop(context)),
+            ReviewSheetTopBar(
+              mode: widget.mode,
+              onClose: () => Navigator.pop(context),
+            ),
             _buildHeader(context, deliveryman),
             const ReviewSheetDivider(),
             // Only the form scrolls — who is being rated stays pinned above

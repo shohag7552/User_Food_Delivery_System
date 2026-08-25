@@ -70,8 +70,8 @@ class ReviewListSection extends StatelessWidget {
               _buildEmptyState()
             else
               ...reviews.map((review) {
-                final isCurrentUser = currentUserId != null &&
-                    review.userId == currentUserId;
+                final isCurrentUser =
+                    currentUserId != null && review.userId == currentUserId;
 
                 return ReviewCard(
                   review: review,
@@ -121,10 +121,7 @@ class ReviewListSection extends StatelessWidget {
                   color: ColorResource.textPrimary,
                 ),
               ),
-              RatingStars(
-                rating: rating,
-                size: 20,
-              ),
+              RatingStars(rating: rating, size: 20),
               const SizedBox(height: 4),
               Text(
                 '$count reviews',

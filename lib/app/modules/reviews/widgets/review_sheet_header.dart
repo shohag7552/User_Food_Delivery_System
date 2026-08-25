@@ -1,8 +1,91 @@
+import 'dart:math' as math;
+
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+/// How a review form is presented.
+///
+/// A sheet dragged up from the bottom edge is a phone gesture. On a desktop
+/// browser it has no bottom edge to come from — the window is wider than it is
+/// tall, and a full-width strip pinned to the floor of a 1600px window reads as
+/// a broken page rather than a considered one. There it becomes a centred
+/// dialog instead.
+enum ReviewSheetMode {
+  /// Bottom sheet: rounded top corners, a grabber, bottom safe-area inset.
+  sheet,
+
+  /// Centred dialog: rounded on all sides, no grabber, no safe-area inset —
+  /// the dialog's own inset padding already keeps it clear of the edges.
+  dialog;
+
+  bool get isDialog => this == ReviewSheetMode.dialog;
+}
+
+/// Which presentation [context] calls for.
+///
+/// Deliberately `kIsWeb`-gated rather than width alone: a large Android tablet
+/// still has a bottom edge and a thumb near it, so the sheet remains the right
+/// gesture there. The 900px threshold matches `WebTopNav.isEnabled`, so the app
+/// changes to its desktop shape at one width rather than a different one per
+/// screen.
+ReviewSheetMode reviewSheetModeFor(BuildContext context) =>
+    kIsWeb && MediaQuery.of(context).size.width >= 900
+    ? ReviewSheetMode.dialog
+    : ReviewSheetMode.sheet;
+
+/// Presents [child] the way [reviewSheetModeFor] says this context wants it.
+///
+/// Both paths return the same `Future<bool?>`, so callers cannot tell which one
+/// ran — the existing `didSubmit == true` checks keep working untouched.
+Future<bool?> showReviewSurface({
+  required BuildContext context,
+  required Widget Function(ReviewSheetMode mode) builder,
+}) {
+  final mode = reviewSheetModeFor(context);
+  final size = MediaQuery.of(context).size;
+
+  if (mode.isDialog) {
+    return showDialog<bool>(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        insetPadding: const EdgeInsets.symmetric(
+          horizontal: Constants.paddingSizeLarge,
+          vertical: Constants.paddingSizeExtraLarge,
+        ),
+        child: ConstrainedBox(
+          // Width: a review form is one column of prose and two fields, so it
+          // is capped near a comfortable reading measure rather than stretched.
+          // Height: the form sizes to its own content and only starts scrolling
+          // once it would outgrow the window.
+          constraints: BoxConstraints(
+            maxWidth: _dialogMaxWidth,
+            maxHeight: math.min(size.height * 0.9, _dialogMaxHeight),
+          ),
+          child: builder(mode),
+        ),
+      ),
+    );
+  }
+
+  return showModalBottomSheet<bool>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    // Caps the sheet short of the top edge: even with the keyboard up and the
+    // fields filled, what is being reviewed stays on screen.
+    constraints: BoxConstraints(maxHeight: size.height * 0.92),
+    builder: (_) => builder(mode),
+  );
+}
+
+const double _dialogMaxWidth = 520;
+const double _dialogMaxHeight = 760;
 
 /// Shared chrome for the review sheets, so rating a product and rating a
 /// delivery are visibly the same kind of task.
@@ -11,9 +94,18 @@ import 'package:get/get.dart';
 /// of the sheet: dismissing is sheet-level furniture, not part of the form, and
 /// putting it in the corner keeps the title free to be centred.
 class ReviewSheetTopBar extends StatelessWidget {
-  const ReviewSheetTopBar({super.key, required this.onClose});
+  const ReviewSheetTopBar({
+    super.key,
+    required this.onClose,
+    this.mode = ReviewSheetMode.sheet,
+  });
 
   final VoidCallback onClose;
+
+  /// Drops the grabber in dialog mode: it advertises a drag-to-dismiss that a
+  /// dialog does not support, and pointing at a gesture that does nothing is
+  /// worse than showing no affordance at all.
+  final ReviewSheetMode mode;
 
   static const double _height = 46;
   static const double _buttonSize = 34;
@@ -24,20 +116,23 @@ class ReviewSheetTopBar extends StatelessWidget {
       height: _height,
       child: Stack(
         children: [
-          Align(
-            alignment: Alignment.topCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(top: Constants.paddingSizeDefault),
-              child: Container(
-                width: 44,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: context.textLight.withValues(alpha: 0.35),
-                  borderRadius: BorderRadius.circular(Constants.radiusSmall),
+          if (!mode.isDialog)
+            Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  top: Constants.paddingSizeDefault,
+                ),
+                child: Container(
+                  width: 44,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: context.textLight.withValues(alpha: 0.35),
+                    borderRadius: BorderRadius.circular(Constants.radiusSmall),
+                  ),
                 ),
               ),
             ),
-          ),
           // Directional so the Arabic layout puts it in the leading corner
           // rather than stranding it opposite the reading direction.
           PositionedDirectional(
