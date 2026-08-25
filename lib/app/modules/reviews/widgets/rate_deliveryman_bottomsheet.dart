@@ -297,10 +297,16 @@ class _RateDeliverymanBottomSheetState
   Widget _buildStars(BuildContext context) {
     return Column(
       children: [
-        Center(
-          child: RiveRatingStars(
-            rating: _rating,
-            onRatingChanged: (rating) => setState(() => _rating = rating),
+        Container(
+          decoration: BoxDecoration(
+            color: Get.isDarkMode ? Colors.blueGrey : null,
+            borderRadius: BorderRadius.circular(Constants.radiusDefault),
+          ),
+          child: Center(
+            child: RiveRatingStars(
+              rating: _rating,
+              onRatingChanged: (rating) => setState(() => _rating = rating),
+            ),
           ),
         ),
         const SizedBox(height: Constants.paddingSizeSmall),
