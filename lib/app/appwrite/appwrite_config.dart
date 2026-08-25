@@ -50,6 +50,10 @@ class AppwriteConfig {
   static const String notificationsCollection = 'notifications';
   static const String privacyPolicyCollection = 'privacy_policy';
   static const String driversCollection = 'drivers';
+  /// Customer ratings of the deliveryman who handed an order over.
+  /// Kept apart from [reviewsCollection] (products) so neither table's
+  /// queries or rating aggregates leak into the other.
+  static const String deliverymanReviewsCollection = 'deliveryman_reviews';
   static const String loyaltyHistoryCollection = 'loyalty_history';
 
   // Ecommerce module collections

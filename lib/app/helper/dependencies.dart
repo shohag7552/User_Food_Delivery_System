@@ -25,6 +25,7 @@ import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
 import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
 import 'package:appwrite_user_app/app/controllers/review_controller.dart';
+import 'package:appwrite_user_app/app/controllers/deliveryman_review_controller.dart';
 import 'package:appwrite_user_app/app/controllers/notification_controller.dart';
 import 'package:appwrite_user_app/app/controllers/loyalty_controller.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
@@ -51,6 +52,8 @@ import 'package:appwrite_user_app/app/modules/favorites/domain/repository/favori
 import 'package:appwrite_user_app/app/modules/favorites/domain/repository/favorites_repository.dart';
 import 'package:appwrite_user_app/app/modules/reviews/domain/repository/review_repo_interface.dart';
 import 'package:appwrite_user_app/app/modules/reviews/domain/repository/review_repository.dart';
+import 'package:appwrite_user_app/app/modules/reviews/domain/repository/deliveryman_review_repo_interface.dart';
+import 'package:appwrite_user_app/app/modules/reviews/domain/repository/deliveryman_review_repository.dart';
 import 'package:appwrite_user_app/app/modules/notification/domain/repository/notification_repo_interface.dart';
 import 'package:appwrite_user_app/app/modules/notification/domain/repository/notification_repository.dart';
 import 'package:appwrite_user_app/app/modules/loyalty_point/domain/repository/loyalty_repo_interface.dart';
@@ -152,6 +155,10 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   );
   Get.lazyPut(() => reviewRepoInterface);
 
+  DeliverymanReviewRepoInterface deliverymanReviewRepoInterface =
+      DeliverymanReviewRepository(appwriteService: Get.find());
+  Get.lazyPut(() => deliverymanReviewRepoInterface);
+
   SplashRepoInterface splashRepoInterface = SplashRepository(
     sharedPreferences: sharedPreferences,
   );
@@ -193,6 +200,11 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   Get.lazyPut(() => ProfileController(profileRepoInterface: Get.find()));
   Get.lazyPut(() => FavoritesController(favoritesRepoInterface: Get.find()));
   Get.lazyPut(() => ReviewController(reviewRepoInterface: Get.find()));
+  Get.lazyPut(
+    () => DeliverymanReviewController(
+      deliverymanReviewRepoInterface: Get.find(),
+    ),
+  );
   Get.lazyPut(
     () => NotificationController(notificationRepoInterface: Get.find()),
   );

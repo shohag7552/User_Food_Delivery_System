@@ -4,6 +4,7 @@ import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
+import 'package:appwrite_user_app/app/controllers/deliveryman_review_controller.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
 import 'package:appwrite_user_app/app/controllers/review_controller.dart';
 import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
@@ -13,6 +14,8 @@ import 'package:appwrite_user_app/app/models/review_model.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/modules/orders/screens/order_delivery_map_page.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
+import 'package:appwrite_user_app/app/modules/reviews/widgets/deliveryman_rating_badge.dart';
+import 'package:appwrite_user_app/app/modules/reviews/widgets/deliveryman_review_section.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/submit_review_bottomsheet.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
@@ -44,6 +47,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   late final OrderController _orderController;
   late final ReviewController _reviewController;
+  late final DeliverymanReviewController _deliverymanReviewController;
 
   Color get _borderColor => Theme.of(context).brightness == Brightness.dark
       ? Colors.grey.shade800
@@ -51,12 +55,14 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   OrderModel? _fallbackOrder;
   String? _currentUserId;
   String? _reviewPrefetchedOrderId;
+  String? _deliverymanReviewPrefetchedOrderId;
 
   @override
   void initState() {
     super.initState();
     _orderController = Get.find<OrderController>();
     _reviewController = Get.find<ReviewController>();
+    _deliverymanReviewController = Get.find<DeliverymanReviewController>();
     _fallbackOrder = widget.initialOrder;
     _orderController.fetchOrderDetails(widget.orderId);
     _loadCurrentUser();
@@ -235,7 +241,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         const SizedBox(height: 16),
         _buildPricingBreakdown(order),
         const SizedBox(height: 24),
-        if (_shouldShowBottomActionBar(order)) const SizedBox(height: 90),
+        // No extra clearance for the action bar: it is the Scaffold's
+        // bottomNavigationBar, so the body is already laid out above it.
+        // Padding for it here just adds dead space under the last card.
       ],
     );
   }
@@ -730,6 +738,26 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     }
   }
 
+  /// Loads the customer's existing delivery rating for this order.
+  ///
+  /// Deferred to after the frame: the controller flips its loading flag
+  /// synchronously, and notifying a [GetBuilder] mid-build is a rebuild inside
+  /// a build.
+  void _prefetchDeliverymanReview(OrderModel order) {
+    final userId = _currentUserId;
+    if (userId == null ||
+        _deliverymanReviewPrefetchedOrderId == order.id ||
+        !_deliverymanReviewController.canShowDeliveryRating(order)) {
+      return;
+    }
+
+    _deliverymanReviewPrefetchedOrderId = order.id;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _deliverymanReviewController.loadOrderReview(order, userId);
+    });
+  }
+
   Widget _buildReviewAction(OrderModel order, OrderItem item) {
     final userId = _currentUserId;
 
@@ -1144,6 +1172,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   Widget _buildDeliverymanSection(OrderModel order) {
     final deliveryman = order.deliveryman;
+    _prefetchDeliverymanReview(order);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -1233,11 +1262,22 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                           color: context.textSecondary,
                         ),
                       ),
+                      // The driver's own score, so the customer can see they
+                      // are rating someone other customers have rated too.
+                      DeliverymanRatingBadge(
+                        driverId: _deliverymanReviewController.resolveDriverId(
+                          order,
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
+          ),
+          DeliverymanReviewSection(
+            order: order,
+            isLoggedIn: _currentUserId != null,
           ),
         ],
       ),
@@ -1975,6 +2015,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       userId: userId,
       userName: userName ?? 'user'.tr,
       productName: item.productName,
+      productImage: item.productImage,
       verifiedPurchase: true, // User purchased this product
     );
 

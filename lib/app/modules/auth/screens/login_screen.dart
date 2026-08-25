@@ -192,7 +192,6 @@ class _LoginScreenState extends State<LoginScreen>
           child: Image.asset(
             Images.logo,
             width: _logoSize,
-            height: _logoSize,
             fit: BoxFit.cover,
           ),
         ),
