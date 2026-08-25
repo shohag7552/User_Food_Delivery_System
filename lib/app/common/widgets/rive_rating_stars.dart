@@ -37,28 +37,12 @@ class RiveRatingStars extends StatefulWidget {
 }
 
 class _RiveRatingStarsState extends State<RiveRatingStars> {
-  // ── Artboard geometry, read out of rating_animation.riv ─────────────────
-  //
-  // The artboard is 500x500 with the star row centred: the `Stars` group sits
-  // at x=250, and the five stars at -140/-70/0/+70/+140 from it. So the row
-  // spans x=75..425 in artboard units, 70 units per star.
-  //
-  // These are what map a touch position to a star. They are constants rather
-  // than guesses precisely because they came out of the file — if the artwork
-  // is ever re-exported with different spacing, they are the four numbers to
-  // re-check.
   static const String _stateMachine = 'State Machine 1';
   static const String _ratingInput = 'rating';
   static const int _starCount = 5;
-  static const double _artboardWidth = 500;
-  static const double _starPitch = 70;
-  static const double _bandLeft = 75;
 
-  /// How much of the square artboard's height to actually show. The stars sit
-  /// on the vertical centre line and occupy a shallow band, so the rest is
-  /// empty canvas — showing all 500 units of it would leave the control
-  /// swimming in whitespace.
-  static const double _heightRatio = 0.36;
+  /// Fallback aspect ratio, used only if the artboard reports nothing usable.
+  static const double _fallbackAspect = 214 / 60;
 
   RiveWidgetController? _controller;
 
@@ -126,13 +110,25 @@ class _RiveRatingStarsState extends State<RiveRatingStars> {
     _controller?.stateMachine.number(_ratingInput)?.value = rating.toDouble();
   }
 
+  /// Aspect ratio of the loaded artboard.
+  ///
+  /// Read from the file rather than hardcoded: the artwork has already been
+  /// re-exported once (500x500 down to a 214x60 crop of just the star row),
+  /// and a constant here would have silently mis-placed every tap target.
+  double get _aspectRatio {
+    final bounds = _controller?.artboard.bounds;
+    if (bounds == null || bounds.width <= 0 || bounds.height <= 0) {
+      return _fallbackAspect;
+    }
+    return bounds.width / bounds.height;
+  }
+
   /// Which star a touch at [dx] falls on, in a control [width] wide.
   ///
-  /// `Fit.fitWidth` maps the artboard's full width onto the widget's, so the
-  /// conversion is a single scale factor.
+  /// The artboard is cropped tight to the star row, so the five stars divide
+  /// its width evenly and the hit test is a straight division.
   int _ratingForOffset(double dx, double width) {
-    final artboardX = dx * _artboardWidth / width;
-    final index = ((artboardX - _bandLeft) / _starPitch).floor() + 1;
+    final index = (dx / (width / _starCount)).floor() + 1;
     return index.clamp(1, _starCount);
   }
 
@@ -156,10 +152,12 @@ class _RiveRatingStarsState extends State<RiveRatingStars> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = math.min(
-          constraints.maxWidth.isFinite ? constraints.maxWidth : widget.maxWidth,
+          constraints.maxWidth.isFinite
+              ? constraints.maxWidth
+              : widget.maxWidth,
           widget.maxWidth,
         );
-        final height = width * _heightRatio;
+        final height = width / _aspectRatio;
 
         return Center(
           child: SizedBox(
@@ -168,16 +166,13 @@ class _RiveRatingStarsState extends State<RiveRatingStars> {
             child: Stack(
               children: [
                 Positioned.fill(
-                  // Clipped because the box is a slice of a taller artboard,
-                  // and ignoring pointers because the artwork has no listeners
-                  // — every hit belongs to the layer above.
-                  child: ClipRect(
-                    child: IgnorePointer(
-                      child: RiveWidget(
-                        controller: _controller!,
-                        fit: Fit.fitWidth,
-                        hitTestBehavior: RiveHitTestBehavior.none,
-                      ),
+                  // Pointers are ignored here: the artwork has no listeners of
+                  // its own, so every hit belongs to the layer above.
+                  child: IgnorePointer(
+                    child: RiveWidget(
+                      controller: _controller!,
+                      fit: Fit.contain,
+                      hitTestBehavior: RiveHitTestBehavior.none,
                     ),
                   ),
                 ),
@@ -197,9 +192,6 @@ class _RiveRatingStarsState extends State<RiveRatingStars> {
   /// single canvas would otherwise erase the control from the accessibility
   /// tree entirely.
   Widget _buildTouchLayer(double width) {
-    final scale = width / _artboardWidth;
-    final starWidth = _starPitch * scale;
-
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       // Scrubbing is the reason an animated rating feels better than five
@@ -208,28 +200,23 @@ class _RiveRatingStarsState extends State<RiveRatingStars> {
           _selectAt(details.localPosition.dx, width),
       onHorizontalDragUpdate: (details) =>
           _selectAt(details.localPosition.dx, width),
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: _bandLeft * scale),
-        child: Row(
-          children: List.generate(_starCount, (index) {
-            final star = index + 1;
-            return SizedBox(
-              width: starWidth,
-              child: Semantics(
-                button: true,
-                selected: widget.rating >= star,
-                label: '$star',
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => widget.onRatingChanged(star),
-                  child: const SizedBox.expand(),
-                ),
+      child: Row(
+        children: List.generate(_starCount, (index) {
+          final star = index + 1;
+          return Expanded(
+            child: Semantics(
+              button: true,
+              selected: widget.rating >= star,
+              label: '$star',
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => widget.onRatingChanged(star),
+                child: const SizedBox.expand(),
               ),
-            );
-          }),
-        ),
+            ),
+          );
+        }),
       ),
     );
   }
 }
-

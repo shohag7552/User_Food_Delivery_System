@@ -770,5 +770,9 @@
   "removed_from_helpful": "تمت الإزالة من المفيد",
   "failed_to_update_helpful": "تعذّر تحديث المفيد",
   "placed_on": "تم الطلب في",
-  "picked_up": "تم الاستلام"
+  "picked_up": "تم الاستلام",
+  "offline": "غير متصل",
+  "reconnecting": "جارٍ إعادة الاتصال",
+  "we_will_reconnect_automatically": "سنعيد الاتصال تلقائيًا",
+  "tap_the_water_to_feed_the_fish": "انقر على الماء لإطعام الأسماك"
 }

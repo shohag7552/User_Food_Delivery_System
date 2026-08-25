@@ -22,6 +22,22 @@ class RiveAssets {
   static const String ratingAnimation =
       'assets/animations/rating_animation.riv';
 
+  /// An interactive aquarium, shown while the app is offline.
+  ///
+  /// Its main artboard is 1920x1080 and carries `cursorTracker` / `hitbox` /
+  /// `mouse` listeners, so it needs pointer events. Motion comes from view
+  /// models (`VMMain`, `VMFish`, `VMFood`) rather than state-machine inputs,
+  /// which is why it must be rendered with auto-binding on.
+  static const String interactiveAquarium =
+      'assets/animations/interactive-aquarium.riv';
+
+  /// Everything warmed at startup. Both files are a few KB, and both appear on
+  /// screens that must not wait on a disk read to draw.
+  static const List<String> _warmupAssets = [
+    ratingAnimation,
+    interactiveAquarium,
+  ];
+
   static bool _isAvailable = false;
 
   /// Whether the Rive runtime initialised successfully on this platform.
@@ -60,7 +76,7 @@ class RiveAssets {
 
     if (booted) {
       _isAvailable = true;
-      await preload(ratingAnimation);
+      await _warmup();
       return;
     }
 
@@ -76,9 +92,15 @@ class RiveAssets {
     try {
       if (!await boot) return;
       _isAvailable = true;
-      await preload(ratingAnimation);
+      await _warmup();
     } catch (_) {
       // Already reported above; nothing further to do.
+    }
+  }
+
+  static Future<void> _warmup() async {
+    for (final asset in _warmupAssets) {
+      await preload(asset);
     }
   }
 

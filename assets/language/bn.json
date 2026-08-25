@@ -793,5 +793,9 @@
   "removed_from_helpful": "সহায়ক তালিকা থেকে সরানো হয়েছে",
   "failed_to_update_helpful": "সহায়ক আপডেট করা যায়নি",
   "placed_on": "অর্ডারের সময়",
-  "picked_up": "সংগ্রহ করা হয়েছে"
+  "picked_up": "সংগ্রহ করা হয়েছে",
+  "offline": "অফলাইন",
+  "reconnecting": "পুনরায় সংযোগ হচ্ছে",
+  "we_will_reconnect_automatically": "সংযোগ ফিরলে নিজেই লোড হবে",
+  "tap_the_water_to_feed_the_fish": "পানিতে ট্যাপ করে মাছকে খাওয়ান"
 }

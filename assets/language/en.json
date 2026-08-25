@@ -804,5 +804,9 @@
   "removed_from_helpful": "Removed from helpful",
   "failed_to_update_helpful": "Could not update helpful",
   "placed_on": "Placed on",
-  "picked_up": "Picked up"
+  "picked_up": "Picked up",
+  "offline": "Offline",
+  "reconnecting": "Reconnecting",
+  "we_will_reconnect_automatically": "We'll reconnect automatically",
+  "tap_the_water_to_feed_the_fish": "Tap the water to feed the fish"
 }
