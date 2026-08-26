@@ -388,11 +388,13 @@ class _HomePageState extends State<HomePage>
         builder: (productController) {
           return _capped(
             Padding(
-              padding: const EdgeInsets.only(left: 20),
+              // Directional, and without the stray 25px lead-in it used to
+              // carry: that put "All products" 45px into the band while every
+              // other section title — and the grid directly below this header —
+              // sits at 20.
+              padding: const EdgeInsetsDirectional.only(start: 20),
               child: Row(
                 children: [
-                  const SizedBox(width: Constants.paddingSizeExtraLarge),
-
                   Expanded(
                     child: Text(
                       'all_products'.tr,

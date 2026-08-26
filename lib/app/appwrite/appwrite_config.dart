@@ -1,3 +1,5 @@
+import 'package:appwrite_user_app/app/resources/constants.dart';
+
 class AppwriteConfig {
   static const String projectId = '694d7ed80012589bdb9c';
   static const String endpoint = 'https://sgp.cloud.appwrite.io/v1';
@@ -8,7 +10,7 @@ class AppwriteConfig {
   /// `account.createRecovery` validates its `url` argument against the
   /// project's web platform hostnames, so an unregistered host fails the call
   /// even when it originates from the Android or iOS app.
-  static const String webAppBaseUrl = 'https://food-app-c2fe8.web.app';
+  static const String webAppBaseUrl = Constants.webBaseUrl;
 
   /// Page Appwrite links to in the password-recovery email; it appends
   /// `?userId=…&secret=…&expire=…`. The link is valid for one hour and can be

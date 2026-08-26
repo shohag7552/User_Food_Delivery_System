@@ -808,5 +808,7 @@
   "offline": "Offline",
   "reconnecting": "Reconnecting",
   "we_will_reconnect_automatically": "We'll reconnect automatically",
-  "tap_the_water_to_feed_the_fish": "Tap the water to feed the fish"
+  "tap_the_water_to_feed_the_fish": "Tap the water to feed the fish",
+  "share": "Share",
+  "link_copied": "Link copied"
 }

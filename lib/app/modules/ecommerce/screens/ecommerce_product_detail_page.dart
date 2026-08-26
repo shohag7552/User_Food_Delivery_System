@@ -15,6 +15,7 @@ import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
+import 'package:appwrite_user_app/app/helper/share_helper.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/models/flash_sale_item_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
@@ -311,6 +312,10 @@ class _EcommerceProductDetailPageState
         ),
       ),
       actions: [
+        _collapseAware(
+          (shadowOpacity) => _shareButton(shadowOpacity: shadowOpacity),
+        ),
+        const SizedBox(width: 10),
         Padding(
           padding: const EdgeInsets.only(right: 12),
           child: _collapseAware(
@@ -634,11 +639,18 @@ class _EcommerceProductDetailPageState
                   ),
                 ),
               ),
-              Positioned(
+              PositionedDirectional(
                 top: 12,
-                right: 12,
-                child: _circleButton(
-                  child: FavoriteButton(product: product, size: 22),
+                end: 12,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _shareButton(),
+                    const SizedBox(width: 10),
+                    _circleButton(
+                      child: FavoriteButton(product: product, size: 22),
+                    ),
+                  ],
                 ),
               ),
               if (images.length > 1) ...[
@@ -1018,6 +1030,24 @@ class _EcommerceProductDetailPageState
         ),
         child: child ??
             Icon(icon, size: 20, color: context.textPrimary),
+      ),
+    );
+  }
+
+  /// Share control, styled as a twin of the favourite button beside it.
+  ///
+  /// [Builder] is not decoration: the share sheet needs the *button's* own
+  /// context to anchor its popover on iPadOS, and the page's context would put
+  /// that anchor in the wrong place.
+  Widget _shareButton({double shadowOpacity = 1}) {
+    return Builder(
+      builder: (buttonContext) => Tooltip(
+        message: 'share'.tr,
+        child: _circleButton(
+          icon: Icons.share_outlined,
+          shadowOpacity: shadowOpacity,
+          onTap: () => ShareHelper.shareProduct(buttonContext, product),
+        ),
       ),
     );
   }

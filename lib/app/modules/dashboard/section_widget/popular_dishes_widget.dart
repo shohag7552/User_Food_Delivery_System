@@ -123,112 +123,147 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
               )
             // Products List
             else
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final products = controller.popularProducts;
-                  final width = constraints.maxWidth;
-                  final isWebShell = WebTopNav.isEnabled(context);
-                  final screenWidth = MediaQuery.of(context).size.width;
-                  // Web: cards match the All Products grid size. Each item
-                  // carries half the shared gap on each side, so neighbouring
-                  // cards sit exactly FoodCardMetrics.spacing apart — the same
-                  // rhythm as the grid. The viewport fraction has to include
-                  // that gap or the cards come out narrower than the grid's.
-                  final double itemSidePadding = isWebShell
-                      ? FoodCardMetrics.spacing / 2
-                      : 6;
-                  final double viewportFraction = isWebShell
-                      ? ((FoodCardMetrics.webCardWidth(screenWidth) +
+              Padding(
+                // The strip has to start where the section title and the grid
+                // below it start — one inset from the content band. Each card
+                // already carries half the shared gap on each side, so the rail
+                // only needs the difference; padding by the full inset would
+                // push the first card past the title it sits under.
+                //
+                // Outside the LayoutBuilder on purpose: the viewport fraction
+                // is derived from the measured width, and measuring the
+                // unpadded width would make every card wider than a grid
+                // column.
+                padding: EdgeInsets.symmetric(
+                  horizontal: WebTopNav.isEnabled(context)
+                      ? FoodCardMetrics.gutter - FoodCardMetrics.spacing / 2
+                      : 0,
+                ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final products = controller.popularProducts;
+                    final width = constraints.maxWidth;
+                    final isWebShell = WebTopNav.isEnabled(context);
+                    final screenWidth = MediaQuery.of(context).size.width;
+                    // Web: cards match the All Products grid size. Each item
+                    // carries half the shared gap on each side, so neighbouring
+                    // cards sit exactly FoodCardMetrics.spacing apart — the same
+                    // rhythm as the grid. The viewport fraction has to include
+                    // that gap or the cards come out narrower than the grid's.
+                    final double itemSidePadding = isWebShell
+                        ? FoodCardMetrics.spacing / 2
+                        : 6;
+                    final double viewportFraction = isWebShell
+                        ? ((FoodCardMetrics.webCardWidth(screenWidth) +
                                       FoodCardMetrics.spacing) /
-                              width)
-                          .clamp(0.15, 0.95)
-                      : width >= 900
-                      ? 0.30
-                      : width >= 600
-                      ? 0.40
-                      : 0.56;
-                  // +8 covers the item's vertical padding (4 top + 4 bottom).
-                  final double carouselHeight = isWebShell
-                      ? FoodCardMetrics.webCardHeight(screenWidth) + 8
-                      : 250;
+                                  width)
+                              .clamp(0.15, 0.95)
+                        : width >= 900
+                        ? 0.30
+                        : width >= 600
+                        ? 0.40
+                        : 0.56;
+                    // +8 covers the item's vertical padding (4 top + 4 bottom).
+                    final double carouselHeight = isWebShell
+                        ? FoodCardMetrics.webCardHeight(screenWidth) + 8
+                        : 250;
 
-                  // Hover-revealed arrows page the carousel on desktop web —
-                  // hidden when every dish already fits in the viewport
-                  // (items × fraction ≤ 1 means nothing to page through).
-                  return HoverArrows(
-                    onLeft: () => _carouselController.previousPage(),
-                    onRight: () => _carouselController.nextPage(),
-                    canScroll: () =>
-                        products.length * viewportFraction > 1.001,
-                    child: CarouselSlider.builder(
-                    carouselController: _carouselController,
-                    itemCount: products.length,
-                    itemBuilder: (context, index, realIndex) {
-                      final product = products[index];
+                    // Hover-revealed arrows page the carousel on desktop web —
+                    // hidden when every dish already fits in the viewport
+                    // (items × fraction ≤ 1 means nothing to page through).
+                    return HoverArrows(
+                      onLeft: () => _carouselController.previousPage(),
+                      onRight: () => _carouselController.nextPage(),
+                      canScroll: () =>
+                          products.length * viewportFraction > 1.001,
+                      child: CarouselSlider.builder(
+                        carouselController: _carouselController,
+                        itemCount: products.length,
+                        itemBuilder: (context, index, realIndex) {
+                          final product = products[index];
 
-                      return GetBuilder<CartController>(
-                        builder: (cartController) {
-                          final cartQuantity = CartHelper.getProductCartQuantity(product.id);
+                          return GetBuilder<CartController>(
+                            builder: (cartController) {
+                              final cartQuantity =
+                                  CartHelper.getProductCartQuantity(product.id);
 
-                          final card = FoodItemCard(
-                              name: product.nameMap.trLanguage,
-                              isPopular: true,
-                              imageUrl: product.imageId,
-                              description: product.descriptionMap.trLanguage,
-                              price: product.finalPrice,
-                              oldPrice: product.hasDiscount
-                                  ? product.price
-                                  : null,
-                              product: product,
-                              cartQuantity: cartQuantity,
-                              onTap: () {
-                                ProductDetailBottomSheet.show(context, product);
-                              },
-                              onAddToCart: () =>
-                                  CartHelper.handleAddToCart(product, context),
-                              onQuantityChanged: (isIncrement) {
-                                if (isIncrement) {
-                                  CartHelper.incrementQuantity(product, context);
-                                } else {
-                                  CartHelper.decrementQuantity(product, context);
-                                }
-                              },
-                            );
+                              final card = FoodItemCard(
+                                name: product.nameMap.trLanguage,
+                                isPopular: true,
+                                imageUrl: product.imageId,
+                                description: product.descriptionMap.trLanguage,
+                                price: product.finalPrice,
+                                oldPrice: product.hasDiscount
+                                    ? product.price
+                                    : null,
+                                product: product,
+                                cartQuantity: cartQuantity,
+                                onTap: () {
+                                  ProductDetailBottomSheet.show(
+                                    context,
+                                    product,
+                                  );
+                                },
+                                onAddToCart: () => CartHelper.handleAddToCart(
+                                  product,
+                                  context,
+                                ),
+                                onQuantityChanged: (isIncrement) {
+                                  if (isIncrement) {
+                                    CartHelper.incrementQuantity(
+                                      product,
+                                      context,
+                                    );
+                                  } else {
+                                    CartHelper.decrementQuantity(
+                                      product,
+                                      context,
+                                    );
+                                  }
+                                },
+                              );
 
-                          return Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: itemSidePadding,
-                              vertical: 4,
-                            ),
-                            // Web-only hover lift; touch gets the bare card.
-                            child: isWebShell ? HoverLift(child: card) : card,
+                              return Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: itemSidePadding,
+                                  vertical: 4,
+                                ),
+                                // Web-only hover lift; touch gets the bare card.
+                                child: isWebShell
+                                    ? HoverLift(child: card)
+                                    : card,
+                              );
+                            },
                           );
                         },
-                      );
-                    },
-                    options: CarouselOptions(
-                      height: carouselHeight,
-                      viewportFraction: viewportFraction,
-                      padEnds: true,
-                      // The center-zoom is a touch affordance; on web the
-                      // cards stay uniform so they match the grid size.
-                      enlargeCenterPage: !isWebShell,
-                      enlargeFactor: 0.2,
-                      enlargeStrategy: CenterPageEnlargeStrategy.zoom,
-                      enableInfiniteScroll: products.length > 1,
-                      autoPlay: products.length > 1,
-                      autoPlayInterval: const Duration(seconds: 5),
-                      autoPlayAnimationDuration: const Duration(
-                        milliseconds: 1000,
+                        options: CarouselOptions(
+                          height: carouselHeight,
+                          viewportFraction: viewportFraction,
+                          // Centring the first card is a touch affordance — it
+                          // shows there is more to swipe. On web it just left the
+                          // strip starting hundreds of pixels right of everything
+                          // else on the page.
+                          padEnds: !isWebShell,
+                          // The center-zoom is a touch affordance; on web the
+                          // cards stay uniform so they match the grid size.
+                          enlargeCenterPage: !isWebShell,
+                          enlargeFactor: 0.2,
+                          enlargeStrategy: CenterPageEnlargeStrategy.zoom,
+                          enableInfiniteScroll: products.length > 1,
+                          autoPlay: products.length > 1,
+                          autoPlayInterval: const Duration(seconds: 5),
+                          autoPlayAnimationDuration: const Duration(
+                            milliseconds: 1000,
+                          ),
+                          autoPlayCurve: Curves.linear,
+                          pauseAutoPlayOnTouch: true,
+                          pauseAutoPlayOnManualNavigate: true,
+                          pauseAutoPlayInFiniteScroll: false,
+                        ),
                       ),
-                      autoPlayCurve: Curves.linear,
-                      pauseAutoPlayOnTouch: true,
-                      pauseAutoPlayOnManualNavigate: true,
-                      pauseAutoPlayInFiniteScroll: false,
-                    ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
           ],
         );

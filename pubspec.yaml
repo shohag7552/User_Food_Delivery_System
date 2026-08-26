@@ -78,6 +78,9 @@ dependencies:
   # this is not a pure-Dart dependency; see RiveRatingStars for the fallback
   # that keeps the sheets working if it fails to load on a given platform.
   rive: ^0.14.11
+  # Native share sheet on mobile, the Web Share API (with a clipboard fallback)
+  # in the browser — used by the product share action.
+  share_plus: ^12.0.0
 
 dev_dependencies:
   flutter_test:

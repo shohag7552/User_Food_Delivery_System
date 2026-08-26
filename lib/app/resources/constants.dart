@@ -7,6 +7,17 @@ class Constants {
   static const String appVersion = "1.0.0";
   static const String packageName = 'com.example.appwrite_user_app';
 
+  /// Origin of the deployed Flutter web build.
+  ///
+  /// The single source for every absolute link the app hands out — shared
+  /// product links, and the password-recovery URL that `AppwriteConfig` builds
+  /// from it. Changing the deployment means changing this one value.
+  ///
+  /// It must stay registered as a **Web platform** on the Appwrite project:
+  /// `account.createRecovery` validates its `url` argument against the
+  /// project's registered hostnames.
+  static const String webBaseUrl = 'https://food-app-c2fe8.web.app';
+
   static const String defaultMapTheme = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
   static const String lightMapTheme = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
   static const String streetMapTheme = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
@@ -64,8 +75,6 @@ class Constants {
   static const String countryCode = 'country_code';
   static const String languageCode = 'language_code';
   static const String theme = 'theme';
-  static const String topic = 'loklagbe_topic';
-  static const String categoryTopic = 'category_topic';
   static const String activeModule = 'active_module';
 
   /// "Remember me" on the sign-in form. These deliberately survive a logout —
