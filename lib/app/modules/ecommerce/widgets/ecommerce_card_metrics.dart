@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 
 /// Single source of truth for the ecommerce storefront's desktop-web product
@@ -14,10 +17,12 @@ import 'package:appwrite_user_app/app/resources/constants.dart';
 class EcommerceCardMetrics {
   EcommerceCardMetrics._();
 
-  /// The storefront's centred content cap.
-  static const double maxContentWidth = 1200;
+  /// The storefront's centred content band — the same band the top nav lays
+  /// its own contents out in, so the logo and the first product column share a
+  /// left edge.
+  static const double maxContentWidth = WebTopNav.maxContentWidth;
 
-  /// Side inset every section falls back to below the cap.
+  /// Side inset used on phones and tablets, where there is no nav to align to.
   static const double gutter = 16;
 
   /// Gap between grid columns, and between cards in a strip.
@@ -34,14 +39,32 @@ class EcommerceCardMetrics {
   /// rather than overflowing.
   static const double detailsBlockHeight = 140;
 
-  /// Usable width inside the gutters for a given viewport.
+  /// Inset *inside* the content band.
   ///
-  /// Mirrors the storefront's own `_sidePadding`: capped content beyond
-  /// [maxContentWidth], a plain [gutter] inset below it.
+  /// On desktop this is the nav's own leading inset, which is what makes the
+  /// body line up with the bar rather than merely being the same width; below
+  /// the desktop breakpoint there is no bar to align to and the phone [gutter]
+  /// applies.
+  static double bandInset(double screenWidth) {
+    if (screenWidth < WebTopNav.wideBreakpoint) return gutter;
+    // The band is the viewport until it hits the cap, and the bar tightens its
+    // own inset on a narrow band — so ask it rather than assuming 20.
+    return WebTopNav.contentInsetFor(math.min(screenWidth, maxContentWidth));
+  }
+
+  /// Inset from the viewport edge — what a section actually pads by.
+  ///
+  /// Beyond the cap this is the letterbox gutter plus [bandInset]; inside it,
+  /// just [bandInset]. Continuous at the cap, so nothing jumps as the window
+  /// crosses it.
+  static double sidePadding(double screenWidth) {
+    final inset = bandInset(screenWidth);
+    return math.max(inset, (screenWidth - maxContentWidth) / 2 + inset);
+  }
+
+  /// Usable width between the side paddings for a given viewport.
   static double contentWidth(double screenWidth) =>
-      screenWidth > maxContentWidth + gutter * 2
-      ? maxContentWidth
-      : screenWidth - gutter * 2;
+      screenWidth - sidePadding(screenWidth) * 2;
 
   /// Card width on web — exactly one column of the All Products grid, so a
   /// card in a strip lines up with the cards below it.

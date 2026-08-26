@@ -48,7 +48,11 @@ class WebTopNav extends StatelessWidget implements PreferredSizeWidget {
   /// desktop width only. Mobile, tablets and narrow browser windows keep the
   /// app's regular mobile chrome (own app bars + bottom navigation).
   static bool isEnabled(BuildContext context) =>
-      kIsWeb && MediaQuery.of(context).size.width >= 900;
+      kIsWeb && MediaQuery.of(context).size.width >= wideBreakpoint;
+
+  /// Width at which the app takes its desktop shape. Exposed so page bodies
+  /// switch at the same width the chrome does.
+  static const double wideBreakpoint = 900;
 
   @override
   Size get preferredSize => const Size.fromHeight(64);
@@ -72,6 +76,14 @@ class WebTopNav extends StatelessWidget implements PreferredSizeWidget {
 
   /// Below this the destinations drop their labels for icons + tooltips.
   static const double _labelBreakpoint = 1080;
+
+  /// The bar's leading inset at a given band width.
+  ///
+  /// The bar tightens up when it can no longer fit its labels, so a page body
+  /// that always used [contentInset] would drift 8px out of alignment in that
+  /// range. Ask this instead of assuming.
+  static double contentInsetFor(double bandWidth) =>
+      bandWidth >= _labelBreakpoint ? contentInset : _compactContentInset;
 
   /// Gap between neighbouring controls inside one zone.
   static const double _itemGap = 4;
@@ -106,7 +118,7 @@ class WebTopNav extends StatelessWidget implements PreferredSizeWidget {
                     constraints.maxWidth >= _labelBreakpoint;
                 return Padding(
                   padding: EdgeInsets.only(
-                    left: showLabels ? contentInset : _compactContentInset,
+                    left: contentInsetFor(constraints.maxWidth),
                   ),
                   child: SizedBox(
                     height: 64,

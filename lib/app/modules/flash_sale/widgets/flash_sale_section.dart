@@ -19,9 +19,10 @@ class FlashSaleSection extends StatelessWidget {
 
   const FlashSaleSection({super.key, required this.isWide});
 
-  /// Matches the ecommerce home's content cap (+32 keeps the inner 16px list
-  /// padding aligned with the other hPad-gutter sections).
-  static const double _maxSectionWidth = 1232;
+  /// The storefront's content band — the same one the top nav lays its own
+  /// contents out in. The section is capped to the band and inset inside it,
+  /// so its first card starts exactly where every other section's content does.
+  static const double _maxSectionWidth = EcommerceCardMetrics.maxContentWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +31,9 @@ class FlashSaleSection extends StatelessWidget {
         if (!controller.hasActiveSale) return const SizedBox.shrink();
 
         final sale = controller.activeSale!;
+        final double inset = EcommerceCardMetrics.bandInset(
+          MediaQuery.of(context).size.width,
+        );
 
         return Center(
           child: ConstrainedBox(
@@ -43,14 +47,17 @@ class FlashSaleSection extends StatelessWidget {
                 // (phone) widths the countdown moves to its own line so the
                 // title and chips never break or overflow.
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: EdgeInsets.symmetric(horizontal: inset),
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
                       gradient: ColorResource.primaryGradient,
-                      borderRadius:
-                          BorderRadius.circular(Constants.radiusLarge),
+                      borderRadius: BorderRadius.circular(
+                        Constants.radiusLarge,
+                      ),
                     ),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
@@ -75,21 +82,23 @@ class FlashSaleSection extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                                 style: poppinsRegular.copyWith(
                                   fontSize: Constants.fontSizeSmall,
-                                  color: ColorResource.textWhite
-                                      .withValues(alpha: 0.85),
+                                  color: ColorResource.textWhite.withValues(
+                                    alpha: 0.85,
+                                  ),
                                 ),
                               ),
                           ],
                         );
 
-                        final Widget countdown =
-                            _CountdownChips(remaining: controller.remaining);
+                        final Widget countdown = _CountdownChips(
+                          remaining: controller.remaining,
+                        );
 
                         final Widget seeAll = InkWell(
-                          onTap: () =>
-                              context.pushNamed(RouteNames.flashSale),
-                          borderRadius:
-                              BorderRadius.circular(Constants.radiusLarge),
+                          onTap: () => context.pushNamed(RouteNames.flashSale),
+                          borderRadius: BorderRadius.circular(
+                            Constants.radiusLarge,
+                          ),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
@@ -138,8 +147,7 @@ class FlashSaleSection extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                const Text('⚡',
-                                    style: TextStyle(fontSize: 20)),
+                                const Text('⚡', style: TextStyle(fontSize: 20)),
                                 const SizedBox(width: 6),
                                 Expanded(child: titles),
                                 const SizedBox(width: 6),
@@ -171,12 +179,11 @@ class FlashSaleSection extends StatelessWidget {
                           MediaQuery.of(context).size.width,
                         )
                       : 296,
-                  builder: (context, carouselController) =>
-                      ListView.separated(
+                  builder: (context, carouselController) => ListView.separated(
                     controller: carouselController,
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                    padding: EdgeInsets.fromLTRB(inset, 4, inset, 8),
                     itemCount: controller.items.length,
                     separatorBuilder: (_, _) => SizedBox(
                       width: isWide ? EcommerceCardMetrics.spacing : 14,
@@ -188,9 +195,7 @@ class FlashSaleSection extends StatelessWidget {
                                 MediaQuery.of(context).size.width,
                               )
                             : 175,
-                        child: FlashSaleItemCard(
-                          item: controller.items[index],
-                        ),
+                        child: FlashSaleItemCard(item: controller.items[index]),
                       );
                       return isWide ? HoverLift(child: card) : card;
                     },
@@ -223,38 +228,35 @@ class _CountdownChips extends StatelessWidget {
     final seconds = remaining.inSeconds.remainder(60);
 
     Widget chip(String text) => Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.28),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            text,
-            style: poppinsBold.copyWith(
-              fontSize: Constants.fontSizeSmall,
-              color: ColorResource.textWhite,
-            ),
-          ),
-        );
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.28),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        text,
+        style: poppinsBold.copyWith(
+          fontSize: Constants.fontSizeSmall,
+          color: ColorResource.textWhite,
+        ),
+      ),
+    );
 
     Widget colon() => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2),
-          child: Text(
-            ':',
-            style: poppinsBold.copyWith(
-              fontSize: Constants.fontSizeSmall,
-              color: ColorResource.textWhite,
-            ),
-          ),
-        );
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: Text(
+        ':',
+        style: poppinsBold.copyWith(
+          fontSize: Constants.fontSizeSmall,
+          color: ColorResource.textWhite,
+        ),
+      ),
+    );
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (days > 0) ...[
-          chip('${_two(days)} ${'day_short'.tr}'),
-          colon(),
-        ],
+        if (days > 0) ...[chip('${_two(days)} ${'day_short'.tr}'), colon()],
         chip('${_two(hours)} h'),
         colon(),
         chip('${_two(minutes)} m'),

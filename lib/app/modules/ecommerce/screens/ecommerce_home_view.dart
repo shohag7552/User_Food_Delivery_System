@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:appwrite_user_app/app/controllers/notification_controller.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
 import 'package:appwrite_user_app/app/controllers/brand_controller.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
@@ -103,14 +104,20 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     super.dispose();
   }
 
-  /// Desktop content never grows past this; beyond it we letterbox with
-  /// symmetric gutters so the storefront stays centered and readable.
-  static const double _maxContentWidth = 1200;
+  /// The content band, shared with the top nav so the storefront lines up with
+  /// the bar above it.
+  static const double _maxContentWidth = EcommerceCardMetrics.maxContentWidth;
 
-  /// Side gutter that centers content within [_maxContentWidth] on wide screens
-  /// and falls back to the standard 16px inset on phones/tablets.
-  double _sidePadding(double width) =>
-      width > _maxContentWidth + 32 ? (width - _maxContentWidth) / 2 : 16;
+  /// Side inset for every section on the page.
+  ///
+  /// Delegates to the shared metric rather than computing its own: the strips
+  /// derive their card width from [EcommerceCardMetrics.contentWidth], so a
+  /// padding rule that disagreed with it would silently make a card in a strip
+  /// a different size from the column below it.
+  ///
+  /// The band used to be inset by nothing, which left the body's left edge 20px
+  /// outside the nav's — the width matched, the alignment did not.
+  double _sidePadding(double width) => EcommerceCardMetrics.sidePadding(width);
 
   /// Columns for the product grid.
   ///
@@ -149,7 +156,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     final crossAxisCount = _gridColumns(contentWidth);
     // On wide (web/desktop) layouts the Promotions and Brands sit side by side;
     // narrow layouts keep them stacked.
-    final bool isWide = width >= 900;
+    final bool isWide = width >= WebTopNav.wideBreakpoint;
     _isWide = isWide;
 
     return RefreshIndicator(
@@ -1199,16 +1206,20 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
       return const SizedBox.shrink();
     }
 
+    // The strip is capped to the band and inset inside it, rather than padded
+    // from the viewport edge, so the cards can still scroll to the band's edge
+    // while the first one starts exactly where every other section does.
+    final double inset = EcommerceCardMetrics.bandInset(
+      MediaQuery.of(context).size.width,
+    );
+
     return Center(
-      // maxContentWidth + 32 keeps the inner 16px padding aligned exactly
-      // with the other hPad-gutter sections, while capping the width so the
-      // carousel stays inside the content column (no full-bleed scrolling).
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: _maxContentWidth + 32),
+        constraints: const BoxConstraints(maxWidth: _maxContentWidth),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionHeader(title, 16),
+            _sectionHeader(title, inset),
             MouseRegion(
               onEnter: (_) {
                 if (!hovered) onHoverChanged(true);
@@ -1230,13 +1241,11 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
                             controller: scrollController,
                             scrollDirection: Axis.horizontal,
                             physics: const BouncingScrollPhysics(),
-                            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                            padding: EdgeInsets.fromLTRB(inset, 4, inset, 8),
                             itemCount: products.length,
                             separatorBuilder: (_, _) => SizedBox(
                               // Web matches the grid gutter; mobile keeps 14.
-                              width: isWide
-                                  ? EcommerceCardMetrics.spacing
-                                  : 14,
+                              width: isWide ? EcommerceCardMetrics.spacing : 14,
                             ),
                             itemBuilder: (context, index) => SizedBox(
                               width: isWide
