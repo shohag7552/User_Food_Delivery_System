@@ -12,6 +12,7 @@ import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/models/category_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
+import 'package:appwrite_user_app/app/modules/ecommerce/widgets/ecommerce_product_card.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -27,7 +28,7 @@ import 'package:go_router/go_router.dart';
 class CategoryProductsPage extends StatefulWidget {
   final CategoryModel category;
 
-  const CategoryProductsPage({super.key, required this.category}); 
+  const CategoryProductsPage({super.key, required this.category});
 
   @override
   State<CategoryProductsPage> createState() => _CategoryProductsPageState();
@@ -92,11 +93,12 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
     }
 
     try {
-      final products = await Get.find<ProductController>().getProductsByCategory(
-        widget.category.id,
-        offset: _currentPage * _pageSize,
-        limit: _pageSize,
-      );
+      final products = await Get.find<ProductController>()
+          .getProductsByCategory(
+            widget.category.id,
+            offset: _currentPage * _pageSize,
+            limit: _pageSize,
+          );
       setState(() {
         _products = products;
         _hasMore = products.length >= _pageSize;
@@ -121,11 +123,12 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
     });
 
     try {
-      final products = await Get.find<ProductController>().getProductsByCategory(
-        widget.category.id,
-        offset: _currentPage * _pageSize,
-        limit: _pageSize,
-      );
+      final products = await Get.find<ProductController>()
+          .getProductsByCategory(
+            widget.category.id,
+            offset: _currentPage * _pageSize,
+            limit: _pageSize,
+          );
 
       setState(() {
         _products.addAll(products);
@@ -179,50 +182,45 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
 
             // Products Grid
             if (_isLoading)
-              SliverFillRemaining(
-                child: _buildLoadingState(),
-              )
+              SliverFillRemaining(child: _buildLoadingState())
             else if (_errorMessage != null)
-              SliverFillRemaining(
-                child: _buildErrorState(),
-              )
+              SliverFillRemaining(child: _buildErrorState())
             else if (_products.isEmpty)
-              SliverFillRemaining(
-                child: _buildEmptyState(),
-              )
+              SliverFillRemaining(child: _buildEmptyState())
             else
               SliverMainAxisGroup(
                 slivers: [
                   SliverPadding(
                     padding: const EdgeInsets.all(16),
-                    sliver: Get.find<ModuleController>().activeModule == ModuleController.ecommerce
+                    sliver:
+                        Get.find<ModuleController>().activeModule ==
+                            ModuleController.ecommerce
                         ? SliverMasonryGrid.count(
                             crossAxisCount: 2,
                             mainAxisSpacing: 16,
                             crossAxisSpacing: 16,
                             childCount: _products.length,
-                            itemBuilder: (context, index) {
-                              final product = _products[index];
-                              return _buildProductCard(
-                                product,
-                                imageAspectRatio: _imageRatioFor(index),
-                              );
-                            },
+                            itemBuilder: (context, index) =>
+                                EcommerceProductCard(
+                                  product: _products[index],
+                                  imageAspectRatio: _imageRatioFor(index),
+                                ),
                           )
                         : SliverGrid(
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                              childAspectRatio: 0.7,
-                            ),
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) {
-                                final product = _products[index];
-                                return _buildProductCard(product);
-                              },
-                              childCount: _products.length,
-                            ),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 16,
+                                  mainAxisSpacing: 16,
+                                  childAspectRatio: 0.7,
+                                ),
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              index,
+                            ) {
+                              final product = _products[index];
+                              return _buildProductCard(product);
+                            }, childCount: _products.length),
                           ),
                   ),
                   if (_isLoadingMore)
@@ -250,11 +248,11 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
 
   Widget _buildWebScaffold(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final crossAxisCount = width >= 1400
-        ? 5
-        : width >= 1100
-            ? 4
-            : 3;
+    // Four columns at most. The content is capped at [_maxContentWidth], so a
+    // fifth column does not widen the grid — it divides the same 1100px into
+    // ~194px cards, which is too narrow for a product photo, a name, a rating
+    // and a price row to coexist in.
+    final crossAxisCount = width >= 1100 ? 4 : 3;
 
     late final Widget contentSliver;
     if (_isLoading) {
@@ -283,21 +281,21 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-            sliver: Get.find<ModuleController>().activeModule == ModuleController.ecommerce
+            sliver:
+                Get.find<ModuleController>().activeModule ==
+                    ModuleController.ecommerce
+                // No HoverLift here: the card runs its own pointer behaviour
+                // (the hover image gallery), and two hover effects on one
+                // target fight each other.
                 ? SliverMasonryGrid.count(
                     crossAxisCount: crossAxisCount,
                     mainAxisSpacing: 20,
                     crossAxisSpacing: 20,
                     childCount: _products.length,
-                    itemBuilder: (context, index) {
-                      final product = _products[index];
-                      return HoverLift(
-                        child: _buildProductCard(
-                          product,
-                          imageAspectRatio: _imageRatioFor(index),
-                        ),
-                      );
-                    },
+                    itemBuilder: (context, index) => EcommerceProductCard(
+                      product: _products[index],
+                      imageAspectRatio: _imageRatioFor(index),
+                    ),
                   )
                 : SliverGrid(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -331,8 +329,9 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
     // Full-bleed scroll view (wheel and scrollbar work across the whole
     // screen, not just the middle column) — the content itself stays centered
     // within the cap via symmetric sliver gutters.
-    final double gutter =
-        width > _maxContentWidth ? (width - _maxContentWidth) / 2 : 0;
+    final double gutter = width > _maxContentWidth
+        ? (width - _maxContentWidth) / 2
+        : 0;
 
     return Scaffold(
       key: _webScaffoldKey,
@@ -365,10 +364,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
               alignment: Alignment.bottomCenter,
               child: const Column(
                 mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  SizedBox(height: 40),
-                  WebFooter(),
-                ],
+                children: [SizedBox(height: 40), WebFooter()],
               ),
             ),
           ),
@@ -482,8 +478,9 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                             overflow: TextOverflow.ellipsis,
                             style: poppinsRegular.copyWith(
                               fontSize: Constants.fontSizeSmall,
-                              color: ColorResource.textWhite
-                                  .withValues(alpha: 0.9),
+                              color: ColorResource.textWhite.withValues(
+                                alpha: 0.9,
+                              ),
                             ),
                           ),
                         ],
@@ -555,9 +552,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
-            color: ColorResource.primaryDark,
-          ),
+          CircularProgressIndicator(color: ColorResource.primaryDark),
           const SizedBox(height: 16),
           Text(
             'Loading products...',
@@ -578,11 +573,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 80,
-              color: ColorResource.error,
-            ),
+            Icon(Icons.error_outline, size: 80, color: ColorResource.error),
             const SizedBox(height: 24),
             Text(
               'Oops!',
@@ -608,7 +599,10 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: ColorResource.primaryDark,
                 foregroundColor: ColorResource.textWhite,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(Constants.radiusLarge),
                 ),
@@ -666,7 +660,10 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: ColorResource.primaryDark,
                 foregroundColor: ColorResource.textWhite,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(Constants.radiusLarge),
                 ),
@@ -692,10 +689,16 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
     }
   }
 
-  Widget _buildProductCard(ProductModel product, {double? imageAspectRatio}) {
-    final hasDiscount = product.discountValue != null && product.discountValue! > 0;
+  /// Food-module card only.
+  ///
+  /// Ecommerce items use [EcommerceProductCard] — the storefront's own card,
+  /// with the hover gallery, stock states and inline quantity stepper. This one
+  /// stays because a food item opens the quick-view sheet rather than the
+  /// ecommerce detail route the shared card navigates to.
+  Widget _buildProductCard(ProductModel product) {
+    final hasDiscount =
+        product.discountValue != null && product.discountValue! > 0;
     final discountPercentage = hasDiscount ? product.discountValue!.toInt() : 0;
-    final aspectRatio = imageAspectRatio;
 
     return CustomClickableWidget(
       onTap: () => _openProduct(product),
@@ -708,18 +711,16 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: aspectRatio == null ? MainAxisSize.max : MainAxisSize.min,
           children: [
-            // Image with badges and favorite button
-            if (aspectRatio == null)
-              Expanded(
-                child: _buildProductImageBand(product, hasDiscount, discountPercentage),
-              )
-            else
-              AspectRatio(
-                aspectRatio: aspectRatio,
-                child: _buildProductImageBand(product, hasDiscount, discountPercentage),
+            // The food grids are fixed-ratio, so the cell height is known and
+            // the image band simply takes whatever the text block leaves.
+            Expanded(
+              child: _buildProductImageBand(
+                product,
+                hasDiscount,
+                discountPercentage,
               ),
+            ),
 
             // Product Details
             Padding(
@@ -779,7 +780,8 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                       // items with variants open the detail page to pick them.
                       GestureDetector(
                         onTap: () {
-                          if (product.moduleType == ModuleController.ecommerce &&
+                          if (product.moduleType ==
+                                  ModuleController.ecommerce &&
                               product.variants.isNotEmpty) {
                             _openProduct(product);
                           } else {
@@ -795,7 +797,9 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: ColorResource.primaryMedium.withValues(alpha: 0.4),
+                                color: ColorResource.primaryMedium.withValues(
+                                  alpha: 0.4,
+                                ),
                                 blurRadius: 8,
                                 offset: const Offset(0, 4),
                               ),
@@ -819,7 +823,11 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
     );
   }
 
-  Widget _buildProductImageBand(ProductModel product, bool hasDiscount, int discountPercentage) {
+  Widget _buildProductImageBand(
+    ProductModel product,
+    bool hasDiscount,
+    int discountPercentage,
+  ) {
     return Stack(
       children: [
         ClipRRect(
@@ -859,10 +867,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
         Positioned(
           top: 8,
           right: 8,
-          child: FavoriteButton(
-            product: product,
-            size: 18,
-          ),
+          child: FavoriteButton(product: product, size: 18),
         ),
       ],
     );
