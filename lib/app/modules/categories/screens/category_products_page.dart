@@ -1,10 +1,10 @@
-import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
-import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
+import 'dart:math' as math;
+
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
-import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
+import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/cart_helper.dart';
@@ -12,6 +12,8 @@ import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/models/category_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/section_widget/food_card_metrics.dart';
+import 'package:appwrite_user_app/app/modules/dashboard/widgets/food_item_card.dart';
 import 'package:appwrite_user_app/app/modules/ecommerce/widgets/ecommerce_product_card.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/product_detail_bottomsheet.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
@@ -36,7 +38,29 @@ class CategoryProductsPage extends StatefulWidget {
 
 class _CategoryProductsPageState extends State<CategoryProductsPage> {
   static const int _pageSize = 10;
-  static const double _maxContentWidth = 1100;
+
+  /// Matches the top nav's own content band (and the home page's, via
+  /// [FoodCardMetrics.maxContentWidth]). At 1100 the body was ~50px narrower
+  /// than the bar above it, so the logo and the first product column did not
+  /// share a left edge — the kind of misalignment that reads as sloppy long
+  /// before anyone works out why.
+  static const double _maxContentWidth = FoodCardMetrics.maxContentWidth;
+
+  /// Side inset inside the cap. Equal to the nav's own leading inset, so the
+  /// two line up rather than merely being the same width.
+  static const double _sideInset = FoodCardMetrics.gutter;
+
+  /// Height of a food card at [columns] across, derived from the real column
+  /// width so the cards keep the proportions they have on the home page at any
+  /// column count — [FoodCardMetrics.webCardHeight] assumes four.
+  double _foodCardHeight(double screenWidth, int columns) {
+    final contentWidth =
+        math.min(screenWidth, _maxContentWidth) - _sideInset * 2;
+    final cardWidth =
+        (contentWidth - (columns - 1) * FoodCardMetrics.spacing) / columns;
+    return cardWidth * FoodCardMetrics.imageAspect +
+        FoodCardMetrics.detailsBlockHeight;
+  }
 
   static const List<double> _staggerRatios = [1, 0.82, 1, 0.75, 0.9, 1, 0.8];
 
@@ -207,20 +231,21 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                                 ),
                           )
                         : SliverGrid(
+                            // 0.65 is the ratio the home page's two-column
+                            // phone grid uses, so a dish is the same shape
+                            // wherever it is browsed from.
                             gridDelegate:
                                 const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 2,
                                   crossAxisSpacing: 16,
                                   mainAxisSpacing: 16,
-                                  childAspectRatio: 0.7,
+                                  childAspectRatio: 0.65,
                                 ),
-                            delegate: SliverChildBuilderDelegate((
-                              context,
-                              index,
-                            ) {
-                              final product = _products[index];
-                              return _buildProductCard(product);
-                            }, childCount: _products.length),
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) =>
+                                  _buildFoodCard(_products[index]),
+                              childCount: _products.length,
+                            ),
                           ),
                   ),
                   if (_isLoadingMore)
@@ -280,7 +305,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
       contentSliver = SliverMainAxisGroup(
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+            padding: const EdgeInsets.fromLTRB(_sideInset, 0, _sideInset, 24),
             sliver:
                 Get.find<ModuleController>().activeModule ==
                     ModuleController.ecommerce
@@ -300,13 +325,16 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
                 : SliverGrid(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: crossAxisCount,
-                      crossAxisSpacing: 20,
-                      mainAxisSpacing: 20,
-                      childAspectRatio: 0.72,
+                      crossAxisSpacing: FoodCardMetrics.spacing,
+                      mainAxisSpacing: FoodCardMetrics.spacing,
+                      // A fixed height rather than a ratio, for the same reason
+                      // the home grid uses one: the card's details block is a
+                      // fixed size and only the image should absorb the slack.
+                      mainAxisExtent: _foodCardHeight(width, crossAxisCount),
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) =>
-                          HoverLift(child: _buildProductCard(_products[index])),
+                          HoverLift(child: _buildFoodCard(_products[index])),
                       childCount: _products.length,
                     ),
                   ),
@@ -378,7 +406,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
     final hasImage = widget.category.imagePath?.isNotEmpty ?? false;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+      padding: const EdgeInsets.fromLTRB(_sideInset, 24, _sideInset, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -689,187 +717,31 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
     }
   }
 
-  /// Food-module card only.
+  /// Food-module card: the exact card the home feed uses.
   ///
-  /// Ecommerce items use [EcommerceProductCard] — the storefront's own card,
-  /// with the hover gallery, stock states and inline quantity stepper. This one
-  /// stays because a food item opens the quick-view sheet rather than the
-  /// ecommerce detail route the shared card navigates to.
-  Widget _buildProductCard(ProductModel product) {
-    final hasDiscount =
-        product.discountValue != null && product.discountValue! > 0;
-    final discountPercentage = hasDiscount ? product.discountValue!.toInt() : 0;
-
-    return CustomClickableWidget(
-      onTap: () => _openProduct(product),
-      isBackgroundTransparent: true,
-      child: Container(
-        decoration: BoxDecoration(
-          color: context.cardBackground,
-          borderRadius: BorderRadius.circular(Constants.radiusLarge),
-          boxShadow: ColorResource.customShadow,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // The food grids are fixed-ratio, so the cell height is known and
-            // the image band simply takes whatever the text block leaves.
-            Expanded(
-              child: _buildProductImageBand(
-                product,
-                hasDiscount,
-                discountPercentage,
-              ),
-            ),
-
-            // Product Details
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Name
-                  Text(
-                    product.nameMap.trLanguage,
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeDefault,
-                      color: context.textPrimary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-
-                  RatingStars(
-                    rating: product.avgRating,
-                    reviewCount: product.ratingCount,
-                    size: 13,
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Price and Add Button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Price
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '\$${product.finalPrice.toStringAsFixed(2)}',
-                              style: poppinsBold.copyWith(
-                                fontSize: Constants.fontSizeLarge,
-                                color: ColorResource.primaryDark,
-                              ),
-                            ),
-                            if (hasDiscount)
-                              Text(
-                                '\$${product.price.toStringAsFixed(2)}',
-                                style: poppinsRegular.copyWith(
-                                  fontSize: Constants.fontSizeSmall,
-                                  color: context.textLight,
-                                  decoration: TextDecoration.lineThrough,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      // Add Button — real add-to-cart (the old handler only
-                      // showed a snackbar without adding anything). Ecommerce
-                      // items with variants open the detail page to pick them.
-                      GestureDetector(
-                        onTap: () {
-                          if (product.moduleType ==
-                                  ModuleController.ecommerce &&
-                              product.variants.isNotEmpty) {
-                            _openProduct(product);
-                          } else {
-                            CartHelper.handleAddToCart(product, context);
-                          }
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            gradient: ColorResource.primaryGradient,
-                            borderRadius: BorderRadius.circular(
-                              Constants.radiusDefault,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: ColorResource.primaryMedium.withValues(
-                                  alpha: 0.4,
-                                ),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Icon(
-                            Icons.add_shopping_cart,
-                            color: ColorResource.textWhite,
-                            size: 18,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+  /// Rebuilt against [CartController] so the inline quantity stepper reflects
+  /// the cart the moment it changes — the same wiring the home sections use, so
+  /// adding a dish here behaves identically to adding it there.
+  Widget _buildFoodCard(ProductModel product) {
+    return GetBuilder<CartController>(
+      builder: (_) => FoodItemCard(
+        name: product.nameMap.trLanguage,
+        imageUrl: product.imageId,
+        description: product.descriptionMap.trLanguage,
+        price: product.finalPrice,
+        oldPrice: product.hasDiscount ? product.price : null,
+        product: product,
+        cartQuantity: CartHelper.getProductCartQuantity(product.id),
+        onTap: () => _openProduct(product),
+        onAddToCart: () => CartHelper.handleAddToCart(product, context),
+        onQuantityChanged: (isIncrement) {
+          if (isIncrement) {
+            CartHelper.incrementQuantity(product, context);
+          } else {
+            CartHelper.decrementQuantity(product, context);
+          }
+        },
       ),
-    );
-  }
-
-  Widget _buildProductImageBand(
-    ProductModel product,
-    bool hasDiscount,
-    int discountPercentage,
-  ) {
-    return Stack(
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(Constants.radiusLarge),
-            topRight: Radius.circular(Constants.radiusLarge),
-          ),
-          child: CustomNetworkImage(
-            image: product.imageId,
-            height: 160,
-            width: double.infinity,
-          ),
-        ),
-
-        // Discount Badge
-        if (hasDiscount)
-          Positioned(
-            top: 8,
-            left: 8,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: ColorResource.error,
-                borderRadius: BorderRadius.circular(Constants.radiusSmall),
-              ),
-              child: Text(
-                '$discountPercentage% OFF',
-                style: poppinsBold.copyWith(
-                  fontSize: Constants.fontSizeExtraSmall,
-                  color: ColorResource.textWhite,
-                ),
-              ),
-            ),
-          ),
-
-        // Favorite Button
-        Positioned(
-          top: 8,
-          right: 8,
-          child: FavoriteButton(product: product, size: 18),
-        ),
-      ],
     );
   }
 }
