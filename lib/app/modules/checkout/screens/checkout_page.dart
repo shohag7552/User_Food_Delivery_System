@@ -1226,7 +1226,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   Future<void> _openCouponSheet(CartController controller) async {
-    final result = await CouponSelectionBottomSheet.show(context);
+    final result = await CouponSelectionBottomSheet.showAdaptive(context);
     if (result != null) {
       controller.applyCoupon(result);
     }

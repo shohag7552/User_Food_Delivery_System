@@ -6,6 +6,7 @@ import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 
 class CouponSelectionBottomSheet extends StatefulWidget {
   const CouponSelectionBottomSheet({super.key});
@@ -14,6 +15,7 @@ class CouponSelectionBottomSheet extends StatefulWidget {
   State<CouponSelectionBottomSheet> createState() =>
       _CouponSelectionBottomSheetState();
 
+  /// Shows the coupon list as a bottom sheet (mobile/tablet).
   static Future<CouponModel?> show(BuildContext context) async {
     return await showModalBottomSheet<CouponModel>(
       context: context,
@@ -22,7 +24,235 @@ class CouponSelectionBottomSheet extends StatefulWidget {
       builder: (context) => const CouponSelectionBottomSheet(),
     );
   }
+
+  /// Shows the coupon list as a centered dialog (web/desktop).
+  static Future<CouponModel?> showAsDialog(BuildContext context) async {
+    return await showDialog<CouponModel>(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 40,
+            vertical: 40,
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: 560,
+              maxHeight: 680,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
+              child: const _CouponDialogContent(),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Dispatches to [showAsDialog] on web, [show] on mobile.
+  static Future<CouponModel?> showAdaptive(BuildContext context) {
+    return WebTopNav.isEnabled(context)
+        ? showAsDialog(context)
+        : show(context);
+  }
 }
+
+// ── Dialog variant (web) ──────────────────────────────────────────────────────
+
+/// The coupon content rendered inside a [Dialog] for web/desktop.
+/// Shares all card + logic code with the bottom-sheet variant.
+class _CouponDialogContent extends StatefulWidget {
+  const _CouponDialogContent();
+
+  @override
+  State<_CouponDialogContent> createState() => _CouponDialogContentState();
+}
+
+class _CouponDialogContentState extends State<_CouponDialogContent> {
+  final CouponController _controller = Get.find<CouponController>();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.getCoupons();
+  }
+
+  void _copyCouponCode(BuildContext context, String code) {
+    Clipboard.setData(ClipboardData(text: code));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'coupon_code_copied'.tr,
+          style: poppinsMedium.copyWith(color: Colors.white),
+        ),
+        backgroundColor: Theme.of(context).primaryColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _selectCoupon(BuildContext context, CouponModel coupon) {
+    Navigator.pop(context, coupon);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: context.cardBackground,
+        borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 20, 12, 16),
+            decoration: BoxDecoration(
+              color: context.cardBackground,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(Constants.radiusExtraLarge),
+                topRight: Radius.circular(Constants.radiusExtraLarge),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: ColorResource.shadowLight,
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    gradient: ColorResource.primaryGradient,
+                    borderRadius:
+                        BorderRadius.circular(Constants.radiusDefault),
+                  ),
+                  child: Icon(
+                    Icons.local_offer_rounded,
+                    color: ColorResource.textWhite,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'select_coupon'.tr,
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeExtraLarge,
+                          color: context.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'choose_a_coupon_to_save'.tr,
+                        style: poppinsRegular.copyWith(
+                          fontSize: Constants.fontSizeSmall,
+                          color: context.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: context.scaffoldBackground,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.close_rounded,
+                      color: context.textSecondary,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Coupon List
+          Expanded(
+            child: GetBuilder<CouponController>(
+              builder: (controller) {
+                if (controller.isLoading && controller.coupons == null) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (controller.coupons == null ||
+                    controller.coupons!.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.local_offer_rounded,
+                          size: 80,
+                          color: context.textLight,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'no_coupons_available'.tr,
+                          style: poppinsBold.copyWith(
+                            fontSize: Constants.fontSizeLarge,
+                            color: context.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'check_back_later_deals'.tr,
+                          style: poppinsRegular.copyWith(
+                            fontSize: Constants.fontSizeDefault,
+                            color: context.textLight,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return RefreshIndicator(
+                  onRefresh: () => controller.getCoupons(),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: controller.coupons!.length,
+                    itemBuilder: (context, index) {
+                      final coupon = controller.coupons![index];
+                      return _CouponCard(
+                        coupon: coupon,
+                        onTap: () => _selectCoupon(context, coupon),
+                        onCopy: () =>
+                            _copyCouponCode(context, coupon.code),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Bottom-sheet variant (mobile) ─────────────────────────────────────────────
 
 class _CouponSelectionBottomSheetState
     extends State<CouponSelectionBottomSheet> {
