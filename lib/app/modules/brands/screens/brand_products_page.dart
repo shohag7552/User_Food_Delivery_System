@@ -31,7 +31,7 @@ class BrandProductsPage extends StatefulWidget {
 
 class _BrandProductsPageState extends State<BrandProductsPage> {
   static const int _pageSize = 10;
-  static const double _maxContentWidth = 1100;
+  static const double _maxContentWidth = WebTopNav.maxContentWidth;
 
   static const List<double> _staggerRatios = [1, 0.82, 1, 0.75, 0.9, 1, 0.8];
 
@@ -187,11 +187,17 @@ class _BrandProductsPageState extends State<BrandProductsPage> {
 
   Widget _buildWebScaffold(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final crossAxisCount = width >= 1400
-        ? 5
-        : width >= 1100
-            ? 4
-            : 3;
+
+    // Cross-axis count: up to 4 columns — matches the header band width.
+    final crossAxisCount = width >= 1100
+        ? 4
+        : width >= 800
+            ? 3
+            : 2;
+
+    // The horizontal padding that lines the grid up with the top-nav logo:
+    // beyond the content cap this includes the letterbox gutter.
+    final double sidePad = WebTopNav.bodySidePadding(width);
 
     late final Widget contentSliver;
     if (_isLoading) {
@@ -212,16 +218,10 @@ class _BrandProductsPageState extends State<BrandProductsPage> {
     } else {
       contentSliver = _buildProductsSliver(
         crossAxisCount: crossAxisCount,
-        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        padding: EdgeInsets.fromLTRB(sidePad, 0, sidePad, 24),
         spacing: 20,
       );
     }
-
-    // Full-bleed scroll view (wheel and scrollbar work across the whole
-    // screen, not just the middle column) — the content itself stays centered
-    // within the cap via symmetric sliver gutters.
-    final double gutter =
-        width > _maxContentWidth ? (width - _maxContentWidth) / 2 : 0;
 
     return Scaffold(
       key: _webScaffoldKey,
@@ -238,14 +238,8 @@ class _BrandProductsPageState extends State<BrandProductsPage> {
         controller: _scrollController,
         physics: const BouncingScrollPhysics(),
         slivers: [
-          SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: gutter),
-            sliver: SliverToBoxAdapter(child: _buildWebHeader()),
-          ),
-          SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: gutter),
-            sliver: contentSliver,
-          ),
+          SliverToBoxAdapter(child: _buildWebHeader(sidePad: sidePad)),
+          contentSliver,
           WebFooter.sliver(),
         ],
       ),
@@ -322,11 +316,11 @@ class _BrandProductsPageState extends State<BrandProductsPage> {
     );
   }
 
-  Widget _buildWebHeader() {
+  Widget _buildWebHeader({required double sidePad}) {
     final description = (widget.brand.description ?? '').trim();
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+      padding: EdgeInsets.fromLTRB(sidePad, 24, sidePad, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
