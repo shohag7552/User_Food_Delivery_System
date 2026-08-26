@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 
@@ -45,22 +43,16 @@ class EcommerceCardMetrics {
   /// body line up with the bar rather than merely being the same width; below
   /// the desktop breakpoint there is no bar to align to and the phone [gutter]
   /// applies.
-  static double bandInset(double screenWidth) {
-    if (screenWidth < WebTopNav.wideBreakpoint) return gutter;
-    // The band is the viewport until it hits the cap, and the bar tightens its
-    // own inset on a narrow band — so ask it rather than assuming 20.
-    return WebTopNav.contentInsetFor(math.min(screenWidth, maxContentWidth));
-  }
+  static double bandInset(double screenWidth) =>
+      screenWidth < WebTopNav.wideBreakpoint
+      ? gutter
+      : WebTopNav.bandInsetFor(screenWidth);
 
   /// Inset from the viewport edge — what a section actually pads by.
   ///
-  /// Beyond the cap this is the letterbox gutter plus [bandInset]; inside it,
-  /// just [bandInset]. Continuous at the cap, so nothing jumps as the window
-  /// crosses it.
-  static double sidePadding(double screenWidth) {
-    final inset = bandInset(screenWidth);
-    return math.max(inset, (screenWidth - maxContentWidth) / 2 + inset);
-  }
+  /// Delegates to the bar, which owns the rule.
+  static double sidePadding(double screenWidth) =>
+      WebTopNav.bodySidePadding(screenWidth, compactGutter: gutter);
 
   /// Usable width between the side paddings for a given viewport.
   static double contentWidth(double screenWidth) =>

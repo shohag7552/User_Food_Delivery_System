@@ -26,8 +26,6 @@ class LoyaltyPointsPage extends StatefulWidget {
 class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-
-
   @override
   void initState() {
     super.initState();
@@ -65,171 +63,248 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
       endDrawer: isWeb ? const WebProfileDrawer() : null,
       body: AuthGate(
         child: GetBuilder<LoyaltyController>(
-        builder: (loyaltyController) {
-          return GetBuilder<ProfileController>(
-            builder: (profileController) {
-              final user = profileController.userProfile;
-              final totalPoints = user?.loyaltyPoints ?? 0;
+          builder: (loyaltyController) {
+            return GetBuilder<ProfileController>(
+              builder: (profileController) {
+                final user = profileController.userProfile;
+                final totalPoints = user?.loyaltyPoints ?? 0;
 
-              return RefreshIndicator(
-                onRefresh: loyaltyController.fetchHistory,
-                child: LayoutBuilder(
-                  builder: (context, viewport) => SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(
-                      parent: BouncingScrollPhysics(),
-                    ),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: isWeb ? viewport.maxHeight : 0,
+                return RefreshIndicator(
+                  onRefresh: loyaltyController.fetchHistory,
+                  child: LayoutBuilder(
+                    builder: (context, viewport) => SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        mainAxisAlignment: isWeb
-                            ? MainAxisAlignment.spaceBetween
-                            : MainAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                            child: Center(
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  final screenWidth = MediaQuery.of(context).size.width;
-                                  final isWideWeb = isWeb && screenWidth >= 900;
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: isWeb ? viewport.maxHeight : 0,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          mainAxisAlignment: isWeb
+                              ? MainAxisAlignment.spaceBetween
+                              : MainAxisAlignment.start,
+                          children: [
+                            Padding(
+                              // Horizontal inset moves inside the band on web, so
+                              // the band itself can be the nav's; mobile keeps 16.
+                              padding: EdgeInsets.fromLTRB(
+                                isWeb ? 0 : 16,
+                                16,
+                                isWeb ? 0 : 16,
+                                24,
+                              ),
+                              child: Center(
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final screenWidth = MediaQuery.of(
+                                      context,
+                                    ).size.width;
+                                    // `isWeb` already requires >= 900, so the old
+                                    // `isWeb && width >= 900` was always equal to
+                                    // it — and its 720px branch was unreachable.
+                                    final isWideWeb = isWeb;
 
-                                  return ConstrainedBox(
-                                    constraints: BoxConstraints(
-                                      maxWidth: isWeb
-                                          ? (isWideWeb ? 1000 : 720)
-                                          : double.infinity,
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        if (isWeb) ...[
-                                          Text(
-                                            'Loyalty Points',
-                                            style: poppinsBold.copyWith(
-                                              fontSize: Constants.fontSizeOverLarge,
-                                              color: isDark ? Colors.white : context.textPrimary,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 20),
-                                        ],
-                                        if (isWideWeb)
-                                          Row(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              // Left side: Summary Card
-                                              Expanded(
-                                                flex: 42,
-                                                child: _buildSummaryCard(
-                                                  context: context,
-                                                  userName: user?.name,
-                                                  totalPoints: totalPoints,
-                                                  walletConversionRate: loyaltyController.walletConversionRate,
-                                                  isConverting: loyaltyController.isConverting,
+                                    return ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        // The content band, shared with the top
+                                        // nav. At 1000 the card sat 100px inside
+                                        // the bar above it on every side.
+                                        maxWidth: isWeb
+                                            ? WebTopNav.maxContentWidth
+                                            : double.infinity,
+                                      ),
+                                      child: Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: isWeb
+                                              ? WebTopNav.bandInsetFor(
+                                                  screenWidth,
+                                                )
+                                              : 0,
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            if (isWeb) ...[
+                                              Text(
+                                                'Loyalty Points',
+                                                style: poppinsBold.copyWith(
+                                                  fontSize: Constants
+                                                      .fontSizeOverLarge,
+                                                  color: isDark
+                                                      ? Colors.white
+                                                      : context.textPrimary,
                                                 ),
                                               ),
-                                              const SizedBox(width: 32),
-                                              // Right side: Activity List
-                                              Expanded(
-                                                flex: 58,
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      'Points activity',
-                                                      style: poppinsBold.copyWith(
-                                                        fontSize: Constants.fontSizeLarge,
-                                                        color: isDark
-                                                            ? Colors.white
-                                                            : context.textPrimary,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 8),
-                                                    Text(
-                                                      'Track how points are earned and redeemed across your account.',
-                                                      style: poppinsRegular.copyWith(
-                                                        color: isDark
-                                                            ? Colors.white70
-                                                            : context.textSecondary,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 16),
-                                                    if (loyaltyController.isLoading)
-                                                      const Center(child: CircularProgressIndicator())
-                                                    else if (loyaltyController.history.isEmpty)
-                                                      _buildEmptyState(context)
-                                                    else
-                                                      ...loyaltyController.history.map(
-                                                        (transaction) => Padding(
-                                                          padding: const EdgeInsets.only(bottom: 12),
-                                                          child: _buildTransactionCard(context, transaction),
-                                                        ),
-                                                      ),
-                                                  ],
-                                                ),
-                                              ),
+                                              const SizedBox(height: 20),
                                             ],
-                                          )
-                                        else ...[
-                                          _buildSummaryCard(
-                                            context: context,
-                                            userName: user?.name,
-                                            totalPoints: totalPoints,
-                                            walletConversionRate: loyaltyController.walletConversionRate,
-                                            isConverting: loyaltyController.isConverting,
-                                          ),
-                                          const SizedBox(height: 24),
-                                          Text(
-                                            'Points activity',
-                                            style: poppinsBold.copyWith(
-                                              fontSize: Constants.fontSizeLarge,
-                                              color: isDark
-                                                  ? Colors.white
-                                                  : context.textPrimary,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'Track how points are earned and redeemed across your account.',
-                                            style: poppinsRegular.copyWith(
-                                              color: isDark
-                                                  ? Colors.white70
-                                                  : context.textSecondary,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 16),
-                                          if (loyaltyController.isLoading)
-                                            const Center(child: CircularProgressIndicator())
-                                          else if (loyaltyController.history.isEmpty)
-                                            _buildEmptyState(context)
-                                          else
-                                            ...loyaltyController.history.map(
-                                              (transaction) => Padding(
-                                                padding: const EdgeInsets.only(bottom: 12),
-                                                child: _buildTransactionCard(context, transaction),
+                                            if (isWideWeb)
+                                              Row(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  // Left side: Summary Card
+                                                  Expanded(
+                                                    flex: 42,
+                                                    child: _buildSummaryCard(
+                                                      context: context,
+                                                      userName: user?.name,
+                                                      totalPoints: totalPoints,
+                                                      walletConversionRate:
+                                                          loyaltyController
+                                                              .walletConversionRate,
+                                                      isConverting:
+                                                          loyaltyController
+                                                              .isConverting,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 32),
+                                                  // Right side: Activity List
+                                                  Expanded(
+                                                    flex: 58,
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          'Points activity',
+                                                          style: poppinsBold.copyWith(
+                                                            fontSize: Constants
+                                                                .fontSizeLarge,
+                                                            color: isDark
+                                                                ? Colors.white
+                                                                : context
+                                                                      .textPrimary,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(
+                                                          height: 8,
+                                                        ),
+                                                        Text(
+                                                          'Track how points are earned and redeemed across your account.',
+                                                          style: poppinsRegular
+                                                              .copyWith(
+                                                                color: isDark
+                                                                    ? Colors
+                                                                          .white70
+                                                                    : context
+                                                                          .textSecondary,
+                                                              ),
+                                                        ),
+                                                        const SizedBox(
+                                                          height: 16,
+                                                        ),
+                                                        if (loyaltyController
+                                                            .isLoading)
+                                                          const Center(
+                                                            child:
+                                                                CircularProgressIndicator(),
+                                                          )
+                                                        else if (loyaltyController
+                                                            .history
+                                                            .isEmpty)
+                                                          _buildEmptyState(
+                                                            context,
+                                                          )
+                                                        else
+                                                          ...loyaltyController.history.map(
+                                                            (
+                                                              transaction,
+                                                            ) => Padding(
+                                                              padding:
+                                                                  const EdgeInsets.only(
+                                                                    bottom: 12,
+                                                                  ),
+                                                              child:
+                                                                  _buildTransactionCard(
+                                                                    context,
+                                                                    transaction,
+                                                                  ),
+                                                            ),
+                                                          ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              )
+                                            else ...[
+                                              _buildSummaryCard(
+                                                context: context,
+                                                userName: user?.name,
+                                                totalPoints: totalPoints,
+                                                walletConversionRate:
+                                                    loyaltyController
+                                                        .walletConversionRate,
+                                                isConverting: loyaltyController
+                                                    .isConverting,
                                               ),
-                                            ),
-                                        ],
-                                      ],
-                                    ),
-                                  );
-                                },
+                                              const SizedBox(height: 24),
+                                              Text(
+                                                'Points activity',
+                                                style: poppinsBold.copyWith(
+                                                  fontSize:
+                                                      Constants.fontSizeLarge,
+                                                  color: isDark
+                                                      ? Colors.white
+                                                      : context.textPrimary,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                'Track how points are earned and redeemed across your account.',
+                                                style: poppinsRegular.copyWith(
+                                                  color: isDark
+                                                      ? Colors.white70
+                                                      : context.textSecondary,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 16),
+                                              if (loyaltyController.isLoading)
+                                                const Center(
+                                                  child:
+                                                      CircularProgressIndicator(),
+                                                )
+                                              else if (loyaltyController
+                                                  .history
+                                                  .isEmpty)
+                                                _buildEmptyState(context)
+                                              else
+                                                ...loyaltyController.history.map(
+                                                  (transaction) => Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                          bottom: 12,
+                                                        ),
+                                                    child:
+                                                        _buildTransactionCard(
+                                                          context,
+                                                          transaction,
+                                                        ),
+                                                  ),
+                                                ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
                             ),
-                          ),
-                          // Full-width footer pinned to the bottom on web.
-                          if (isWeb) const WebFooter(),
-                        ],
+                            // Full-width footer pinned to the bottom on web.
+                            if (isWeb) const WebFooter(),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
-            },
-          );
-        },
+                );
+              },
+            );
+          },
         ),
       ),
     );
@@ -265,12 +340,16 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: const Color(0xFFFFD700).withValues(alpha: isDark ? 0.25 : 0.35),
+          color: const Color(
+            0xFFFFD700,
+          ).withValues(alpha: isDark ? 0.25 : 0.35),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: ColorResource.primaryDark.withValues(alpha: isDark ? 0.35 : 0.2),
+            color: ColorResource.primaryDark.withValues(
+              alpha: isDark ? 0.35 : 0.2,
+            ),
             blurRadius: 28,
             offset: const Offset(0, 14),
           ),
@@ -342,10 +421,14 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFD700).withValues(alpha: isDark ? 0.12 : 0.18),
+                        color: const Color(
+                          0xFFFFD700,
+                        ).withValues(alpha: isDark ? 0.12 : 0.18),
                         borderRadius: BorderRadius.circular(999),
                         border: Border.all(
-                          color: const Color(0xFFFFD700).withValues(alpha: isDark ? 0.3 : 0.4),
+                          color: const Color(
+                            0xFFFFD700,
+                          ).withValues(alpha: isDark ? 0.3 : 0.4),
                           width: 1,
                         ),
                       ),
@@ -410,25 +493,43 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                   width: double.infinity,
                   height: 52,
                   decoration: BoxDecoration(
-                    gradient: totalPoints == 0 || walletConversionRate <= 0 || isConverting
+                    gradient:
+                        totalPoints == 0 ||
+                            walletConversionRate <= 0 ||
+                            isConverting
                         ? null
                         : LinearGradient(
                             colors: isDark
-                                ? [const Color(0xFFFFE082), const Color(0xFFFFB300)]
-                                : [const Color(0xFFFFEEB3), const Color(0xFFFFC107)],
+                                ? [
+                                    const Color(0xFFFFE082),
+                                    const Color(0xFFFFB300),
+                                  ]
+                                : [
+                                    const Color(0xFFFFEEB3),
+                                    const Color(0xFFFFC107),
+                                  ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
-                    color: totalPoints == 0 || walletConversionRate <= 0 || isConverting
+                    color:
+                        totalPoints == 0 ||
+                            walletConversionRate <= 0 ||
+                            isConverting
                         ? Colors.white.withValues(alpha: 0.12)
                         : null,
                     borderRadius: BorderRadius.circular(16),
-                    boxShadow: totalPoints == 0 || walletConversionRate <= 0 || isConverting
+                    boxShadow:
+                        totalPoints == 0 ||
+                            walletConversionRate <= 0 ||
+                            isConverting
                         ? null
                         : [
                             BoxShadow(
-                              color: (isDark ? const Color(0xFFFFB300) : const Color(0xFFFFC107))
-                                  .withValues(alpha: 0.35),
+                              color:
+                                  (isDark
+                                          ? const Color(0xFFFFB300)
+                                          : const Color(0xFFFFC107))
+                                      .withValues(alpha: 0.35),
                               blurRadius: 12,
                               offset: const Offset(0, 6),
                             ),
@@ -437,7 +538,10 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      onTap: totalPoints == 0 || walletConversionRate <= 0 || isConverting
+                      onTap:
+                          totalPoints == 0 ||
+                              walletConversionRate <= 0 ||
+                              isConverting
                           ? null
                           : _handleConvertToWallet,
                       borderRadius: BorderRadius.circular(16),
@@ -448,14 +552,19 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                                 height: 24,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2.5,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
                                 ),
                               )
                             : Text(
                                 'Convert to Wallet',
                                 style: poppinsBold.copyWith(
                                   fontSize: 16,
-                                  color: totalPoints == 0 || walletConversionRate <= 0 || isConverting
+                                  color:
+                                      totalPoints == 0 ||
+                                          walletConversionRate <= 0 ||
+                                          isConverting
                                       ? Colors.white.withValues(alpha: 0.35)
                                       : const Color(0xFF5A4500),
                                   letterSpacing: 0.5,
@@ -533,9 +642,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                 Text(
                   transaction.description,
                   style: poppinsRegular.copyWith(
-                    color: isDark
-                        ? Colors.white70
-                        : context.textSecondary,
+                    color: isDark ? Colors.white70 : context.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -580,7 +687,8 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
   void _handleConvertToWallet() {
     final pointsController = TextEditingController();
     final loyaltyController = Get.find<LoyaltyController>();
-    final totalPoints = Get.find<ProfileController>().userProfile?.loyaltyPoints ?? 0;
+    final totalPoints =
+        Get.find<ProfileController>().userProfile?.loyaltyPoints ?? 0;
     final walletConversionRate = loyaltyController.walletConversionRate;
 
     showDialog<void>(
@@ -588,7 +696,8 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            final enteredPoints = int.tryParse(pointsController.text.trim()) ?? 0;
+            final enteredPoints =
+                int.tryParse(pointsController.text.trim()) ?? 0;
             final validationMessage = _getConversionValidation(
               pointsController.text.trim(),
               totalPoints: totalPoints,
@@ -613,9 +722,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                   children: [
                     Text(
                       'Available points: ${NumberFormat.decimalPattern().format(totalPoints)}',
-                      style: poppinsMedium.copyWith(
-                        color: context.textPrimary,
-                      ),
+                      style: poppinsMedium.copyWith(color: context.textPrimary),
                     ),
                     const SizedBox(height: 6),
                     Text(
@@ -686,9 +793,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                   onPressed: () => Navigator.of(dialogContext).pop(),
                   child: Text(
                     'Cancel',
-                    style: poppinsMedium.copyWith(
-                      color: context.textSecondary,
-                    ),
+                    style: poppinsMedium.copyWith(color: context.textSecondary),
                   ),
                 ),
                 SizedBox(
@@ -696,10 +801,12 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                   child: GetBuilder<LoyaltyController>(
                     builder: (controller) {
                       return CustomButton(
-                        onPressed: validationMessage != null || controller.isConverting
+                        onPressed:
+                            validationMessage != null || controller.isConverting
                             ? null
                             : () async {
-                                final converted = await controller.convertPointsToWallet(enteredPoints);
+                                final converted = await controller
+                                    .convertPointsToWallet(enteredPoints);
                                 if (converted && dialogContext.mounted) {
                                   Navigator.of(dialogContext).pop();
                                 }

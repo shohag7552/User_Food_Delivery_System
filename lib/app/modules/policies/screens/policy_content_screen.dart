@@ -20,6 +20,10 @@ class PolicyContentScreen extends StatelessWidget {
     required this.htmlContent,
   });
 
+  /// Widest the prose itself goes, independent of the band it sits in. Long
+  /// lines are the fastest way to make a policy page unreadable.
+  static const double _readableMeasure = 860;
+
   @override
   Widget build(BuildContext context) {
     final isWeb = WebTopNav.isEnabled(context);
@@ -50,18 +54,27 @@ class PolicyContentScreen extends StatelessWidget {
               parent: BouncingScrollPhysics(),
             ),
             child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: viewport.maxHeight,
-              ),
+              constraints: BoxConstraints(minHeight: viewport.maxHeight),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Center(
+                    // The band matches the top nav, so the back button and the
+                    // title start level with the logo. The prose itself is
+                    // capped narrower inside it — 1160px of body text is far
+                    // past the measure anyone reads comfortably — and stays
+                    // left-aligned under the title rather than being centred
+                    // away from it.
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 860),
+                      constraints: const BoxConstraints(
+                        maxWidth: WebTopNav.maxContentWidth,
+                      ),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: WebTopNav.bandInsetFor(viewport.maxWidth),
+                          vertical: 32,
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -69,7 +82,9 @@ class PolicyContentScreen extends StatelessWidget {
                             Row(
                               children: [
                                 IconButton(
-                                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                                  icon: const Icon(
+                                    Icons.arrow_back_ios_new_rounded,
+                                  ),
                                   onPressed: () => context.pop(),
                                 ),
                                 const SizedBox(width: 8),
@@ -77,15 +92,23 @@ class PolicyContentScreen extends StatelessWidget {
                                   title,
                                   style: poppinsBold.copyWith(
                                     fontSize: Constants.fontSizeOverLarge,
-                                    color: isDark ? Colors.white : context.textPrimary,
+                                    color: isDark
+                                        ? Colors.white
+                                        : context.textPrimary,
                                   ),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 24),
-                            htmlContent.isNotEmpty
-                                ? _buildHtmlContent()
-                                : _buildEmptyState(),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                maxWidth: WebTopNav.maxContentWidth,
+                                // maxWidth: _readableMeasure,
+                              ),
+                              child: htmlContent.isNotEmpty
+                                  ? _buildHtmlContent()
+                                  : _buildEmptyState(),
+                            ),
                           ],
                         ),
                       ),
@@ -114,14 +137,18 @@ class PolicyContentScreen extends StatelessWidget {
             elevation: 0,
             backgroundColor: ColorResource.primaryDark,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                  color: Colors.white),
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: Colors.white,
+              ),
               onPressed: () => context.pop(),
             ),
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
-              titlePadding:
-                  const EdgeInsets.symmetric(horizontal: 56, vertical: 14),
+              titlePadding: const EdgeInsets.symmetric(
+                horizontal: 56,
+                vertical: 14,
+              ),
               title: Text(
                 title,
                 textAlign: TextAlign.center,
@@ -200,7 +227,9 @@ class PolicyContentScreen extends StatelessWidget {
 
   Widget _buildHtmlContent() {
     return Container(
-      margin: const EdgeInsets.all(16),
+      // Vertical only: a horizontal margin here would indent the card past the
+      // title it sits under, which is the alignment this page is fixing.
+      margin: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
         color: ColorResource.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
@@ -216,10 +245,7 @@ class PolicyContentScreen extends StatelessWidget {
               fontSize: FontSize(14),
               color: ColorResource.textPrimary,
               lineHeight: LineHeight(1.7),
-              padding: HtmlPaddings.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
+              padding: HtmlPaddings.symmetric(horizontal: 12, vertical: 8),
             ),
             'h1': Style(
               fontFamily: 'Poppins',

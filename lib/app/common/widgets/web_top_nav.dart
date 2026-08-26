@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'dart:async';
 
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
@@ -84,6 +86,30 @@ class WebTopNav extends StatelessWidget implements PreferredSizeWidget {
   /// range. Ask this instead of assuming.
   static double contentInsetFor(double bandWidth) =>
       bandWidth >= _labelBreakpoint ? contentInset : _compactContentInset;
+
+  /// Inset a page body should apply *inside* [maxContentWidth].
+  ///
+  /// For bodies that centre their content in a `ConstrainedBox` sized to the
+  /// band. Bodies that instead pad a full-width scroll surface want
+  /// [bodySidePadding], which folds the letterbox gutter in.
+  static double bandInsetFor(double screenWidth) =>
+      contentInsetFor(math.min(screenWidth, maxContentWidth));
+
+  /// Side padding a page body should use so its content lines up with the bar.
+  ///
+  /// Beyond the cap this is the letterbox gutter plus the bar's inset; inside
+  /// it, just the inset. Continuous at the cap, so nothing jumps as the window
+  /// crosses it. Below [wideBreakpoint] there is no bar to align to and
+  /// [compactGutter] applies — pages differ there (16 on the storefront, 20 on
+  /// the food home), so the caller says which.
+  static double bodySidePadding(
+    double screenWidth, {
+    double compactGutter = 16,
+  }) {
+    if (screenWidth < wideBreakpoint) return compactGutter;
+    final inset = contentInsetFor(math.min(screenWidth, maxContentWidth));
+    return math.max(inset, (screenWidth - maxContentWidth) / 2 + inset);
+  }
 
   /// Gap between neighbouring controls inside one zone.
   static const double _itemGap = 4;

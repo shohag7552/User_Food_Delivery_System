@@ -35,9 +35,16 @@ class FavoritesScreen extends StatefulWidget {
 }
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
-  // Web/desktop layout kicks in above this width.
-  static const double _webBreakpoint = 900;
-  static const double _maxContentWidth = 1100;
+  // Web/desktop layout kicks in above this width — the same one the shared
+  // top-nav uses, so the page changes shape when the chrome does.
+  static const double _webBreakpoint = WebTopNav.wideBreakpoint;
+
+  /// Side padding and the width left inside it. Both layouts and the loading
+  /// skeleton read these, so a grid and the skeleton standing in for it can
+  /// never be measured differently.
+  double _sidePadding(double width) => WebTopNav.bodySidePadding(width);
+
+  double _contentWidth(double width) => width - _sidePadding(width) * 2;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -53,7 +60,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   void initState() {
     super.initState();
 
-    Get.find<FavoritesController>().fetchFavorites(canUpdate: false, loadWithProduct: true);
+    Get.find<FavoritesController>().fetchFavorites(
+      canUpdate: false,
+      loadWithProduct: true,
+    );
   }
 
   /// True on desktop web (the layout gets the centred, capped grid + inline
@@ -89,17 +99,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       // opened from the menu).
       appBar: showWebNav
           ? (isFromMenu
-              ? WebTopNav(
-                  selectedIndex: null,
-                  onDestinationSelected: (index) =>
-                      DashboardTabs.open(context, index),
-                  onMenuTap: () => _scaffoldKey.currentState?.openEndDrawer(),
-                )
-              : null)
-          : CustomAppbar(
-              title: 'my_favorites'.tr,
-              showBackButton: isFromMenu,
-            ),
+                ? WebTopNav(
+                    selectedIndex: null,
+                    onDestinationSelected: (index) =>
+                        DashboardTabs.open(context, index),
+                    onMenuTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+                  )
+                : null)
+          : CustomAppbar(title: 'my_favorites'.tr, showBackButton: isFromMenu),
       endDrawer: (showWebNav && isFromMenu) ? const WebProfileDrawer() : null,
       body: AuthGate(
         child: GetBuilder<FavoritesController>(
@@ -112,8 +119,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             // only their own saved items.
             final activeModule = Get.find<ModuleController>().activeModule;
             final favorites = controller.favorites
-                .where((f) =>
-                    f.product != null && f.product!.moduleType == activeModule)
+                .where(
+                  (f) =>
+                      f.product != null &&
+                      f.product!.moduleType == activeModule,
+                )
                 .toList();
 
             if (favorites.isEmpty) {
@@ -135,15 +145,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     final width = MediaQuery.of(context).size.width;
     final isWide = width >= _webBreakpoint;
     // On web the grid stays FULL-WIDTH (so dragging anywhere — including the
-    // letterboxed side gutters — scrolls); the content is centred within
-    // [_maxContentWidth] by padding the sides instead of wrapping in a
-    // ConstrainedBox (which would trap the scroll to the centre column).
-    final double contentWidth =
-        isWide && width > _maxContentWidth ? _maxContentWidth : width;
-    final double sidePadding = isWide
-        ? (width > _maxContentWidth ? (width - _maxContentWidth) / 2 : 24)
-        : 16;
-    final crossAxisCount = _crossAxisCount(contentWidth);
+    // letterboxed side gutters — scrolls); the content is centred within the
+    // nav's band by padding the sides instead of wrapping in a ConstrainedBox
+    // (which would trap the scroll to the centre column). At 1100 with no
+    // inset the grid sat wider than the bar above it *and* started 20px
+    // outside its logo.
+    final double sidePadding = _sidePadding(width);
+    final crossAxisCount = _crossAxisCount(_contentWidth(width));
 
     final grid = NavClearance(
       // A CustomScrollView so the web footer can sit below the grid as a sliver
@@ -160,7 +168,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               // Nav-bar clearance + a small breathing space at the very bottom.
               bottom + 20,
             ),
-            sliver: Get.find<ModuleController>().activeModule == ModuleController.ecommerce
+            sliver:
+                Get.find<ModuleController>().activeModule ==
+                    ModuleController.ecommerce
                 ? SliverMasonryGrid.count(
                     crossAxisCount: isWide ? crossAxisCount : 2,
                     crossAxisSpacing: isWide ? 20 : 16,
@@ -191,16 +201,17 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                             // price so the card content never overflows/overlaps.
                             mainAxisExtent: 250,
                           ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final favorite = favorites[index];
-                        final product = favorite.product!;
-                        final card = _buildProductCard(
-                            context, product, favorite.id, controller);
-                        return kIsWeb ? HoverLift(child: card) : card;
-                      },
-                      childCount: favorites.length,
-                    ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final favorite = favorites[index];
+                      final product = favorite.product!;
+                      final card = _buildProductCard(
+                        context,
+                        product,
+                        favorite.id,
+                        controller,
+                      );
+                      return kIsWeb ? HoverLift(child: card) : card;
+                    }, childCount: favorites.length),
                   ),
           ),
           WebFooter.sliver(),
@@ -260,12 +271,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   Widget _buildLoadingState(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isWide = width >= _webBreakpoint;
-    final double contentWidth =
-        isWide && width > _maxContentWidth ? _maxContentWidth : width;
-    final double sidePadding = isWide
-        ? (width > _maxContentWidth ? (width - _maxContentWidth) / 2 : 24)
-        : 16;
-    final crossAxisCount = _crossAxisCount(contentWidth);
+    final double sidePadding = _sidePadding(width);
+    final crossAxisCount = _crossAxisCount(_contentWidth(width));
     final activeModule = Get.find<ModuleController>().activeModule;
 
     if (activeModule == ModuleController.ecommerce) {
@@ -280,9 +287,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         crossAxisSpacing: isWide ? 20 : 16,
         mainAxisSpacing: isWide ? 20 : 16,
         itemCount: isWide ? 10 : 6,
-        itemBuilder: (context, index) => _buildSkeletonCard(
-          imageAspectRatio: _imageRatioFor(index),
-        ),
+        itemBuilder: (context, index) =>
+            _buildSkeletonCard(imageAspectRatio: _imageRatioFor(index)),
       );
     }
 
@@ -320,7 +326,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: imageAspectRatio == null ? MainAxisSize.max : MainAxisSize.min,
+        mainAxisSize: imageAspectRatio == null
+            ? MainAxisSize.max
+            : MainAxisSize.min,
         children: [
           // Image skeleton
           if (imageAspectRatio == null)
@@ -427,7 +435,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: ColorResource.primaryDark,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 14,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -439,7 +450,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  Widget _buildProductCard(BuildContext context, ProductModel product, String favoriteId, FavoritesController controller) {
+  Widget _buildProductCard(
+    BuildContext context,
+    ProductModel product,
+    String favoriteId,
+    FavoritesController controller,
+  ) {
     final bool isVeg = product.isVeg;
     final bool hasDiscount = product.hasDiscount;
 
@@ -520,10 +536,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       top: 8,
                       right: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: ColorResource.discountBadge,
-                          borderRadius: BorderRadius.circular(Constants.radiusLarge),
+                          borderRadius: BorderRadius.circular(
+                            Constants.radiusLarge,
+                          ),
                         ),
                         child: Text(
                           product.discountType == 'percentage'
@@ -542,7 +563,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     bottom: 8,
                     right: 8,
                     child: GestureDetector(
-                      onTap: () => controller.removeFavoriteById(favoriteId, product.id),
+                      onTap: () =>
+                          controller.removeFavoriteById(favoriteId, product.id),
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(

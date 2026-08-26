@@ -34,8 +34,9 @@ class _CouponsScreenState extends State<CouponsScreen> {
   final CouponController _controller = Get.find<CouponController>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  /// Caps the grid width on desktop web so cards stay readable.
-  static const double _maxContentWidth = 1000;
+  /// The content band, shared with the top nav. At 1000 the grid sat 100px
+  /// inside the bar above it on every side.
+  static const double _maxContentWidth = WebTopNav.maxContentWidth;
 
   /// At or above this inner width the web grid shows two columns.
   static const double _twoColumnWidth = 680;
@@ -70,50 +71,52 @@ class _CouponsScreenState extends State<CouponsScreen> {
       endDrawer: showWebNav ? const WebProfileDrawer() : null,
       body: AuthGate(
         child: GetBuilder<CouponController>(
-        builder: (controller) {
-          if (controller.isLoading && controller.coupons == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
+          builder: (controller) {
+            if (controller.isLoading && controller.coupons == null) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (controller.coupons == null || controller.coupons!.isEmpty) {
-            if (isWeb) {
-              return RefreshIndicator(
-                onRefresh: () => controller.getCoupons(),
-                child: LayoutBuilder(
-                  builder: (context, viewport) => SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(minHeight: viewport.maxHeight),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 80),
-                            child: _buildEmptyState(),
-                          ),
-                          if (showWebNav) const WebFooter(),
-                        ],
+            if (controller.coupons == null || controller.coupons!.isEmpty) {
+              if (isWeb) {
+                return RefreshIndicator(
+                  onRefresh: () => controller.getCoupons(),
+                  child: LayoutBuilder(
+                    builder: (context, viewport) => SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: viewport.maxHeight,
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 80),
+                              child: _buildEmptyState(),
+                            ),
+                            if (showWebNav) const WebFooter(),
+                          ],
+                        ),
                       ),
                     ),
+                  ),
+                );
+              }
+
+              return RefreshIndicator(
+                onRefresh: () => controller.getCoupons(),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.7,
+                    child: _buildEmptyState(),
                   ),
                 ),
               );
             }
 
-            return RefreshIndicator(
-              onRefresh: () => controller.getCoupons(),
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.7,
-                  child: _buildEmptyState(),
-                ),
-              ),
-            );
-          }
-
-          return _buildCouponsList(context, controller, isWeb, showWebNav);
-        },
+            return _buildCouponsList(context, controller, isWeb, showWebNav);
+          },
         ),
       ),
     );
@@ -124,18 +127,11 @@ class _CouponsScreenState extends State<CouponsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.local_offer_rounded,
-            size: 80,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.local_offer_rounded, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
             'no_coupons_yet'.tr,
-            style: poppinsBold.copyWith(
-              fontSize: 20,
-              color: Colors.grey[600],
-            ),
+            style: poppinsBold.copyWith(fontSize: 20, color: Colors.grey[600]),
           ),
           const SizedBox(height: 8),
           Text(
@@ -191,10 +187,16 @@ class _CouponsScreenState extends State<CouponsScreen> {
               children: [
                 Center(
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+                    constraints: const BoxConstraints(
+                      maxWidth: _maxContentWidth,
+                    ),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
+                      // The bar's own inset, so the title starts level with
+                      // the logo rather than merely inside the same width.
+                      padding: EdgeInsets.symmetric(
+                        horizontal: WebTopNav.bandInsetFor(
+                          MediaQuery.of(context).size.width,
+                        ),
                         vertical: 20,
                       ),
                       child: Column(
@@ -220,7 +222,8 @@ class _CouponsScreenState extends State<CouponsScreen> {
 
                               return Wrap(
                                 spacing: spacing,
-                                runSpacing: 0, // cards carry their own bottom margin
+                                runSpacing:
+                                    0, // cards carry their own bottom margin
                                 children: [
                                   for (final coupon in coupons)
                                     SizedBox(
@@ -453,9 +456,7 @@ class _CouponCard extends StatelessWidget {
                                   text: ' OFF',
                                   style: poppinsMedium.copyWith(
                                     fontSize: Constants.fontSizeDefault,
-                                    color:
-                                        bodyColor ??
-                                        context.textSecondary,
+                                    color: bodyColor ?? context.textSecondary,
                                   ),
                                 ),
                               ],
@@ -475,9 +476,7 @@ class _CouponCard extends StatelessWidget {
                                   '${'valid_till'.tr} ${_formatDate(coupon.validUntil)}',
                                   style: poppinsRegular.copyWith(
                                     fontSize: Constants.fontSizeSmall,
-                                    color:
-                                        bodyColor ??
-                                        context.textSecondary,
+                                    color: bodyColor ?? context.textSecondary,
                                   ),
                                 ),
                               ),

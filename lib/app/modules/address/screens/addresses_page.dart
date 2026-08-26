@@ -26,9 +26,9 @@ class AddressesPage extends StatefulWidget {
 class _AddressesPageState extends State<AddressesPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  /// Caps the list width on desktop web so cards stay readable instead of
-  /// stretching edge to edge.
-  static const double _maxContentWidth = 1080;
+  /// The content band, shared with the top nav. At 1080 the list sat 60px
+  /// inside the bar above it on every side.
+  static const double _maxContentWidth = WebTopNav.maxContentWidth;
 
   /// At or above this inner width the web layout shows two card columns.
   static const double _twoColumnWidth = 760;
@@ -119,11 +119,14 @@ class _AddressesPageState extends State<AddressesPage> {
                   ),
                   child: Center(
                     child: ConstrainedBox(
-                      constraints:
-                          const BoxConstraints(maxWidth: _maxContentWidth),
+                      constraints: const BoxConstraints(
+                        maxWidth: _maxContentWidth,
+                      ),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: Constants.paddingSizeLarge,
+                        // The bar's own inset, so the title starts level with
+                        // the logo rather than merely inside the same width.
+                        padding: EdgeInsets.symmetric(
+                          horizontal: WebTopNav.bandInsetFor(viewport.maxWidth),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,10 +144,13 @@ class _AddressesPageState extends State<AddressesPage> {
                                   ),
                                 ),
                                 ElevatedButton.icon(
-                                  onPressed: () => context
-                                      .pushNamed(RouteNames.addEditAddress),
-                                  icon: Icon(Icons.add,
-                                      color: ColorResource.textWhite),
+                                  onPressed: () => context.pushNamed(
+                                    RouteNames.addEditAddress,
+                                  ),
+                                  icon: Icon(
+                                    Icons.add,
+                                    color: ColorResource.textWhite,
+                                  ),
                                   label: Text(
                                     'add_address'.tr,
                                     style: poppinsBold.copyWith(
@@ -159,7 +165,8 @@ class _AddressesPageState extends State<AddressesPage> {
                                     ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(
-                                          Constants.radiusLarge),
+                                        Constants.radiusLarge,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -170,20 +177,22 @@ class _AddressesPageState extends State<AddressesPage> {
                             // Content: responsive card grid, or empty state.
                             if (!controller.hasAddresses)
                               Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 40),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 40,
+                                ),
                                 child: _buildEmptyState(),
                               )
                             else
                               LayoutBuilder(
                                 builder: (context, constraints) {
                                   final width = constraints.maxWidth;
-                                  final columns =
-                                      width >= _twoColumnWidth ? 2 : 1;
+                                  final columns = width >= _twoColumnWidth
+                                      ? 2
+                                      : 1;
                                   const spacing = 16.0;
                                   final itemWidth =
                                       (width - (columns - 1) * spacing) /
-                                          columns;
+                                      columns;
 
                                   return Wrap(
                                     spacing: spacing,

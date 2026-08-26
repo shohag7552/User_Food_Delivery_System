@@ -30,9 +30,9 @@ class HelpSupportScreen extends StatefulWidget {
 class _HelpSupportScreenState extends State<HelpSupportScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  /// Width the content column is capped at on desktop web so lines stay
-  /// readable instead of stretching edge to edge.
-  static const double _maxContentWidth = 1080;
+  /// The content band, shared with the top nav. At 1080 the column sat 60px
+  /// inside the bar above it on every side.
+  static const double _maxContentWidth = WebTopNav.maxContentWidth;
 
   /// At or above this inner width the web layout splits into two columns
   /// (contact + social on the left, FAQ on the right).
@@ -55,8 +55,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
 
   Future<void> _openUri(Uri uri) async {
     try {
-      final opened =
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
+      final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
       if (!opened) customToster('could_not_open_link'.tr, isSuccess: false);
     } catch (_) {
       customToster('could_not_open_link'.tr, isSuccess: false);
@@ -78,12 +77,16 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
 
   void _openDirections(StoreSetupModel store) {
     final query = Uri.encodeComponent(
-      [store.address, store.city, store.state, store.zipCode]
-          .where((e) => e.trim().isNotEmpty)
-          .join(', '),
+      [
+        store.address,
+        store.city,
+        store.state,
+        store.zipCode,
+      ].where((e) => e.trim().isNotEmpty).join(', '),
     );
-    _openUri(Uri.parse(
-        'https://www.google.com/maps/search/?api=1&query=$query'));
+    _openUri(
+      Uri.parse('https://www.google.com/maps/search/?api=1&query=$query'),
+    );
   }
 
   @override
@@ -127,11 +130,18 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                     children: [
                       Center(
                         child: ConstrainedBox(
-                          constraints:
-                              const BoxConstraints(maxWidth: _maxContentWidth),
+                          constraints: const BoxConstraints(
+                            maxWidth: _maxContentWidth,
+                          ),
                           child: Padding(
-                            padding: const EdgeInsets.all(
-                                Constants.paddingSizeLarge),
+                            // Horizontally the bar's own inset, so the hero
+                            // starts level with the logo.
+                            padding: EdgeInsets.symmetric(
+                              horizontal: WebTopNav.bandInsetFor(
+                                viewport.maxWidth,
+                              ),
+                              vertical: Constants.paddingSizeLarge,
+                            ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -156,8 +166,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
               _buildSliverHero(context, store),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding:
-                      const EdgeInsets.all(Constants.paddingSizeDefault),
+                  padding: const EdgeInsets.all(Constants.paddingSizeDefault),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: _sections(store),
@@ -315,8 +324,11 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
       ),
       child: Row(
         children: [
-          Icon(Icons.info_outline_rounded,
-              color: ColorResource.primaryDark, size: 22),
+          Icon(
+            Icons.info_outline_rounded,
+            color: ColorResource.primaryDark,
+            size: 22,
+          ),
           const SizedBox(width: Constants.paddingSizeSmall),
           Expanded(
             child: Text(
@@ -359,7 +371,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
           final double statusBarHeight = MediaQuery.of(context).padding.top;
           final double minHeight = kToolbarHeight + statusBarHeight;
           final double collapseRatio =
-              ((constraints.maxHeight - minHeight) / (expandedHeight - minHeight))
+              ((constraints.maxHeight - minHeight) /
+                      (expandedHeight - minHeight))
                   .clamp(0.0, 1.0);
           final bool isCollapsed = collapseRatio < 0.3;
 
@@ -424,8 +437,11 @@ class _HeroBackground extends StatelessWidget {
                         color: Colors.white.withValues(alpha: 0.15),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.support_agent_rounded,
-                          color: Colors.white, size: 26),
+                      child: const Icon(
+                        Icons.support_agent_rounded,
+                        color: Colors.white,
+                        size: 26,
+                      ),
                     ),
                     const SizedBox(height: Constants.paddingSizeSmall),
                     Text(
@@ -454,13 +470,13 @@ class _HeroBackground extends StatelessWidget {
   }
 
   Widget _circle(double size, double alpha) => Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white.withValues(alpha: alpha),
-        ),
-      );
+    width: size,
+    height: size,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: Colors.white.withValues(alpha: alpha),
+    ),
+  );
 }
 
 /// Rounded gradient banner used at the top of the desktop-web layout (where the
@@ -486,8 +502,11 @@ class _WebHeader extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.support_agent_rounded,
-                color: Colors.white, size: 30),
+            child: const Icon(
+              Icons.support_agent_rounded,
+              color: Colors.white,
+              size: 30,
+            ),
           ),
           const SizedBox(width: Constants.paddingSizeDefault),
           Expanded(
@@ -560,9 +579,12 @@ class _ContactCard extends StatelessWidget {
         _ContactRow(
           icon: Icons.location_on_outlined,
           label: 'store_address'.tr,
-          value: [store.address, store.city, store.state, store.zipCode]
-              .where((e) => e.trim().isNotEmpty)
-              .join(', '),
+          value: [
+            store.address,
+            store.city,
+            store.state,
+            store.zipCode,
+          ].where((e) => e.trim().isNotEmpty).join(', '),
           actionIcon: Icons.directions_outlined,
           onTap: onDirections,
         ),
@@ -598,8 +620,9 @@ class _ContactCard extends StatelessWidget {
               Divider(
                 height: 1,
                 indent: 60,
-                color: theme.dividerColor
-                    .withValues(alpha: isDark ? 0.45 : 0.3),
+                color: theme.dividerColor.withValues(
+                  alpha: isDark ? 0.45 : 0.3,
+                ),
               ),
           ],
         ],
@@ -637,8 +660,9 @@ class _ContactRow extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(Constants.paddingSizeSmall),
         decoration: BoxDecoration(
-          color:
-              ColorResource.primaryDark.withValues(alpha: isDark ? 0.18 : 0.1),
+          color: ColorResource.primaryDark.withValues(
+            alpha: isDark ? 0.18 : 0.1,
+          ),
           borderRadius: BorderRadius.circular(Constants.radiusDefault),
         ),
         child: Icon(icon, color: ColorResource.primaryDark, size: 22),
@@ -658,9 +682,11 @@ class _ContactRow extends StatelessWidget {
         ),
       ),
       trailing: DirectionalFlip(
-        child: Icon(actionIcon,
-            size: 18,
-            color: isDark ? Colors.white54 : ColorResource.primaryMedium),
+        child: Icon(
+          actionIcon,
+          size: 18,
+          color: isDark ? Colors.white54 : ColorResource.primaryMedium,
+        ),
       ),
     );
   }
@@ -750,7 +776,8 @@ class _StillNeedHelpCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final canContact = store != null &&
+    final canContact =
+        store != null &&
         (store!.phone.trim().isNotEmpty || store!.email.trim().isNotEmpty);
 
     return Container(
@@ -789,13 +816,18 @@ class _StillNeedHelpCard extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
+                  borderRadius: BorderRadius.circular(
+                    Constants.radiusExtraLarge,
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.support_agent_rounded,
-                        size: 18, color: ColorResource.primaryDark),
+                    Icon(
+                      Icons.support_agent_rounded,
+                      size: 18,
+                      color: ColorResource.primaryDark,
+                    ),
                     const SizedBox(width: Constants.paddingSizeExtraSmall),
                     Text(
                       'contact_support'.tr,
