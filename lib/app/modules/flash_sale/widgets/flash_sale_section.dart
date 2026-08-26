@@ -1,6 +1,5 @@
 import 'package:appwrite_user_app/app/modules/ecommerce/widgets/ecommerce_card_metrics.dart';
 import 'package:appwrite_user_app/app/common/widgets/hover_arrow_carousel.dart';
-import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
 import 'package:appwrite_user_app/app/controllers/flash_sale_controller.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/modules/flash_sale/widgets/flash_sale_item_card.dart';
@@ -197,7 +196,7 @@ class FlashSaleSection extends StatelessWidget {
                             : 175,
                         child: FlashSaleItemCard(item: controller.items[index]),
                       );
-                      return isWide ? HoverLift(child: card) : card;
+                      return card;
                     },
                   ),
                 ),
