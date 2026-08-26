@@ -53,6 +53,26 @@ class WebTopNav extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => const Size.fromHeight(64);
 
+  /// Width of the bar's centred content band.
+  ///
+  /// Page bodies cap themselves to this so the logo and the first column of
+  /// whatever is below it share a left edge. The bar's own background stays
+  /// full-bleed; only its contents are held to the band.
+  static const double maxContentWidth = 1200;
+
+  /// Leading inset of the bar's contents inside [maxContentWidth].
+  ///
+  /// Pages must apply the same inset, not just the same cap: matching one
+  /// without the other still leaves the columns and the logo a few pixels
+  /// apart.
+  static const double contentInset = 20;
+
+  /// The inset used once the band is too narrow to carry labels.
+  static const double _compactContentInset = 12;
+
+  /// Below this the destinations drop their labels for icons + tooltips.
+  static const double _labelBreakpoint = 1080;
+
   /// Gap between neighbouring controls inside one zone.
   static const double _itemGap = 4;
 
@@ -74,7 +94,7 @@ class WebTopNav extends StatelessWidget implements PreferredSizeWidget {
         bottom: false,
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1200),
+            constraints: const BoxConstraints(maxWidth: maxContentWidth),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 // Labels only once there is genuinely room for them. The old
@@ -82,9 +102,12 @@ class WebTopNav extends StatelessWidget implements PreferredSizeWidget {
                 // with three destinations plus language and theme it packed
                 // the row solid and squeezed the search field to a stub.
                 // Below this, destinations fall back to icons + tooltips.
-                final bool showLabels = constraints.maxWidth >= 1080;
+                final bool showLabels =
+                    constraints.maxWidth >= _labelBreakpoint;
                 return Padding(
-                  padding: EdgeInsets.only(left: showLabels ? 20 : 12),
+                  padding: EdgeInsets.only(
+                    left: showLabels ? contentInset : _compactContentInset,
+                  ),
                   child: SizedBox(
                     height: 64,
                     child: Row(

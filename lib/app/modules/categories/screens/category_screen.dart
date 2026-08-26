@@ -28,16 +28,21 @@ class CategoryScreen extends StatefulWidget {
 }
 
 class _CategoryScreenState extends State<CategoryScreen> {
-  static const double _maxContentWidth = 1100;
+  /// Matches the top nav's own content band. At 1100 the body sat ~50px
+  /// narrower than the bar above it, so the logo and the first category tile
+  /// did not share a left edge.
+  static const double _maxContentWidth = WebTopNav.maxContentWidth;
 
-  /// Web grid geometry. [_webTileExtent] and [_webTileSpacing] are the values
-  /// the grid has always laid out with; they are named here because the column
-  /// count is now derived from them rather than left to the delegate.
-  static const double _webTileExtent = 170;
+  /// Columns in the desktop-web grid.
+  ///
+  /// Fixed rather than derived from a tile width: the body is now capped to the
+  /// nav's band, so the row width is known and a straight division gives tiles
+  /// of a predictable size — ~218px at the full cap, which a two-line category
+  /// name sits in comfortably.
+  static const int _webColumns = 5;
+
+  /// Gap between tiles. Unchanged from the value the grid has always used.
   static const double _webTileSpacing = 18;
-
-  /// Widest the shop grid goes on desktop web.
-  static const int _maxEcommerceColumns = 4;
 
   /// How much of a shop tile its artwork is allowed to take, and the ceiling
   /// it may never pass.
@@ -53,25 +58,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   /// Whether the shop storefront is the active one.
   bool get _isEcommerce => Get.find<ModuleController>().isEcommerce;
-
-  /// How many tiles fit across [availableWidth].
-  ///
-  /// Reproduces exactly what [SliverGridDelegateWithMaxCrossAxisExtent] used
-  /// to derive — same ceiling, same minimum of one — so the food grid lays out
-  /// tile for tile as it always has. The shop then caps at
-  /// [_maxEcommerceColumns], because a fifth column of category tiles left
-  /// their labels too narrow to read.
-  ///
-  /// Safe to swap the delegate for a fixed count: given the same count, both
-  /// delegates divide the row by the identical formula.
-  int _webColumnCount(double availableWidth) {
-    final int count = (availableWidth / (_webTileExtent + _webTileSpacing))
-        .ceil()
-        .clamp(1, 1000);
-
-    if (!_isEcommerce) return count;
-    return count > _maxEcommerceColumns ? _maxEcommerceColumns : count;
-  }
 
   @override
   void initState() {
@@ -153,23 +139,30 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   parent: BouncingScrollPhysics(),
                 ),
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: viewport.maxHeight,
-                  ),
+                  constraints: BoxConstraints(minHeight: viewport.maxHeight),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Center(
                         child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+                          constraints: const BoxConstraints(
+                            maxWidth: _maxContentWidth,
+                          ),
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: WebTopNav.contentInset,
+                            ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Padding(
-                                  padding: const EdgeInsets.fromLTRB(0, 24, 0, 4),
+                                  padding: const EdgeInsets.fromLTRB(
+                                    0,
+                                    24,
+                                    0,
+                                    4,
+                                  ),
                                   child: Text(
                                     'categories'.tr,
                                     style: poppinsBold.copyWith(
@@ -181,38 +174,38 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                 const SizedBox(height: 12),
                                 if (stateView != null)
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 60),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 60,
+                                    ),
                                     child: Center(child: stateView),
                                   )
                                 else
-                                  LayoutBuilder(
-                                    builder: (context, grid) =>
-                                        GridView.builder(
-                                      shrinkWrap: true,
-                                      physics:
-                                          const NeverScrollableScrollPhysics(),
-                                      padding: const EdgeInsets.only(bottom: 40),
-                                      gridDelegate:
-                                          SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount:
-                                            _webColumnCount(grid.maxWidth),
-                                        crossAxisSpacing: _webTileSpacing,
-                                        mainAxisSpacing: 20,
-                                        childAspectRatio: 0.72,
-                                      ),
-                                      itemCount: controller.categories.length,
-                                      itemBuilder: (context, index) {
-                                        final category =
-                                            controller.categories[index];
-                                        return HoverLift(
-                                          showShadow: false,
-                                          borderRadius:
-                                              Constants.radiusExtraLarge,
-                                          child: _buildCategoryCard(
-                                              context, category),
-                                        );
-                                      },
-                                    ),
+                                  GridView.builder(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    padding: const EdgeInsets.only(bottom: 40),
+                                    gridDelegate:
+                                        const SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: _webColumns,
+                                          crossAxisSpacing: _webTileSpacing,
+                                          mainAxisSpacing: 20,
+                                          childAspectRatio: 0.72,
+                                        ),
+                                    itemCount: controller.categories.length,
+                                    itemBuilder: (context, index) {
+                                      final category =
+                                          controller.categories[index];
+                                      return HoverLift(
+                                        showShadow: false,
+                                        borderRadius:
+                                            Constants.radiusExtraLarge,
+                                        child: _buildCategoryCard(
+                                          context,
+                                          category,
+                                        ),
+                                      );
+                                    },
                                   ),
                               ],
                             ),
@@ -248,11 +241,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.error_outline,
-                color: ColorResource.error,
-                size: 48,
-              ),
+              Icon(Icons.error_outline, color: ColorResource.error, size: 48),
               const SizedBox(height: 12),
               Text(
                 controller.errorMessage!,
@@ -267,9 +256,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 onPressed: () => controller.getCategories(),
                 child: Text(
                   'try_again'.tr,
-                  style: poppinsBold.copyWith(
-                    color: ColorResource.primaryDark,
-                  ),
+                  style: poppinsBold.copyWith(color: ColorResource.primaryDark),
                 ),
               ),
             ],
@@ -317,15 +304,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
     return LayoutBuilder(
       builder: (context, plate) {
-        final double shortestSide = math.min(
-          plate.maxWidth,
-          plate.maxHeight,
-        );
+        final double shortestSide = math.min(plate.maxWidth, plate.maxHeight);
         // An unbounded plate would make the scale meaningless; fall back to
         // the ceiling rather than to infinity.
         final double side = shortestSide.isFinite
-            ? math.min(shortestSide * _ecommerceArtworkScale,
-                _maxEcommerceArtwork)
+            ? math.min(
+                shortestSide * _ecommerceArtworkScale,
+                _maxEcommerceArtwork,
+              )
             : _maxEcommerceArtwork;
 
         return Center(
@@ -360,9 +346,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
             child: Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).primaryColor.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(
-                  Constants.radiusExtraLarge,
-                ),
+                borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
                 border: Border.all(
                   color: ColorResource.primaryLight.withValues(alpha: 0.7),
                   width: 1.5,
@@ -380,7 +364,8 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 borderRadius: BorderRadius.circular(
                   Constants.radiusExtraLarge - 2,
                 ),
-                child: category.imagePath != null && category.imagePath!.isNotEmpty
+                child:
+                    category.imagePath != null && category.imagePath!.isNotEmpty
                     ? _buildCategoryImage(context, category.imagePath!)
                     : Container(
                         color: context.cardBackground,

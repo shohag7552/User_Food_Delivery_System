@@ -39,16 +39,15 @@ class CategoryProductsPage extends StatefulWidget {
 class _CategoryProductsPageState extends State<CategoryProductsPage> {
   static const int _pageSize = 10;
 
-  /// Matches the top nav's own content band (and the home page's, via
-  /// [FoodCardMetrics.maxContentWidth]). At 1100 the body was ~50px narrower
-  /// than the bar above it, so the logo and the first product column did not
-  /// share a left edge — the kind of misalignment that reads as sloppy long
-  /// before anyone works out why.
-  static const double _maxContentWidth = FoodCardMetrics.maxContentWidth;
+  /// Matches the top nav's own content band. At 1100 the body was ~50px
+  /// narrower than the bar above it, so the logo and the first product column
+  /// did not share a left edge — the kind of misalignment that reads as sloppy
+  /// long before anyone works out why.
+  static const double _maxContentWidth = WebTopNav.maxContentWidth;
 
   /// Side inset inside the cap. Equal to the nav's own leading inset, so the
   /// two line up rather than merely being the same width.
-  static const double _sideInset = FoodCardMetrics.gutter;
+  static const double _sideInset = WebTopNav.contentInset;
 
   /// Height of a food card at [columns] across, derived from the real column
   /// width so the cards keep the proportions they have on the home page at any
