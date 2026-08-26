@@ -246,7 +246,9 @@ class _EcommerceProductDetailPageState
     super.dispose();
   }
 
-  static const double _maxContentWidth = 1100;
+  /// The content band, shared with the top nav. At 1100 with a 24px inset the
+  /// gallery sat 54px inside the bar above it on every side.
+  static const double _maxContentWidth = WebTopNav.maxContentWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -583,7 +585,12 @@ class _EcommerceProductDetailPageState
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: _maxContentWidth),
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
+                        // The bar's own inset, so the gallery's left edge sits
+                        // level with the logo.
+                        padding: EdgeInsets.fromLTRB(
+                          WebTopNav.bandInsetFor(viewport.maxWidth), 28,
+                          WebTopNav.bandInsetFor(viewport.maxWidth), 32,
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [

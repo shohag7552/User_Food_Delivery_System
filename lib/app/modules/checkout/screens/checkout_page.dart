@@ -48,8 +48,9 @@ class CheckoutPage extends StatefulWidget {
 }
 
 class _CheckoutPageState extends State<CheckoutPage> {
-  // Web shell: content cap + scaffold key for the top-nav profile drawer.
-  static const double _maxContentWidth = 1160;
+  // Web shell: content band (shared with the top nav, so the page lines up
+  // with the bar above it) + scaffold key for the top-nav profile drawer.
+  static const double _maxContentWidth = WebTopNav.maxContentWidth;
   final GlobalKey<ScaffoldState> _webScaffoldKey = GlobalKey<ScaffoldState>();
 
   final _instructionsController = TextEditingController();
@@ -551,7 +552,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: _maxContentWidth),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
+            // The bar's own inset, so the title starts level with the logo.
+            padding: EdgeInsets.fromLTRB(
+              WebTopNav.bandInsetFor(MediaQuery.of(context).size.width), 24,
+              WebTopNav.bandInsetFor(MediaQuery.of(context).size.width), 40,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

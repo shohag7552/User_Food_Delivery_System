@@ -26,9 +26,13 @@ class CartPage extends StatefulWidget {
 class _CartPageState extends State<CartPage> {
   bool _isPriceExpanded = false;
 
-  // Web/desktop layout kicks in above this width.
-  static const double _webBreakpoint = 900;
-  static const double _maxContentWidth = 1100;
+  // Web/desktop layout kicks in above this width — the same one the shared
+  // top-nav uses, so the page changes shape when the chrome does.
+  static const double _webBreakpoint = WebTopNav.wideBreakpoint;
+
+  /// The content band, shared with the top nav. At 1100 with a 24px inset the
+  /// items list sat 54px inside the bar above it on every side.
+  static const double _maxContentWidth = WebTopNav.maxContentWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -183,7 +187,13 @@ class _CartPageState extends State<CartPage> {
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: _maxContentWidth),
                     child: Padding(
-                      padding: EdgeInsets.fromLTRB(24, showInlineTitle ? 8 : 20, 24, 40),
+                      // The bar's own inset, so the items list starts level
+                      // with the logo.
+                      padding: EdgeInsets.fromLTRB(
+                        WebTopNav.bandInsetFor(viewport.maxWidth),
+                        showInlineTitle ? 8 : 20,
+                        WebTopNav.bandInsetFor(viewport.maxWidth), 40,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
