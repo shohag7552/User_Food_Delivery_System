@@ -499,40 +499,91 @@ class _EcommerceProductCardState extends State<EcommerceProductCard> {
     );
   }
 
-  /// Current price with the struck-through original beside it. Scaled down
-  /// rather than ellipsised — a truncated price is worse than a smaller one.
-  Widget _buildPrice(BuildContext context) {
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      alignment: AlignmentDirectional.centerStart,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: TextBaseline.alphabetic,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            PriceHelper.formatPrice(product.finalPrice),
-            maxLines: 1,
-            style: poppinsBold.copyWith(
-              fontSize: Constants.fontSizeLarge,
-              color: ColorResource.primaryDark,
-            ),
-          ),
-          if (product.hasDiscount) ...[
-            const SizedBox(width: Constants.paddingSizeExtraSmall),
-            Text(
-              PriceHelper.formatPrice(product.price),
-              maxLines: 1,
-              style: poppinsRegular.copyWith(
-                fontSize: Constants.fontSizeSmall,
-                color: context.textLight,
-                decoration: TextDecoration.lineThrough,
-                decorationColor: context.textLight,
-              ),
-            ),
-          ],
-        ],
+  /// Units sold, tucked directly beneath the price inside [_buildPrice].
+  ///
+  /// It belongs to the price rather than to the rating: both answer "is this
+  /// worth buying" from the commercial side, and a shopper reading the price
+  /// has the number right there. Keeping it inside the price block — rather
+  /// than as its own line after the price row — means it sits tight under the
+  /// figure it qualifies, and the cart control beside it stays centred against
+  /// the pair.
+  ///
+  /// Hidden entirely at zero — a new listing should not advertise "0 sold",
+  /// which reads as a warning rather than as no data.
+  Widget _buildSoldCount(BuildContext context) {
+    if (product.soldCount <= 0) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(
+        top: Constants.paddingSizeExtraSmall / 2,
       ),
+      child: Text(
+        'sold_count'.trParams({'count': _compactCount(product.soldCount)}),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: poppinsMedium.copyWith(
+          fontSize: Constants.fontSizeExtraSmall,
+          color: context.textSecondary,
+        ),
+      ),
+    );
+  }
+
+  /// Shortens a sold count so it cannot push the rating off a narrow card.
+  /// 950 stays 950; 1_200 becomes 1.2k; 15_400 becomes 15k.
+  static String _compactCount(int value) {
+    if (value < 1000) return '$value';
+    final double thousands = value / 1000;
+    return thousands >= 10
+        ? '${thousands.round()}k'
+        : '${thousands.toStringAsFixed(1).replaceFirst(RegExp(r'\.0$'), '')}k';
+  }
+
+  /// Current price, the struck-through original beside it, and the units sold
+  /// beneath — one block, so the cart control stays centred against all of it
+  /// rather than against the price alone.
+  ///
+  /// The price row is scaled down rather than ellipsised: a truncated price is
+  /// worse than a smaller one.
+  Widget _buildPrice(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: AlignmentDirectional.centerStart,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                PriceHelper.formatPrice(product.finalPrice),
+                maxLines: 1,
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeLarge,
+                  color: ColorResource.primaryDark,
+                ),
+              ),
+              if (product.hasDiscount) ...[
+                const SizedBox(width: Constants.paddingSizeExtraSmall),
+                Text(
+                  PriceHelper.formatPrice(product.price),
+                  maxLines: 1,
+                  style: poppinsRegular.copyWith(
+                    fontSize: Constants.fontSizeSmall,
+                    color: context.textLight,
+                    decoration: TextDecoration.lineThrough,
+                    decorationColor: context.textLight,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        _buildSoldCount(context),
+      ],
     );
   }
 

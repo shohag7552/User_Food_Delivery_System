@@ -422,10 +422,14 @@ class ProductController extends GetxController implements GetxService {
     }
   }
 
-  /// Reduces stock in the database for every ordered item, then mirrors the
-  /// new values into the cached product lists. Failures per product are logged
-  /// but never abort the order flow.
-  Future<void> reduceStockForItems(List<CartItemModel> items) async {
+  /// Commits a placed order against every product in it: stock down, sold
+  /// count up, then mirrors both into the cached product lists so the grids
+  /// update without a refetch.
+  ///
+  /// Called once the order row exists. Failures per product are logged but
+  /// never abort the order flow — a miscounted product is a smaller problem
+  /// than an order the customer thinks failed.
+  Future<void> recordSaleForItems(List<CartItemModel> items) async {
     if (items.isEmpty) return;
 
     // Aggregate quantities so the same product is only written once.
@@ -439,24 +443,27 @@ class ProductController extends GetxController implements GetxService {
     bool hasChanges = false;
     for (final entry in quantities.entries) {
       try {
-        final newStock =
-            await productRepoInterface.reduceStock(entry.key, entry.value);
-        hasChanges = _applyStockToCache(entry.key, newStock) || hasChanges;
+        final result =
+            await productRepoInterface.recordSale(entry.key, entry.value);
+        hasChanges = _applySaleToCache(entry.key, result) || hasChanges;
       } catch (e) {
-        log('====> Failed to reduce stock for ${entry.key}: $e');
+        log('====> Failed to record sale for ${entry.key}: $e');
       }
     }
 
     if (hasChanges) update();
   }
 
-  bool _applyStockToCache(String productId, int newStock) {
+  bool _applySaleToCache(String productId, ProductSaleResult result) {
     bool changed = false;
 
     bool updateList(List<ProductModel> products) {
       final index = products.indexWhere((product) => product.id == productId);
       if (index == -1) return false;
-      products[index] = products[index].copyWith(stock: newStock);
+      products[index] = products[index].copyWith(
+        stock: result.stock,
+        soldCount: result.soldCount,
+      );
       return true;
     }
 

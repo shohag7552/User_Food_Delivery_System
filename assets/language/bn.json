@@ -799,5 +799,6 @@
   "we_will_reconnect_automatically": "সংযোগ ফিরলে নিজেই লোড হবে",
   "tap_the_water_to_feed_the_fish": "পানিতে ট্যাপ করে মাছকে খাওয়ান",
   "share": "শেয়ার",
-  "link_copied": "লিংক কপি হয়েছে"
+  "link_copied": "লিংক কপি হয়েছে",
+  "sold_count": "@count টি বিক্রি"
 }

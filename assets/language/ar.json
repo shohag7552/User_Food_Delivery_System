@@ -776,5 +776,6 @@
   "we_will_reconnect_automatically": "سنعيد الاتصال تلقائيًا",
   "tap_the_water_to_feed_the_fish": "انقر على الماء لإطعام الأسماك",
   "share": "مشاركة",
-  "link_copied": "تم نسخ الرابط"
+  "link_copied": "تم نسخ الرابط",
+  "sold_count": "تم بيع @count"
 }

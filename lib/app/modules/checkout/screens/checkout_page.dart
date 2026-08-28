@@ -2094,7 +2094,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       // ─── Step 3: Reduce stock, clear cart & coupon, navigate to success ───
       // Capture items before the cart is cleared.
       await Get.find<ProductController>()
-          .reduceStockForItems(cartController.cartItems);
+          .recordSaleForItems(cartController.cartItems);
       // Flash sale sold counters (best effort — no-op when no sale is live).
       if (Get.isRegistered<FlashSaleController>()) {
         unawaited(

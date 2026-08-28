@@ -16,6 +16,14 @@ class ProductModel {
   final int stock;
   final double avgRating;
   final int ratingCount;
+
+  /// Units sold, accumulated across every placed order.
+  ///
+  /// Stored in Appwrite as `order_count`. The attribute predates this field and
+  /// renaming it would be a migration, so the mapping is deliberate: the column
+  /// is the store of record, `soldCount` is what the app calls it — units, not
+  /// orders, because "12 sold" is what a shopper reads off a card.
+  final int soldCount;
   final List<VariantGroup> variants;
   final String moduleType; // 'food' | 'ecommerce'
   // --- Ecommerce-specific (nullable; food ignores them) ---
@@ -39,6 +47,7 @@ class ProductModel {
     required this.stock,
     required this.avgRating,
     required this.ratingCount,
+    this.soldCount = 0,
     required this.variants,
     this.moduleType = 'food',
     this.brandId,
@@ -87,6 +96,7 @@ class ProductModel {
       stock: (json['stock'] as num?)?.toInt() ?? 0,
       avgRating: (json['avg_rating'] as num?)?.toDouble() ?? 0,
       ratingCount: (json['rating_count'] as num?)?.toInt() ?? 0,
+      soldCount: (json['order_count'] as num?)?.toInt() ?? 0,
       // PARSING THE JSON STRING "VARIANTS"
       variants: json['variants'] != null && json['variants'].isNotEmpty
           ? (jsonDecode(json['variants']) as List)
@@ -119,6 +129,7 @@ class ProductModel {
       'stock': stock,
       'avg_rating': avgRating,
       'rating_count': ratingCount,
+      'order_count': soldCount,
       'variants': jsonEncode(variants.map((e) => e.toJson()).toList()),
       'module_type': moduleType,
       if (brandId != null) 'brand_id': brandId,
@@ -143,6 +154,7 @@ class ProductModel {
     int? stock,
     double? avgRating,
     int? ratingCount,
+    int? soldCount,
     List<VariantGroup>? variants,
     String? moduleType,
     String? brandId,
@@ -171,6 +183,7 @@ class ProductModel {
       stock: stock ?? this.stock,
       avgRating: avgRating ?? this.avgRating,
       ratingCount: ratingCount ?? this.ratingCount,
+      soldCount: soldCount ?? this.soldCount,
       variants: variants ?? this.variants,
       moduleType: moduleType ?? this.moduleType,
       brandId: brandId ?? this.brandId,
