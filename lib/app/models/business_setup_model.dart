@@ -34,6 +34,14 @@ class BusinessSetupModel {
   /// subtotals at checkout. 0 disables tax.
   final double vatPercentage;
   final String storeLocation;
+
+  /// Storefront banner the store uploads in the admin panel's module setup.
+  ///
+  /// Empty until one is set, which is why every reader falls back to the
+  /// bundled asset rather than rendering a blank slot.
+  final String otherBanner;
+
+  bool get hasOtherBanner => otherBanner.trim().isNotEmpty;
   final double? storeLatitude;
   final double? storeLongitude;
   /// Require the deliveryman to enter the order's 6-digit verification code
@@ -100,6 +108,7 @@ class BusinessSetupModel {
     this.loyaltyPointWalletRate = 0.10,
     this.vatPercentage = 0.0,
     required this.storeLocation,
+    this.otherBanner = '',
     this.storeLatitude,
     this.storeLongitude,
     this.isOrderVerificationActive = false,
@@ -148,6 +157,7 @@ class BusinessSetupModel {
           .toDouble(),
       vatPercentage: (json['vat_percentage'] ?? 0.0).toDouble(),
       storeLocation: json['store_location'] ?? '',
+      otherBanner: json['other_banner'] ?? '',
       storeLatitude: json['store_latitude']?.toDouble(),
       storeLongitude: json['store_longitude']?.toDouble(),
       isOrderVerificationActive: json['is_order_verification_active'] ?? false,
@@ -196,6 +206,7 @@ class BusinessSetupModel {
       'loyalty_point_wallet_rate': loyaltyPointWalletRate,
       'vat_percentage': vatPercentage,
       'store_location': storeLocation,
+      'other_banner': otherBanner,
       if (storeLatitude != null) 'store_latitude': storeLatitude,
       if (storeLongitude != null) 'store_longitude': storeLongitude,
       'is_order_verification_active': isOrderVerificationActive,
@@ -238,6 +249,7 @@ class BusinessSetupModel {
     double? loyaltyPointWalletRate,
     double? vatPercentage,
     String? storeLocation,
+    String? otherBanner,
     double? storeLatitude,
     double? storeLongitude,
     bool? isOrderVerificationActive,
@@ -283,6 +295,7 @@ class BusinessSetupModel {
           loyaltyPointWalletRate ?? this.loyaltyPointWalletRate,
       vatPercentage: vatPercentage ?? this.vatPercentage,
       storeLocation: storeLocation ?? this.storeLocation,
+      otherBanner: otherBanner ?? this.otherBanner,
       storeLatitude: storeLatitude ?? this.storeLatitude,
       storeLongitude: storeLongitude ?? this.storeLongitude,
       isOrderVerificationActive:

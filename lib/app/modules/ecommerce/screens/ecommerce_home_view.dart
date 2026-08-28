@@ -11,6 +11,7 @@ import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/controllers/flash_sale_controller.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
+import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/helper/nav_bar_visibility.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
@@ -390,6 +391,40 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     return isWide ? _buildWebHero(hPad) : _buildMobileAppBar(hPad);
   }
 
+  /// The shop's own storefront artwork, or the bundled one when the store has
+  /// not uploaded any.
+  ///
+  /// `other_banner` comes from business setup (the admin panel's module setup
+  /// screen), so this is the store's branding rather than a stock image. It is
+  /// rebuilt against [SettingsController] because setup loads asynchronously —
+  /// without that the asset would render first and never be replaced.
+  ///
+  /// [height] is passed through so the decoder is handed the real target size
+  /// instead of scaling a full-resolution upload down at paint time.
+  Widget _buildHeroImage({double? height}) {
+    return GetBuilder<SettingsController>(
+      builder: (settings) {
+        final banner = settings.businessSetup?.otherBanner.trim() ?? '';
+
+        if (banner.isEmpty) {
+          return Image.asset(
+            Images.shoppingBanner,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: height,
+          );
+        }
+
+        return CustomNetworkImage(
+          image: banner,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: height,
+        );
+      },
+    );
+  }
+
   static const double _heroHeight = 300.0;
   static const double _categoryPanelWidth = 220.0;
 
@@ -624,13 +659,11 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
 
         return ClipRRect(
           borderRadius: BorderRadius.circular(Constants.radiusLarge),
+          // Priority: the banners the store scheduled, then its own storefront
+          // artwork, then the bundled image. A store that uploaded a banner
+          // should never be shown stock artwork instead of it.
           child: (banners.isEmpty && !bannerController.isLoading)
-              ? Image.asset(
-                  Images.shoppingBanner,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: _heroHeight,
-                )
+              ? _buildHeroImage(height: _heroHeight)
               : PromotionalBanner(
                   banners: banners,
                   isLoading: bannerController.isLoading,
@@ -721,7 +754,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     return Stack(
       fit: StackFit.expand,
       children: [
-        Image.asset(Images.shoppingBanner, fit: BoxFit.cover),
+        _buildHeroImage(),
         DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
