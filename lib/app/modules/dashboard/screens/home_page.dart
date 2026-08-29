@@ -475,7 +475,7 @@ class _HomePageState extends State<HomePage>
   /// Header content height *below* the status bar. The expanded height is this
   /// plus the device status bar, so the greeting + search fit snugly with no
   /// wasted space regardless of status-bar/notch size.
-  static const double _appBarContentHeight = 120;
+  static final double _appBarContentHeight = GetPlatform.isWeb ? 144 : 120;
   static const double _appBarCollapsedHeight = 68;
 
   Widget _buildSliverAppBar(BuildContext context) {
