@@ -305,7 +305,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: _maxContentWidth),
         child: Padding(
-          padding: const EdgeInsets.only(top: 20, bottom: 32),
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -322,6 +322,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                         children: primary,
                       ),
                     ),
+                    const SizedBox(width: 20),
                     Expanded(
                       flex: 38,
                       child: Column(
@@ -347,7 +348,6 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   Widget _buildWebHeaderCard(OrderModel order) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: ColorResource.primaryGradient,
@@ -619,9 +619,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   Widget _buildItemsList(OrderModel order) {
     _prefetchUserReviews(order);
+    final isWide = MediaQuery.of(context).size.width >= _webBreakpoint;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: EdgeInsets.symmetric(horizontal: isWide ? 0 : 16),
       decoration: BoxDecoration(
         color: context.cardBackground,
         borderRadius: BorderRadius.circular(Constants.radiusLarge),
@@ -961,8 +962,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   Widget _buildDeliveryInfo(OrderModel order) {
+    final isWide = MediaQuery.of(context).size.width >= _webBreakpoint;
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: EdgeInsets.symmetric(horizontal: isWide ? 0 : 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: context.cardBackground,
@@ -1271,11 +1273,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   Widget _buildDeliverymanSection(OrderModel order) {
+    final isWide = MediaQuery.of(context).size.width >= _webBreakpoint;
     final deliveryman = order.deliveryman;
     _prefetchDeliverymanReview(order);
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: EdgeInsets.symmetric(horizontal: isWide ? 0 : 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: context.cardBackground,
@@ -1654,8 +1657,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   Widget _buildTrackingInfo(OrderModel order) {
+    final isWide = MediaQuery.of(context).size.width >= _webBreakpoint;
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: EdgeInsets.symmetric(horizontal: isWide ? 0 : 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: context.cardBackground,
@@ -2136,7 +2140,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.zero,
       child: Row(
         children: [
           if (showCancel) ...[

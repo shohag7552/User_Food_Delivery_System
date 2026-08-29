@@ -431,8 +431,6 @@ class _OrdersPageState extends State<OrdersPage> {
             {'label': 'out_for_delivery'.tr, 'value': 'out_for_delivery'},
             {'label': 'delivered'.tr, 'value': 'delivered'},
             {'label': 'cancelled'.tr, 'value': 'cancelled'},
-            {'label': 'returned'.tr, 'value': 'returned'},
-            {'label': 'refunded'.tr, 'value': 'refunded'},
           ]
         : [
             {'label': 'all'.tr, 'value': 'all'},

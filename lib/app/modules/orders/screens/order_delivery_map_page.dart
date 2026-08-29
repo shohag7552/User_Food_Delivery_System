@@ -76,18 +76,12 @@ class _OrderDeliveryMapPageState extends State<OrderDeliveryMapPage> {
 
     return Scaffold(
       backgroundColor: context.scaffoldBackground,
-      appBar: CustomAppbar(
-        title: 'delivery_location'.tr,
-        showBackButton: widget.showBackButton,
-        actions: widget.showBackButton
-            ? null
-            : [
-                IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-      ),
+      appBar: widget.showBackButton
+          ? CustomAppbar(
+              title: 'delivery_location'.tr,
+              showBackButton: true,
+            )
+          : null,
       body: Stack(
         children: [
           FlutterMap(
@@ -143,6 +137,64 @@ class _OrderDeliveryMapPageState extends State<OrderDeliveryMapPage> {
               ),
             ],
           ),
+          if (!widget.showBackButton)
+            Positioned(
+              top: 16,
+              left: 16,
+              right: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: context.cardBackground,
+                  borderRadius: BorderRadius.circular(Constants.radiusLarge),
+                  boxShadow: ColorResource.customShadow,
+                  border: Border.all(
+                    color: context.textLight.withValues(alpha: 0.15),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: ColorResource.primaryDark
+                            .withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.map_rounded,
+                        color: ColorResource.primaryDark,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'delivery_location'.tr,
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeLarge,
+                          color: context.textPrimary,
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () => Navigator.pop(context),
+                      borderRadius: BorderRadius.circular(
+                        Constants.radiusExtraLarge,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: Icon(
+                          Icons.close_rounded,
+                          size: 20,
+                          color: context.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           Positioned(
             left: 16,
             right: 16,
