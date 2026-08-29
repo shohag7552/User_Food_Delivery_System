@@ -102,12 +102,26 @@ class WebFooter extends StatelessWidget {
                 const SizedBox(height: Constants.paddingSizeLarge),
                 Divider(color: divider, height: 1),
                 const SizedBox(height: Constants.paddingSizeDefault),
-                Text(
-                  '© ${DateTime.now().year} $brandName. ${'all_rights_reserved'.tr}',
-                  style: poppinsRegular.copyWith(
-                    fontSize: Constants.fontSizeSmall,
-                    color: context.textSecondary,
-                  ),
+                Builder(
+                  builder: (context) {
+                    final customCopyright = Get.isRegistered<SettingsController>()
+                        ? Get.find<SettingsController>()
+                            .businessSetup
+                            ?.copyrightText
+                            ?.trim()
+                        : null;
+                    final displayCopyright =
+                        (customCopyright != null && customCopyright.isNotEmpty)
+                            ? customCopyright
+                            : '© ${DateTime.now().year} $brandName. ${'all_rights_reserved'.tr}';
+                    return Text(
+                      displayCopyright,
+                      style: poppinsRegular.copyWith(
+                        fontSize: Constants.fontSizeSmall,
+                        color: context.textSecondary,
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

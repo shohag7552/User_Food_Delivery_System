@@ -72,6 +72,8 @@ class BusinessSetupModel {
   final int timezoneOffsetMinutes; // minutes east of UTC, e.g. 360 = +06:00
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final String? copyrightText;
+  final String? cookiesText;
 
   /// The store's UTC offset as a [Duration].
   Duration get timezoneOffset => Duration(minutes: timezoneOffsetMinutes);
@@ -127,6 +129,8 @@ class BusinessSetupModel {
     this.timezoneOffsetMinutes = 360,
     this.createdAt,
     this.updatedAt,
+    this.copyrightText,
+    this.cookiesText,
   });
 
   factory BusinessSetupModel.fromJson(Map<String, dynamic> json) {
@@ -180,6 +184,8 @@ class BusinessSetupModel {
       updatedAt: json['\$updatedAt'] != null
           ? DateTime.parse(json['\$updatedAt'])
           : null,
+      copyrightText: json['copyright_text'] as String?,
+      cookiesText: json['cookies_text'] as String?,
     );
   }
 
@@ -223,6 +229,8 @@ class BusinessSetupModel {
       if (iosStoreUrl != null) 'ios_store_url': iosStoreUrl,
       'timezone': timezone,
       'timezone_offset': timezoneOffsetMinutes,
+      if (copyrightText != null) 'copyright_text': copyrightText,
+      if (cookiesText != null) 'cookies_text': cookiesText,
     };
   }
 
@@ -268,6 +276,8 @@ class BusinessSetupModel {
     int? timezoneOffsetMinutes,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? copyrightText,
+    String? cookiesText,
   }) {
     return BusinessSetupModel(
       id: id ?? this.id,
@@ -318,6 +328,8 @@ class BusinessSetupModel {
           timezoneOffsetMinutes ?? this.timezoneOffsetMinutes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      copyrightText: copyrightText ?? this.copyrightText,
+      cookiesText: cookiesText ?? this.cookiesText,
     );
   }
 

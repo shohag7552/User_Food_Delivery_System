@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:appwrite_user_app/app/common/widgets/cookie_consent_banner.dart';
 import 'package:appwrite_user_app/app/common/widgets/no_internet_screen.dart';
 import 'package:appwrite_user_app/app/controllers/localization_controller.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
@@ -154,6 +155,7 @@ class _MyAppState extends State<MyApp> {
                       isReloading: _isReloading,
                     ),
                   ),
+                const CookieConsentBanner(),
               ],
             );
           },
