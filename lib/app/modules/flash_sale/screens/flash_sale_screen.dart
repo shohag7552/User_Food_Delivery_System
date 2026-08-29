@@ -1,5 +1,6 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/flash_sale_controller.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
@@ -32,7 +33,7 @@ class _FlashSaleScreenState extends State<FlashSaleScreen> {
       _staggerRatios[index % _staggerRatios.length];
 
   int _gridColumns(double contentWidth) =>
-      (contentWidth / 210).floor().clamp(2, 6);
+      (contentWidth / 250).floor().clamp(2, 4);
 
   @override
   void initState() {
@@ -69,17 +70,13 @@ class _FlashSaleScreenState extends State<FlashSaleScreen> {
         onMenuTap: () => _webScaffoldKey.currentState?.openEndDrawer(),
       ),
       endDrawer: const WebProfileDrawer(),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-          child: _buildBody(isWide: true),
-        ),
-      ),
+      body: _buildBody(isWide: true),
     );
   }
 
   Widget _buildBody({required bool isWide}) {
     final width = MediaQuery.of(context).size.width;
+    final double sidePad = isWide ? WebTopNav.bodySidePadding(width) : 16.0;
     final double contentWidth = isWide
         ? (width > _maxContentWidth ? _maxContentWidth : width)
         : width;
@@ -156,9 +153,9 @@ class _FlashSaleScreenState extends State<FlashSaleScreen> {
             physics: const BouncingScrollPhysics(),
             slivers: [
               // Banner: sale title + live countdown.
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(sidePad, 16, sidePad, 4),
+                sliver: SliverToBoxAdapter(
                   child: Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -223,11 +220,11 @@ class _FlashSaleScreenState extends State<FlashSaleScreen> {
 
               // Items grid — responsive columns, hover lift on web.
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+                padding: EdgeInsets.fromLTRB(sidePad, 12, sidePad, 32),
                 sliver: SliverMasonryGrid.count(
                   crossAxisCount: crossAxisCount,
-                  mainAxisSpacing: 14,
-                  crossAxisSpacing: 14,
+                  mainAxisSpacing: Constants.paddingSizeLarge,
+                  crossAxisSpacing: Constants.paddingSizeLarge,
                   childCount: controller.items.length,
                   itemBuilder: (context, index) {
                     final card = FlashSaleItemCard(
@@ -238,6 +235,9 @@ class _FlashSaleScreenState extends State<FlashSaleScreen> {
                   },
                 ),
               ),
+
+              // Web footer
+              WebFooter.sliver(),
             ],
           ),
         );

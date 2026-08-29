@@ -48,6 +48,9 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
   // Same pair for the Offer Products carousel.
   final ScrollController _offerScrollController = ScrollController();
   bool _offerHovered = false;
+  // Scroll controller & hover for Popular Products carousel.
+  final ScrollController _popularScrollController = ScrollController();
+  bool _popularHovered = false;
   // Tracks the current layout so scroll-driven pagination stays mobile-only —
   // web loads the next page via the explicit "View more" button instead.
   bool _isWide = false;
@@ -101,6 +104,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     _scrollController.dispose();
     _topScrollController.dispose();
     _offerScrollController.dispose();
+    _popularScrollController.dispose();
     _bellPulseController.dispose();
     super.dispose();
   }
@@ -181,7 +185,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
             SliverToBoxAdapter(child: _buildPromotionalBanners(hPad)),
             SliverToBoxAdapter(child: _buildBrands(hPad)),
           ],
-          SliverToBoxAdapter(child: _buildPopular(hPad)),
+          SliverToBoxAdapter(child: _buildPopular(isWide)),
           // Pinned: the title and its filter controls stay put while the grid
           // scrolls under them.
           SliverPersistentHeader(
@@ -1158,31 +1162,18 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     );
   }
 
-  Widget _buildPopular(double hPad) {
+  Widget _buildPopular(bool isWide) {
     return GetBuilder<ProductController>(
       builder: (controller) {
-        if (controller.popularProducts.isEmpty) return const SizedBox.shrink();
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _sectionHeader('popular'.tr, hPad),
-            SizedBox(
-              height: 280,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(hPad, 4, hPad, 8),
-                itemCount: controller.popularProducts.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 14),
-                itemBuilder: (context, index) => SizedBox(
-                  width: 170,
-                  child: EcommerceProductCard(
-                    product: controller.popularProducts[index],
-                  ),
-                ),
-              ),
-            ),
-          ],
+        return _buildProductCarousel(
+          isWide: isWide,
+          title: 'popular'.tr,
+          loading:
+              controller.isLoadingPopular && controller.popularProducts.isEmpty,
+          products: controller.popularProducts,
+          scrollController: _popularScrollController,
+          hovered: _popularHovered,
+          onHoverChanged: (value) => setState(() => _popularHovered = value),
         );
       },
     );
