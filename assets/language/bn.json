@@ -800,5 +800,13 @@
   "tap_the_water_to_feed_the_fish": "পানিতে ট্যাপ করে মাছকে খাওয়ান",
   "share": "শেয়ার",
   "link_copied": "লিংক কপি হয়েছে",
-  "sold_count": "@count টি বিক্রি"
+  "sold_count": "@count টি বিক্রি",
+  "show_all_reviews": "সব @count টি রিভিউ দেখুন",
+  "reviews_count": "রিভিউ (@count)",
+  "count_reviews": "@count টি রিভিউ",
+  "no_reviews_yet": "এখনও কোনো রিভিউ নেই",
+  "be_the_first_to_review": "এই পণ্যে প্রথম রিভিউ দিন",
+  "please_login_to_mark_helpful": "সহায়ক হিসেবে চিহ্নিত করতে লগ ইন করুন",
+  "cannot_place_order_empty_cart": "অর্ডার করা যাবে না — আপনার কার্ট খালি",
+  "helpful": "সহায়ক"
 }

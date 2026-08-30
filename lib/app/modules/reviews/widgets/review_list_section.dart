@@ -1,6 +1,7 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
 import 'package:appwrite_user_app/app/controllers/review_controller.dart';
+import 'package:appwrite_user_app/app/models/review_model.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/review_card.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -8,15 +9,36 @@ import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class ReviewListSection extends StatelessWidget {
+class ReviewListSection extends StatefulWidget {
   final String productId;
   final String? currentUserId;
+
+  /// How many reviews are shown before the "show all" button appears.
+  ///
+  /// A product detail page is about the product; an unbounded review list buries
+  /// everything under it — the suggested carousel included — under however many
+  /// reviews the product happens to have collected.
+  final int collapsedCount;
 
   const ReviewListSection({
     super.key,
     required this.productId,
     this.currentUserId,
+    this.collapsedCount = 5,
   });
+
+  @override
+  State<ReviewListSection> createState() => _ReviewListSectionState();
+}
+
+class _ReviewListSectionState extends State<ReviewListSection> {
+  /// Collapsed until the reader asks for the rest. Deliberately not reset when
+  /// a review is added or deleted — someone who expanded the list should stay
+  /// expanded.
+  bool _isExpanded = false;
+
+  String get productId => widget.productId;
+  String? get currentUserId => widget.currentUserId;
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +77,7 @@ class ReviewListSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Reviews ($reviewCount)',
+                  'reviews_count'.trParams({'count': '$reviewCount'}),
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeLarge,
                     color: context.textPrimary,
@@ -68,8 +90,8 @@ class ReviewListSection extends StatelessWidget {
             // Reviews list or empty state
             if (reviews.isEmpty)
               _buildEmptyState()
-            else
-              ...reviews.map((review) {
+            else ...[
+              ..._visible(reviews).map((review) {
                 final isCurrentUser =
                     currentUserId != null && review.userId == currentUserId;
 
@@ -80,7 +102,7 @@ class ReviewListSection extends StatelessWidget {
                   onHelpful: () {
                     if (currentUserId == null) {
                       customToster(
-                        'Please login to mark helpful',
+                        'please_login_to_mark_helpful'.tr,
                         isSuccess: false,
                       );
                       return;
@@ -96,9 +118,58 @@ class ReviewListSection extends StatelessWidget {
                       : null,
                 );
               }),
+              _buildToggle(context, reviews.length),
+            ],
           ],
         );
       },
+    );
+  }
+
+  /// The slice currently on screen.
+  List<ReviewModel> _visible(List<ReviewModel> reviews) => _isExpanded
+      ? reviews
+      : reviews.take(widget.collapsedCount).toList();
+
+  /// "Show all N reviews" / "See less", or nothing when the list already fits.
+  ///
+  /// A text button rather than a filled one: this expands a list in place, it
+  /// does not navigate or commit anything, and it should not compete with the
+  /// page's real actions.
+  Widget _buildToggle(BuildContext context, int total) {
+    if (total <= widget.collapsedCount) return const SizedBox.shrink();
+
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: TextButton.icon(
+        onPressed: () => setState(() => _isExpanded = !_isExpanded),
+        style: TextButton.styleFrom(
+          foregroundColor: ColorResource.primaryDark,
+          padding: const EdgeInsets.symmetric(
+            horizontal: Constants.paddingSizeSmall,
+            vertical: Constants.paddingSizeSmall,
+          ),
+          minimumSize: const Size(0, Constants.minTapTarget),
+        ),
+        icon: Icon(
+          _isExpanded
+              ? Icons.keyboard_arrow_up_rounded
+              : Icons.keyboard_arrow_down_rounded,
+          size: 20,
+        ),
+        // Counting the total rather than the remainder: "Show all 23 reviews"
+        // tells the reader how much there is, which is what decides whether
+        // they want it.
+        label: Text(
+          _isExpanded
+              ? 'see_less'.tr
+              : 'show_all_reviews'.trParams({'count': '$total'}),
+          style: poppinsMedium.copyWith(
+            fontSize: Constants.fontSizeDefault,
+            color: ColorResource.primaryDark,
+          ),
+        ),
+      ),
     );
   }
 
@@ -124,7 +195,7 @@ class ReviewListSection extends StatelessWidget {
               RatingStars(rating: rating, size: 20),
               const SizedBox(height: 4),
               Text(
-                '$count reviews',
+                'count_reviews'.trParams({'count': '$count'}),
                 style: poppinsRegular.copyWith(
                   fontSize: Constants.fontSizeSmall,
                   color: ColorResource.textSecondary,
@@ -150,7 +221,7 @@ class ReviewListSection extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'No reviews yet',
+              'no_reviews_yet'.tr,
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeLarge,
                 color: ColorResource.textSecondary,
@@ -158,7 +229,7 @@ class ReviewListSection extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Be the first to review this product!',
+              'be_the_first_to_review'.tr,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,
                 color: ColorResource.textLight,

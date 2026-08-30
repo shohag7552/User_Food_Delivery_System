@@ -720,11 +720,14 @@ class _EcommerceProductDetailPageState
                         width: selected ? 2 : 1,
                       ),
                     ),
-                    child: CustomNetworkImage(
-                      image: images[index],
-                      width: 72,
-                      height: 72,
-                      fit: BoxFit.cover,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: CustomNetworkImage(
+                        image: images[index],
+                        width: 72,
+                        height: 72,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                 );

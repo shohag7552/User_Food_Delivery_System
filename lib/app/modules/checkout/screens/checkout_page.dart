@@ -1886,12 +1886,29 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
+  /// True when there is nothing to order, having told the customer why.
+  ///
+  /// Toast rather than the order-failed page: an empty cart is not a failed
+  /// order, it is an order that was never started, and routing it through the
+  /// failure screen would offer a retry that can only fail the same way.
+  bool _isCartEmpty(CartController cartController) {
+    if (cartController.cartItems.isNotEmpty) return false;
+    customToster('cannot_place_order_empty_cart'.tr, isSuccess: false);
+    return true;
+  }
+
   Future<void> _placeOrder(
     CartController cartController,
     double total,
     double deliveryFee,
     double taxAmount,
   ) async {
+    // Nothing to buy. Reachable even though the screen swaps itself for an
+    // empty-cart state: the order-failed page's retry closure calls straight
+    // back in here, carrying the totals from the original attempt. Without this
+    // it would post an order with no items and a non-zero amount.
+    if (_isCartEmpty(cartController)) return;
+
     // Validate address selection
     if (_selectedAddress == null) {
       customToster('please_select_delivery_address'.tr, isSuccess: false);
@@ -1960,6 +1977,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
 
     if (confirm != true) return;
+
+    // Re-checked after the dialog: the wallet lookup and the confirmation are
+    // both awaits, and the cart can be emptied under them — another tab on web,
+    // another device, or a refresh that comes back empty.
+    if (_isCartEmpty(cartController)) return;
 
     try {
       final orderController = Get.find<OrderController>();

@@ -72,6 +72,16 @@ class OrderController extends GetxController implements GetxService {
     double? shippingCost,
     String? shippingMethod,
   }) async {
+    // An order with no lines is not an order. The checkout screen already hides
+    // its button behind an empty-cart state, but that is a rendering decision
+    // made before the taps — the cart can still be emptied during the
+    // confirmation dialog, and the order-failed page's retry re-enters the flow
+    // long after the screen stopped gating it. This is the rule itself, so it
+    // holds for whatever calls in.
+    if (cartItems.isEmpty) {
+      return {'success': false, 'error': 'cannot_place_order_empty_cart'.tr};
+    }
+
     try {
       _isPlacingOrder = true;
       update();

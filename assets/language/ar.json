@@ -777,5 +777,13 @@
   "tap_the_water_to_feed_the_fish": "انقر على الماء لإطعام الأسماك",
   "share": "مشاركة",
   "link_copied": "تم نسخ الرابط",
-  "sold_count": "تم بيع @count"
+  "sold_count": "تم بيع @count",
+  "show_all_reviews": "عرض كل المراجعات (@count)",
+  "reviews_count": "المراجعات (@count)",
+  "count_reviews": "@count مراجعة",
+  "no_reviews_yet": "لا توجد مراجعات بعد",
+  "be_the_first_to_review": "كن أول من يراجع هذا المنتج",
+  "please_login_to_mark_helpful": "يرجى تسجيل الدخول لوضع علامة مفيد",
+  "cannot_place_order_empty_cart": "لا يمكن تنفيذ الطلب — سلة التسوق فارغة",
+  "helpful": "مفيد"
 }
