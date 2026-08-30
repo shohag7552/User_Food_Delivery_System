@@ -34,8 +34,12 @@ class ModuleSwitchHelper {
     // loads its own lists on mount (caches are now empty).
     await moduleController.switchModule(target);
 
-    // Reload data the home views don't own.
+    // Reload data the home views don't own. Orders drop their status filter
+    // first: it is written in the outgoing module's vocabulary and would
+    // otherwise filter the incoming list down to nothing.
     Get.find<CartController>().getCartItems();
-    Get.find<OrderController>().fetchUserOrders(refresh: true);
+    Get.find<OrderController>()
+      ..clearForModuleSwitch()
+      ..fetchUserOrders(refresh: true);
   }
 }

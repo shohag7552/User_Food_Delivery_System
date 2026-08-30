@@ -53,6 +53,23 @@ class OrderController extends GetxController implements GetxService {
     fetchUserOrders(refresh: true);
   }
 
+  /// Resets the module-scoped view state ahead of a storefront switch.
+  ///
+  /// The status filter is written in the active module's vocabulary — food
+  /// orders go cooking → ready → handover, shop orders go packing → shipped —
+  /// so a filter carried across the switch selects a status the incoming module
+  /// never uses. The list comes back empty with no chip highlighted and nothing
+  /// on screen explaining why. Clearing it lands the customer on "All", which
+  /// is the only filter both vocabularies share.
+  void clearForModuleSwitch() {
+    _selectedStatus = 'all';
+    _searchQuery = '';
+    _debounce?.cancel();
+    _currentPage = 0;
+    _hasMore = true;
+    // No update() — the caller refetches immediately and updates once.
+  }
+
   /// Place a new order
   Future<Map<String, dynamic>> placeOrder({
     required String customerId,

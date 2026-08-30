@@ -1,6 +1,8 @@
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
+import 'package:appwrite_user_app/app/common/widgets/floating_module_switcher.dart';
 import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
+import 'package:appwrite_user_app/app/common/widgets/web_module_switcher.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
@@ -141,14 +143,32 @@ class _OrdersPageState extends State<OrdersPage> {
               elevation: 0,
             ),
       body: AuthGate(
-        child: isWide
-            ? _buildWebBody(showInlineTitle)
-            : Column(
-                children: [
-                  _buildFilterChips(),
-                  Expanded(child: _buildOrdersList(false)),
-                ],
-              ),
+        child: Stack(
+          children: [
+            isWide
+                ? _buildWebBody(showInlineTitle)
+                : Column(
+                    children: [
+                      _buildFilterChips(),
+                      Expanded(child: _buildOrdersList(false)),
+                    ],
+                  ),
+            // The same switcher the Home tab floats, in the same corner and in
+            // the same two forms. Orders are fetched per module, so this page
+            // shows one storefront's history at a time — without the control
+            // the other half looks like it has been lost, and the only way back
+            // to it is a round trip through Home.
+            //
+            // Inside [AuthGate] on purpose: signed out there is no history to
+            // switch between, and the control would be floating over a login
+            // prompt.
+            Positioned.fill(
+              child: showWebNav
+                  ? const WebModuleSwitcher()
+                  : const FloatingModuleSwitcher(),
+            ),
+          ],
+        ),
       ),
     );
 
@@ -417,7 +437,19 @@ class _OrdersPageState extends State<OrdersPage> {
     );
   }
 
+  /// Status chips for the active module.
+  ///
+  /// Wrapped in a [GetBuilder] on [ModuleController] now that the module can be
+  /// changed from this page: the chip vocabulary is derived from it, so it has
+  /// to rebuild when it flips rather than waiting for some other controller's
+  /// update to happen to carry it along.
   Widget _buildFilterChips() {
+    return GetBuilder<ModuleController>(
+      builder: (_) => _buildFilterChipsForModule(),
+    );
+  }
+
+  Widget _buildFilterChipsForModule() {
     // The orders fetch is scoped to the active module, so the status filters
     // must speak that module's vocabulary: food preparation stages vs the
     // ecommerce fulfilment pipeline.
