@@ -31,13 +31,15 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Kiko Mart">
-  <!-- iOS ignores the manifest for the home-screen icon and takes this one,
-       so it is a square 180x180 on an opaque plate: iOS applies its own
-       rounded-rect mask and paints black behind any transparency. -->
-  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png">
+  <!-- iOS ignores the manifest and takes the home-screen icon from here.
+       Same single source as everything else, so replacing icons/logo.png is
+       the whole rebrand. -->
+  <link rel="apple-touch-icon" href="icons/logo.png">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" sizes="64x64" href="favicon.png"/>
+  <!-- Favicon. The same file again on purpose: the loading screen below
+       already fetches it, so pointing the tab icon at a second image would
+       cost an extra download to show the same mark. -->
+  <link rel="icon" type="image/png" href="icons/logo.png"/>
 
   <title>Kiko Mart</title>
   <link rel="manifest" href="manifest.json">
