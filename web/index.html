@@ -22,6 +22,13 @@
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="description" content="Kiko Mart — browse, order and get it delivered.">
 
+  <!-- Release stamp — the ONE place the version is written.
+       `tool/build_web.sh` syncs it from pubspec.yaml and then builds, so a
+       release cannot ship pointing at the previous build's assets. The script
+       below reads this and appends it to the bootstrap URL, which is what
+       makes a browser holding yesterday's copy go and fetch today's. -->
+  <meta name="app-version" content="1.0.0+1">
+
   <!-- Browser UI colour follows the system theme. -->
   <meta name="theme-color" content="#F5F7FA" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)">
@@ -255,6 +262,36 @@
     })();
   </script>
 
-  <script src="flutter_bootstrap.js" async></script>
+  <script>
+    // Loads the Flutter bootstrap at a URL that changes with every release.
+    //
+    // Flutter's service worker is now a stub that unregisters itself, so it
+    // caches nothing: HTTP caching is the only thing deciding whether a
+    // returning visitor runs the new build or the old one. Every generated
+    // file keeps the same name from release to release, so a cached copy is
+    // indistinguishable from a current one by URL alone — the version query is
+    // what tells them apart.
+    //
+    // Injected rather than written as a static <script src>: it keeps the
+    // version in exactly one place (the meta tag above) instead of two that
+    // can drift apart. A dynamically created script is async by default, so
+    // this loads exactly as the static tag did.
+    (function () {
+      var meta = document.querySelector('meta[name="app-version"]');
+      var version = (meta && meta.content) || '';
+      // Readable from the console and from Dart via dart:js_interop, so
+      // "which build is this?" has an answer that does not need a rebuild.
+      window.APP_VERSION = version;
+
+      var script = document.createElement('script');
+      // Falls back to the plain URL if the stamp is ever missing: a missing
+      // version should cost freshness, never the whole app.
+      script.src = version
+        ? 'flutter_bootstrap.js?v=' + encodeURIComponent(version)
+        : 'flutter_bootstrap.js';
+      script.async = true;
+      document.body.appendChild(script);
+    })();
+  </script>
 </body>
 </html>
