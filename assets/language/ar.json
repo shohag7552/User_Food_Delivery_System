@@ -785,5 +785,8 @@
   "be_the_first_to_review": "كن أول من يراجع هذا المنتج",
   "please_login_to_mark_helpful": "يرجى تسجيل الدخول لوضع علامة مفيد",
   "cannot_place_order_empty_cart": "لا يمكن تنفيذ الطلب — سلة التسوق فارغة",
-  "helpful": "مفيد"
+  "helpful": "مفيد",
+  "cookies_privacy_title": "سياسة ملفات تعريف الارتباط",
+  "decline": "رفض",
+  "accept_cookies": "قبول ملفات تعريف الارتباط"
 }

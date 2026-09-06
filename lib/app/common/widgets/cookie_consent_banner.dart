@@ -11,10 +11,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// [cookies_text] configured in business setup.
 ///
 /// Follows modern UI/UX design standards:
-/// - Floating position in the bottom-right downside corner (desktop web) or
-///   bottom floating banner (mobile).
+/// - Floating in the bottom trailing corner on a wide browser window, or a
+///   full-width bar across the bottom in a narrow one.
 /// - Theme-aware card with subtle shadow and glassmorphic finish.
-/// - Persists user consent in [SharedPreferences] (`cookie_consent_accepted`).
+/// - Persists the customer's answer, so it is asked once and not on every
+///   reload.
+///
+/// **Web only.** The notice is about what a *browser* stores, and the consent
+/// rules it exists to satisfy apply to a site, not to an installed app. On
+/// Android and iOS it renders nothing and does not even read preferences —
+/// showing it there would be asking permission for something that is not
+/// happening.
 class CookieConsentBanner extends StatefulWidget {
   const CookieConsentBanner({super.key});
 
@@ -23,7 +30,15 @@ class CookieConsentBanner extends StatefulWidget {
 }
 
 class _CookieConsentBannerState extends State<CookieConsentBanner> {
-  static const String _consentKey = 'cookie_consent_accepted';
+  static const String _acceptedKey = 'cookie_consent_accepted';
+
+  /// Declining (or closing) is an answer too, and it is stored separately from
+  /// [_acceptedKey] so consent itself is never recorded by a dismissal.
+  ///
+  /// Without this the banner came back on every page load: a web app reloads
+  /// constantly, and only "Accept" was remembered — so the one customer who
+  /// does not want to accept is the one asked again every single time.
+  static const String _dismissedKey = 'cookie_consent_dismissed';
 
   bool _isDismissed = true;
   bool _isInitialized = false;
@@ -31,7 +46,8 @@ class _CookieConsentBannerState extends State<CookieConsentBanner> {
   @override
   void initState() {
     super.initState();
-    _checkConsentStatus();
+    // No storage read on mobile: there is nothing to ask about there.
+    if (kIsWeb) _checkConsentStatus();
   }
 
   Future<void> _checkConsentStatus() async {
@@ -40,10 +56,11 @@ class _CookieConsentBannerState extends State<CookieConsentBanner> {
           ? Get.find<SharedPreferences>()
           : await SharedPreferences.getInstance();
 
-      final accepted = prefs.getBool(_consentKey) ?? false;
+      final answered = (prefs.getBool(_acceptedKey) ?? false) ||
+          (prefs.getBool(_dismissedKey) ?? false);
       if (mounted) {
         setState(() {
-          _isDismissed = accepted;
+          _isDismissed = answered;
           _isInitialized = true;
         });
       }
@@ -57,7 +74,16 @@ class _CookieConsentBannerState extends State<CookieConsentBanner> {
     }
   }
 
-  Future<void> _acceptConsent() async {
+  Future<void> _acceptConsent() => _answer(_acceptedKey);
+
+  Future<void> _dismissNotice() => _answer(_dismissedKey);
+
+  /// Hides the banner and remembers that it was answered.
+  ///
+  /// The write is best-effort: a browser with site data blocked throws here,
+  /// and the notice still closes for this visit rather than refusing to go
+  /// away.
+  Future<void> _answer(String key) async {
     setState(() {
       _isDismissed = true;
     });
@@ -65,19 +91,13 @@ class _CookieConsentBannerState extends State<CookieConsentBanner> {
       final prefs = Get.isRegistered<SharedPreferences>()
           ? Get.find<SharedPreferences>()
           : await SharedPreferences.getInstance();
-      await prefs.setBool(_consentKey, true);
+      await prefs.setBool(key, true);
     } catch (_) {}
-  }
-
-  Future<void> _dismissNotice() async {
-    setState(() {
-      _isDismissed = true;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_isInitialized || _isDismissed) {
+    if (!kIsWeb || !_isInitialized || _isDismissed) {
       return const SizedBox.shrink();
     }
 
@@ -91,7 +111,7 @@ class _CookieConsentBannerState extends State<CookieConsentBanner> {
         }
 
         final double screenWidth = MediaQuery.of(context).size.width;
-        final bool isDesktop = kIsWeb && screenWidth >= 768;
+        final bool isDesktop = screenWidth >= 768;
 
         return Positioned(
           bottom: isDesktop ? 24 : 16,
@@ -145,11 +165,7 @@ class _CookieConsentBannerState extends State<CookieConsentBanner> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              'cookies_privacy_title'.tr.isNotEmpty &&
-                                      'cookies_privacy_title'.tr !=
-                                          'cookies_privacy_title'
-                                  ? 'cookies_privacy_title'.tr
-                                  : 'Cookie Policy',
+                              'cookies_privacy_title'.tr,
                               style: poppinsBold.copyWith(
                                 fontSize: Constants.fontSizeLarge,
                                 color: context.textPrimary,
@@ -198,10 +214,7 @@ class _CookieConsentBannerState extends State<CookieConsentBanner> {
                               ),
                             ),
                             child: Text(
-                              'decline'.tr.isNotEmpty &&
-                                      'decline'.tr != 'decline'
-                                  ? 'decline'.tr
-                                  : 'Decline',
+                              'decline'.tr,
                               style: poppinsMedium.copyWith(
                                 fontSize: Constants.fontSizeSmall,
                                 color: context.textSecondary,
@@ -224,10 +237,7 @@ class _CookieConsentBannerState extends State<CookieConsentBanner> {
                               ),
                             ),
                             child: Text(
-                              'accept_cookies'.tr.isNotEmpty &&
-                                      'accept_cookies'.tr != 'accept_cookies'
-                                  ? 'accept_cookies'.tr
-                                  : 'Accept Cookies',
+                              'accept_cookies'.tr,
                               style: poppinsBold.copyWith(
                                 fontSize: Constants.fontSizeSmall,
                                 color: Colors.white,

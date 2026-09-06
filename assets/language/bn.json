@@ -808,5 +808,8 @@
   "be_the_first_to_review": "এই পণ্যে প্রথম রিভিউ দিন",
   "please_login_to_mark_helpful": "সহায়ক হিসেবে চিহ্নিত করতে লগ ইন করুন",
   "cannot_place_order_empty_cart": "অর্ডার করা যাবে না — আপনার কার্ট খালি",
-  "helpful": "সহায়ক"
+  "helpful": "সহায়ক",
+  "cookies_privacy_title": "কুকি নীতি",
+  "decline": "প্রত্যাখ্যান",
+  "accept_cookies": "কুকি গ্রহণ করুন"
 }

@@ -819,5 +819,8 @@
   "be_the_first_to_review": "Be the first to review this product",
   "please_login_to_mark_helpful": "Please log in to mark a review helpful",
   "cannot_place_order_empty_cart": "Can't place the order — your cart is empty",
-  "helpful": "Helpful"
+  "helpful": "Helpful",
+  "cookies_privacy_title": "Cookie Policy",
+  "decline": "Decline",
+  "accept_cookies": "Accept Cookies"
 }
