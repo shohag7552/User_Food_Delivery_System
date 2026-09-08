@@ -6,17 +6,19 @@ class Constants {
   static const String appName = 'Kiko Mart';
   static const String appVersion = "1.0.0";
   static const String packageName = 'com.example.appwrite_user_app';
+  static const String webBaseUrl = 'https://kiko-mart.appwrite.network';
 
-  /// Origin of the deployed Flutter web build.
-  ///
-  /// The single source for every absolute link the app hands out — shared
-  /// product links, and the password-recovery URL that `AppwriteConfig` builds
-  /// from it. Changing the deployment means changing this one value.
-  ///
-  /// It must stay registered as a **Web platform** on the Appwrite project:
-  /// `account.createRecovery` validates its `url` argument against the
-  /// project's registered hostnames.
-  static const String webBaseUrl = 'https://food-app-c2fe8.web.app';
+  static const String projectId = '694d7ed80012589bdb9c';
+  static const String endpoint = 'https://sgp.cloud.appwrite.io/v1';
+  static const String databaseId = 'food_delivery_db';
+  static const String apiKey = 'standard_94c9a3d62a86353f64c689846a4c8643086c533cebdcd99d1f6d38cc7d5cc91672e967c41f0092cfd47a11d0b84cb046ffbf19087b63ad8eab7f0b3454d00a37f6a0f37859d7c7ec36a2a96d5b5ec41e08dd81bc27bb2f5a2d78e3ce88e1f4bec6cd2e3c05ed016628a0e100e52e038146309b4be98c88598a6fa0c990f10188'; // MUST have 'databases.write' scope
+  static const String dbId = 'food_delivery_db';
+  static const String postsBucketId = '694d812100305bf791d7'; //it's for storing post images
+  static const String messagingProviderId = '6984d1ef0023c0b30df1'; //it's for fcm push notifications topic and fcm token management
+  static const String notificationFunctionId = '699735670009f8d132b6'; //it's for sending notifications using cloud functions
+  static const String topicId = '6999d25e00167cf81dfe'; // it's for storing FCM topic subscriptions (e.g. for promo notifications)
+  static const String storeAdminTopicId = '699b52b8002068aad61e'; // topic for store admin devices — new order alerts
+  static const String stripePaymentFunctionId = '69ad6e63001c310396b7'; // it's for processing Stripe payments using cloud functions
 
   static const String defaultMapTheme = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
   static const String lightMapTheme = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
@@ -67,7 +69,6 @@ class Constants {
   static List<LanguageModel> languages = [
     LanguageModel(imageUrl: Images.english, languageName: 'English', countryCode: 'US', languageCode: 'en'),
     LanguageModel(imageUrl: Images.bengali, languageName: 'Bengali', countryCode: 'BN', languageCode: 'bn'),
-    // Placeholder flag (world) until a dedicated Arabic flag asset is added.
     LanguageModel(imageUrl: Images.world, languageName: 'العربية', countryCode: 'SA', languageCode: 'ar'),
   ];
 
