@@ -5,7 +5,7 @@ class Constants {
 
   static const String appName = 'Kiko Mart';
   static const String appVersion = "1.0.0";
-  static const String packageName = 'com.example.appwrite_user_app';
+  static const String packageName = 'com.mehedi.food';
   static const String webBaseUrl = 'https://kiko-mart.appwrite.network';
 
   static const String projectId = '694d7ed80012589bdb9c';
