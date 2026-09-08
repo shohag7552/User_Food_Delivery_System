@@ -132,19 +132,29 @@ class CustomNetworkImage extends StatelessWidget {
   /// whose loader is `_loadAsyncHtmlImage(url, chunkEvents)` — it takes the URL
   /// and nothing else, dropping the `decode` callback that `ResizeImage`
   /// performs the downscale through. `memCacheWidth`/`memCacheHeight` are
-  /// therefore computed and then silently ignored, and every photo decodes at
-  /// full source resolution: a 1600px product shot becomes ~10 MB of RGBA, on
-  /// a grid that draws it at ~230px.
+  /// therefore computed and then silently ignored, and every photo is *kept* at
+  /// full source resolution: a 1600px product shot holds ~10 MB of RGBA in the
+  /// image cache and the GPU texture, on a grid that draws it at ~230px.
   ///
   /// Flutter's own web `NetworkImage` ends its load at
   /// `decode(await ui.ImmutableBuffer.fromUint8List(bytes))`, so it honours the
-  /// callback and `cacheWidth`/`cacheHeight` genuinely resize. It also loses
-  /// nothing by dropping `CachedNetworkImage`: `flutter_cache_manager` resolves
-  /// to a `NonStoringObjectProvider` on web — an in-RAM store that does not
-  /// survive a reload — and the `HtmlImage` path never calls it anyway. The
+  /// callback, and CanvasKit wires a `CkResizingCodec` behind it — the resize
+  /// really happens here. Note what it reduces: `scaleImageIfNeeded` decodes at
+  /// full size, redraws into a smaller picture, then disposes the original. The
+  /// full-resolution decode is still transient; what shrinks is the *retained*
+  /// cost, which is the one that survives scrolling and fills Flutter's 100 MiB
+  /// image cache.
+  ///
+  /// (`Image.network`'s own docs claim web ignores `cacheWidth`/`cacheHeight`.
+  /// That line predates `ResizingCodec` and is out of date — don't revert this
+  /// on the strength of it.)
+  ///
+  /// Dropping `CachedNetworkImage` here costs nothing: `flutter_cache_manager`
+  /// resolves to a `NonStoringObjectProvider` on web — an in-RAM store that does
+  /// not survive a reload — and the `HtmlImage` path never calls it anyway. The
   /// browser's own HTTP cache is the real cache here, and `Image.network` uses
   /// it.
-  Widget  _buildWeb({
+  Widget _buildWeb({
     required int? cacheWidth,
     required int? cacheHeight,
     required Widget Function() fallback,
@@ -156,28 +166,24 @@ class CustomNetworkImage extends StatelessWidget {
       fit: fit,
       cacheWidth: cacheWidth,
       cacheHeight: cacheHeight,
-      // Keeps the previous frame on screen while a rebuild re-resolves the same
-      // URL, instead of blinking back to the placeholder — grids rebuild often
-      // (scroll, hover, theme) and every blink would otherwise be visible.
-      gaplessPlayback: true,
       // Fetch the bytes first — that is the path that can resize — and drop to
       // an <img> element only if the fetch fails. The fallback matters because
       // fetching is subject to CORS while an <img> is not: an image host that
-      // refuses cross-origin reads still renders exactly as it does today.
+      // refuses cross-origin reads still renders. It does mean a genuinely dead
+      // URL is tried twice before [errorBuilder] runs, which is the right trade:
+      // a slower error beats a broken image on a working host.
       webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
-      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-        // Matches CachedNetworkImage's own fade so the two platforms look the
-        // same. A cache hit arrives synchronously and should not fade in.
-        if (wasSynchronouslyLoaded) return child;
-        return AnimatedOpacity(
-          opacity: frame == null ? 0 : 1,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-          child: child,
-        );
-      },
-      loadingBuilder: (context, child, progress) =>
-          progress == null ? child : fallback(),
+      // The placeholder, for the whole time there is nothing to draw.
+      //
+      // This has to key off `frame`, not off `loadingBuilder`'s progress. The
+      // web `NetworkImage` builds its `MultiFrameImageStreamCompleter` with no
+      // `chunkEvents` stream and its fetch reports no progress, so
+      // `loadingProgress` is *always* null on web — a `loadingBuilder` there can
+      // never tell "still loading" from "loaded", and silently renders an empty
+      // box for the entire load. `frame` is null until the first frame is
+      // decoded, on every platform, which is exactly the question being asked.
+      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) =>
+          frame == null && !wasSynchronouslyLoaded ? fallback() : child,
       errorBuilder: (context, error, stackTrace) => fallback(),
     );
   }

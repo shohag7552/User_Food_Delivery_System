@@ -30,6 +30,14 @@ void main() {
     );
   }
 
+  /// The local placeholder asset, however it is currently wrapped.
+  final placeholderFinder = find.byWidgetPredicate((w) {
+    if (w is! Image) return false;
+    final provider = w.image;
+    return provider is AssetImage ||
+        (provider is ResizeImage && provider.imageProvider is AssetImage);
+  });
+
   /// The network image in the tree, ignoring the placeholder asset.
   Image networkImage(WidgetTester tester) => tester.widget<Image>(
         find.byWidgetPredicate(
@@ -108,6 +116,42 @@ void main() {
       final resize = networkImage(tester).image as ResizeImage;
       expect(resize.height, (100 * dpr).round());
       expect(resize.width, isNull);
+    });
+
+    testWidgets('shows the placeholder until the first frame is decoded',
+        (tester) async {
+      // The regression this pins: `loadingBuilder` cannot express this on web.
+      // The web NetworkImage emits no chunk events, so `loadingProgress` is
+      // always null there and a progress-based placeholder renders an empty box
+      // for the whole load. `frame == null` is the signal that actually works.
+      await pump(
+        tester,
+        const CustomNetworkImage(
+          image: 'https://example.com/a.jpg',
+          width: 200,
+          height: 100,
+          useWebPath: true,
+        ),
+      );
+
+      expect(placeholderFinder, findsOneWidget);
+    });
+
+    testWidgets('shows the placeholder when the image fails to load',
+        (tester) async {
+      await pump(
+        tester,
+        const CustomNetworkImage(
+          image: 'https://example.com/missing.jpg',
+          width: 200,
+          height: 100,
+          useWebPath: true,
+        ),
+      );
+      // Let the failing fetch settle into errorBuilder.
+      await tester.pumpAndSettle();
+
+      expect(placeholderFinder, findsOneWidget);
     });
 
     testWidgets('renders the placeholder instead of requesting an empty URL',
