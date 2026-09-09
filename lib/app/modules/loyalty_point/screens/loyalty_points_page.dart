@@ -326,16 +326,20 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
+          // Stepped off the brand rather than hard-coded, so this panel follows
+          // `Constants.primaryColor` with the rest of the app. The factors were
+          // fitted to the reds that were here before, so the gradient is
+          // unchanged for the shipped brand.
           colors: isDark
               ? [
-                  const Color(0xFF8F1E1E),
-                  const Color(0xFF6B1515),
-                  const Color(0xFF4A0E0E),
+                  ColorResource.brandShade(0.29),
+                  ColorResource.brandShade(0.47),
+                  ColorResource.brandShade(0.63),
                 ]
               : [
-                  const Color(0xFFE03131),
-                  const Color(0xFFC92A2A),
-                  const Color(0xFF9E1F1F),
+                  ColorResource.primaryMedium,
+                  ColorResource.primaryDark,
+                  ColorResource.brandShade(0.21),
                 ],
         ),
         borderRadius: BorderRadius.circular(24),

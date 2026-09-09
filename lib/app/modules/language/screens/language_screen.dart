@@ -50,7 +50,7 @@ class _LanguageScreenState extends State<LanguageScreen> with SingleTickerProvid
           ),
         ),
         flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: ColorResource.primaryGradient),
+          decoration: BoxDecoration(gradient: ColorResource.primaryGradient),
         ),
       ),
       body: GetBuilder<LocalizationController>(
@@ -63,7 +63,7 @@ class _LanguageScreenState extends State<LanguageScreen> with SingleTickerProvid
                 // Header banner
                 Container(
                   width: double.infinity,
-                  decoration: const BoxDecoration(gradient: ColorResource.primaryGradient),
+                  decoration: BoxDecoration(gradient: ColorResource.primaryGradient),
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

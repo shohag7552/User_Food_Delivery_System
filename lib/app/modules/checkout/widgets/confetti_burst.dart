@@ -50,7 +50,7 @@ class _ConfettiBurstState extends State<ConfettiBurst> {
   static List<_Particle> _buildParticles(math.Random random, int count) {
     // Brand plus the celebratory accents. Enough variety to feel scattered,
     // few enough to still read as one palette.
-    const palette = [
+    final palette = [
       ColorResource.primaryDark,
       ColorResource.primaryMedium,
       ColorResource.primaryLight,

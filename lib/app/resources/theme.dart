@@ -8,19 +8,19 @@ ThemeData _buildTheme({required Brightness brightness}) {
   final isDark = brightness == Brightness.dark;
 
   final colorScheme = isDark
-      ? const ColorScheme.dark(
+      ? ColorScheme.dark(
           primary: ColorResource.primary,
           secondary: ColorResource.primaryLight,
-          surface: Color(0xFF111827),
-          error: Color(0xFFE84D4F),
+          surface: const Color(0xFF111827),
+          error: const Color(0xFFE84D4F),
         )
-      : const ColorScheme.light(
+      : ColorScheme.light(
           primary: ColorResource.primary,
           secondary: ColorResource.primaryLight,
-          tertiary: Color(0xFF102F9C),
-          tertiaryContainer: Color(0xFF8195DB),
-          surface: Color(0xFFFFFFFF),
-          error: Color(0xFFE84D4F),
+          tertiary: const Color(0xFF102F9C),
+          tertiaryContainer: const Color(0xFF8195DB),
+          surface: const Color(0xFFFFFFFF),
+          error: const Color(0xFFE84D4F),
         );
 
   final scaffoldBackground = isDark

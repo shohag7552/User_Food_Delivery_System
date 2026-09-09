@@ -412,7 +412,7 @@ class _HeroBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(gradient: ColorResource.primaryGradient),
+      decoration: BoxDecoration(gradient: ColorResource.primaryGradient),
       child: Stack(
         children: [
           Positioned(top: -30, right: -30, child: _circle(140, 0.06)),

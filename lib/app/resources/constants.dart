@@ -1,5 +1,6 @@
 
 import 'package:appwrite_user_app/app/resources/images.dart';
+import 'package:flutter/material.dart' show Color;
 
 class Constants {
 
@@ -7,6 +8,18 @@ class Constants {
   static const String appVersion = "1.0.0";
   static const String packageName = 'com.mehedi.food';
   static const String webBaseUrl = 'https://kiko-mart.appwrite.network';
+
+  /// The app's brand colour — the single knob for recolouring the whole UI.
+  ///
+  /// Change this one value and everything follows: the lighter accent steps,
+  /// the brand gradient, the Material swatch and the light/dark [ThemeData] are
+  /// all derived from it in `resources/colors.dart`. Nothing else needs editing.
+  ///
+  /// Pick a colour dark enough to carry white text — it is painted behind the
+  /// app bar, the primary buttons and every filled badge. Mid-tone brand
+  /// colours (roughly 40-55% HSL lightness) work best; a very light one will
+  /// leave white labels unreadable, and a near-black one flattens the gradient.
+  static const Color primaryColor = Color(0xFFC92A2A);
 
   static const String projectId = '694d7ed80012589bdb9c';
   static const String endpoint = 'https://sgp.cloud.appwrite.io/v1';

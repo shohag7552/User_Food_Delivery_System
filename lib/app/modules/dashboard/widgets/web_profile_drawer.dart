@@ -268,7 +268,7 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
         final user = controller.userProfile;
         return Container(
           width: double.infinity,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: ColorResource.primaryGradient,
           ),
           padding: const EdgeInsets.fromLTRB(20, 48, 20, 24),
@@ -362,7 +362,7 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
 
   Widget _avatarPlaceholder(String initials) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: ColorResource.primaryGradient,
       ),

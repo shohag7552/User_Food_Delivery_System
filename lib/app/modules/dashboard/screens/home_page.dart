@@ -507,7 +507,7 @@ class _HomePageState extends State<HomePage>
               fit: StackFit.expand,
               children: [
                 // Base gradient.
-                const DecoratedBox(
+                DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: ColorResource.primaryGradient,
                   ),
@@ -711,7 +711,7 @@ class _HomePageState extends State<HomePage>
 
     return Container(
       alignment: Alignment.center,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: ColorResource.primaryGradient,
       ),
