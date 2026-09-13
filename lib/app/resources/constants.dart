@@ -1,7 +1,14 @@
 
 import 'package:appwrite_user_app/app/resources/images.dart';
-import 'package:flutter/material.dart' show Color;
 
+/// App-wide configuration.
+///
+/// **Do not import Flutter into this file.** `lib/scripts/seed_database.dart`
+/// reads the Appwrite ids below (through `AppwriteConfig`) and runs on the
+/// standalone Dart VM, which has no `dart:ui` — a single
+/// `package:flutter/...` import here breaks the seed script with a wall of
+/// errors from inside Flutter's own sources. That is why the brand colour is
+/// stored as an `int` and wrapped in a `Color` over in `resources/colors.dart`.
 class Constants {
 
   static const String appName = 'Kiko Mart';
@@ -9,17 +16,22 @@ class Constants {
   static const String packageName = 'com.mehedi.food';
   static const String webBaseUrl = 'https://kiko-mart.appwrite.network';
 
-  /// The app's brand colour — the single knob for recolouring the whole UI.
+  /// The app's brand colour, as a plain ARGB int — the single knob for
+  /// recolouring the whole UI.
   ///
   /// Change this one value and everything follows: the lighter accent steps,
   /// the brand gradient, the Material swatch and the light/dark [ThemeData] are
   /// all derived from it in `resources/colors.dart`. Nothing else needs editing.
   ///
+  /// It is an `int` and not a `Color` on purpose — see the note on [Constants].
+  /// Read it as `Color(Constants.primaryColorValue)`, or better, use
+  /// `ColorResource.primary` / `context.*` which already do.
+  ///
   /// Pick a colour dark enough to carry white text — it is painted behind the
   /// app bar, the primary buttons and every filled badge. Mid-tone brand
   /// colours (roughly 40-55% HSL lightness) work best; a very light one will
   /// leave white labels unreadable, and a near-black one flattens the gradient.
-  static const Color primaryColor = Color(0xFFC92A2A);
+  static const int primaryColorValue = 0xFFC92A2A;
 
   static const String projectId = '694d7ed80012589bdb9c';
   static const String endpoint = 'https://sgp.cloud.appwrite.io/v1';

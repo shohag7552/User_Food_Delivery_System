@@ -5,15 +5,16 @@ import 'package:flutter_test/flutter_test.dart';
 
 /// Pins the two promises the brand palette makes:
 ///
-///  1. `Constants.primaryColor` is the only knob — every other brand token is
-///     derived from it, so a rebrand cannot leave a stale colour behind.
+///  1. `Constants.primaryColorValue` is the only knob — every other brand
+///     token is derived from it, so a rebrand cannot leave a stale colour behind.
 ///  2. Deriving them changed no pixel for the shipped brand.
 void main() {
-  test('every brand token derives from Constants.primaryColor', () {
-    expect(ColorResource.primaryDark, Constants.primaryColor);
-    expect(ColorResource.primary, Constants.primaryColor);
-    expect(ColorResource.appBarColor, Constants.primaryColor);
-    expect(ColorResource.discountBadge, Constants.primaryColor);
+  test('every brand token derives from Constants.primaryColorValue', () {
+    const Color brand = Color(Constants.primaryColorValue);
+    expect(ColorResource.primaryDark, brand);
+    expect(ColorResource.primary, brand);
+    expect(ColorResource.appBarColor, brand);
+    expect(ColorResource.discountBadge, brand);
     expect(ColorResource.primaryGradient.colors, [
       ColorResource.primaryDark,
       ColorResource.primaryMedium,
@@ -21,8 +22,8 @@ void main() {
     ]);
     // The bug this replaced: the swatch was hand-written with a base of
     // 0xFF003B55 — a leftover blue — while only shade 500 tracked the brand.
-    expect(ColorResource.primarySwatch.toARGB32(), Constants.primaryColor.toARGB32());
-    expect(ColorResource.primarySwatch[500], Constants.primaryColor);
+    expect(ColorResource.primarySwatch.toARGB32(), brand.toARGB32());
+    expect(ColorResource.primarySwatch[500], brand);
   });
 
   test('the shipped brand keeps its exact previous accent steps', () {

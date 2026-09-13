@@ -30,13 +30,15 @@ Color _brandStep(Color base, {required double lightness, required double saturat
 class ColorResource {
   // ── Primary brand colours ────────────────────────────────────────────────
   //
-  // All of these come from ONE value: `Constants.primaryColor`. Change that and
-  // the accent steps, the gradient, the Material swatch and both themes follow.
-  // Nothing here should ever be a hand-written hex again.
+  // All of these come from ONE value: `Constants.primaryColorValue`. Change that
+  // and the accent steps, the gradient, the Material swatch and both themes
+  // follow. Nothing here should ever be a hand-written hex again.
 
-  /// The brand colour itself. Still `const`, because it is read in hundreds of
-  /// `const` widget expressions across the app.
-  static const Color primaryDark = Constants.primaryColor;
+  /// The brand colour itself — the one place `Constants.primaryColorValue` is
+  /// turned into a `Color` (that file must stay Flutter-free for the seed
+  /// script). Still `const`, because it is read in hundreds of `const` widget
+  /// expressions across the app.
+  static const Color primaryDark = Color(Constants.primaryColorValue);
 
   /// Two brighter steps of [primaryDark], used for the gradient and as the
   /// scheme's secondary.

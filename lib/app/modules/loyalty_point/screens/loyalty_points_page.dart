@@ -327,7 +327,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           // Stepped off the brand rather than hard-coded, so this panel follows
-          // `Constants.primaryColor` with the rest of the app. The factors were
+          // `Constants.primaryColorValue` with the rest of the app. The factors were
           // fitted to the reds that were here before, so the gradient is
           // unchanged for the shipped brand.
           colors: isDark
