@@ -13,7 +13,7 @@ class Constants {
 
   static const String appName = 'Kiko Mart';
   static const String appVersion = "1.0.0";
-  static const String packageName = 'com.mehedi.food';
+  static const String packageName = 'com.kikomart.user';
   static const String webBaseUrl = 'https://kiko-mart.appwrite.network';
 
   /// The app's brand colour, as a plain ARGB int — the single knob for
@@ -33,17 +33,39 @@ class Constants {
   /// leave white labels unreadable, and a near-black one flattens the gradient.
   static const int primaryColorValue = 0xFFC92A2A;
 
-  static const String projectId = '694d7ed80012589bdb9c';
-  static const String endpoint = 'https://sgp.cloud.appwrite.io/v1';
-  static const String databaseId = 'food_delivery_db';
-  static const String apiKey = 'standard_94c9a3d62a86353f64c689846a4c8643086c533cebdcd99d1f6d38cc7d5cc91672e967c41f0092cfd47a11d0b84cb046ffbf19087b63ad8eab7f0b3454d00a37f6a0f37859d7c7ec36a2a96d5b5ec41e08dd81bc27bb2f5a2d78e3ce88e1f4bec6cd2e3c05ed016628a0e100e52e038146309b4be98c88598a6fa0c990f10188'; // MUST have 'databases.write' scope
-  static const String dbId = 'food_delivery_db';
-  static const String postsBucketId = '694d812100305bf791d7'; //it's for storing post images
-  static const String messagingProviderId = '6984d1ef0023c0b30df1'; //it's for fcm push notifications topic and fcm token management
-  static const String notificationFunctionId = '699735670009f8d132b6'; //it's for sending notifications using cloud functions
-  static const String topicId = '6999d25e00167cf81dfe'; // it's for storing FCM topic subscriptions (e.g. for promo notifications)
-  static const String storeAdminTopicId = '699b52b8002068aad61e'; // topic for store admin devices — new order alerts
-  static const String stripePaymentFunctionId = '69ad6e63001c310396b7'; // it's for processing Stripe payments using cloud functions
+  // ── Appwrite backend ─────────────────────────────────────────────────────
+  //
+  // These MUST stay byte-identical to the same ids in the store-admin app
+  // (`appWrite_store_app/lib/app/resources/constants.dart`) — both apps read
+  // and write the one project, so a divergence here silently splits the two
+  // halves of the product onto different databases.
+
+  static const String projectId = '6aa44c20000b0b73b432';
+  static const String endpoint = 'https://fra.cloud.appwrite.io/v1';
+  static const String databaseId = '6aa44dc40005d989a0e4';
+  static const String apiKey = 'standard_8e825bd4c06323a3e43d5941086078419bc3d82a2c6bb6760e21b91667e69982655826c89e2071ac20530339274ba38f5e5b9bfb36e39f7da4209d6379ef26aaac2548e0a8f75ea2145934a92bedde738ca48dfbbdf20e26afffa25f8650d26823fd0ef03aee008eb2edaa1e6eaee8692a4d0d6a7811d54d08df0a2f994e7172'; // MUST have 'databases.write' scope
+
+  /// Alias of [databaseId], kept because callers use both spellings. Derived
+  /// rather than repeated so the two can never drift apart.
+  static const String dbId = databaseId;
+
+  /// Storage bucket for every uploaded image (products, banners, logos).
+  static const String postsBucketId = '6aa44e8d0013091f9c27';
+
+  /// FCM push plumbing.
+  static const String messagingProviderId = '6aa451f2002cbb748e9d';
+  static const String notificationFunctionId = 'notification_function1';
+
+  /// Topic customers subscribe to for promotional broadcasts. The store app
+  /// calls this same id `broadCastTopicId`.
+  static const String topicId = '6aa5a40a00120693b5eb';
+
+  /// Topic every store-admin device subscribes to — carries new-order alerts.
+  static const String storeAdminTopicId = '6aa5a4aa003371f66577';
+
+  /// Processes Stripe payments via a cloud function. Customer-app only — the
+  /// store app has no counterpart for this one.
+  static const String stripePaymentFunctionId = 'stripe_payment1';
 
   static const String defaultMapTheme = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
   static const String lightMapTheme = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';

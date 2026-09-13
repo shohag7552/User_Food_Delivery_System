@@ -8,7 +8,7 @@ just always lands in the browser on the deployed web build.
 ## Files
 
 - **`assetlinks.json`** — Android App Links. Lists the SHA-256 fingerprints
-  allowed to claim links for `com.mehedi.food`.
+  allowed to claim links for `com.kikomart.user`.
 - **`apple-app-site-association`** — iOS Universal Links. **No file extension**
   by design; `firebase.json` pins its `Content-Type` to `application/json`
   because Firebase would otherwise serve it as `application/octet-stream`,
