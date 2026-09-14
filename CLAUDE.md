@@ -45,7 +45,6 @@ lib/
       dependencies.dart          # DI wiring (repos + controllers)
       routes/app_router.dart     # GoRouter + path constants
     resources/                   # constants, colors, text_style, theme, route_names, messages, images
-  scripts/seed_database.dart     # Appwrite schema/seed helper
 assets/language/{en,bn}.json     # translation key/value maps
 ```
 

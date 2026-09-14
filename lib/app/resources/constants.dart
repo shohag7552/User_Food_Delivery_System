@@ -3,12 +3,14 @@ import 'package:appwrite_user_app/app/resources/images.dart';
 
 /// App-wide configuration.
 ///
-/// **Do not import Flutter into this file.** `lib/scripts/seed_database.dart`
-/// reads the Appwrite ids below (through `AppwriteConfig`) and runs on the
-/// standalone Dart VM, which has no `dart:ui` — a single
-/// `package:flutter/...` import here breaks the seed script with a wall of
-/// errors from inside Flutter's own sources. That is why the brand colour is
-/// stored as an `int` and wrapped in a `Color` over in `resources/colors.dart`.
+/// **Do not import Flutter into this file.** The ids below are mirrored from
+/// the store-admin app, whose `lib/scripts/seed_database.dart` owns this
+/// database's schema and runs on the standalone Dart VM — no `dart:ui` there,
+/// so a single `package:flutter/...` import fails with a wall of errors from
+/// inside Flutter's own sources. Keeping this file Flutter-free means it (and
+/// `AppwriteConfig`, which re-exports it) stays readable from plain Dart
+/// tooling on either side. That is why the brand colour is stored as an `int`
+/// and wrapped in a `Color` over in `resources/colors.dart`.
 class Constants {
 
   static const String appName = 'Kiko Mart';
