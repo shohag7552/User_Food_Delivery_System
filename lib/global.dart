@@ -29,10 +29,10 @@ class Global {
         if (GetPlatform.isAndroid) {
           await Firebase.initializeApp(
             options: const FirebaseOptions(
-              apiKey: 'AIzaSyC6vjmdqwOy4Yz9SHQ-OLw5TgDTKTpNW-k',
-              appId: '1:660606682501:android:5bb210b0bcaefc5f27b0ec',
-              messagingSenderId: '660606682501',
-              projectId: 'food-app-c2fe8',
+              apiKey: 'AIzaSyBWr0YygfC2jQtT4fS7FIIBfU3Q0T0tVJ0',
+              appId: '1:232005235395:android:ff2d6172777e510c802876',
+              messagingSenderId: '232005235395',
+              projectId: 'kiko-mart',
             ),
           );
         } else {
