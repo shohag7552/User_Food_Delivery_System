@@ -18,29 +18,7 @@ class Constants {
   static const String packageName = 'com.kikomart.user';
   static const String webBaseUrl = 'https://kiko-mart.appwrite.network';
 
-  /// The app's brand colour, as a plain ARGB int — the single knob for
-  /// recolouring the whole UI.
-  ///
-  /// Change this one value and everything follows: the lighter accent steps,
-  /// the brand gradient, the Material swatch and the light/dark [ThemeData] are
-  /// all derived from it in `resources/colors.dart`. Nothing else needs editing.
-  ///
-  /// It is an `int` and not a `Color` on purpose — see the note on [Constants].
-  /// Read it as `Color(Constants.primaryColorValue)`, or better, use
-  /// `ColorResource.primary` / `context.*` which already do.
-  ///
-  /// Pick a colour dark enough to carry white text — it is painted behind the
-  /// app bar, the primary buttons and every filled badge. Mid-tone brand
-  /// colours (roughly 40-55% HSL lightness) work best; a very light one will
-  /// leave white labels unreadable, and a near-black one flattens the gradient.
   static const int primaryColorValue = 0xFFC92A2A;
-
-  // ── Appwrite backend ─────────────────────────────────────────────────────
-  //
-  // These MUST stay byte-identical to the same ids in the store-admin app
-  // (`appWrite_store_app/lib/app/resources/constants.dart`) — both apps read
-  // and write the one project, so a divergence here silently splits the two
-  // halves of the product onto different databases.
 
   static const String projectId = '6aa44c20000b0b73b432';
   static const String endpoint = 'https://fra.cloud.appwrite.io/v1';
@@ -68,6 +46,20 @@ class Constants {
   /// Processes Stripe payments via a cloud function. Customer-app only — the
   /// store app has no counterpart for this one.
   static const String stripePaymentFunctionId = 'stripe_payment1';
+
+  /// Host the gateway returns the customer to, as
+  /// `<host>/payment/success|fail|cancel`.
+  ///
+  /// This is the web app itself, not the payment function's own domain, and it
+  /// has to be: on web the customer comes back as a real page load, and only a
+  /// URL this app serves can pick the order back up and finish it. Android and
+  /// iOS match the same three paths inside the in-app WebView and pop before
+  /// they load, so one setting covers every platform.
+  ///
+  /// MUST match the callback URLs configured on the payment function
+  /// ([stripePaymentFunctionId]) — the function builds the gateway session
+  /// with its own copies, and a mismatch strands the customer mid-payment.
+  static const String paymentCallbackBaseUrl = webBaseUrl;
 
   static const String defaultMapTheme = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
   static const String lightMapTheme = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';

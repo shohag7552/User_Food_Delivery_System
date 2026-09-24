@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
+import 'package:appwrite_user_app/app/controllers/flash_sale_controller.dart';
+import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
@@ -88,6 +91,7 @@ class OrderController extends GetxController implements GetxService {
     String? scheduledTimeSlot,
     double? shippingCost,
     String? shippingMethod,
+    String? moduleType,
   }) async {
     // An order with no lines is not an order. The checkout screen already hides
     // its button behind an empty-cart state, but that is a rendering decision
@@ -148,6 +152,7 @@ class OrderController extends GetxController implements GetxService {
         scheduledTimeSlot: scheduledTimeSlot,
         shippingCost: shippingCost,
         shippingMethod: shippingMethod,
+        moduleType: moduleType,
       );
 
       _isPlacingOrder = false;
@@ -163,6 +168,27 @@ class OrderController extends GetxController implements GetxService {
       log('Error placing order: $e');
       return {'success': false, 'error': e.toString()};
     }
+  }
+
+  /// Runs the bookkeeping that follows an order actually being written: sale
+  /// counters first, then emptying the cart it came from.
+  ///
+  /// Shared because an order now completes in two places — the checkout screen
+  /// on mobile, and the payment-return route the web redirect lands on — and a
+  /// cart left unemptied on one of those paths would be reordered by mistake.
+  Future<void> finalizePlacedOrder(List<CartItemModel> cartItems) async {
+    // Capture the lines before the cart is cleared out from under them.
+    final items = List.of(cartItems);
+
+    await Get.find<ProductController>().recordSaleForItems(items);
+    // Flash sale sold counters (best effort — no-op when no sale is live).
+    if (Get.isRegistered<FlashSaleController>()) {
+      unawaited(Get.find<FlashSaleController>().recordSoldItems(items));
+    }
+
+    final cartController = Get.find<CartController>();
+    await cartController.clearCart();
+    cartController.removeCoupon();
   }
 
   /// Update payment status of an existing order

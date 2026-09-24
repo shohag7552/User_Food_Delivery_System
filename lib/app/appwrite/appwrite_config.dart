@@ -31,6 +31,7 @@ class AppwriteConfig {
   static const String topicId = Constants.topicId;
   static const String storeAdminTopicId = Constants.storeAdminTopicId;
   static const String stripePaymentFunctionId = Constants.stripePaymentFunctionId;
+  static const String paymentCallbackBaseUrl = Constants.paymentCallbackBaseUrl;
 
   // Collection IDs
   static const String usersCollection = 'users';

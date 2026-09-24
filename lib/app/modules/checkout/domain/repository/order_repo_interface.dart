@@ -21,6 +21,11 @@ abstract class OrderRepoInterface {
     String? scheduledTimeSlot,
     double? shippingCost, // ecommerce
     String? shippingMethod, // ecommerce
+    /// Storefront the order belongs to. Defaults to the active module, which
+    /// is only correct while the app is running normally — the web payment
+    /// return lands on a cold app whose module has not been resolved yet, so
+    /// it passes the one the order was actually placed in.
+    String? moduleType,
   });
 
   /// Updates the payment status of an existing order.

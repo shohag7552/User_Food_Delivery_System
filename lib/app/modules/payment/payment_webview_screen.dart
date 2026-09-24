@@ -33,13 +33,19 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
   void _checkURL(String? urlString) {
     if (urlString == null || _resultHandled) return;
 
-    if (urlString.startsWith(PaymentService.successURL)) {
+    // Matched on path rather than the full callback URL: the function's host
+    // changes on every redeploy, and the customer must not get stranded on a
+    // completed payment because a hardcoded domain went stale.
+    final path = Uri.tryParse(urlString)?.path;
+    if (path == null || path.isEmpty) return;
+
+    if (path.startsWith(PaymentService.successPath)) {
       _resultHandled = true;
       context.pop(PaymentResult.success);
-    } else if (urlString.startsWith(PaymentService.failURL)) {
+    } else if (path.startsWith(PaymentService.failPath)) {
       _resultHandled = true;
       context.pop(PaymentResult.failed);
-    } else if (urlString.startsWith(PaymentService.cancelURL)) {
+    } else if (path.startsWith(PaymentService.cancelPath)) {
       _resultHandled = true;
       context.pop(PaymentResult.cancelled);
     }

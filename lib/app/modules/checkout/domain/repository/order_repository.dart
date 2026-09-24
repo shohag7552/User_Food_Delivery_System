@@ -68,6 +68,7 @@ class OrderRepository implements OrderRepoInterface {
     String? scheduledTimeSlot,
     double? shippingCost,
     String? shippingMethod,
+    String? moduleType,
   }) async {
     try {
       // Generate sequential readable order number
@@ -89,7 +90,7 @@ class OrderRepository implements OrderRepoInterface {
         // Store as an absolute UTC instant (the customer app is the writer, so
         // the trailing 'Z' keeps it unambiguous across devices/timezones).
         'created_at': DateTime.now().toUtc().toIso8601String(),
-        'module_type': ModuleController.current,
+        'module_type': moduleType ?? ModuleController.current,
         // Written on every order regardless of the store's
         // `is_order_verification_active` setting — that switch can be flipped
         // at any time, and orders already in flight when it happens still need

@@ -12,13 +12,23 @@ class PaymentService {
 
   static const String _functionId = AppwriteConfig.stripePaymentFunctionId;
 
-  // ── Callback URLs — must match Appwrite function env vars ──
+  // ── Callback paths — must match the Appwrite function's routes ──
+  //
+  // Detection matches on the path alone. The host the function is served on
+  // changes every time it is redeployed (a move between Appwrite projects
+  // gives it a brand-new domain), and a stale host would leave the customer
+  // staring at a finished payment page the app never recognises.
+  static const String successPath = '/payment/success';
+  static const String failPath = '/payment/fail';
+  static const String cancelPath = '/payment/cancel';
+
+  // ── Absolute callback URLs — must match the function's own env vars ──
   static const String successURL =
-      'https://69ad6e650008c45d5ffc.sgp.appwrite.run/payment/success';
+      '${AppwriteConfig.paymentCallbackBaseUrl}$successPath';
   static const String failURL =
-      'https://69ad6e650008c45d5ffc.sgp.appwrite.run/payment/fail';
+      '${AppwriteConfig.paymentCallbackBaseUrl}$failPath';
   static const String cancelURL =
-      'https://69ad6e650008c45d5ffc.sgp.appwrite.run/payment/cancel';
+      '${AppwriteConfig.paymentCallbackBaseUrl}$cancelPath';
 
   /// Singleton-friendly constructor that reuses the AppwriteService client.
   PaymentService() : _functions = AppwriteService().functions;

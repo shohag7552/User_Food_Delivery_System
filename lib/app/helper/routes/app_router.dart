@@ -39,6 +39,7 @@ import 'package:appwrite_user_app/app/modules/orders/screens/order_detail_page.d
 import 'package:appwrite_user_app/app/modules/orders/screens/order_history_page.dart';
 import 'package:appwrite_user_app/app/modules/orders/screens/orders_page.dart';
 import 'package:appwrite_user_app/app/modules/payment/payment_webview_screen.dart';
+import 'package:appwrite_user_app/app/modules/payment/screens/payment_return_page.dart';
 import 'package:appwrite_user_app/app/modules/help_support/screens/help_support_screen.dart';
 import 'package:appwrite_user_app/app/modules/policies/screens/policy_content_screen.dart';
 import 'package:appwrite_user_app/app/modules/profile/screens/edit_profile_page.dart';
@@ -96,6 +97,9 @@ abstract class RouteNames {
   static const mapPicker = 'map-picker';
   static const imageViewer = 'image-viewer';
   static const payment = 'payment';
+  static const paymentSuccess = 'payment-success';
+  static const paymentFail = 'payment-fail';
+  static const paymentCancel = 'payment-cancel';
 }
 
 // ── Argument bundles for routes that carry more than one non-URL value. ──
@@ -253,6 +257,15 @@ abstract class AppRouter {
   static const String mapPicker = '/map-picker';
   static const String imageViewer = '/image-viewer';
   static const String payment = '/payment';
+
+  // Where the payment function sends the customer back to. On web these load
+  // as real pages and finish the order; on mobile the in-app WebView matches
+  // the same paths and pops before they ever load. Keep them in step with
+  // `PaymentService.successPath` / `failPath` / `cancelPath` and with the
+  // callback URLs configured on the payment function itself.
+  static const String paymentSuccess = '/payment/success';
+  static const String paymentFail = '/payment/fail';
+  static const String paymentCancel = '/payment/cancel';
 
   static final GoRouter router = GoRouter(
     navigatorKey: rootNavigatorKey,
@@ -605,6 +618,24 @@ abstract class AppRouter {
             gatewayName: args.gatewayName,
           );
         },
+      ),
+      GoRoute(
+        path: paymentSuccess,
+        name: RouteNames.paymentSuccess,
+        builder: (context, state) =>
+            const PaymentReturnPage(result: PaymentResult.success),
+      ),
+      GoRoute(
+        path: paymentFail,
+        name: RouteNames.paymentFail,
+        builder: (context, state) =>
+            const PaymentReturnPage(result: PaymentResult.failed),
+      ),
+      GoRoute(
+        path: paymentCancel,
+        name: RouteNames.paymentCancel,
+        builder: (context, state) =>
+            const PaymentReturnPage(result: PaymentResult.cancelled),
       ),
     ],
   );

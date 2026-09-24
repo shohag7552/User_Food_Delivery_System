@@ -1,6 +1,9 @@
-import 'dart:async' show unawaited;
+import 'dart:developer' show log;
 
 import 'package:appwrite_user_app/app/appwrite/payment_service.dart';
+import 'package:appwrite_user_app/app/modules/payment/domain/services/pending_payment_store.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:url_launcher/url_launcher.dart';
 import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
@@ -11,10 +14,8 @@ import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/address_controller.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
-import 'package:appwrite_user_app/app/controllers/flash_sale_controller.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/order_controller.dart';
-import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/controllers/shipping_controller.dart';
 import 'package:appwrite_user_app/app/models/shipping_method_model.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
@@ -54,8 +55,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
   final GlobalKey<ScaffoldState> _webScaffoldKey = GlobalKey<ScaffoldState>();
 
   final _instructionsController = TextEditingController();
+  // Only Stripe is actually configured server-side today. Extend this list
+  // when another gateway is wired up — the UI below just maps over it.
+  static const _enabledGateways = [PaymentGateway.stripe];
   PaymentMethod _selectedPaymentMethod = PaymentMethod.cod;
-  PaymentGateway _selectedGateway = PaymentGateway.sslcommerz;
+  PaymentGateway _selectedGateway = PaymentGateway.stripe;
   bool _isPriceExpanded = false;
   bool _isAddressExpanded = false;
   AddressModel? _selectedAddress;
@@ -106,9 +110,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _loadShippingMethods();
+      _hydrate();
     });
-
-    _hydrate();
   }
 
   /// Loads the courier options and preselects the first one.
@@ -1552,7 +1555,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
-                          children: PaymentGateway.values.map((gateway) {
+                          children: _enabledGateways.map((gateway) {
                             final isSelected = _selectedGateway == gateway;
                             return ChoiceChip(
                               label: Text(gateway.displayName),
@@ -1993,42 +1996,42 @@ class _CheckoutPageState extends State<CheckoutPage> {
         throw Exception('User not logged in');
       }
 
-      // ─── Step 1: Always create order first with paymentStatus = 'unpaid' ───
       final itemDiscountTotal = cartController.itemDiscountTotal;
       final couponDiscountAmount = cartController.discountAmount;
 
-      final result = await orderController.placeOrder(
-        customerId: userId,
-        address: _selectedAddress!,
-        cartItems: cartController.cartItems,
-        totalAmount: total,
-        deliveryFee: deliveryFee,
-        taxAmount: taxAmount,
-        discountAmount: itemDiscountTotal,
-        couponDiscount: couponDiscountAmount,
-        paymentMethod: _selectedPaymentMethod.name,
-        paymentStatus: 'unpaid',
-        deliveryInstructions: _instructionsController.text.trim(),
-        deliveryType: _isEcommerce ? null : _deliveryType,
-        scheduledDate: _isEcommerce ? null : _selectedDate,
-        scheduledTimeSlot: _isEcommerce ? null : _selectedTimeSlot,
-        // Courier-only fields. With shipping off the amount is a delivery fee,
-        // already sent as `deliveryFee` above — repeating it as `shippingCost`
-        // would report the same charge to the store twice.
-        shippingCost: _showsShipping ? deliveryFee : null,
-        shippingMethod: _showsShipping ? _selectedShipping?.name : null,
-      );
-
-      if (result['success'] != true) {
-        throw Exception(result['error'] ?? 'Failed to place order');
+      // Writes the order row with the given final payment status. Called only
+      // once the payment outcome (or COD/wallet equivalent) is already known,
+      // so a failed/cancelled payment never leaves a row behind for the store
+      // to see.
+      Future<Map<String, dynamic>> createOrderRow(String paymentStatus) {
+        return orderController.placeOrder(
+          customerId: userId,
+          address: _selectedAddress!,
+          cartItems: cartController.cartItems,
+          totalAmount: total,
+          deliveryFee: deliveryFee,
+          taxAmount: taxAmount,
+          discountAmount: itemDiscountTotal,
+          couponDiscount: couponDiscountAmount,
+          paymentMethod: _selectedPaymentMethod.name,
+          paymentStatus: paymentStatus,
+          deliveryInstructions: _instructionsController.text.trim(),
+          deliveryType: _isEcommerce ? null : _deliveryType,
+          scheduledDate: _isEcommerce ? null : _selectedDate,
+          scheduledTimeSlot: _isEcommerce ? null : _selectedTimeSlot,
+          // Courier-only fields. With shipping off the amount is a delivery
+          // fee, already sent as `deliveryFee` above — repeating it as
+          // `shippingCost` would report the same charge to the store twice.
+          shippingCost: _showsShipping ? deliveryFee : null,
+          shippingMethod: _showsShipping ? _selectedShipping?.name : null,
+        );
       }
 
-      final orderId = result['orderId'] as String;
-      final orderNumber = result['orderNumber'] as String;
+      final Map<String, dynamic> result;
 
-      // ─── Step 2: Handle payment based on method ───
-
-      // ── Online payment via WebView ──
+      // ── Online payment — pay first, create the order only once the gateway
+      // confirms. Nothing is written to Appwrite before that point, on either
+      // platform; only how the customer reaches the gateway differs. ──
       if (_selectedPaymentMethod == PaymentMethod.online) {
         final paymentService = PaymentService();
         final profile = profileController.userProfile;
@@ -2036,6 +2039,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
         // Convert total to smallest currency unit (cents/poisha)
         final amountInSmallest = (total * 100).toInt();
+
+        // No DB order exists yet, so the gateway only gets a local, temporary
+        // reference — matches PaymentService.createPayment's own contract.
+        final tempReference = 'temp_${DateTime.now().millisecondsSinceEpoch}';
 
         // Show loading while creating payment session
         if (mounted) {
@@ -2051,18 +2058,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
           paymentResult = await paymentService.createPayment(
             gateway: _selectedGateway.key,
             amount: amountInSmallest,
-            orderId: orderId, // ✅ Real order ID from DB
+            orderId: tempReference,
             currency: currency,
             customerName: profile?.name,
             customerEmail: profile?.email,
             customerPhone: profile?.phone,
           );
         } catch (e) {
-          print('Payment initiation error: $e');
+          log('Payment initiation error: $e');
           // Dismiss loading dialog safely
           if (mounted) Navigator.of(context).pop();
-          // Mark payment as failed on the order
-          await orderController.updatePaymentStatus(orderId, 'failed');
           rethrow;
         }
 
@@ -2071,11 +2076,51 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
         final paymentURL = paymentResult['data']?['paymentURL'] as String?;
         if (paymentURL == null || paymentURL.isEmpty) {
-          await orderController.updatePaymentStatus(orderId, 'failed');
           throw Exception('Payment gateway returned no URL');
         }
 
-        // Open WebView for user to complete payment
+        // ── Web: hand the whole tab over to the gateway ──
+        //
+        // The in-app WebView is an iframe on web, and an iframe never reports
+        // the cross-origin redirect the gateway finishes on — the result would
+        // be invisible and the customer stuck on a completed payment. So the
+        // tab navigates away instead and comes back on /payment/success, where
+        // [PaymentReturnPage] writes the order. That page needs these details
+        // and this screen will not exist by then, so they go to disk first.
+        if (kIsWeb) {
+          await PendingPaymentStore.save(
+            PendingPayment(
+              customerId: userId,
+              address: _selectedAddress!,
+              cartItems: cartController.cartItems,
+              totalAmount: total,
+              deliveryFee: deliveryFee,
+              taxAmount: taxAmount,
+              discountAmount: itemDiscountTotal,
+              couponDiscount: couponDiscountAmount,
+              paymentMethod: _selectedPaymentMethod.name,
+              deliveryInstructions: _instructionsController.text.trim(),
+              deliveryType: _isEcommerce ? null : _deliveryType,
+              scheduledDate: _isEcommerce ? null : _selectedDate,
+              scheduledTimeSlot: _isEcommerce ? null : _selectedTimeSlot,
+              shippingCost: _showsShipping ? deliveryFee : null,
+              shippingMethod: _showsShipping ? _selectedShipping?.name : null,
+              moduleType: ModuleController.current,
+            ),
+          );
+
+          final launched = await launchUrl(
+            Uri.parse(paymentURL),
+            webOnlyWindowName: '_self',
+          );
+          if (!launched) {
+            await PendingPaymentStore.clear();
+            throw Exception('could_not_open_payment_page'.tr);
+          }
+          return;
+        }
+
+        // ── Mobile: the native WebView can intercept the callback itself ──
         if (!mounted) return;
         final webViewResult = await context.pushNamed<PaymentResult?>(
           RouteNames.payment,
@@ -2085,47 +2130,40 @@ class _CheckoutPageState extends State<CheckoutPage> {
           ),
         );
 
-        if (webViewResult == PaymentResult.success) {
-          // ✅ Payment succeeded — update order status
-          await orderController.updatePaymentStatus(orderId, 'paid');
-        } else {
-          // ❌ Payment failed or cancelled — update order status
-          final status = webViewResult == PaymentResult.failed ? 'failed' : 'cancelled';
-          await orderController.updatePaymentStatus(orderId, status);
-
+        if (webViewResult != PaymentResult.success) {
+          // ❌ Payment failed or cancelled — nothing was ever written, so
+          // there is nothing to roll back.
           final message = webViewResult == PaymentResult.failed
-              ? 'Payment failed. Your order #$orderNumber has been saved. You can retry payment later.'
-              : 'Payment was cancelled. Your order #$orderNumber has been saved.';
+              ? 'payment_failed_try_again'.tr
+              : 'payment_was_cancelled'.tr;
           customToster(message, isSuccess: false);
           return;
         }
-      }
 
-      // ── Wallet payment — deduct balance ──
-      if (_selectedPaymentMethod == PaymentMethod.wallet) {
+        // ✅ Payment succeeded — now create the order, already marked paid.
+        result = await createOrderRow('paid');
+      } else if (_selectedPaymentMethod == PaymentMethod.wallet) {
+        // ── Wallet payment — deduct first, create the order only if it
+        // succeeds. ──
         final deducted = await profileController.deductWalletBalance(total);
         if (!deducted) {
-          await orderController.updatePaymentStatus(orderId, 'failed');
-          customToster('Failed to deduct wallet balance. Please try again.', isSuccess: false);
+          customToster('failed_to_deduct_wallet_balance'.tr, isSuccess: false);
           return;
         }
-        // ✅ Wallet deducted — mark as paid
-        await orderController.updatePaymentStatus(orderId, 'paid');
+        result = await createOrderRow('paid');
+      } else {
+        // ── Cash on delivery — no external payment step to fail. ──
+        result = await createOrderRow('unpaid');
       }
 
-      // ─── Step 3: Reduce stock, clear cart & coupon, navigate to success ───
-      // Capture items before the cart is cleared.
-      await Get.find<ProductController>()
-          .recordSaleForItems(cartController.cartItems);
-      // Flash sale sold counters (best effort — no-op when no sale is live).
-      if (Get.isRegistered<FlashSaleController>()) {
-        unawaited(
-          Get.find<FlashSaleController>()
-              .recordSoldItems(List.of(cartController.cartItems)),
-        );
+      if (result['success'] != true) {
+        throw Exception(result['error'] ?? 'Failed to place order');
       }
-      await cartController.clearCart();
-      cartController.removeCoupon();
+
+      final orderNumber = result['orderNumber'] as String;
+
+      // ─── Reduce stock, clear cart & coupon, navigate to success ───
+      await orderController.finalizePlacedOrder(cartController.cartItems);
 
       if (mounted) {
         context.goNamed(
