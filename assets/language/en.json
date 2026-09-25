@@ -828,5 +828,18 @@
   "helpful": "Helpful",
   "cookies_privacy_title": "Cookie Policy",
   "decline": "Decline",
-  "accept_cookies": "Accept Cookies"
+  "accept_cookies": "Accept Cookies",
+  "contact_details": "Contact Details",
+  "address_details": "Address Details",
+  "enter_full_name": "Enter your full name",
+  "please_enter_phone_number": "Please enter your phone number",
+  "please_enter_address": "Please enter your address",
+  "address_line1_hint": "House no., road, area",
+  "address_line2_label": "Apartment, floor, landmark",
+  "address_line2_hint": "e.g. Flat 4B, near City Bank",
+  "default_address_hint": "Use this address for future orders",
+  "drag_map_to_pin_location": "Drag the map to place the pin on your exact location",
+  "address_page_subtitle": "Pin your location on the map and fill in the delivery details.",
+  "fetching_address": "Fetching address…",
+  "failed_to_save_address": "Failed to save address. Please try again."
 }

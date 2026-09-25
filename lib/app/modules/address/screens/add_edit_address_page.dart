@@ -7,6 +7,9 @@ import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
+import 'package:appwrite_user_app/app/modules/address/widgets/address_form_field.dart';
+import 'package:appwrite_user_app/app/modules/address/widgets/address_form_section.dart';
+import 'package:appwrite_user_app/app/modules/address/widgets/address_save_bar.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
@@ -166,34 +169,45 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
       body: AuthGate(
         child: Form(
           key: _formKey,
-          child: showWebNav
-              ? _buildWebBody(context, isEditing)
-              : _buildMobileBody(isEditing),
+          child: AutofillGroup(
+            child: showWebNav
+                ? _buildWebBody(context, isEditing)
+                : _buildMobileBody(),
+          ),
         ),
+      ),
+      // Sticky save action — stays pinned above the system nav bar (and the
+      // keyboard) however far the form is scrolled.
+      bottomNavigationBar: AddressSaveBar(
+        label: isEditing ? 'update_address'.tr : 'save_address'.tr,
+        isSaving: _isSaving,
+        onSave: _saveAddress,
+        isWeb: showWebNav,
+        maxContentWidth: showWebNav ? _maxContentWidth : double.infinity,
+        onCancel: showWebNav ? () => context.pop() : null,
       ),
     );
   }
 
-  /// Mobile / tablet: a full-width single-column form.
-  Widget _buildMobileBody(bool isEditing) {
+  /// Mobile / tablet: stacked section cards. The save button lives in the
+  /// sticky bottom bar, so the list only needs a little trailing space.
+  Widget _buildMobileBody() {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(Constants.paddingSizeDefault),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       children: [
-        _mapLabel(),
-        const SizedBox(height: 8),
-        _mapSection(height: 250),
-        const SizedBox(height: 20),
-        ..._formFields(),
-        const SizedBox(height: 32),
-        _buildSaveButton(isEditing),
+        _locationSection(mapHeight: 220),
+        const SizedBox(height: Constants.paddingSizeDefault),
+        ..._formSections(),
+        const SizedBox(height: Constants.paddingSizeDefault),
       ],
     );
   }
 
   /// Desktop web: a full-width scroll surface (so dragging anywhere — including
-  /// the side gutters — scrolls) with a centred, width-capped card panel. On
-  /// wide viewports the map and form sit side by side (a standard web
-  /// address-entry layout); narrower widths stack them.
+  /// the side gutters — scrolls) with a centred, width-capped layout. On wide
+  /// viewports the map and form sit side by side (a standard web address-entry
+  /// layout); narrower widths stack them.
   Widget _buildWebBody(BuildContext context, bool isEditing) {
     return SingleChildScrollView(
       child: Center(
@@ -214,8 +228,43 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
                     color: context.textPrimary,
                   ),
                 ),
+                const SizedBox(height: Constants.paddingSizeExtraSmall),
+                Text(
+                  'address_page_subtitle'.tr,
+                  style: poppinsRegular.copyWith(
+                    fontSize: Constants.fontSizeDefault,
+                    color: context.textSecondary,
+                  ),
+                ),
                 const SizedBox(height: Constants.paddingSizeLarge),
-                _buildWebCard(context, isEditing),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Side-by-side when there's room; otherwise stack.
+                    if (constraints.maxWidth >= _twoColumnWidth) {
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: 6,
+                            child: _locationSection(mapHeight: 480),
+                          ),
+                          const SizedBox(width: Constants.paddingSizeLarge),
+                          Expanded(
+                            flex: 5,
+                            child: Column(children: _formSections()),
+                          ),
+                        ],
+                      );
+                    }
+                    return Column(
+                      children: [
+                        _locationSection(mapHeight: 300),
+                        const SizedBox(height: Constants.paddingSizeDefault),
+                        ..._formSections(),
+                      ],
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -224,86 +273,13 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
     );
   }
 
-  /// The surface panel that holds the map + form on web.
-  Widget _buildWebCard(BuildContext context, bool isEditing) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.all(Constants.paddingSizeExtraLarge),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(Constants.radiusLarge),
-        border: Border.all(
-          color: context.textLight.withValues(alpha: 0.15),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.22)
-                : Colors.black.withValues(alpha: 0.05),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          // Side-by-side when there's room; otherwise stack the sections.
-          if (constraints.maxWidth >= _twoColumnWidth) {
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 6,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _mapLabel(),
-                      const SizedBox(height: 8),
-                      _mapSection(height: 460),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: Constants.spaceSection),
-                Expanded(
-                  flex: 5,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ..._formFields(),
-                      const SizedBox(height: Constants.spaceSection),
-                      _buildSaveButton(isEditing),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _mapLabel(),
-              const SizedBox(height: 8),
-              _mapSection(height: 300),
-              const SizedBox(height: 20),
-              ..._formFields(),
-              const SizedBox(height: 32),
-              _buildSaveButton(isEditing),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _mapLabel() {
-    return Text(
-      'location_map'.tr,
-      style: poppinsMedium.copyWith(
-        fontSize: Constants.fontSizeDefault,
-        color: context.textPrimary,
-      ),
+  /// Map card: the pin picker plus a hint on how to use it.
+  Widget _locationSection({required double mapHeight}) {
+    return AddressFormSection(
+      icon: Icons.map_outlined,
+      title: 'location_map'.tr,
+      subtitle: 'drag_map_to_pin_location'.tr,
+      child: _mapSection(height: mapHeight),
     );
   }
 
@@ -315,7 +291,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
       height: height,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(Constants.radiusDefault),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: context.textLight.withValues(alpha: 0.2)),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(Constants.radiusDefault),
@@ -347,59 +323,53 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
                 padding: EdgeInsets.only(bottom: 40.0), // Offset pin so tip points to center
                 child: Icon(
                   Icons.location_on,
-                  color: Colors.red,
+                  color: ColorResource.error,
                   size: 40,
                 ),
               ),
             ),
             if (_isFetchingAddress)
-              Center(
-                child: Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
+              Positioned(
+                top: Constants.paddingSizeSmall,
+                left: Constants.paddingSizeSmall,
+                child: _mapChip(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      const SizedBox(width: Constants.paddingSizeSmall),
+                      Text(
+                        'fetching_address'.tr,
+                        style: poppinsMedium.copyWith(
+                          fontSize: Constants.fontSizeSmall,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             Positioned(
-              top: 10,
-              right: 10,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  borderRadius: BorderRadius.circular(Constants.radiusSmall),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.fullscreen, color: ColorResource.primaryDark),
-                  onPressed: _openFullScreenMap,
-                  tooltip: 'full_screen_map'.tr,
-                ),
+              top: Constants.paddingSizeSmall,
+              right: Constants.paddingSizeSmall,
+              child: _buildMapControlButton(
+                icon: Icons.fullscreen,
+                onPressed: _openFullScreenMap,
+                tooltip: 'full_screen_map'.tr,
               ),
             ),
             Positioned(
-              bottom: 10,
-              right: 10,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildMapControlButton(
-                    icon: Icons.my_location,
-                    onPressed: _isLoadingLocation ? null : _getCurrentLocation,
-                    tooltip: 'my_location'.tr,
-                    isLoading: _isLoadingLocation,
-                  ),
-                ],
+              bottom: Constants.paddingSizeSmall,
+              right: Constants.paddingSizeSmall,
+              child: _buildMapControlButton(
+                icon: Icons.my_location,
+                onPressed: _isLoadingLocation ? null : _getCurrentLocation,
+                tooltip: 'my_location'.tr,
+                isLoading: _isLoadingLocation,
               ),
             ),
           ],
@@ -408,90 +378,174 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
     );
   }
 
-  /// The address form fields (shared by the mobile and web layouts).
-  List<Widget> _formFields() {
-    return [
-      _buildTextField(
-        controller: _nameController,
-        label: 'full_name'.tr,
-        icon: Icons.person_outline,
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Please enter your name';
-          }
-          return null;
-        },
+  /// A small floating label over the map. Map tiles are always light, so the
+  /// chip is deliberately light in both themes.
+  Widget _mapChip({required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: Constants.paddingSizeSmall,
+        vertical: Constants.paddingSizeExtraSmall + 2,
       ),
-      const SizedBox(height: 16),
-      _buildTextField(
-        controller: _phoneController,
-        label: 'phone_number'.tr,
-        icon: Icons.phone_outlined,
-        keyboardType: TextInputType.phone,
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Please enter your phone number';
-          }
-          if (value.length < 10) {
-            return 'Please enter a valid phone number';
-          }
-          return null;
-        },
-      ),
-      const SizedBox(height: 16),
-      _buildTextField(
-        controller: _addressLine1Controller,
-        label: 'address'.tr,
-        icon: Icons.home_outlined,
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Please enter your address';
-          }
-          return null;
-        },
-      ),
-      const SizedBox(height: 16),
-      Row(
-        children: [
-          Expanded(
-            child: _buildTextField(
-              controller: _cityController,
-              label: 'City *',
-              icon: Icons.location_city_outlined,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Required';
-                }
-                return null;
-              },
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildTextField(
-              controller: _postalCodeController,
-              label: 'Postal Code *',
-              icon: Icons.markunread_mailbox_outlined,
-              keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Required';
-                }
-                return null;
-              },
-            ),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      const SizedBox(height: 20),
+      child: child,
+    );
+  }
+
+  /// Contact + address cards and the default toggle (shared by mobile & web).
+  List<Widget> _formSections() {
+    return [
+      AddressFormSection(
+        icon: Icons.person_outline_rounded,
+        title: 'contact_details'.tr,
+        child: Column(
+          children: [
+            AddressFormField(
+              controller: _nameController,
+              label: 'full_name'.tr,
+              hint: 'enter_full_name'.tr,
+              icon: Icons.person_outline,
+              autofillHints: const [AutofillHints.name],
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'please_enter_your_name'.tr;
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: Constants.paddingSizeDefault),
+            AddressFormField(
+              controller: _phoneController,
+              label: 'phone_number'.tr,
+              hint: 'enter_phone_number'.tr,
+              icon: Icons.phone_outlined,
+              keyboardType: TextInputType.phone,
+              textCapitalization: TextCapitalization.none,
+              autofillHints: const [AutofillHints.telephoneNumber],
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'please_enter_phone_number'.tr;
+                }
+                if (value.trim().length < 10) {
+                  return 'please_enter_valid_phone_number'.tr;
+                }
+                return null;
+              },
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: Constants.paddingSizeDefault),
+      AddressFormSection(
+        icon: Icons.home_outlined,
+        title: 'address_details'.tr,
+        child: Column(
+          children: [
+            AddressFormField(
+              controller: _addressLine1Controller,
+              label: 'address'.tr,
+              hint: 'address_line1_hint'.tr,
+              icon: Icons.location_on_outlined,
+              autofillHints: const [AutofillHints.streetAddressLine1],
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'please_enter_address'.tr;
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: Constants.paddingSizeDefault),
+            AddressFormField(
+              controller: _addressLine2Controller,
+              label: 'address_line2_label'.tr,
+              hint: 'address_line2_hint'.tr,
+              icon: Icons.apartment_outlined,
+              isRequired: false,
+              autofillHints: const [AutofillHints.streetAddressLine2],
+            ),
+            const SizedBox(height: Constants.paddingSizeDefault),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: AddressFormField(
+                    controller: _cityController,
+                    label: 'city'.tr,
+                    hint: 'city'.tr,
+                    icon: Icons.location_city_outlined,
+                    autofillHints: const [AutofillHints.addressCity],
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'required'.tr;
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                const SizedBox(width: Constants.paddingSizeSmall),
+                Expanded(
+                  child: AddressFormField(
+                    controller: _postalCodeController,
+                    label: 'postal_code'.tr,
+                    hint: 'postal_code'.tr,
+                    icon: Icons.markunread_mailbox_outlined,
+                    keyboardType: TextInputType.number,
+                    textInputAction: TextInputAction.done,
+                    textCapitalization: TextCapitalization.none,
+                    autofillHints: const [AutofillHints.postalCode],
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'required'.tr;
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: Constants.paddingSizeDefault),
+      _defaultToggle(),
+    ];
+  }
+
+  /// "Set as default" as its own tappable card row.
+  Widget _defaultToggle() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(Constants.radiusLarge),
+        border: Border.all(
+          color: _isDefault
+              ? ColorResource.primaryDark.withValues(alpha: 0.5)
+              : context.textLight.withValues(alpha: 0.15),
+        ),
+      ),
       // Wrapped in its own (transparent) Material so the ListTile paints its
-      // ink/selection on it rather than on the decorated web card behind it,
-      // which would otherwise trip a framework assertion.
-      Material(
+      // ink on it rather than on a decorated ancestor, which would otherwise
+      // trip a framework assertion.
+      child: Material(
         color: Colors.transparent,
-        child: SwitchListTile(
+        borderRadius: BorderRadius.circular(Constants.radiusLarge),
+        clipBehavior: Clip.antiAlias,
+        child: SwitchListTile.adaptive(
           value: _isDefault,
           onChanged: (value) => setState(() => _isDefault = value),
+          secondary: Icon(
+            _isDefault ? Icons.star_rounded : Icons.star_outline_rounded,
+            color: _isDefault ? ColorResource.primaryDark : context.textSecondary,
+          ),
           title: Text(
             'set_as_default_address'.tr,
             style: poppinsMedium.copyWith(
@@ -499,64 +553,19 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
               color: context.textPrimary,
             ),
           ),
-          activeColor: ColorResource.primaryDark,
-          contentPadding: EdgeInsets.zero,
-        ),
-      ),
-    ];
-  }
-
-  Widget _buildSaveButton(bool isEditing) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: _isSaving ? null : _saveAddress,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: ColorResource.primaryDark,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(Constants.radiusLarge),
+          subtitle: Text(
+            'default_address_hint'.tr,
+            style: poppinsRegular.copyWith(
+              fontSize: Constants.fontSizeSmall,
+              color: context.textSecondary,
+            ),
+          ),
+          activeTrackColor: ColorResource.primaryDark,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: Constants.paddingSizeDefault,
           ),
         ),
-        child: _isSaving
-            ? SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  color: ColorResource.textWhite,
-                  strokeWidth: 2,
-                ),
-              )
-            : Text(
-                isEditing ? 'update_address'.tr : 'save_address'.tr,
-                style: poppinsBold.copyWith(
-                  fontSize: Constants.fontSizeLarge,
-                  color: ColorResource.textWhite,
-                ),
-              ),
       ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    TextInputType? keyboardType,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(Constants.radiusDefault),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      ),
-      keyboardType: keyboardType,
-      validator: validator,
     );
   }
 
@@ -671,8 +680,8 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
       }
     } catch (e) {
       Get.snackbar(
-        'Error',
-        'Failed to save address. Please try again.',
+        'error'.tr,
+        'failed_to_save_address'.tr,
         backgroundColor: ColorResource.error,
         colorText: ColorResource.textWhite,
       );

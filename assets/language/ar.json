@@ -788,5 +788,18 @@
   "helpful": "مفيد",
   "cookies_privacy_title": "سياسة ملفات تعريف الارتباط",
   "decline": "رفض",
-  "accept_cookies": "قبول ملفات تعريف الارتباط"
+  "accept_cookies": "قبول ملفات تعريف الارتباط",
+  "contact_details": "بيانات الاتصال",
+  "address_details": "تفاصيل العنوان",
+  "enter_full_name": "أدخل اسمك الكامل",
+  "please_enter_phone_number": "يرجى إدخال رقم هاتفك",
+  "please_enter_address": "يرجى إدخال عنوانك",
+  "address_line1_hint": "رقم المنزل، الشارع، المنطقة",
+  "address_line2_label": "الشقة، الطابق، معلم قريب",
+  "address_line2_hint": "مثال: شقة 4ب، بالقرب من البنك",
+  "default_address_hint": "استخدم هذا العنوان للطلبات القادمة",
+  "drag_map_to_pin_location": "اسحب الخريطة لوضع الدبوس على موقعك بالضبط",
+  "address_page_subtitle": "حدد موقعك على الخريطة واملأ تفاصيل التوصيل.",
+  "fetching_address": "جارٍ جلب العنوان…",
+  "failed_to_save_address": "تعذّر حفظ العنوان. يرجى المحاولة مرة أخرى."
 }
