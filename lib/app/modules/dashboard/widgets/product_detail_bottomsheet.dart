@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:appwrite_user_app/app/common/widgets/auth_dialog.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
@@ -107,6 +109,15 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
   static const double _maxAutoSheetSize = 0.9; // auto-open ceiling
   static const double _initialSheetSize = 0.7;
 
+  // Content-driven bounds, set once the content is measured: the sheet can be
+  // dragged only as tall as its content (never past [_maxSheetSize]), so a
+  // short product never stretches to a mostly-empty full-screen sheet.
+  double _sheetMaxSize = _maxSheetSize;
+  double _sheetInitialSize = _initialSheetSize;
+
+  /// The floor can't sit above the ceiling for very short content.
+  double get _sheetMinSize => math.min(_minSheetSize, _sheetMaxSize);
+
   String get _productDescription =>
       widget.product.descriptionMap.trLanguage.trim();
 
@@ -131,6 +142,12 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
   // }
 
   String get _imageHeroTag => 'product-image-${widget.product.id}';
+
+  /// Height of the header image gallery.
+  static const double _galleryHeight = 200;
+
+  final PageController _galleryController = PageController();
+  int _currentImage = 0;
 
   // The sheet keeps its rounded top corners at every height; the expanded
   // header bar reuses the same radius so it sits flush with the sheet edge.
@@ -184,29 +201,51 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
   @override
   void dispose() {
     _sheetController.dispose();
+    _galleryController.dispose();
     super.dispose();
   }
 
-  /// Resizes the sheet so it's only as tall as the product's content (image,
-  /// info, variants, reviews) plus the bottom bar — clamped so small products
-  /// stay compact and rich ones never exceed the auto-open ceiling.
-  void _sizeSheetToContent() {
-    if (!mounted || !_sheetController.isAttached) return;
+  /// Fits the sheet to the product's content (image, info, variants, reviews)
+  /// plus the bottom bar.
+  ///
+  /// Always updates the drag ceiling to the content height, so dragging can't
+  /// pull the sheet taller than what it holds. With [fit] (on open) it also
+  /// opens at that height — clamped so small products stay compact and rich
+  /// ones never exceed the auto-open ceiling.
+  void _sizeSheetToContent({bool fit = true}) {
+    if (!mounted) return;
 
     final contentCtx = _sheetContentKey.currentContext;
     final screenHeight = MediaQuery.of(context).size.height;
     if (contentCtx == null || screenHeight <= 0) return;
 
     final contentHeight = contentCtx.size?.height ?? 0;
+    if (contentHeight <= 0) return;
     final bottomBarHeight = _bottomBarKey.currentContext?.size?.height ?? 150;
 
     final desired = (contentHeight + bottomBarHeight) / screenHeight;
-    final target = desired
-        .clamp(_minSheetSize, _maxAutoSheetSize)
-        .toDouble();
+    final newMax = desired.clamp(0.0, _maxSheetSize).toDouble();
+    final newMin = math.min(_minSheetSize, newMax);
+    final target = fit
+        ? desired.clamp(newMin, math.min(_maxAutoSheetSize, newMax)).toDouble()
+        : _sheetInitialSize.clamp(newMin, newMax).toDouble();
 
-    if ((_sheetController.size - target).abs() > 0.01) {
-      _sheetController.jumpTo(target);
+    if ((newMax - _sheetMaxSize).abs() > 0.005 ||
+        (target - _sheetInitialSize).abs() > 0.005) {
+      setState(() {
+        _sheetMaxSize = newMax;
+        _sheetInitialSize = target;
+      });
+    }
+
+    // The sheet rebuilds with the new bounds first; then settle its height.
+    if (fit) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_sheetController.isAttached) return;
+        if ((_sheetController.size - target).abs() > 0.01) {
+          _sheetController.jumpTo(target);
+        }
+      });
     }
   }
 
@@ -380,8 +419,10 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
 
     return NotificationListener<DraggableScrollableNotification>(
       onNotification: (notification) {
-        // Considered "fully expanded" when the drag extent reaches the top.
-        final expanded = notification.extent >= (notification.maxExtent - 0.01);
+        // "Fully expanded" means the sheet actually reached the top of the
+        // screen — not merely its own (content-limited) ceiling — so a short
+        // sheet never swaps its image header for the app-bar header.
+        final expanded = notification.extent >= (_maxSheetSize - 0.01);
         if (expanded != _isExpanded) {
           setState(() => _isExpanded = expanded);
         }
@@ -389,9 +430,9 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
       },
       child: DraggableScrollableSheet(
         controller: _sheetController,
-        initialChildSize: _initialSheetSize,
-        minChildSize: _minSheetSize,
-        maxChildSize: _maxSheetSize,
+        initialChildSize: _sheetInitialSize,
+        minChildSize: _sheetMinSize,
+        maxChildSize: _sheetMaxSize,
         expand: false,
         builder: (BuildContext context, ScrollController scrollController) {
           return Stack(
@@ -409,7 +450,19 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                       child: SingleChildScrollView(
                         controller: scrollController,
                         padding: const EdgeInsets.all(0),
-                        child: _buildSheetContent(),
+                        // Content can grow or shrink after opening ("see more",
+                        // variant guidance) — keep the drag ceiling in step.
+                        child: NotificationListener<SizeChangedLayoutNotification>(
+                          onNotification: (_) {
+                            WidgetsBinding.instance.addPostFrameCallback(
+                              (_) => _sizeSheetToContent(fit: false),
+                            );
+                            return true;
+                          },
+                          child: SizeChangedLayoutNotifier(
+                            child: _buildSheetContent(),
+                          ),
+                        ),
                       ),
                     ),
 
@@ -612,127 +665,214 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
     );
   }
 
+  /// Header gallery: every product image (see [ProductModel.displayImages]),
+  /// swipeable, with a page indicator and counter when there is more than one.
+  /// Tapping opens the full-screen viewer on the image being looked at, with
+  /// the whole set available to swipe through there.
   Widget _buildProductImage() {
     bool hasDiscount = widget.product.hasDiscount;
     String? discountPercentage = hasDiscount ? (widget.product.discountType == 'percentage'
         ? '${widget.product.discountValue?.toInt()}% OFF'
         : '${PriceHelper.formatPrice(widget.product.discountValue?.toDouble()??0)} OFF') : null;
 
-    return GestureDetector(
-      onTap: () {
-        context.pushNamed(
-          RouteNames.imageViewer,
-          extra: ImageViewerArgs.single(
-            imageUrl: widget.product.imageId,
-            heroTag: _imageHeroTag,
-          ),
-        );
-      },
+    final images = widget.product.displayImages;
+    final hasMultiple = images.length > 1;
+
+    return SizedBox(
+      height: _galleryHeight,
       child: Stack(
         children: [
           ClipRRect(
             borderRadius: _sheetTopRadius,
-            child: Hero(
-              tag: _imageHeroTag,
-              child: CustomNetworkImage(
-                image: widget.product.imageId,
-                height: 200,
-                width: double.infinity,
-              ),
-            ),
-          ),
-      
-          // Gradient overlay
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              borderRadius: _sheetTopRadius,
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Colors.black.withValues(alpha: 0.3),
-                ],
-              ),
-            ),
-          ),
-      
-          if (!widget.isDialog)
-            Center(
-              child: Container(
-                margin: const EdgeInsets.only(top: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: ColorResource.textWhite.withValues(alpha: 0.8),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-      
-          if (widget.product.isOutOfStock)
-            Positioned.fill(
-              child: ClipRRect(
-                borderRadius: _sheetTopRadius,
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.55),
-                  alignment: Alignment.center,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: ColorResource.error.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(Constants.radiusDefault),
+            child: PageView.builder(
+              controller: _galleryController,
+              itemCount: images.length,
+              onPageChanged: (index) => setState(() => _currentImage = index),
+              itemBuilder: (context, index) {
+                final heroTag = '$_imageHeroTag-$index';
+                return GestureDetector(
+                  onTap: () => context.pushNamed(
+                    RouteNames.imageViewer,
+                    extra: ImageViewerArgs(
+                      images: images,
+                      initialIndex: index,
+                      heroTag: heroTag,
                     ),
-                    child: Text(
-                      'OUT OF STOCK',
-                      style: poppinsBold.copyWith(
-                        fontSize: Constants.fontSizeDefault,
-                        color: ColorResource.textWhite,
-                      ),
+                  ),
+                  child: Hero(
+                    tag: heroTag,
+                    child: CustomNetworkImage(
+                      image: images[index],
+                      height: _galleryHeight,
+                      width: double.infinity,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Everything drawn over the gallery is decoration: IgnorePointer
+          // lets swipes and taps pass through to the PageView underneath.
+          IgnorePointer(
+            child: Stack(
+              children: [
+                // Gradient overlay
+                Container(
+                  height: _galleryHeight,
+                  decoration: BoxDecoration(
+                    borderRadius: _sheetTopRadius,
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.3),
+                      ],
                     ),
                   ),
                 ),
-              ),
-            ),
-      
-          Positioned(
-            top: 16,
-            left: 16,
-            right: 16,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    hasDiscount ? _buildInfoChip(
-                      color: ColorResource.error,
-                      label: '$discountPercentage',
-                      icon: null,
-                    ) : const SizedBox(),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+
+                // Drag handle, pinned to the top edge of the gallery.
+                if (!widget.isDialog)
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: Container(
+                      margin: const EdgeInsets.only(top: 12),
+                      width: 40,
+                      height: 4,
                       decoration: BoxDecoration(
-                        color: ColorResource.textWhite.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(
-                          color: ColorResource.textWhite.withValues(alpha: 0.24),
-                        ),
+                        color: ColorResource.textWhite.withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(2),
                       ),
-                      child: Text(
-                        widget.product.isOutOfStock
-                            ? 'Unavailable'
-                            : '${widget.product.stock} in stock',
-                        style: poppinsMedium.copyWith(
-                          fontSize: Constants.fontSizeSmall,
-                          color: ColorResource.textWhite,
+                    ),
+                  ),
+
+                if (widget.product.isOutOfStock)
+                  Positioned.fill(
+                    child: ClipRRect(
+                      borderRadius: _sheetTopRadius,
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.55),
+                        alignment: Alignment.center,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: ColorResource.error.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(Constants.radiusDefault),
+                          ),
+                          child: Text(
+                            'OUT OF STOCK',
+                            style: poppinsBold.copyWith(
+                              fontSize: Constants.fontSizeDefault,
+                              color: ColorResource.textWhite,
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ],
+                  ),
+
+                Positioned(
+                  top: 16,
+                  left: 16,
+                  right: 16,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          hasDiscount ? _buildInfoChip(
+                            color: ColorResource.error,
+                            label: '$discountPercentage',
+                            icon: null,
+                          ) : const SizedBox(),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                            decoration: BoxDecoration(
+                              color: ColorResource.textWhite.withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(
+                                color: ColorResource.textWhite.withValues(alpha: 0.24),
+                              ),
+                            ),
+                            child: Text(
+                              widget.product.isOutOfStock
+                                  ? 'Unavailable'
+                                  : '${widget.product.stock} in stock',
+                              style: poppinsMedium.copyWith(
+                                fontSize: Constants.fontSizeSmall,
+                                color: ColorResource.textWhite,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                    ],
+                  ),
                 ),
 
+                if (hasMultiple) ...[
+                  // Page dots
+                  Positioned(
+                    bottom: Constants.paddingSizeSmall + 2,
+                    left: 0,
+                    right: 0,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(images.length, (index) {
+                        final isActive = index == _currentImage;
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          width: isActive ? 18 : 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: ColorResource.textWhite
+                                .withValues(alpha: isActive ? 1 : 0.55),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                  // "2 / 5" counter
+                  PositionedDirectional(
+                    bottom: Constants.paddingSizeSmall,
+                    end: Constants.paddingSizeSmall + 2,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: Constants.paddingSizeSmall - 2,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        borderRadius:
+                            BorderRadius.circular(Constants.radiusDefault),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.photo_library_outlined,
+                            size: 12,
+                            color: ColorResource.textWhite,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${_currentImage + 1} / ${images.length}',
+                            style: poppinsMedium.copyWith(
+                              fontSize: Constants.fontSizeExtraSmall + 1,
+                              color: ColorResource.textWhite,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

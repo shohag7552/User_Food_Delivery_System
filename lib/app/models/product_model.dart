@@ -60,6 +60,19 @@ class ProductModel {
   // Check if out of stock
   bool get isOutOfStock => stock <= 0;
 
+  /// Every image to show for this product, cover first. The store app writes
+  /// the cover as `image_gallery[0]` (and mirrors it into `image_id`), so the
+  /// gallery is the source of truth; products saved before galleries existed
+  /// fall back to `image_id` alone. Blanks and duplicates are dropped.
+  List<String> get displayImages {
+    final images = <String>[];
+    for (final url in imageGallery.isNotEmpty ? imageGallery : [imageId]) {
+      final trimmed = url.trim();
+      if (trimmed.isNotEmpty && !images.contains(trimmed)) images.add(trimmed);
+    }
+    return images.isEmpty ? [imageId] : images;
+  }
+
   // Calculate final price after discount
   double get finalPrice {
     if (discountType == null || discountValue == null || discountValue == 0) {
