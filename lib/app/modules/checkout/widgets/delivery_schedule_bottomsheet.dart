@@ -469,15 +469,21 @@ class _DeliveryScheduleBottomSheetState
     final today = DateTime(storeNow.year, storeNow.month, storeNow.day);
     final tomorrow = today.add(const Duration(days: 1));
 
-    return Column(
-      children: [
-        _buildDayCard(today, 'today'.tr, businessSetup),
-        const SizedBox(height: 12),
-        _buildDayCard(tomorrow, 'tomorrow'.tr, businessSetup),
-      ],
+    // Side by side, equal height, so the two days read as one choice.
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: _buildDayCard(today, 'today'.tr, businessSetup)),
+          const SizedBox(width: Constants.paddingSizeSmall + 2),
+          Expanded(child: _buildDayCard(tomorrow, 'tomorrow'.tr, businessSetup)),
+        ],
+      ),
     );
   }
 
+  /// A compact day tile: date badge + selection tick, the day name, the
+  /// weekday, and an availability pill.
   Widget _buildDayCard(DateTime date, String label, dynamic businessSetup) {
     final isSelected = _selectedDate != null &&
         _selectedDate!.year == date.year &&
@@ -513,125 +519,157 @@ class _DeliveryScheduleBottomSheetState
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(Constants.paddingSizeSmall + 2),
         decoration: BoxDecoration(
           color: isSelected
               ? ColorResource.primaryDark.withValues(alpha: 0.06)
               : context.cardBackground,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(Constants.radiusLarge + 1),
           border: Border.all(
             color: isSelected
                 ? ColorResource.primaryDark
                 : context.textLight.withValues(alpha: 0.14),
             width: isSelected ? 1.8 : 1.4,
           ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: ColorResource.primaryDark.withValues(alpha: 0.12),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 58,
-              height: 58,
-              decoration: BoxDecoration(
-                gradient: isSelected ? ColorResource.primaryGradient : null,
-                color: isSelected
-                    ? null
-                    : ColorResource.primaryDark.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '${date.day}',
-                    style: poppinsBold.copyWith(
-                      fontSize: 22,
-                      height: 1,
-                      color:
-                          isSelected ? Colors.white : ColorResource.primaryDark,
-                    ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Date badge
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    gradient:
+                        isSelected ? ColorResource.primaryGradient : null,
+                    color: isSelected
+                        ? null
+                        : ColorResource.primaryDark.withValues(alpha: 0.08),
+                    borderRadius:
+                        BorderRadius.circular(Constants.radiusDefault + 2),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    _monthNames[date.month - 1],
-                    style: poppinsMedium.copyWith(
-                      fontSize: 11,
-                      height: 1,
-                      color: isSelected
-                          ? Colors.white.withValues(alpha: 0.9)
-                          : ColorResource.primaryDark,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeLarge,
-                      color: context.textPrimary,
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    weekdayKeys[date.weekday % 7].tr,
-                    style: poppinsRegular.copyWith(
-                      fontSize: Constants.fontSizeSmall,
-                      color: context.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        width: 7,
-                        height: 7,
-                        decoration: BoxDecoration(
-                          color: statusColor,
-                          shape: BoxShape.circle,
+                      Text(
+                        '${date.day}',
+                        style: poppinsBold.copyWith(
+                          fontSize: Constants.fontSizeExtraLarge,
+                          height: 1,
+                          color: isSelected
+                              ? Colors.white
+                              : ColorResource.primaryDark,
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          statusText,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: poppinsMedium.copyWith(
-                            fontSize: Constants.fontSizeExtraSmall,
-                            color: statusColor,
-                          ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _monthNames[date.month - 1],
+                        style: poppinsMedium.copyWith(
+                          fontSize: Constants.fontSizeExtraSmall,
+                          height: 1,
+                          color: isSelected
+                              ? Colors.white.withValues(alpha: 0.9)
+                              : ColorResource.primaryDark,
                         ),
                       ),
                     ],
                   ),
-                ],
+                ),
+                const Spacer(),
+                // Selection tick
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    gradient:
+                        isSelected ? ColorResource.primaryGradient : null,
+                    color: isSelected ? null : Colors.transparent,
+                    shape: BoxShape.circle,
+                    border: isSelected
+                        ? null
+                        : Border.all(
+                            color: context.textLight.withValues(alpha: 0.4),
+                            width: 1.6,
+                          ),
+                  ),
+                  child: isSelected
+                      ? const Icon(Icons.check_rounded,
+                          color: Colors.white, size: 15)
+                      : null,
+                ),
+              ],
+            ),
+            const SizedBox(height: Constants.paddingSizeSmall + 2),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: poppinsBold.copyWith(
+                fontSize: Constants.fontSizeLarge,
+                color: context.textPrimary,
+                letterSpacing: -0.2,
               ),
             ),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 26,
-              height: 26,
-              decoration: BoxDecoration(
-                gradient: isSelected ? ColorResource.primaryGradient : null,
-                color: isSelected ? null : Colors.transparent,
-                shape: BoxShape.circle,
-                border: isSelected
-                    ? null
-                    : Border.all(
-                        color: context.textLight.withValues(alpha: 0.4),
-                        width: 1.6,
-                      ),
+            Text(
+              weekdayKeys[date.weekday % 7].tr,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: poppinsRegular.copyWith(
+                fontSize: Constants.fontSizeSmall,
+                color: context.textSecondary,
               ),
-              child: isSelected
-                  ? const Icon(Icons.check_rounded,
-                      color: Colors.white, size: 17)
-                  : null,
+            ),
+            const Spacer(),
+            const SizedBox(height: Constants.paddingSizeSmall),
+            // Availability pill
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: Constants.paddingSizeSmall - 2,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: statusColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 5),
+                  Flexible(
+                    child: Text(
+                      statusText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: poppinsMedium.copyWith(
+                        fontSize: Constants.fontSizeExtraSmall,
+                        color: statusColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
