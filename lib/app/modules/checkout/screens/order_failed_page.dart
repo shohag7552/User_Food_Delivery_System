@@ -28,6 +28,10 @@ class _OrderFailedPageState extends State<OrderFailedPage> {
   /// Error content reads like a dialog — keep it a narrow centered column on
   /// desktop web instead of stretching edge to edge.
   static const double _maxContentWidth = 480;
+
+  /// Diameter of the failure mark's filled disc — same as the success page.
+  static const double _errorMarkSize = 80;
+
   final GlobalKey<ScaffoldState> _webScaffoldKey = GlobalKey<ScaffoldState>();
 
   String get errorMessage => widget.errorMessage;
@@ -65,7 +69,7 @@ class _OrderFailedPageState extends State<OrderFailedPage> {
                   children: [
                     // Error Animation
                     _buildErrorAnimation(),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: Constants.paddingSizeLarge),
 
                     // Error Message
                     Text(
@@ -105,33 +109,36 @@ class _OrderFailedPageState extends State<OrderFailedPage> {
     );
   }
 
+  /// Status mark: a compact filled disc inside a soft tinted halo, sized to
+  /// match the success page's mark so both outcomes read as the same system.
   Widget _buildErrorAnimation() {
     return Container(
-      width: 160,
-      height: 160,
+      width: _errorMarkSize + Constants.paddingSizeLarge,
+      height: _errorMarkSize + Constants.paddingSizeLarge,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: [
-            Colors.red.shade400,
-            Colors.red.shade600,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.red.shade200,
-            blurRadius: 30,
-            spreadRadius: 10,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        color: ColorResource.error.withValues(alpha: 0.12),
       ),
-      child: Icon(
-        Icons.error_outline,
-        size: 100,
-        color: ColorResource.textWhite,
+      child: Container(
+        width: _errorMarkSize,
+        height: _errorMarkSize,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: ColorResource.error,
+          boxShadow: [
+            BoxShadow(
+              color: ColorResource.error.withValues(alpha: 0.25),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Icon(
+          Icons.close_rounded,
+          size: Constants.iconSizeLarge,
+          color: ColorResource.textWhite,
+        ),
       ),
     );
   }
