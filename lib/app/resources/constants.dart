@@ -16,7 +16,7 @@ class Constants {
   static const String appName = 'Kiko Mart';
   static const String appVersion = "1.0.0";
   static const String packageName = 'com.kikomart.user';
-  static const String webBaseUrl = 'https://kiko-mart.appwrite.network';
+  static const String webBaseUrl = 'https://kiko-mart-user.appwrite.network';
 
   static const int primaryColorValue = 0xFFC92A2A;
 
@@ -45,7 +45,7 @@ class Constants {
 
   /// Processes Stripe payments via a cloud function. Customer-app only — the
   /// store app has no counterpart for this one.
-  static const String stripePaymentFunctionId = 'stripe_payment1';
+  static const String stripePaymentFunctionId = '6ab68f360015285299a5';
 
   /// Host the gateway returns the customer to, as
   /// `<host>/payment/success|fail|cancel`.

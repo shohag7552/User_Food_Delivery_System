@@ -81,13 +81,28 @@ class PaymentService {
       throw PaymentException('Failed to reach payment server: $e');
     }
 
-    final result =
-        jsonDecode(execution.responseBody) as Map<String, dynamic>;
+    final Map<String, dynamic> result;
+    try {
+      result = jsonDecode(execution.responseBody) as Map<String, dynamic>;
+    } catch (_) {
+      // An empty or non-JSON body means the function never ran its handler —
+      // a build that failed, a timeout, or a deployment serving something
+      // else entirely. Reporting the decode error would hide all of that.
+      throw PaymentException(
+        'Payment server returned an unreadable response '
+        '(status ${execution.responseStatusCode}).',
+      );
+    }
 
     if (result['success'] != true) {
-      throw PaymentException(
-        result['error']?.toString() ?? 'Payment creation failed',
-      );
+      // The function reports errors as {code, message}; older/other responses
+      // use a plain string. Unwrapping keeps the customer-facing message free
+      // of Dart map syntax.
+      final error = result['error'];
+      final message = error is Map
+          ? error['message']?.toString()
+          : error?.toString();
+      throw PaymentException(message ?? 'Payment creation failed');
     }
 
     return result;
