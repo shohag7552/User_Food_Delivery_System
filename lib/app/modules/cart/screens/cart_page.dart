@@ -488,47 +488,20 @@ class _CartPageState extends State<CartPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Original price + discount badge, if discounted
+                                // Original price (struck through), if discounted
                                 if (item.basePrice > item.finalPrice) ...[
-                                  Row(
-                                    children: [
-                                      Flexible(
-                                        child: Text(
-                                          CurrencyHelper.formatAmount(
-                                            item.basePrice * item.quantity,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: poppinsRegular.copyWith(
-                                            fontSize: Constants.fontSizeSmall,
-                                            color: context.textLight,
-                                            decoration:
-                                                TextDecoration.lineThrough,
-                                            decorationColor:
-                                                context.textLight,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.green.shade50,
-                                          borderRadius:
-                                              BorderRadius.circular(4),
-                                        ),
-                                        child: Text(
-                                          '${((1 - item.finalPrice / item.basePrice) * 100).round()}% OFF',
-                                          style: poppinsBold.copyWith(
-                                            fontSize: 10,
-                                            color: Colors.green.shade700,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                  Text(
+                                    CurrencyHelper.formatAmount(
+                                      item.basePrice * item.quantity,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: poppinsRegular.copyWith(
+                                      fontSize: Constants.fontSizeSmall,
+                                      color: context.textLight,
+                                      decoration: TextDecoration.lineThrough,
+                                      decorationColor: context.textLight,
+                                    ),
                                   ),
                                   const SizedBox(height: 2),
                                 ],
