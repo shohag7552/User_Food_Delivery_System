@@ -13,7 +13,7 @@ import 'package:appwrite_user_app/app/resources/images.dart';
 /// and wrapped in a `Color` over in `resources/colors.dart`.
 class Constants {
 
-  static const String appName = 'Kiko Mart';
+  static const String appName = 'KikoMart';
   static const String appVersion = "1.0.0";
   static const String packageName = 'com.kikomart.user';
   static const String webBaseUrl = 'https://kiko-mart-user.appwrite.network';
