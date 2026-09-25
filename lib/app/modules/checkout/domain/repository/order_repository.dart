@@ -62,6 +62,7 @@ class OrderRepository implements OrderRepoInterface {
     double couponDiscount = 0.0,
     required String paymentMethod,
     String paymentStatus = 'unpaid',
+    String status = 'pending',
     String? deliveryInstructions,
     String? deliveryType,
     DateTime? scheduledDate,
@@ -77,7 +78,7 @@ class OrderRepository implements OrderRepoInterface {
       final orderData = {
         'customer_id': customerId,
         'order_number': orderNumber,
-        'status': 'pending',
+        'status': status,
         'payment_method': paymentMethod,
         'payment_status': paymentStatus,
         'total_amount': totalAmount,

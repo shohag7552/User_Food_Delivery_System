@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/flash_sale_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
+import 'package:appwrite_user_app/app/enums/payment_method_enum.dart';
 import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/models/address_model.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
@@ -134,6 +135,14 @@ class OrderController extends GetxController implements GetxService {
 
       final orderItemsJson = jsonEncode(orderItems);
 
+      // A gateway payment has already cleared before the row is written, so
+      // the order skips the store's "pending" review. Wallet and COD orders
+      // still start pending.
+      final status =
+          paymentMethod == PaymentMethod.online.name && paymentStatus == 'paid'
+              ? 'confirmed'
+              : 'pending';
+
       // Order number is now generated inside the repository (sequential: 10001, 10002, ...)
       final result = await orderRepoInterface.createOrder(
         customerId: customerId,
@@ -146,6 +155,7 @@ class OrderController extends GetxController implements GetxService {
         couponDiscount: couponDiscount,
         paymentMethod: paymentMethod,
         paymentStatus: paymentStatus,
+        status: status,
         deliveryInstructions: deliveryInstructions,
         deliveryType: deliveryType,
         scheduledDate: scheduledDate,

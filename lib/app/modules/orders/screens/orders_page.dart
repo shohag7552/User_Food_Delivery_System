@@ -467,6 +467,7 @@ class _OrdersPageState extends State<OrdersPage> {
         : [
             {'label': 'all'.tr, 'value': 'all'},
             {'label': 'pending'.tr, 'value': 'pending'},
+            {'label': 'confirmed'.tr, 'value': 'confirmed'},
             {'label': 'cooking'.tr, 'value': 'cooking'},
             {'label': 'ready'.tr, 'value': 'ready'},
             {'label': 'handover'.tr, 'value': 'handover'},

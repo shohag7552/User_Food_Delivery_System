@@ -15,6 +15,9 @@ abstract class OrderRepoInterface {
     double couponDiscount = 0.0,
     required String paymentMethod,
     String paymentStatus = 'unpaid',
+    /// Initial order status — 'confirmed' for a cleared gateway payment,
+    /// otherwise 'pending' awaiting the store.
+    String status = 'pending',
     String? deliveryInstructions,
     String? deliveryType, // 'now' or 'scheduled'
     DateTime? scheduledDate,
