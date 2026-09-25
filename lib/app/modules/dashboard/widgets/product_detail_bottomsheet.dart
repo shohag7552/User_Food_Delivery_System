@@ -1516,27 +1516,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                         Navigator.pop(this.context);
 
                         if (_matchingCartItem == null && widget.cartItem == null) {
-                          ScaffoldMessenger.of(this.context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                '${widget.product.nameMap.trLanguage} added to cart!',
-                                style: poppinsMedium.copyWith(
-                                  color: ColorResource.textWhite,
-                                  fontSize: Constants.fontSizeDefault,
-                                ),
-                              ),
-                              backgroundColor: Colors.green,
-                              behavior: SnackBarBehavior.floating,
-                              duration: const Duration(seconds: 3),
-                              action: SnackBarAction(
-                                label: 'View Cart',
-                                textColor: ColorResource.textWhite,
-                                onPressed: () {
-                                  this.context.pushNamed(RouteNames.cart);
-                                },
-                              ),
-                            ),
-                          );
+                          customToster('${widget.product.nameMap.trLanguage} added to cart!');
                         } else {
                           customToster('${widget.product.nameMap.trLanguage} updated!');
                         }

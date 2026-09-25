@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/common/widgets/auth_dialog.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
@@ -98,26 +99,9 @@ class CartHelper {
     );
   }
 
-  /// Show success snackbar with "View Cart" action
+  /// Confirm the add with the app's standard toast (no "View Cart" action).
   static void _showSuccessSnackbar(BuildContext context, ProductModel product) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '${product.nameMap.trLanguage} added to cart!',
-          style: poppinsMedium.copyWith(
-            color: ColorResource.textWhite,
-          ),
-        ),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-        action: SnackBarAction(
-          label: 'View Cart',
-          textColor: ColorResource.textWhite,
-          onPressed: () => context.pushNamed(RouteNames.cart),
-        ),
-      ),
-    );
+    customToster('${product.nameMap.trLanguage} added to cart!');
   }
 
   /// Show error snackbar
