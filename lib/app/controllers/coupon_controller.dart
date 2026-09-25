@@ -13,6 +13,13 @@ class CouponController extends GetxController implements GetxService {
   List<CouponModel>? _coupons;
   List<CouponModel>? get coupons => _coupons;
 
+  /// Coupons the customer can actually use right now (active, inside their
+  /// validity window, usage limit not reached) — the number the profile menu
+  /// badge shows. Expired or exhausted coupons still appear in the list but
+  /// are not counted.
+  int get availableCouponCount =>
+      _coupons?.where((c) => c.isValid()).length ?? 0;
+
   // Form state for adding/editing
   String _discountType = 'percentage';
   String get discountType => _discountType;
@@ -20,8 +27,9 @@ class CouponController extends GetxController implements GetxService {
   bool _isActive = true;
   bool get isActive => _isActive;
 
-  /// Fetch all coupons
-  Future<void> getCoupons() async {
+  /// Fetch all coupons. [showError] is off for background loads (e.g. the
+  /// profile badge) so a failed count doesn't toast on an unrelated screen.
+  Future<void> getCoupons({bool showError = true}) async {
     try {
       _isLoading = true;
       update();
@@ -33,7 +41,9 @@ class CouponController extends GetxController implements GetxService {
     } catch (e) {
       _isLoading = false;
       update();
-      customToster('Failed to load coupons: $e', isSuccess: false);
+      if (showError) {
+        customToster('Failed to load coupons: $e', isSuccess: false);
+      }
     }
   }
 

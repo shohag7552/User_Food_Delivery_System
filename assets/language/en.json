@@ -841,5 +841,12 @@
   "drag_map_to_pin_location": "Drag the map to place the pin on your exact location",
   "address_page_subtitle": "Pin your location on the map and fill in the delivery details.",
   "fetching_address": "Fetching address…",
-  "failed_to_save_address": "Failed to save address. Please try again."
+  "failed_to_save_address": "Failed to save address. Please try again.",
+  "up_to": "Up to",
+  "min_order_short": "Min. order",
+  "expired_on": "Expired on",
+  "starts_on": "Starts on",
+  "expires_today": "Expires today",
+  "days_left": "days left",
+  "coupon_active": "Active"
 }

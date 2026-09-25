@@ -1,6 +1,7 @@
 import 'package:appwrite_user_app/app/common/widgets/auth_dialog.dart';
 import 'package:appwrite_user_app/app/common/widgets/directional_flip.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
+import 'package:appwrite_user_app/app/controllers/coupon_controller.dart';
 import 'package:appwrite_user_app/app/controllers/localization_controller.dart';
 import 'package:appwrite_user_app/app/controllers/policy_controller.dart';
 import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
@@ -32,6 +33,11 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
 
     Get.find<PolicyController>().fetchPolicies();
+
+    // Coupons are account-only; load them for the menu badge count.
+    if (Get.find<AuthController>().isLoggedIn) {
+      Get.find<CouponController>().getCoupons(showError: false);
+    }
   }
 
   /// Wraps an account-only action: runs it when signed in, otherwise opens the
@@ -146,7 +152,26 @@ class _ProfilePageState extends State<ProfilePage> {
                               icon: Icons.local_offer_outlined,
                               title: 'coupons'.tr,
                               subtitle: 'view_and_apply_promo_codes'.tr,
-                              trailing: _buildBadge('3'),
+                              // Live count of usable coupons; with none (or
+                              // signed out) the row keeps the default chevron.
+                              trailing: isLoggedIn
+                                  ? GetBuilder<CouponController>(
+                                      builder: (couponController) {
+                                        final count = couponController
+                                            .availableCouponCount;
+                                        return count > 0
+                                            ? _buildBadge('$count')
+                                            : DirectionalFlip(
+                                                child: Icon(
+                                                  Icons.chevron_right,
+                                                  color: isDark
+                                                      ? Colors.white38
+                                                      : context.textLight,
+                                                ),
+                                              );
+                                      },
+                                    )
+                                  : null,
                               onTap: _authGuard(isLoggedIn, () {
                                 context.pushNamed(RouteNames.coupons);
                               }),

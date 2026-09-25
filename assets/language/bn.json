@@ -836,5 +836,12 @@
   "set_as_default_address": "ডিফল্ট ঠিকানা হিসেবে সেট করুন",
   "location_map": "লোকেশন ম্যাপ",
   "edit_address": "ঠিকানা সম্পাদনা",
-  "update_address": "ঠিকানা আপডেট করুন"
+  "update_address": "ঠিকানা আপডেট করুন",
+  "up_to": "সর্বোচ্চ",
+  "min_order_short": "ন্যূনতম অর্ডার",
+  "expired_on": "মেয়াদ শেষ হয়েছে",
+  "starts_on": "শুরু হবে",
+  "expires_today": "আজ মেয়াদ শেষ",
+  "days_left": "দিন বাকি",
+  "coupon_active": "সক্রিয়"
 }

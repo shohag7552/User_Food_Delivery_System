@@ -801,5 +801,12 @@
   "drag_map_to_pin_location": "اسحب الخريطة لوضع الدبوس على موقعك بالضبط",
   "address_page_subtitle": "حدد موقعك على الخريطة واملأ تفاصيل التوصيل.",
   "fetching_address": "جارٍ جلب العنوان…",
-  "failed_to_save_address": "تعذّر حفظ العنوان. يرجى المحاولة مرة أخرى."
+  "failed_to_save_address": "تعذّر حفظ العنوان. يرجى المحاولة مرة أخرى.",
+  "up_to": "حتى",
+  "min_order_short": "الحد الأدنى للطلب",
+  "expired_on": "انتهت الصلاحية في",
+  "starts_on": "يبدأ في",
+  "expires_today": "ينتهي اليوم",
+  "days_left": "يوم متبقٍ",
+  "coupon_active": "نشط"
 }

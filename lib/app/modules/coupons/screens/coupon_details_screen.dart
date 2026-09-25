@@ -1,6 +1,7 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/models/coupon_model.dart';
+import 'package:appwrite_user_app/app/modules/coupons/widgets/coupon_hero_card.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
@@ -219,122 +220,13 @@ class CouponDetailsContent extends StatelessWidget {
     final now = DateTime.now();
     final isExpired = now.isAfter(coupon.validUntil);
     final isNotYetValid = now.isBefore(coupon.validFrom);
-    final isUsageLimitReached =
-        coupon.usageLimit != null && coupon.usedCount >= coupon.usageLimit!;
-    final isValid =
-        coupon.isActive && !isExpired && !isNotYetValid && !isUsageLimitReached;
 
     return Column(
       children: [
-        // Hero Header
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: !isValid
-                  ? [Colors.grey[400]!, Colors.grey[500]!]
-                  : [
-                      Theme.of(context).primaryColor,
-                      Theme.of(context).colorScheme.secondary,
-                    ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: Column(
-            children: [
-              Icon(
-                Icons.local_offer_rounded,
-                color: Colors.white,
-                size: 64,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                coupon.code,
-                style: poppinsBold.copyWith(
-                  fontSize: 32,
-                  color: Colors.white,
-                  letterSpacing: 2,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                coupon.discountDisplay,
-                style: poppinsBold.copyWith(
-                  fontSize: 28,
-                  color: Colors.white.withValues(alpha: 0.95),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: () => _copyCouponCode(context),
-                icon: const Icon(Icons.copy_rounded, size: 18),
-                label: Text(
-                  'copy_code'.tr,
-                  style: poppinsMedium.copyWith(fontSize: 14),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Theme.of(context).primaryColor,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Status Badges
-        Container(
-          margin: const EdgeInsets.all(16),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: context.cardBackground,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
-            children: [
-              if (!coupon.isActive)
-                _StatusBadge(
-                  label: 'inactive'.tr,
-                  color: Colors.grey,
-                  icon: Icons.pause_circle_rounded,
-                ),
-              if (isExpired)
-                _StatusBadge(
-                  label: 'expired'.tr,
-                  color: Colors.red,
-                  icon: Icons.error_rounded,
-                ),
-              if (isNotYetValid)
-                _StatusBadge(
-                  label: 'not_yet_valid'.tr,
-                  color: Colors.orange,
-                  icon: Icons.schedule_rounded,
-                ),
-              if (isUsageLimitReached)
-                _StatusBadge(
-                  label: 'limit_reached'.tr,
-                  color: Colors.red,
-                  icon: Icons.block_rounded,
-                ),
-              if (isValid)
-                _StatusBadge(
-                  label: 'active_status'.tr,
-                  color: Colors.green,
-                  icon: Icons.check_circle_rounded,
-                ),
-            ],
-          ),
+        // Ticket-style header: status, offer, code + copy, validity.
+        CouponHeroCard(
+          coupon: coupon,
+          onCopy: () => _copyCouponCode(context),
         ),
 
         // Description
@@ -623,55 +515,5 @@ class CouponDetailsContent extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
-    final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  final String label;
-  final Color color;
-  final IconData icon;
-
-  const _StatusBadge({
-    required this.label,
-    required this.color,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: color.withValues(alpha: 0.3),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 16,
-            color: color,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: poppinsMedium.copyWith(
-              fontSize: 12,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  String _formatDate(DateTime date) => formatCouponDate(date);
 }
