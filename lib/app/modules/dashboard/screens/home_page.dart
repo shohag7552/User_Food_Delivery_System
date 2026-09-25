@@ -262,8 +262,10 @@ class _HomePageState extends State<HomePage>
         controller: _scrollController,
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // Web: rounded greeting hero. Mobile: collapsing gradient app bar.
-          if (isWebShell) _buildWebHero() else _buildSliverAppBar(context),
+          // Mobile: collapsing gradient app bar (greeting, search, bell).
+          // Desktop web has no in-page header — the shared WebTopNav above
+          // already carries search and notifications.
+          if (!isWebShell) _buildSliverAppBar(context),
 
           // Curated content sections. Each is its own sliver so off-screen
           // sections build lazily, with the vertical rhythm owned by a single
@@ -725,35 +727,6 @@ class _HomePageState extends State<HomePage>
               color: ColorResource.textWhite,
               size: 26,
             ),
-    );
-  }
-
-  /// Desktop-web hero: a rounded gradient card with the time-aware greeting
-  /// and the notification bell. No in-page search bar — the shared WebTopNav
-  /// above owns search on web.
-  Widget _buildWebHero() {
-    return SliverToBoxAdapter(
-      child: _capped(
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 30),
-            decoration: BoxDecoration(
-              gradient: ColorResource.primaryGradient,
-              borderRadius: BorderRadius.circular(Constants.radiusLarge),
-              boxShadow: ColorResource.customShadow,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildGreetingTexts(Constants.fontSizeOverLarge),
-                ),
-                _buildNotificationBell(),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 

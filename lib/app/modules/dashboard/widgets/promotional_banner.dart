@@ -219,6 +219,13 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
     required bool isWide,
     required bool hasDots,
   }) {
+          // The maps are never null (the parser always yields one), so judge
+          // the caption by its resolved text: a banner with no title and no
+          // subtitle shows its artwork clean, without the legibility scrim.
+          final title = banner.titleMap.trLanguage.trim();
+          final subtitle = banner.subTitleMap.trLanguage.trim();
+          final hasCaption = title.isNotEmpty || subtitle.isNotEmpty;
+
           return MouseRegion(
             // Web affordance: only actionable banners read as clickable.
             cursor: banner.hasAction
@@ -259,20 +266,20 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
                         width: double.infinity,
                         height: double.infinity,
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withValues(alpha: 0.5),
-                            ],
+                      if (hasCaption)
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withValues(alpha: 0.5),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      if (banner.titleMap != null ||
-                          banner.subTitleMap != null)
+                      if (hasCaption)
                         Positioned(
                           // Lift the caption clear of the dot overlay when it
                           // is showing.
@@ -282,9 +289,9 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (banner.titleMap != null)
+                              if (title.isNotEmpty)
                                 Text(
-                                  banner.titleMap.trLanguage,
+                                  title,
                                   style: poppinsBold.copyWith(
                                     fontSize: Constants.fontSizeExtraLarge,
                                     color: ColorResource.textWhite,
@@ -292,10 +299,10 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                              if (banner.subTitleMap != null) ...[
-                                const SizedBox(height: 4),
+                              if (subtitle.isNotEmpty) ...[
+                                if (title.isNotEmpty) const SizedBox(height: 4),
                                 Text(
-                                  banner.subTitleMap.trLanguage,
+                                  subtitle,
                                   style: poppinsRegular.copyWith(
                                     fontSize: Constants.fontSizeSmall,
                                     color: ColorResource.textWhite,

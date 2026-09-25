@@ -104,13 +104,18 @@ class CategorySectionWidget extends StatelessWidget {
     // Desktop web: an even, hover-lifted grid that fills the content cap
     // (a single row of larger tiles at full cap width). Mobile keeps its
     // horizontal strip untouched.
+    //
+    // No "more" tile on web: the section header's "See all" button already
+    // leads to the full list, and a second one wrapping onto its own grid row
+    // only repeats it. The grid just shows up to the slot cap.
     if (WebTopNav.isEnabled(context)) {
+      final webCategories = categories.take(_maxHomeCategorySlots).toList();
       return _buildWebCategoriesGrid(
         context,
-        visibleCategories: visibleCategories,
-        showMoreTile: showMoreTile,
+        visibleCategories: webCategories,
+        showMoreTile: false,
         totalCategories: categories.length,
-        itemCount: itemCount,
+        itemCount: webCategories.length,
       );
     }
 
