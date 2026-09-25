@@ -32,9 +32,15 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
   Widget build(BuildContext context) {
     return GetBuilder<ProductController>(
       builder: (controller) {
+        // Nothing to show: the section disappears instead of an empty shell.
+        if (!controller.showPopularSection) return const SizedBox.shrink();
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Own top spacing — the home column adds none, so nothing doubles
+            // up when the section hides itself.
+            const SizedBox(height: Constants.spaceSection),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
@@ -90,31 +96,6 @@ class _PopularDishesWidgetState extends State<PopularDishesWidget> {
                             fontSize: Constants.fontSizeDefault,
                             color: ColorResource.primaryDark,
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            // Empty State
-            else if (controller.popularProducts.isEmpty)
-              SizedBox(
-                height: 290,
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.restaurant_menu,
-                        color: context.textLight,
-                        size: 48,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'no_popular_dishes_available'.tr,
-                        style: poppinsMedium.copyWith(
-                          fontSize: Constants.fontSizeDefault,
-                          color: context.textSecondary,
                         ),
                       ),
                     ],

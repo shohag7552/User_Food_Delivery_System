@@ -22,9 +22,15 @@ class NewItemsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<ProductController>(
       builder: (controller) {
+        // Nothing to show: the section disappears instead of an empty shell.
+        if (!controller.showNewSection) return const SizedBox.shrink();
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Own top spacing — the home column adds none, so nothing doubles
+            // up when the section hides itself.
+            const SizedBox(height: Constants.spaceSection),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
@@ -94,31 +100,6 @@ class NewItemsWidget extends StatelessWidget {
                             fontSize: Constants.fontSizeDefault,
                             color: ColorResource.primaryDark,
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            // Empty State
-            else if (controller.newProducts.isEmpty)
-              SizedBox(
-                height: 220,
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.restaurant_menu,
-                        color: context.textLight,
-                        size: 48,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'no_new_items_available'.tr,
-                        style: poppinsMedium.copyWith(
-                          fontSize: Constants.fontSizeDefault,
-                          color: context.textSecondary,
                         ),
                       ),
                     ],

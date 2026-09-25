@@ -17,6 +17,11 @@ class CategoryController extends GetxController implements GetxService {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  /// The home categories strip hides itself when the store has no categories;
+  /// it stays visible while loading (shimmer) or after a failure (message).
+  bool get showHomeSection =>
+      _isLoading || _errorMessage != null || _categories.isNotEmpty;
+
   void clearForModuleSwitch() {
     _categories = [];
     _errorMessage = null;

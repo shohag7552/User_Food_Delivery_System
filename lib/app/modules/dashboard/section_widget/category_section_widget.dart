@@ -23,9 +23,17 @@ class CategorySectionWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<CategoryController>(
       builder: (categoryController) {
+        // No categories: the section disappears instead of an empty shell.
+        if (!categoryController.showHomeSection) {
+          return const SizedBox.shrink();
+        }
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Own top spacing — the home column adds none, so nothing doubles
+            // up when the section hides itself.
+            const SizedBox(height: Constants.spaceSection),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
@@ -74,22 +82,8 @@ class CategorySectionWidget extends StatelessWidget {
                 ),
               )
             // Categories List
-            else if (categoryController.categories.isNotEmpty)
-              _buildHomeCategories(context, categoryController)
-            // Empty State
             else
-              SizedBox(
-                height: 50,
-                child: Center(
-                  child: Text(
-                    'no_categories_available'.tr,
-                    style: poppinsRegular.copyWith(
-                      fontSize: Constants.fontSizeDefault,
-                      color: context.textLight,
-                    ),
-                  ),
-                ),
-              )
+              _buildHomeCategories(context, categoryController)
           ],
         );
       },

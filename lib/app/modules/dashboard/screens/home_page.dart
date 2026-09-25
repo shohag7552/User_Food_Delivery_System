@@ -224,20 +224,17 @@ class _HomePageState extends State<HomePage>
   /// The ordered curated sections with a single, tokenized vertical rhythm
   /// (`spaceSection` between sections, `paddingSizeLarge` at the ends).
   ///
-  /// [OfferProductsWidget] owns its own top gap and collapses to nothing when
-  /// there are no offers, so it deliberately gets no leading gap here — the
-  /// rhythm stays even whether or not it renders.
+  /// Every section after the banners owns its own top gap and collapses to
+  /// nothing when Appwrite returns no data for it, so none gets a leading gap
+  /// here — the rhythm stays even whichever sections render. (The banner
+  /// carousel already renders nothing when there are no banners.)
   List<Widget> _buildContentSlivers() => [
         _gapSliver(Constants.paddingSizeLarge),
         _sectionSliver(_buildPromotionalBanners()),
-        _gapSliver(Constants.spaceSection),
         _sectionSliver(CategorySectionWidget()),
-        _gapSliver(Constants.spaceSection),
         _sectionSliver(const TodaysSpecialsWidget()),
-        _gapSliver(Constants.spaceSection),
         _sectionSliver(const PopularDishesWidget()),
         _sectionSliver(const OfferProductsWidget()),
-        _gapSliver(Constants.spaceSection),
         _sectionSliver(const NewItemsWidget()),
         _gapSliver(Constants.paddingSizeLarge),
       ];

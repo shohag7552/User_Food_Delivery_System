@@ -104,6 +104,22 @@ class ProductController extends GetxController implements GetxService {
   String? _newErrorMessage;
   String? get newErrorMessage => _newErrorMessage;
 
+  // Home-section visibility: a section stays on screen while it is loading
+  // (shimmer) or failed (retry), and disappears only when the fetch came back
+  // with nothing to show.
+  bool get showSpecialsSection =>
+      _isLoadingSpecials ||
+      _specialsErrorMessage != null ||
+      _specialProducts.isNotEmpty;
+
+  bool get showPopularSection =>
+      _isLoadingPopular ||
+      _popularErrorMessage != null ||
+      _popularProducts.isNotEmpty;
+
+  bool get showNewSection =>
+      _isLoadingNew || _newErrorMessage != null || _newProducts.isNotEmpty;
+
   /// Fetch all products (initial load)
   /// Drops all cached lists so the next fetch loads the active module fresh.
   void clearForModuleSwitch() {
