@@ -17,6 +17,10 @@ import 'package:go_router/go_router.dart';
 class CategorySectionWidget extends StatelessWidget {
   static const int _maxHomeCategorySlots = 10;
 
+  /// Desktop web shows one row of tiles; at the full content width the grid
+  /// fits exactly nine, so a tenth would wrap onto a lonely second row.
+  static const int _maxWebCategorySlots = 9;
+
   const CategorySectionWidget({super.key});
 
   @override
@@ -109,7 +113,7 @@ class CategorySectionWidget extends StatelessWidget {
     // leads to the full list, and a second one wrapping onto its own grid row
     // only repeats it. The grid just shows up to the slot cap.
     if (WebTopNav.isEnabled(context)) {
-      final webCategories = categories.take(_maxHomeCategorySlots).toList();
+      final webCategories = categories.take(_maxWebCategorySlots).toList();
       return _buildWebCategoriesGrid(
         context,
         visibleCategories: webCategories,

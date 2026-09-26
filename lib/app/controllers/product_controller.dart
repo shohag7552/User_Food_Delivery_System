@@ -33,7 +33,9 @@ class ProductController extends GetxController implements GetxService {
   bool _hasMore = true;
   bool get hasMore => _hasMore;
 
-  final int _pageSize = 10;
+  /// All-products page size. 12 divides evenly into every grid column count
+  /// the home uses (2 / 3 / 4 / 6), so each page ends on a full row.
+  final int _pageSize = 12;
   ProductListFilter _selectedProductFilter = ProductListFilter.all;
   ProductListFilter get selectedProductFilter => _selectedProductFilter;
   bool? get _selectedIsVegFilter {
