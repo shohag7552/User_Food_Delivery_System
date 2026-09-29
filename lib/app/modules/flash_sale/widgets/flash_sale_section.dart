@@ -2,6 +2,8 @@ import 'package:appwrite_user_app/app/modules/ecommerce/widgets/ecommerce_card_m
 import 'package:appwrite_user_app/app/common/widgets/hover_arrow_carousel.dart';
 import 'package:appwrite_user_app/app/controllers/flash_sale_controller.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
+import 'package:appwrite_user_app/app/modules/flash_sale/widgets/flash_sale_backdrop.dart';
+import 'package:appwrite_user_app/app/modules/flash_sale/widgets/flash_sale_countdown.dart';
 import 'package:appwrite_user_app/app/modules/flash_sale/widgets/flash_sale_item_card.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -47,16 +49,10 @@ class FlashSaleSection extends StatelessWidget {
                 // title and chips never break or overflow.
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: inset),
-                  child: Container(
+                  child: FlashSaleBackdrop(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: ColorResource.primaryGradient,
-                      borderRadius: BorderRadius.circular(
-                        Constants.radiusLarge,
-                      ),
                     ),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
@@ -89,7 +85,7 @@ class FlashSaleSection extends StatelessWidget {
                           ],
                         );
 
-                        final Widget countdown = _CountdownChips(
+                        final Widget countdown = FlashSaleCountdown(
                           remaining: controller.remaining,
                         );
 
@@ -205,63 +201,6 @@ class FlashSaleSection extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-/// HH : MM : SS boxes ticking down to the sale end.
-class _CountdownChips extends StatelessWidget {
-  final Duration remaining;
-
-  const _CountdownChips({required this.remaining});
-
-  String _two(int value) => value.toString().padLeft(2, '0');
-
-  @override
-  Widget build(BuildContext context) {
-    // DD : HH : MM : SS — the day chip only appears while a day or more
-    // remains, then the timer continues as HH : MM : SS.
-    final days = remaining.inDays;
-    final hours = remaining.inHours.remainder(24);
-    final minutes = remaining.inMinutes.remainder(60);
-    final seconds = remaining.inSeconds.remainder(60);
-
-    Widget chip(String text) => Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.28),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        text,
-        style: poppinsBold.copyWith(
-          fontSize: Constants.fontSizeSmall,
-          color: ColorResource.textWhite,
-        ),
-      ),
-    );
-
-    Widget colon() => Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
-      child: Text(
-        ':',
-        style: poppinsBold.copyWith(
-          fontSize: Constants.fontSizeSmall,
-          color: ColorResource.textWhite,
-        ),
-      ),
-    );
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (days > 0) ...[chip('${_two(days)} ${'day_short'.tr}'), colon()],
-        chip('${_two(hours)} h'),
-        colon(),
-        chip('${_two(minutes)} m'),
-        colon(),
-        chip('${_two(seconds)} s'),
-      ],
     );
   }
 }

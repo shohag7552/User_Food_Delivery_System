@@ -158,8 +158,9 @@ class _FlashSaleItemCardState extends State<FlashSaleItemCard> {
               color: context.cardBackground,
               borderRadius: BorderRadius.circular(Constants.radiusLarge),
               border: Border.all(
-                color: context.textLight
-                    .withValues(alpha: _hovered ? 0.3 : 0.15),
+                color: context.textLight.withValues(
+                  alpha: _hovered ? 0.3 : 0.15,
+                ),
               ),
               boxShadow: _hovered
                   ? [
@@ -173,14 +174,13 @@ class _FlashSaleItemCardState extends State<FlashSaleItemCard> {
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize:
-                  aspectRatio == null ? MainAxisSize.max : MainAxisSize.min,
+              mainAxisSize: aspectRatio == null
+                  ? MainAxisSize.max
+                  : MainAxisSize.min,
               children: [
                 // Image with the discount / sold-out overlays + scrub gallery.
                 if (aspectRatio == null)
-                  Expanded(
-                    child: _buildImageBand(context, soldOut),
-                  )
+                  Expanded(child: _buildImageBand(context, soldOut))
                 else
                   AspectRatio(
                     aspectRatio: aspectRatio,
@@ -231,9 +231,7 @@ class _FlashSaleItemCardState extends State<FlashSaleItemCard> {
                           ),
                           // Add at the flash price.
                           GestureDetector(
-                            onTap: soldOut
-                                ? null
-                                : () => _addToCart(context),
+                            onTap: soldOut ? null : () => _addToCart(context),
                             child: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
@@ -427,8 +425,7 @@ class _FlashSaleItemCardState extends State<FlashSaleItemCard> {
           child: LinearProgressIndicator(
             value: item.soldRatio,
             minHeight: 6,
-            backgroundColor:
-                ColorResource.primaryDark.withValues(alpha: 0.12),
+            backgroundColor: ColorResource.primaryDark.withValues(alpha: 0.12),
             valueColor: AlwaysStoppedAnimation<Color>(
               ColorResource.primaryMedium,
             ),

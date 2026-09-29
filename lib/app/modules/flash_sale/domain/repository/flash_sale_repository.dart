@@ -74,10 +74,12 @@ class FlashSaleRepository implements FlashSaleRepoInterface {
       };
 
       return response.rows
-          .map((row) => FlashSaleItemModel.fromJson(
-                row.data,
-                product: productsById[row.data['product_id']],
-              ))
+          .map(
+            (row) => FlashSaleItemModel.fromJson(
+              row.data,
+              product: productsById[row.data['product_id']],
+            ),
+          )
           // Drop items whose product vanished or is unavailable.
           .where((item) => item.product != null)
           .toList();

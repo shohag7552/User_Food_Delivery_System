@@ -12,4 +12,7 @@ class Images{
   static const String placeholder3 = 'assets/images/placeholder3.png';
   static const String veg = 'assets/images/vegan.png';
   static const String shoppingBanner = 'assets/images/shopping_banner.jpg';
+  /// Flash-sale panel backdrop — "SALE" tags on dark, by Tamanna Rumee on
+  /// Unsplash (Unsplash License): unsplash.com/photos/Wt33T42JNCM
+  static const String flashSaleBg = 'assets/images/flash_sale_bg.jpg';
 }

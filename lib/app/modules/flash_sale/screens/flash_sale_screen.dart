@@ -5,6 +5,8 @@ import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/flash_sale_controller.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
+import 'package:appwrite_user_app/app/modules/flash_sale/widgets/flash_sale_backdrop.dart';
+import 'package:appwrite_user_app/app/modules/flash_sale/widgets/flash_sale_countdown.dart';
 import 'package:appwrite_user_app/app/modules/flash_sale/widgets/flash_sale_item_card.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -95,8 +97,7 @@ class _FlashSaleScreenState extends State<FlashSaleScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline,
-                    color: ColorResource.error, size: 48),
+                Icon(Icons.error_outline, color: ColorResource.error, size: 48),
                 const SizedBox(height: 12),
                 Text(
                   'failed_to_load_flash_sale'.tr,
@@ -156,63 +157,90 @@ class _FlashSaleScreenState extends State<FlashSaleScreen> {
               SliverPadding(
                 padding: EdgeInsets.fromLTRB(sidePad, 16, sidePad, 4),
                 sliver: SliverToBoxAdapter(
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: ColorResource.primaryGradient,
-                      borderRadius:
-                          BorderRadius.circular(Constants.radiusLarge),
-                      boxShadow: ColorResource.customShadow,
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '⚡ ${'flash_sale'.tr}',
-                                style: poppinsBold.copyWith(
-                                  fontSize: Constants.fontSizeExtraLarge,
-                                  color: ColorResource.textWhite,
-                                ),
-                              ),
-                              if (sale.title.isNotEmpty) ...[
-                                const SizedBox(height: 4),
-                                Text(
-                                  sale.title,
-                                  style: poppinsRegular.copyWith(
-                                    fontSize: Constants.fontSizeDefault,
-                                    color: ColorResource.textWhite
-                                        .withValues(alpha: 0.85),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                  child: FlashSaleBackdrop(
+                    padding: const EdgeInsets.all(Constants.paddingSizeLarge),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        // Phones stack the countdown under the titles so the
+                        // chips keep their full size.
+                        final bool compact = constraints.maxWidth < 520;
+
+                        final Widget titles = Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'ends_in'.tr,
-                              style: poppinsRegular.copyWith(
-                                fontSize: Constants.fontSizeSmall,
-                                color: ColorResource.textWhite
-                                    .withValues(alpha: 0.85),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _formatRemaining(controller.remaining),
+                              '⚡ ${'flash_sale'.tr}',
                               style: poppinsBold.copyWith(
                                 fontSize: Constants.fontSizeExtraLarge,
                                 color: ColorResource.textWhite,
                               ),
                             ),
+                            if (sale.title.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                sale.title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: poppinsRegular.copyWith(
+                                  fontSize: Constants.fontSizeDefault,
+                                  color: ColorResource.textWhite.withValues(
+                                    alpha: 0.85,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
-                        ),
-                      ],
+                        );
+
+                        final Widget timer = Column(
+                          crossAxisAlignment: compact
+                              ? CrossAxisAlignment.start
+                              : CrossAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'ends_in'.tr.toUpperCase(),
+                              style: poppinsMedium.copyWith(
+                                fontSize: Constants.fontSizeExtraSmall,
+                                letterSpacing: 1.2,
+                                color: ColorResource.textWhite.withValues(
+                                  alpha: 0.85,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(
+                              height: Constants.paddingSizeExtraSmall + 1,
+                            ),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: FlashSaleCountdown(
+                                remaining: controller.remaining,
+                                large: true,
+                              ),
+                            ),
+                          ],
+                        );
+
+                        if (compact) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              titles,
+                              const SizedBox(
+                                height: Constants.paddingSizeDefault,
+                              ),
+                              timer,
+                            ],
+                          );
+                        }
+                        return Row(
+                          children: [
+                            Expanded(child: titles),
+                            const SizedBox(width: Constants.paddingSizeLarge),
+                            timer,
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -243,17 +271,5 @@ class _FlashSaleScreenState extends State<FlashSaleScreen> {
         );
       },
     );
-  }
-
-  /// DD d HH:MM:SS — the day part only appears while a day or more remains.
-  String _formatRemaining(Duration remaining) {
-    String two(int v) => v.toString().padLeft(2, '0');
-    final days = remaining.inDays;
-    final clock =
-        '${two(remaining.inHours.remainder(24))}:${two(remaining.inMinutes.remainder(60))}:${two(remaining.inSeconds.remainder(60))}';
-    if (days > 0) {
-      return '${two(days)}${'day_short'.tr} $clock';
-    }
-    return clock;
   }
 }
