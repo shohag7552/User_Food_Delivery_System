@@ -37,7 +37,7 @@ class NotificationController extends GetxController implements GetxService {
     try {
       _isLoading = true;
       _errorMessage = null;
-      update();
+      // update();
 
       _notifications = await notificationRepoInterface.getNotifications();
 
