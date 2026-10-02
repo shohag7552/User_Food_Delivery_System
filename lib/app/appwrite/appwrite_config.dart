@@ -23,7 +23,6 @@ class AppwriteConfig {
   /// in `web/.well-known/apple-app-site-association`.
   static const String passwordRecoveryUrl = '${Constants.webBaseUrl}/reset-password';
   static const String databaseId = Constants.databaseId;
-  static const String apiKey = Constants.apiKey;
   static const String dbId = Constants.dbId;
   static const String postsBucketId = Constants.postsBucketId;
   static const String messagingProviderId = Constants.messagingProviderId;

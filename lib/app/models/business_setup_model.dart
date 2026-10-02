@@ -59,6 +59,13 @@ class BusinessSetupModel {
 
   /// The store delivers orders itself, without the deliveryman app.
   final bool isSelfDelivery;
+
+  /// "Forgot password" emails a 6-digit sign-in code (Appwrite
+  /// `createEmailToken`) instead of a reset link, and reset links are
+  /// refused. Set by the store owner in Business setup; false (links) when
+  /// off or when the column does not exist yet. Read-only on the customer
+  /// side: deliberately absent from [toJson].
+  final bool isEmailOtpEnabled;
   final String defaultModule; // 'food' | 'ecommerce'
   // Force app update — the store admin flips these to require customers to
   // upgrade before continuing (see [requiresForceUpdate]).
@@ -120,6 +127,7 @@ class BusinessSetupModel {
     this.isEcommerceModuleEnabled = false,
     this.isShippingMethodEnabled = false,
     this.isSelfDelivery = false,
+    this.isEmailOtpEnabled = false,
     this.defaultModule = 'food',
     this.isForceUpdateActive = false,
     this.appMinVersion,
@@ -171,6 +179,8 @@ class BusinessSetupModel {
       isEcommerceModuleEnabled: json['is_ecommerce_module_enabled'] ?? false,
       isShippingMethodEnabled: json['is_shipping_method_enabled'] ?? false,
       isSelfDelivery: json['is_self_delivery'] ?? false,
+      // Missing on stores that have not run the migration — link mode.
+      isEmailOtpEnabled: json['is_email_otp_enabled'] == true,
       defaultModule: json['default_module'] ?? 'food',
       isForceUpdateActive: json['is_force_update_active'] ?? false,
       appMinVersion: json['app_min_version'],
@@ -267,6 +277,7 @@ class BusinessSetupModel {
     bool? isEcommerceModuleEnabled,
     bool? isShippingMethodEnabled,
     bool? isSelfDelivery,
+    bool? isEmailOtpEnabled,
     String? defaultModule,
     bool? isForceUpdateActive,
     String? appMinVersion,
@@ -318,6 +329,7 @@ class BusinessSetupModel {
       isShippingMethodEnabled:
           isShippingMethodEnabled ?? this.isShippingMethodEnabled,
       isSelfDelivery: isSelfDelivery ?? this.isSelfDelivery,
+      isEmailOtpEnabled: isEmailOtpEnabled ?? this.isEmailOtpEnabled,
       defaultModule: defaultModule ?? this.defaultModule,
       isForceUpdateActive: isForceUpdateActive ?? this.isForceUpdateActive,
       appMinVersion: appMinVersion ?? this.appMinVersion,

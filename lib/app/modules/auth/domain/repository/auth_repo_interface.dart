@@ -38,6 +38,23 @@ abstract class AuthRepoInterface {
     required String password,
   });
 
+  // ── Email code sign-in (store switched "email code" on) ────────────────
+  //
+  // Replaces the reset link: Appwrite emails a 6-digit code and the code
+  // signs the customer in. Both throw [PasswordResetFailure].
+
+  /// Emails the code and returns the account id it belongs to.
+  Future<String> sendEmailCode(String email);
+
+  /// Signs in with the emailed code, then finishes the same device setup as
+  /// a password login. An address with no customer profile (Appwrite made a
+  /// fresh account for it) gets one, so the account works like any other.
+  Future<void> signInWithEmailCode({
+    required String userId,
+    required String email,
+    required String code,
+  });
+
   /// Stores the sign-in credentials on the device so the login form can
   /// prefill them next time. Survives logout by design.
   Future<void> saveRememberedCredentials({

@@ -227,6 +227,95 @@ class AuthRepository implements AuthRepoInterface {
     }
   }
 
+  @override
+  Future<String> sendEmailCode(String email) async {
+    try {
+      return await appwriteService.createEmailToken(
+        email: email.trim().toLowerCase(),
+      );
+    } on AppwriteException catch (e) {
+      log('Email code request failed: ${e.type}, code: ${e.code}');
+      throw PasswordResetFailure(switch (e.type) {
+        'general_rate_limit_exceeded' => 'too_many_reset_requests',
+        'general_smtp_disabled' => 'reset_email_service_unavailable',
+        'user_blocked' => 'account_blocked_contact_support',
+        'general_argument_invalid' => 'please_enter_a_valid_email',
+        _ => e.code == 429
+            ? 'too_many_reset_requests'
+            : 'could_not_send_email_code',
+      });
+    }
+  }
+
+  @override
+  Future<void> signInWithEmailCode({
+    required String userId,
+    required String email,
+    required String code,
+  }) async {
+    try {
+      await appwriteService.createSessionFromCode(
+        userId: userId,
+        code: code.trim(),
+      );
+    } on AppwriteException catch (e) {
+      log('Email code sign-in failed: ${e.type}, code: ${e.code}');
+      throw PasswordResetFailure(switch (e.type) {
+        'user_invalid_token' => 'email_code_invalid_or_expired',
+        'general_rate_limit_exceeded' => 'too_many_reset_requests',
+        'user_blocked' => 'account_blocked_contact_support',
+        _ => e.code == 401
+            ? 'email_code_invalid_or_expired'
+            : 'could_not_verify_email_code',
+      });
+    }
+
+    // Signed in. An address that had no account got a brand-new Appwrite
+    // user from the code request — give it the customer profile a sign-up
+    // would have created, so the rest of the app finds one.
+    String? fcmToken;
+    try {
+      fcmToken = await _getDeviceToken();
+    } catch (_) {}
+    var hasProfile = true;
+    try {
+      await appwriteService.getDocument(
+        tableId: AppwriteConfig.usersCollection,
+        rowId: userId,
+      );
+    } on AppwriteException catch (e) {
+      hasProfile = e.code != 404;
+    } catch (_) {}
+    if (!hasProfile) {
+      final address = email.trim().toLowerCase();
+      try {
+        await appwriteService.createUserDocument(
+          userId: userId,
+          name: address.split('@').first,
+          email: address,
+          phone: '',
+          fcmToken: fcmToken,
+        );
+      } catch (e) {
+        log('Could not create profile after email code sign-in: $e');
+      }
+    }
+
+    // Best-effort push registration, exactly as after a password login.
+    try {
+      await appwriteService.updateTable(
+        tableId: AppwriteConfig.usersCollection,
+        rowId: userId,
+        data: {'fcm_token': fcmToken},
+      );
+      if (fcmToken != null) {
+        await appwriteService.setupMessaging(fcmToken: fcmToken);
+      }
+    } catch (e) {
+      log('Post-sign-in device registration skipped: $e');
+    }
+  }
+
   String _sendFailureKey(AppwriteException e) => switch (e.type) {
     'general_rate_limit_exceeded' => 'too_many_reset_requests',
     'general_smtp_disabled' => 'reset_email_service_unavailable',

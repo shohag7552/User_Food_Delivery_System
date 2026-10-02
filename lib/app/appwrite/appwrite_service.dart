@@ -361,6 +361,27 @@ class AppwriteService {
     await account.updatePassword(password: password, oldPassword: oldPassword);
   }
 
+  /// Emails a 6-digit sign-in code (Appwrite email OTP) and returns the
+  /// account id the code belongs to.
+  ///
+  /// Appwrite ignores [ID.unique] when the address already has an account
+  /// and uses that account; for an unknown address it creates one.
+  Future<String> createEmailToken({required String email}) async {
+    final token = await account.createEmailToken(
+      userId: ID.unique(),
+      email: email,
+    );
+    return token.userId;
+  }
+
+  /// Exchanges the emailed code for a session (signs the user in).
+  Future<void> createSessionFromCode({
+    required String userId,
+    required String code,
+  }) async {
+    await account.createSession(userId: userId, secret: code);
+  }
+
   /// Sends Appwrite's built-in password-recovery email.
   ///
   /// [url] must be a hostname registered as a Web platform on the project;

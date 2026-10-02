@@ -65,6 +65,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   bool get _hasCredentials =>
       widget.userId.isNotEmpty && widget.secret.isNotEmpty;
 
+  /// True while the store's reset mode is being re-read (see [initState]).
+  bool _checkingMode = true;
+
+  /// The store resets passwords with emailed codes: reset links — including
+  /// ones mailed before the switch — are refused here.
+  bool get _linksDisabled =>
+      Get.find<AuthController>().usesEmailCodeReset;
+
   @override
   void initState() {
     super.initState();
@@ -72,6 +80,19 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => Get.find<AuthController>().clearResetError(),
     );
+    _loadResetMode();
+  }
+
+  /// A cold deep link skips the splash, so the store settings may never have
+  /// loaded. Always re-read them: a link must not slip through because the
+  /// switch was flipped after the app started.
+  Future<void> _loadResetMode() async {
+    try {
+      await Get.find<AuthController>().refreshResetMode();
+    } catch (_) {
+      // Offline: fall back to whatever was loaded (link mode by default).
+    }
+    if (mounted) setState(() => _checkingMode = false);
   }
 
   @override
@@ -97,6 +118,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 
   Future<void> _submit() async {
+    if (_checkingMode || _linksDisabled) return;
     final controller = Get.find<AuthController>();
     // The keyboard's "done" action reaches here too, so guard it as well as
     // disabling the button.
@@ -175,7 +197,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 
   Widget _buildHeader() {
-    final showSubtitle = _hasCredentials && !_done;
+    final showSubtitle =
+        _hasCredentials && !_done && !_checkingMode && !_linksDisabled;
 
     return Column(
       children: [
@@ -214,6 +237,28 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 
   Widget _buildBody() {
+    if (_checkingMode) {
+      return const Padding(
+        padding: EdgeInsets.all(Constants.paddingSizeExtraLarge),
+        child: Center(
+          child: CircularProgressIndicator(color: ColorResource.primaryDark),
+        ),
+      );
+    }
+
+    // The store switched to email codes: links no longer reset passwords.
+    if (_linksDisabled && !_done) {
+      return AuthStatusPanel(
+        icon: Icons.mark_email_unread_outlined,
+        title: 'reset_links_disabled_title'.tr,
+        message: 'reset_links_disabled_message'.tr,
+        primaryLabel: 'request_reset_code'.tr,
+        onPrimary: _requestNewLink,
+        secondaryLabel: 'back_to_sign_in'.tr,
+        onSecondary: _goSignIn,
+      );
+    }
+
     // A link with no credentials can never succeed — say so without spending a
     // network call on it.
     if (!_hasCredentials) {

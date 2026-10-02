@@ -6,6 +6,7 @@ import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/modules/auth/widgets/auth_field_decoration.dart';
 import 'package:appwrite_user_app/app/modules/auth/widgets/auth_status_panel.dart';
+import 'package:appwrite_user_app/app/modules/auth/widgets/reset_code_field.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/images.dart';
@@ -14,12 +15,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
-/// Step one of password recovery: collect the email, ask Appwrite to send the
-/// reset link, then confirm.
+/// Password recovery, in whichever mode the store uses.
 ///
-/// The user never types a code here — Appwrite emails a one-hour link that
-/// lands on [AppRouter.resetPassword], either in the installed app (App Link /
-/// Universal Link) or in the browser.
+/// * **Link mode** (default): collect the email, ask Appwrite to send the
+///   reset link, then confirm. The link lands on [AppRouter.resetPassword],
+///   either in the installed app (App Link / Universal Link) or the browser.
+/// * **Email-code mode** (the store switched it on): Appwrite emails a
+///   6-digit code (`createEmailToken`); entering it signs the customer in and
+///   opens the dashboard. Their password is left unchanged.
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
@@ -39,8 +42,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
 
+  /// Link mode: the "check your inbox" panel is showing.
   bool _emailSent = false;
   String _sentToEmail = '';
+
+  /// Email-code mode progress.
+  _CodeStep _codeStep = _CodeStep.email;
+  final _codeController = TextEditingController();
 
   Timer? _resendTimer;
   int _resendIn = 0;
@@ -76,7 +84,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
   @override
   void dispose() {
     _emailController.dispose();
+    _codeController.dispose();
     _resendTimer?.cancel();
+    // Never leave a reset token behind once the user leaves the flow.
+    Get.find<AuthController>().clearCodeReset(notify: false);
     _animationController.dispose();
     super.dispose();
   }
@@ -94,23 +105,71 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     });
   }
 
+  /// From the email form.
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
+    await _send(_emailController.text.trim());
+  }
 
-    final email = _emailController.text.trim();
-    final success = await Get.find<AuthController>().sendPasswordResetLink(
+  /// "Resend" on the sent / code steps — the email form is no longer on
+  /// screen, so reuse the address the last request went to.
+  Future<void> _resend() async {
+    if (_resendIn > 0) return;
+    await _send(_sentToEmail);
+  }
+
+  Future<void> _send(String email) async {
+    final outcome = await Get.find<AuthController>().requestPasswordReset(
       email,
     );
+    if (!mounted) return;
 
-    if (!mounted || !success) return;
+    switch (outcome) {
+      case ResetRequestOutcome.codeSent:
+        _codeController.clear();
+        setState(() {
+          _sentToEmail = email;
+          _codeStep = _CodeStep.code;
+        });
+        _startResendCooldown();
+        customToster('reset_code_sent'.tr, isSuccess: true);
+      case ResetRequestOutcome.linkSent:
+        setState(() {
+          _emailSent = true;
+          _sentToEmail = email;
+          _codeStep = _CodeStep.email;
+        });
+        _startResendCooldown();
+        customToster('reset_link_sent'.tr, isSuccess: true);
+      case ResetRequestOutcome.failed:
+        break;
+    }
+  }
 
-    setState(() {
-      _emailSent = true;
-      _sentToEmail = email;
-    });
-    _startResendCooldown();
-    customToster('reset_link_sent'.tr, isSuccess: true);
+  Future<void> _verifyCode() async {
+    final controller = Get.find<AuthController>();
+    final code = _codeController.text.trim();
+    if (code.length != 6 || controller.isVerifyingResetCode) return;
+    FocusScope.of(context).unfocus();
+
+    final ok = await controller.signInWithEmailCode(
+      email: _sentToEmail,
+      code: code,
+    );
+    if (!mounted) return;
+    if (ok) {
+      customToster('signed_in_with_email_code'.tr, isSuccess: true);
+      context.goNamed(RouteNames.dashboard);
+      return;
+    }
+    _codeController.clear();
+  }
+
+  void _changeEmail() {
+    Get.find<AuthController>().clearCodeReset();
+    _codeController.clear();
+    setState(() => _codeStep = _CodeStep.email);
   }
 
   @override
@@ -137,7 +196,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                       if (context.canPop()) _buildBackButton(),
                       _buildHeader(),
                       const SizedBox(height: Constants.paddingSizeExtraLarge),
-                      if (_emailSent) _buildSentPanel() else _buildForm(),
+                      _buildBody(),
                     ],
                   ),
                 ),
@@ -161,7 +220,31 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     );
   }
 
+  Widget _buildBody() {
+    if (_emailSent) return _buildSentPanel();
+    return switch (_codeStep) {
+      _CodeStep.email => _buildForm(),
+      _CodeStep.code => _buildCodeStep(),
+    };
+  }
+
+  /// Title + subtitle for the current step.
+  (String, String?) get _headerText => switch (_codeStep) {
+    _ when _emailSent => ('forgot_password'.tr, null),
+    _CodeStep.email => (
+      'forgot_password'.tr,
+      Get.find<AuthController>().usesEmailCodeReset
+          ? 'forgot_password_code_subtitle'.tr
+          : 'forgot_password_subtitle'.tr,
+    ),
+    _CodeStep.code => (
+      'enter_reset_code'.tr,
+      'reset_code_sent_to'.trParams({'email': _sentToEmail}),
+    ),
+  };
+
   Widget _buildHeader() {
+    final (title, subtitle) = _headerText;
     return Column(
       children: [
         const SizedBox(height: Constants.paddingSizeSmall),
@@ -176,17 +259,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
         ),
         const SizedBox(height: Constants.paddingSizeLarge),
         Text(
-          'forgot_password'.tr,
+          title,
           textAlign: TextAlign.center,
           style: poppinsBold.copyWith(
             fontSize: Constants.fontSizeOverLarge,
             color: context.textPrimary,
           ),
         ),
-        if (!_emailSent) ...[
+        if (subtitle != null) ...[
           const SizedBox(height: Constants.paddingSizeExtraSmall),
           Text(
-            'forgot_password_subtitle'.tr,
+            subtitle,
             textAlign: TextAlign.center,
             style: poppinsRegular.copyWith(
               fontSize: Constants.fontSizeDefault,
@@ -235,10 +318,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
             ),
             const SizedBox(height: Constants.paddingSizeLarge),
             GetBuilder<AuthController>(
-              builder: (controller) => CustomButton(
-                buttonText: 'send_reset_link'.tr,
-                onPressed: _submit,
-                isLoading: controller.isSendingResetLink,
+              builder: (controller) => Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  CustomButton(
+                    buttonText: controller.usesEmailCodeReset
+                        ? 'send_reset_code'.tr
+                        : 'send_reset_link'.tr,
+                    onPressed: _submit,
+                    isLoading:
+                        controller.isSendingResetLink ||
+                        controller.isSendingResetCode,
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: Constants.paddingSizeDefault),
@@ -279,7 +371,114 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
           ? 'resend_in_seconds'.trParams({'seconds': '$_resendIn'})
           : 'resend_reset_link'.tr,
       secondaryEnabled: !cooling,
-      onSecondary: _submit,
+      onSecondary: _resend,
+    );
+  }
+
+  Widget _buildCodeStep() {
+    return GetBuilder<AuthController>(
+      builder: (controller) {
+        final errorKey = controller.resetErrorKey;
+        final cooling = _resendIn > 0;
+        final String? errorText = errorKey?.tr;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ResetCodeField(
+              controller: _codeController,
+              hasError: errorText != null,
+              enabled: !controller.isVerifyingResetCode,
+              onCompleted: (_) => _verifyCode(),
+            ),
+            if (errorText != null) _buildInlineError(errorText),
+            const SizedBox(height: Constants.paddingSizeSmall),
+            Text(
+              'email_code_expiry_hint'.tr,
+              textAlign: TextAlign.center,
+              style: poppinsRegular.copyWith(
+                fontSize: Constants.fontSizeSmall,
+                color: context.textSecondary,
+              ),
+            ),
+            const SizedBox(height: Constants.paddingSizeLarge),
+            CustomButton(
+              buttonText: 'verify_and_sign_in'.tr,
+              onPressed: _verifyCode,
+              isLoading: controller.isVerifyingResetCode,
+            ),
+            const SizedBox(height: Constants.paddingSizeSmall),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  onPressed: cooling || controller.isSendingResetCode
+                      ? null
+                      : _resend,
+                  style: TextButton.styleFrom(
+                    foregroundColor: ColorResource.primaryDark,
+                  ),
+                  child: Text(
+                    cooling
+                        ? 'resend_in_seconds'.trParams({
+                            'seconds': '$_resendIn',
+                          })
+                        : 'resend_code'.tr,
+                    style: poppinsMedium.copyWith(
+                      fontSize: Constants.fontSizeDefault,
+                    ),
+                  ),
+                ),
+                Text(
+                  '·',
+                  style: poppinsMedium.copyWith(color: context.textSecondary),
+                ),
+                TextButton(
+                  onPressed: _changeEmail,
+                  style: TextButton.styleFrom(
+                    foregroundColor: ColorResource.primaryDark,
+                  ),
+                  child: Text(
+                    'change_email'.tr,
+                    style: poppinsMedium.copyWith(
+                      fontSize: Constants.fontSizeDefault,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildInlineError(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(top: Constants.paddingSizeSmall),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.error_outline_rounded,
+            size: 16,
+            color: ColorResource.error,
+          ),
+          const SizedBox(width: Constants.paddingSizeExtraSmall + 1),
+          Expanded(
+            child: Text(
+              text,
+              style: poppinsRegular.copyWith(
+                fontSize: Constants.fontSizeSmall,
+                color: ColorResource.error,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
+
+enum _CodeStep { email, code }

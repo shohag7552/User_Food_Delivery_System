@@ -23,7 +23,8 @@ class Constants {
   static const String projectId = '6aa44c20000b0b73b432';
   static const String endpoint = 'https://fra.cloud.appwrite.io/v1';
   static const String databaseId = '6aa44dc40005d989a0e4';
-  static const String apiKey = 'standard_8e825bd4c06323a3e43d5941086078419bc3d82a2c6bb6760e21b91667e69982655826c89e2071ac20530339274ba38f5e5b9bfb36e39f7da4209d6379ef26aaac2548e0a8f75ea2145934a92bedde738ca48dfbbdf20e26afffa25f8650d26823fd0ef03aee008eb2edaa1e6eaee8692a4d0d6a7811d54d08df0a2f994e7172'; // MUST have 'databases.write' scope
+  // No Appwrite API key here: a key compiled into a client app can be
+  // extracted by anyone. Server keys live only in Function environments.
 
   /// Alias of [databaseId], kept because callers use both spellings. Derived
   /// rather than repeated so the two can never drift apart.

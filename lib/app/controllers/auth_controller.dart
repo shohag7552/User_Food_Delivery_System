@@ -1,10 +1,22 @@
 import 'dart:developer';
 import 'package:appwrite/models.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
+import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/helper/session_manager.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
 import 'package:appwrite_user_app/app/modules/auth/domain/services/password_reset_failure.dart';
 import 'package:get/get.dart';
+
+/// What a forgot-password request ended up doing.
+enum ResetRequestOutcome {
+  /// A 6-digit sign-in code was emailed (email-code mode).
+  codeSent,
+
+  /// A reset link was emailed (link mode).
+  linkSent,
+
+  failed,
+}
 
 class AuthController extends GetxController implements GetxService {
   final AuthRepoInterface authRepoInterface;
@@ -320,6 +332,123 @@ class AuthController extends GetxController implements GetxService {
     _isResettingPassword = false;
     update();
     return isSuccess;
+  }
+
+  // ── Password recovery (email code sign-in) ───────────────────────────────
+  //
+  // When the store switches "email code" on, Forgot password stops sending
+  // reset links: Appwrite emails a 6-digit code (createEmailToken) and the
+  // code signs the customer straight in. Their password is not changed.
+
+  /// True when the store uses email codes instead of reset links.
+  bool get usesEmailCodeReset =>
+      Get.isRegistered<SettingsController>() &&
+      Get.find<SettingsController>().businessSetup?.isEmailOtpEnabled == true;
+
+  /// Re-reads the store's setting. A screen opened by a cold deep link can
+  /// arrive before settings were loaded, and the store can flip the switch
+  /// while the app is open.
+  Future<void> refreshResetMode() async {
+    if (!Get.isRegistered<SettingsController>()) return;
+    await Get.find<SettingsController>().fetchBusinessSetup();
+  }
+
+  bool _isSendingResetCode = false;
+  bool get isSendingResetCode => _isSendingResetCode;
+
+  bool _isVerifyingResetCode = false;
+  bool get isVerifyingResetCode => _isVerifyingResetCode;
+
+  /// Account the last emailed code belongs to (from createEmailToken).
+  String? _codeUserId;
+
+  /// Sends whatever the store currently uses: a sign-in code, or a reset
+  /// link. The setting is re-read first so a stale app never sends the
+  /// wrong one.
+  Future<ResetRequestOutcome> requestPasswordReset(String email) async {
+    _isSendingResetCode = true;
+    update();
+    try {
+      await refreshResetMode();
+    } catch (_) {
+      // Offline: go with what was loaded.
+    }
+
+    if (!usesEmailCodeReset) {
+      _isSendingResetCode = false;
+      update();
+      return await sendPasswordResetLink(email)
+          ? ResetRequestOutcome.linkSent
+          : ResetRequestOutcome.failed;
+    }
+
+    _resetErrorKey = null;
+    update();
+
+    var outcome = ResetRequestOutcome.failed;
+    try {
+      _codeUserId = await authRepoInterface.sendEmailCode(email);
+      outcome = ResetRequestOutcome.codeSent;
+    } on PasswordResetFailure catch (e) {
+      _resetErrorKey = e.messageKey;
+      customToster(e.messageKey.tr, isSuccess: false);
+    } catch (e) {
+      log('Send email code error: $e');
+      _resetErrorKey = 'could_not_send_email_code';
+      customToster('could_not_send_email_code'.tr, isSuccess: false);
+    }
+
+    _isSendingResetCode = false;
+    update();
+    return outcome;
+  }
+
+  /// Signs in with the emailed code. On success the customer is logged in
+  /// exactly as after a password login.
+  Future<bool> signInWithEmailCode({
+    required String email,
+    required String code,
+  }) async {
+    final userId = _codeUserId;
+    if (userId == null) {
+      _resetErrorKey = 'email_code_invalid_or_expired';
+      update();
+      return false;
+    }
+
+    _isVerifyingResetCode = true;
+    _resetErrorKey = null;
+    update();
+
+    var isSuccess = false;
+    try {
+      await authRepoInterface.signInWithEmailCode(
+        userId: userId,
+        email: email,
+        code: code,
+      );
+      _codeUserId = null;
+      _isLoggedIn = true;
+      SessionManager.loadUserData();
+      isSuccess = true;
+    } on PasswordResetFailure catch (e) {
+      _resetErrorKey = e.messageKey;
+    } catch (e) {
+      log('Email code sign-in error: $e');
+      _resetErrorKey = 'could_not_verify_email_code';
+    }
+
+    _isVerifyingResetCode = false;
+    update();
+    return isSuccess;
+  }
+
+  /// Drops an in-progress code sign-in. Pass `notify: false` from a widget's
+  /// `dispose`, where rebuilding is not allowed.
+  void clearCodeReset({bool notify = true}) {
+    _codeUserId = null;
+    _resetErrorKey = null;
+    if (notify) update();
   }
 
   Future<void> logout() async {
