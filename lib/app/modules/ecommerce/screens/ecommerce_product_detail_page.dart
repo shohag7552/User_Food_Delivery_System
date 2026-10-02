@@ -79,6 +79,7 @@ class _EcommerceProductDetailPageState
   final ValueNotifier<double> _collapseProgress = ValueNotifier<double>(0);
   int _currentImage = 0;
   bool _descExpanded = false;
+  static const int _descCollapsedLines = 2;
 
   // Inline variant selection state. radio -> VariantOption, checkbox -> List.
   final Map<String, dynamic> _selectedVariants = {};
@@ -113,6 +114,12 @@ class _EcommerceProductDetailPageState
   /// here) keep the additive base + extras model.
   bool get _variationIsPrice =>
       product.moduleType == ModuleController.ecommerce;
+
+  /// "৳900 – ৳1,350", or a single price when both ends match.
+  String _formatPriceRange(double low, double high) {
+    if ((high - low).abs() < 0.005) return PriceHelper.formatPrice(low);
+    return '${PriceHelper.formatPrice(low)} – ${PriceHelper.formatPrice(high)}';
+  }
 
   /// Every currently selected option, across all groups.
   List<VariantOption> get _selectedOptions {
@@ -441,6 +448,7 @@ class _EcommerceProductDetailPageState
                 showRating: true,
               ),
               const SizedBox(height: 12),
+              _buildDiscountBadge(),
               _buildPriceRow(),
               const SizedBox(height: 10),
               _buildStockChip(),
@@ -479,34 +487,50 @@ class _EcommerceProductDetailPageState
       builder: (_) {
         final flashItem = _flashItem;
         final bool onFlashSale = flashItem != null;
-        // Shop products follow the selected variation, so the headline is the
-        // price the shopper will actually pay per unit.
-        final VariantPricing? pricing =
-            _variationIsPrice ? _variantPricing : null;
-        final double shownPrice = pricing?.finalPrice ??
-            (onFlashSale ? flashItem.flashPrice : product.finalPrice);
-        final double originalPrice = pricing?.basePrice ?? product.price;
-        final bool showOriginal = pricing?.hasDiscount ??
-            (onFlashSale
-                ? flashItem.flashPrice < product.price
-                : product.hasDiscount);
+        // Shop products advertise the full price range their variations can
+        // reach. It is fixed: picking options never changes it — the live
+        // price for the current selection is the add-to-cart total.
+        final (VariantPricing, VariantPricing)? range = _variationIsPrice
+            ? VariantPricing.rangeOf(product, flashPrice: flashItem?.flashPrice)
+            : null;
+        final String shownPrice;
+        final String originalPrice;
+        final bool showOriginal;
+        if (range != null) {
+          final (low, high) = range;
+          shownPrice = _formatPriceRange(low.finalPrice, high.finalPrice);
+          originalPrice = _formatPriceRange(low.basePrice, high.basePrice);
+          showOriginal = low.hasDiscount || high.hasDiscount;
+        } else {
+          shownPrice = PriceHelper.formatPrice(
+            onFlashSale ? flashItem.flashPrice : product.finalPrice,
+          );
+          originalPrice = PriceHelper.formatPrice(product.price);
+          showOriginal = onFlashSale
+              ? flashItem.flashPrice < product.price
+              : product.hasDiscount;
+        }
 
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
+        // Wrap, not Row: a range plus its struck-through original can be
+        // wider than a phone, so the extras drop to the next line instead of
+        // overflowing.
+        return Wrap(
+          crossAxisAlignment: WrapCrossAlignment.end,
+          spacing: 10,
+          runSpacing: 4,
           children: [
             Text(
-              PriceHelper.formatPrice(shownPrice),
+              shownPrice,
               style: poppinsBold.copyWith(
                 fontSize: Constants.fontSizeOverLarge,
                 color: ColorResource.primaryDark,
               ),
             ),
             if (showOriginal) ...[
-              const SizedBox(width: 10),
               Padding(
                 padding: const EdgeInsets.only(bottom: 3),
                 child: Text(
-                  PriceHelper.formatPrice(originalPrice),
+                  originalPrice,
                   style: poppinsRegular.copyWith(
                     fontSize: Constants.fontSizeDefault,
                     color: context.textLight,
@@ -516,7 +540,6 @@ class _EcommerceProductDetailPageState
               ),
             ],
             if (onFlashSale) ...[
-              const SizedBox(width: 10),
               Padding(
                 padding: const EdgeInsets.only(bottom: 3),
                 child: Container(
@@ -560,31 +583,76 @@ class _EcommerceProductDetailPageState
           ),
         ),
         const SizedBox(height: 8),
-        Text(
-          description,
-          maxLines: _descExpanded ? null : 4,
-          overflow:
-              _descExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
-          style: poppinsRegular.copyWith(
-            fontSize: Constants.fontSizeDefault,
-            color: context.textSecondary,
-            height: 1.5,
-          ),
-        ),
-        if (description.length > 160)
-          GestureDetector(
-            onTap: () => setState(() => _descExpanded = !_descExpanded),
-            child: Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                _descExpanded ? 'see_less'.tr : 'see_more'.tr,
-                style: poppinsBold.copyWith(
-                  fontSize: Constants.fontSizeSmall,
-                  color: ColorResource.primaryDark,
+        // Measure the real layout: the toggle appears only when the text
+        // actually runs past the collapsed line count (line breaks and width
+        // decide that, not character count).
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final style = poppinsRegular.copyWith(
+              fontSize: Constants.fontSizeDefault,
+              color: context.textSecondary,
+              height: 1.5,
+            );
+            final painter = TextPainter(
+              text: TextSpan(text: description, style: style),
+              maxLines: _descCollapsedLines,
+              textDirection: Directionality.of(context),
+              textScaler: MediaQuery.textScalerOf(context),
+            )..layout(maxWidth: constraints.maxWidth);
+            final bool overflows = painter.didExceedMaxLines;
+            painter.dispose();
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeInOut,
+                  alignment: Alignment.topCenter,
+                  child: Text(
+                    description,
+                    maxLines: _descExpanded ? null : _descCollapsedLines,
+                    overflow: _descExpanded
+                        ? TextOverflow.visible
+                        : TextOverflow.ellipsis,
+                    style: style,
+                  ),
                 ),
-              ),
-            ),
-          ),
+                if (overflows)
+                  InkWell(
+                    onTap: () =>
+                        setState(() => _descExpanded = !_descExpanded),
+                    borderRadius:
+                        BorderRadius.circular(Constants.radiusSmall),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: Constants.paddingSizeExtraSmall + 1,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _descExpanded ? 'see_less'.tr : 'see_more'.tr,
+                            style: poppinsBold.copyWith(
+                              fontSize: Constants.fontSizeSmall,
+                              color: ColorResource.primaryDark,
+                            ),
+                          ),
+                          Icon(
+                            _descExpanded
+                                ? Icons.keyboard_arrow_up_rounded
+                                : Icons.keyboard_arrow_down_rounded,
+                            size: 18,
+                            color: ColorResource.primaryDark,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
       ],
     );
   }
@@ -973,6 +1041,7 @@ class _EcommerceProductDetailPageState
           showRating: true,
         ),
         const SizedBox(height: 16),
+        _buildDiscountBadge(),
         _buildPriceRow(),
         const SizedBox(height: 14),
         _buildStockChip(),
@@ -1303,6 +1372,71 @@ class _EcommerceProductDetailPageState
         ),
       ),
     );
+  }
+
+  /// Discount badge between the rating and the price — "10% OFF" /
+  /// "৳100 OFF", or the flash-sale saving while a sale runs. Rebuilt with the
+  /// flash controller so it follows a sale starting or ending on this page.
+  Widget _buildDiscountBadge() {
+    return GetBuilder<FlashSaleController>(
+      builder: (_) {
+        final label = _discountLabel;
+        if (label == null) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: Constants.paddingSizeSmall),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: Constants.paddingSizeSmall,
+              vertical: Constants.paddingSizeExtraSmall - 1,
+            ),
+            decoration: BoxDecoration(
+              color: ColorResource.primaryDark.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(Constants.radiusSmall),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.local_offer_outlined,
+                  size: 14,
+                  color: ColorResource.primaryDark,
+                ),
+                const SizedBox(width: Constants.paddingSizeExtraSmall),
+                Text(
+                  label,
+                  style: poppinsBold.copyWith(
+                    fontSize: Constants.fontSizeSmall,
+                    color: ColorResource.primaryDark,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// "10% OFF" / "৳100 OFF" for the product's own discount, or the live
+  /// flash-sale saving (as a percentage) while a sale runs — the price row
+  /// already carries the ⚡ badge. Null when sold at full price.
+  String? get _discountLabel {
+    final flashItem = _flashItem;
+    if (flashItem != null) {
+      if (product.price <= 0 || flashItem.flashPrice >= product.price) {
+        return null;
+      }
+      final percent =
+          ((product.price - flashItem.flashPrice) / product.price * 100)
+              .round();
+      return '$percent% ${'off'.tr.toUpperCase()}';
+    }
+    if (!product.hasDiscount) return null;
+    final value = product.discountValue!;
+    final amount = product.discountType == 'percentage'
+        ? '${value % 1 == 0 ? value.toInt() : value}%'
+        : PriceHelper.formatPrice(value);
+    return '$amount ${'off'.tr.toUpperCase()}';
   }
 
   Widget _buildSpecs() {
