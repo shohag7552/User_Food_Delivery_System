@@ -519,16 +519,26 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: 3),
-        Text(
-          value,
-          textAlign: textAlign,
-          style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeSmall,
-            color: ColorResource.textWhite,
+        const SizedBox(height: 4),
+        // Shrinks rather than truncates: a long order number or a large total
+        // must never lose its last digits.
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: switch (alignment) {
+            CrossAxisAlignment.center => Alignment.center,
+            CrossAxisAlignment.end => AlignmentDirectional.centerEnd,
+            _ => AlignmentDirectional.centerStart,
+          },
+          child: Text(
+            value,
+            textAlign: textAlign,
+            style: poppinsBold.copyWith(
+              fontSize: Constants.fontSizeLarge,
+              color: ColorResource.textWhite,
+              height: 1.2,
+            ),
+            maxLines: 1,
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
@@ -537,7 +547,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   Widget _headerFactDivider() {
     return Container(
       width: 1,
-      height: 26,
+      height: 34,
       margin: const EdgeInsets.symmetric(
         horizontal: Constants.paddingSizeSmall,
       ),
