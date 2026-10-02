@@ -17,6 +17,7 @@ import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/deliveryman_rating_badge.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/deliveryman_review_section.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/submit_review_bottomsheet.dart';
+import 'package:appwrite_user_app/app/modules/orders/widgets/delivery_code_card.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -1579,79 +1580,14 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         status != 'refunded';
   }
 
-  /// The code the customer reads out on the doorstep. Set large and widely
-  /// tracked because it is going to be read aloud, often in bad light through a
-  /// half-open door — legibility matters more here than fitting the card's
-  /// usual type scale.
+  /// The code the customer reads out on the doorstep — see
+  /// [DeliveryCodeCard]. Inset on mobile; flush in the web summary rail.
   Widget _buildVerificationCode(OrderModel order) {
-    final code = order.deliveryVerificationCode!;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: Constants.paddingSizeDefault),
-      padding: const EdgeInsets.all(Constants.paddingSizeDefault),
-      decoration: BoxDecoration(
-        color: context.cardBackground,
-        borderRadius: BorderRadius.circular(Constants.radiusLarge),
-        boxShadow: ColorResource.customShadow,
-        border: Border.all(
-          color: ColorResource.primaryDark.withValues(alpha: 0.35),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.verified_user_outlined,
-                color: ColorResource.primaryDark,
-                size: 20,
-              ),
-              const SizedBox(width: Constants.paddingSizeSmall),
-              Expanded(
-                child: Text(
-                  'delivery_verification_code'.tr,
-                  style: poppinsBold.copyWith(
-                    fontSize: Constants.fontSizeLarge,
-                    color: context.textPrimary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: Constants.paddingSizeDefault),
-          Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: Constants.paddingSizeLarge,
-                vertical: Constants.paddingSizeSmall,
-              ),
-              decoration: BoxDecoration(
-                color: ColorResource.primaryDark.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(Constants.radiusDefault),
-              ),
-              child: Text(
-                code,
-                style: poppinsBold.copyWith(
-                  fontSize: Constants.fontSizeOverLarge + 6,
-                  color: ColorResource.primaryDark,
-                  letterSpacing: 8,
-                  // Digits read aloud must not wobble between glyph widths.
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: Constants.paddingSizeDefault),
-          Text(
-            'share_code_with_deliveryman'.tr,
-            style: poppinsRegular.copyWith(
-              fontSize: Constants.fontSizeSmall,
-              color: context.textSecondary,
-              height: 1.45,
-            ),
-          ),
-        ],
+    final isWide = MediaQuery.of(context).size.width >= _webBreakpoint;
+    return DeliveryCodeCard(
+      code: order.deliveryVerificationCode!,
+      margin: EdgeInsets.symmetric(
+        horizontal: isWide ? 0 : Constants.paddingSizeDefault,
       ),
     );
   }
