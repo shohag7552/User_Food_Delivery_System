@@ -221,13 +221,6 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                         iconColor: ColorResource.error,
                         onTap: () => _showLogoutDialog(),
                       ),
-                      _item(
-                        icon: Icons.delete_outline,
-                        title: 'delete_account'.tr,
-                        subtitle: 'permanently_delete_your_account'.tr,
-                        iconColor: ColorResource.error,
-                        onTap: () => _showDeleteAccountDialog(),
-                      ),
                     ] else
                       _item(
                         icon: Icons.login_rounded,
@@ -518,43 +511,4 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
     );
   }
 
-  void _showDeleteAccountDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(
-          'delete_account'.tr,
-          style: poppinsBold.copyWith(fontSize: Constants.fontSizeLarge),
-        ),
-        content: Text(
-          'delete_account_warning'.tr,
-          style: poppinsRegular.copyWith(fontSize: Constants.fontSizeDefault),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'cancel'.tr,
-              style: poppinsMedium.copyWith(color: context.textSecondary),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: ColorResource.error,
-            ),
-            onPressed: () async {
-              Navigator.pop(ctx);
-              final ok = await Get.find<AuthController>().deleteAccount();
-              // Return to the dashboard as a guest once the account is closed.
-              if (ok && mounted) context.goNamed(RouteNames.dashboard);
-            },
-            child: Text(
-              'delete'.tr,
-              style: poppinsBold.copyWith(color: ColorResource.textWhite),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

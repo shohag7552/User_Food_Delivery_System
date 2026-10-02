@@ -32,7 +32,7 @@ class CouponController extends GetxController implements GetxService {
   Future<void> getCoupons({bool showError = true}) async {
     try {
       _isLoading = true;
-      update();
+      // update();
 
       _coupons = await couponRepoInterface.getCoupons();
 

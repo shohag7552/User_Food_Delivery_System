@@ -11,6 +11,7 @@ import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:appwrite_user_app/app/common/widgets/directional_flip.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/modules/profile/widgets/change_password_dialog.dart';
+import 'package:appwrite_user_app/app/modules/profile/widgets/delete_account_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -113,8 +114,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             children: [
               Center(
                 child: ConstrainedBox(
-                  constraints:
-                      const BoxConstraints(maxWidth: _maxContentWidth),
+                  constraints: const BoxConstraints(maxWidth: _maxContentWidth),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: Constants.paddingSizeLarge,
@@ -261,24 +261,35 @@ class _EditProfilePageState extends State<EditProfilePage> {
         ),
         borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
       ),
-      child: Column(
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          _buildProfilePicture(context, controller),
-          const SizedBox(height: 16),
-          Text(
-            'edit_profile'.tr,
-            style: poppinsBold.copyWith(
-              fontSize: Constants.fontSizeOverLarge,
-              color: ColorResource.textWhite,
-            ),
+          Column(
+            children: [
+              _buildProfilePicture(context, controller),
+              const SizedBox(height: 16),
+              Text(
+                'edit_profile'.tr,
+                style: poppinsBold.copyWith(
+                  fontSize: Constants.fontSizeOverLarge,
+                  color: ColorResource.textWhite,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'update_your_personal_info'.tr,
+                style: poppinsRegular.copyWith(
+                  fontSize: Constants.fontSizeDefault,
+                  color: ColorResource.textWhite.withValues(alpha: 0.8),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            'update_your_personal_info'.tr,
-            style: poppinsRegular.copyWith(
-              fontSize: Constants.fontSizeDefault,
-              color: ColorResource.textWhite.withValues(alpha: 0.8),
-            ),
+          // Top corner, pulled into the card's padding like an app bar action.
+          const PositionedDirectional(
+            top: -Constants.paddingSizeSmall,
+            end: -Constants.paddingSizeSmall,
+            child: DeleteAccountMenu(),
           ),
         ],
       ),
@@ -301,6 +312,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
         ),
         onPressed: () => context.pop(),
       ),
+      actions: const [
+        DeleteAccountMenu(),
+        SizedBox(width: Constants.paddingSizeExtraSmall),
+      ],
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: BoxDecoration(
@@ -573,9 +588,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               label,
               style: poppinsMedium.copyWith(
                 fontSize: Constants.fontSizeDefault,
-                color:
-                    theme.textTheme.bodyMedium?.color ??
-                    context.textPrimary,
+                color: theme.textTheme.bodyMedium?.color ?? context.textPrimary,
               ),
             ),
           ],
@@ -677,7 +690,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         color: enabled
             ? (theme.textTheme.bodyLarge?.color ?? context.textPrimary)
             : (theme.textTheme.bodyLarge?.color ?? context.textPrimary)
-                .withValues(alpha: 0.5),
+                  .withValues(alpha: 0.5),
       ),
       decoration: InputDecoration(
         labelText: label,
@@ -706,10 +719,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
         filled: true,
         fillColor: enabled
             ? (theme.inputDecorationTheme.fillColor ??
-                theme.colorScheme.surface.withValues(alpha: 0.5))
+                  theme.colorScheme.surface.withValues(alpha: 0.5))
             : (theme.inputDecorationTheme.fillColor ??
-                    theme.colorScheme.surface.withValues(alpha: 0.5))
-                .withValues(alpha: 0.6),
+                      theme.colorScheme.surface.withValues(alpha: 0.5))
+                  .withValues(alpha: 0.6),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(

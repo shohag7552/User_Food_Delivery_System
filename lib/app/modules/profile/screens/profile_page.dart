@@ -294,16 +294,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                       _showLogoutDialog(context);
                                     },
                                   ),
-                                  _ProfileOption(
-                                    icon: Icons.delete_outline,
-                                    title: 'delete_account'.tr,
-                                    subtitle:
-                                        'permanently_delete_your_account'.tr,
-                                    iconColor: ColorResource.error,
-                                    onTap: () {
-                                      _showDeleteAccountDialog(context);
-                                    },
-                                  ),
                                 ]
                               : [
                                   _ProfileOption(
@@ -723,46 +713,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  void _showDeleteAccountDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'delete_account'.tr,
-          style: poppinsBold.copyWith(fontSize: Constants.fontSizeLarge),
-        ),
-        content: Text(
-          'delete_account_warning'.tr,
-          style: poppinsRegular.copyWith(fontSize: Constants.fontSizeDefault),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'cancel'.tr,
-              style: poppinsMedium.copyWith(color: context.textSecondary),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              final ok = await Get.find<AuthController>().deleteAccount();
-              if (ok && context.mounted) {
-                context.goNamed(RouteNames.dashboard);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: ColorResource.error,
-            ),
-            child: Text(
-              'delete'.tr,
-              style: poppinsBold.copyWith(color: ColorResource.textWhite),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _ProfileOption extends StatelessWidget {
