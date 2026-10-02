@@ -318,13 +318,17 @@ class _EcommerceProductDetailPageState
           (shadowOpacity) => _shareButton(shadowOpacity: shadowOpacity),
         ),
         const SizedBox(width: 10),
+        _collapseAware(
+          (shadowOpacity) => _circleButton(
+            child: FavoriteButton(product: product, size: 22),
+            shadowOpacity: shadowOpacity,
+          ),
+        ),
+        const SizedBox(width: 10),
         Padding(
           padding: const EdgeInsets.only(right: 12),
           child: _collapseAware(
-            (shadowOpacity) => _circleButton(
-              child: FavoriteButton(product: product, size: 22),
-              shadowOpacity: shadowOpacity,
-            ),
+            (shadowOpacity) => _cartButton(shadowOpacity: shadowOpacity),
           ),
         ),
       ],
@@ -1041,6 +1045,63 @@ class _EcommerceProductDetailPageState
         child: child ??
             Icon(icon, size: 20, color: context.textPrimary),
       ),
+    );
+  }
+
+  /// Cart shortcut beside the favourite button: live item-count badge, opens
+  /// the cart as a pushed page so back returns to this product. Mobile only —
+  /// on web the top nav already carries the cart.
+  Widget _cartButton({double shadowOpacity = 1}) {
+    return GetBuilder<CartController>(
+      builder: (cartController) {
+        final itemCount = cartController.itemCount;
+        return Tooltip(
+          message: 'cart'.tr,
+          child: _circleButton(
+            shadowOpacity: shadowOpacity,
+            onTap: () => context.pushNamed(RouteNames.cart),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(
+                  Icons.shopping_cart_outlined,
+                  size: 20,
+                  color: context.textPrimary,
+                ),
+                if (itemCount > 0)
+                  PositionedDirectional(
+                    end: -9,
+                    top: -9,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        color: ColorResource.primaryDark,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: context.cardBackground,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          itemCount > 99 ? '99+' : '$itemCount',
+                          style: poppinsBold.copyWith(
+                            fontSize: 9,
+                            color: ColorResource.textWhite,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
