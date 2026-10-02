@@ -489,10 +489,11 @@ class _CartPageState extends State<CartPage> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 // Original price (struck through), if discounted
-                                if (item.basePrice > item.finalPrice) ...[
+                                if (item.originalUnitPrice >
+                                    item.unitPrice) ...[
                                   Text(
                                     CurrencyHelper.formatAmount(
-                                      item.basePrice * item.quantity,
+                                      item.originalUnitPrice * item.quantity,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,

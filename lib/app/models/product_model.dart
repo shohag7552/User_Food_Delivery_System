@@ -74,16 +74,20 @@ class ProductModel {
   }
 
   // Calculate final price after discount
-  double get finalPrice {
+  double get finalPrice => discountedPrice(price);
+
+  /// [amount] after this product's discount — the base price for
+  /// [finalPrice], or a selected variation price on shop products.
+  double discountedPrice(double amount) {
     if (discountType == null || discountValue == null || discountValue == 0) {
-      return price;
+      return amount;
     }
     if (discountType == 'percentage') {
-      // Deduct percentage from original price
-      return price - (price * (discountValue! / 100));
+      // Deduct percentage from the amount
+      return amount - (amount * (discountValue! / 100));
     } else {
-      // Deduct fixed amount from original price
-      return price - discountValue!;
+      // Deduct fixed amount from the amount
+      return amount - discountValue!;
     }
   }
 

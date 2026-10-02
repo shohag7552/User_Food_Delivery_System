@@ -35,7 +35,7 @@ class CartController extends GetxController implements GetxService {
 
   /// Original subtotal using base prices (before any product discounts)
   double get originalSubtotal =>
-      _cartItems.fold(0.0, (sum, item) => sum + (item.basePrice + item.variantPrice) * item.quantity);
+      _cartItems.fold(0.0, (sum, item) => sum + item.originalUnitPrice * item.quantity);
 
   /// Subtotal using discounted final prices
   double get subtotal =>

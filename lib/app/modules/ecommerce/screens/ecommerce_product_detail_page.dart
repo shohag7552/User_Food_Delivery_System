@@ -11,6 +11,7 @@ import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/brand_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/flash_sale_controller.dart';
+import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/controllers/product_controller.dart';
 import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
 import 'package:appwrite_user_app/app/helper/price_helper.dart';
@@ -21,6 +22,7 @@ import 'package:appwrite_user_app/app/models/flash_sale_item_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
+import 'package:appwrite_user_app/app/modules/ecommerce/domain/services/variant_pricing.dart';
 import 'package:appwrite_user_app/app/modules/ecommerce/widgets/ecommerce_product_card.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/review_list_section.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -98,26 +100,42 @@ class _EcommerceProductDetailPageState
     return Get.find<FlashSaleController>().itemForProduct(product.id);
   }
 
-  /// Effective per-unit base: flash price during a live sale, else the
-  /// product's own discounted price.
-  double get _baseUnitPrice => _flashItem?.flashPrice ?? product.finalPrice;
+  /// Shop products price by variation: a selected option's price replaces
+  /// the base price instead of adding to it. Food products (if ever opened
+  /// here) keep the additive base + extras model.
+  bool get _variationIsPrice =>
+      product.moduleType == ModuleController.ecommerce;
 
-  /// Per-unit price = effective base price + the additions of every selected
-  /// variant option (radio adds one, checkbox adds each chosen option).
-  double get _unitPrice {
-    double extra = 0;
+  /// Every currently selected option, across all groups.
+  List<VariantOption> get _selectedOptions {
+    final options = <VariantOption>[];
     for (final variant in product.variants) {
       final selection = _selectedVariants[variant.title];
       if (selection == null) continue;
       if (variant.type == 'radio') {
-        extra += (selection as VariantOption).price;
+        options.add(selection as VariantOption);
       } else {
-        for (final option in (selection as List<VariantOption>)) {
-          extra += option.price;
-        }
+        options.addAll(selection as List<VariantOption>);
       }
     }
-    return _baseUnitPrice + extra;
+    return options;
+  }
+
+  /// Shop pricing for the current selection — before/after discount.
+  VariantPricing get _variantPricing => VariantPricing.of(
+    product,
+    _selectedOptions,
+    flashPrice: _flashItem?.flashPrice,
+  );
+
+  /// Per-unit price after discount.
+  ///  • Shop: sum of the selected variation prices (or the base price when
+  ///    none is priced), with the product discount / flash price applied.
+  ///  • Food: discounted base (or flash price) + every selected option.
+  double get _unitPrice {
+    if (_variationIsPrice) return _variantPricing.finalPrice;
+    final double base = _flashItem?.flashPrice ?? product.finalPrice;
+    return _selectedOptions.fold(base, (sum, option) => sum + option.price);
   }
 
   double get _totalPrice => _unitPrice * _qty;
@@ -422,11 +440,17 @@ class _EcommerceProductDetailPageState
       builder: (_) {
         final flashItem = _flashItem;
         final bool onFlashSale = flashItem != null;
-        final double shownPrice =
-            onFlashSale ? flashItem.flashPrice : product.finalPrice;
-        final bool showOriginal = onFlashSale
-            ? flashItem.flashPrice < product.price
-            : product.hasDiscount;
+        // Shop products follow the selected variation, so the headline is the
+        // price the shopper will actually pay per unit.
+        final VariantPricing? pricing =
+            _variationIsPrice ? _variantPricing : null;
+        final double shownPrice = pricing?.finalPrice ??
+            (onFlashSale ? flashItem.flashPrice : product.finalPrice);
+        final double originalPrice = pricing?.basePrice ?? product.price;
+        final bool showOriginal = pricing?.hasDiscount ??
+            (onFlashSale
+                ? flashItem.flashPrice < product.price
+                : product.hasDiscount);
 
         return Row(
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -443,7 +467,7 @@ class _EcommerceProductDetailPageState
               Padding(
                 padding: const EdgeInsets.only(bottom: 3),
                 child: Text(
-                  PriceHelper.formatPrice(product.price),
+                  PriceHelper.formatPrice(originalPrice),
                   style: poppinsRegular.copyWith(
                     fontSize: Constants.fontSizeDefault,
                     color: context.textLight,
@@ -1450,7 +1474,10 @@ class _EcommerceProductDetailPageState
             if (option.price > 0) ...[
               const SizedBox(width: 6),
               Text(
-                '+${PriceHelper.formatPrice(option.price)}',
+                // Shop variations are the price itself; food options add on.
+                _variationIsPrice
+                    ? PriceHelper.formatPrice(option.price)
+                    : '+${PriceHelper.formatPrice(option.price)}',
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeSmall,
                   color: isSelected
@@ -1559,15 +1586,33 @@ class _EcommerceProductDetailPageState
       customToster('flash_sale_limit_reached'.tr, isSuccess: false);
       return;
     }
-    final String? lineDiscountType =
-        flashItem != null ? 'fixed' : product.discountType;
-    final double? lineDiscountValue = flashItem != null
-        ? (product.price > flashItem.flashPrice
-            ? product.price - flashItem.flashPrice
-            : 0)
-        : product.discountValue;
-    final double lineFinalPrice =
-        flashItem != null ? flashItem.flashPrice : product.finalPrice;
+    final String? lineDiscountType;
+    final double? lineDiscountValue;
+    final double lineBasePrice;
+    final double lineFinalPrice;
+    if (_variationIsPrice) {
+      // Shop: the line carries the variation-based unit price itself, so the
+      // cart never adds the option prices on top again.
+      final pricing = _variantPricing;
+      lineBasePrice = pricing.basePrice;
+      lineFinalPrice = pricing.finalPrice;
+      lineDiscountType = flashItem != null
+          ? 'fixed'
+          : (pricing.hasDiscount ? product.discountType : null);
+      lineDiscountValue = flashItem != null
+          ? pricing.discountAmount
+          : (pricing.hasDiscount ? product.discountValue : null);
+    } else {
+      lineBasePrice = product.price;
+      lineDiscountType = flashItem != null ? 'fixed' : product.discountType;
+      lineDiscountValue = flashItem != null
+          ? (product.price > flashItem.flashPrice
+              ? product.price - flashItem.flashPrice
+              : 0)
+          : product.discountValue;
+      lineFinalPrice =
+          flashItem != null ? flashItem.flashPrice : product.finalPrice;
+    }
 
     setState(() => _isAddingToCart = true);
     try {
@@ -1580,7 +1625,7 @@ class _EcommerceProductDetailPageState
           selectedVariants: _buildSelectedVariants(),
           quantity: _qty,
           itemTotal: _totalPrice,
-          basePrice: product.price,
+          basePrice: lineBasePrice,
           discountType: lineDiscountType,
           discountValue: lineDiscountValue,
           finalPrice: lineFinalPrice,
@@ -1595,7 +1640,7 @@ class _EcommerceProductDetailPageState
           productId: product.id,
           productName: product.nameMap.trLanguage,
           productImage: product.imageId,
-          basePrice: product.price,
+          basePrice: lineBasePrice,
           discountType: lineDiscountType,
           discountValue: lineDiscountValue,
           finalPrice: lineFinalPrice,

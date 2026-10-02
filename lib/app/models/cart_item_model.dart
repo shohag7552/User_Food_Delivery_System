@@ -42,8 +42,30 @@ class CartItemModel {
     return total;
   }
 
-  // Calculate unit price (finalPrice + variantPrice)
-  double get unitPrice => finalPrice + variantPrice;
+  /// Shop (ecommerce) lines store the variation-based price already folded
+  /// into [basePrice] / [finalPrice] — a selected variation *is* the price —
+  /// while food lines keep the additive base + option extras.
+  bool get _variationIsPrice => moduleType == 'ecommerce';
+
+  /// Discounted price of one unit.
+  ///
+  /// Shop lines read it back from [itemTotal], which was written as
+  /// unit × quantity — this also keeps lines saved before variation pricing
+  /// (base + extras) at the price they were added for.
+  double get unitPrice {
+    if (_variationIsPrice) {
+      return quantity > 0 ? itemTotal / quantity : finalPrice;
+    }
+    return finalPrice + variantPrice;
+  }
+
+  /// Price of one unit before the product discount.
+  double get originalUnitPrice {
+    if (_variationIsPrice) {
+      return basePrice > unitPrice ? basePrice : unitPrice;
+    }
+    return basePrice + variantPrice;
+  }
 
   // Create copy with updated fields
   CartItemModel copyWith({
