@@ -271,6 +271,7 @@ class AuthController extends GetxController implements GetxService {
 
     bool isSuccess = false;
     try {
+      log('Sending password reset link to: $email');
       await authRepoInterface.sendPasswordResetLink(email);
       isSuccess = true;
     } on PasswordResetFailure catch (e) {

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:appwrite/appwrite.dart' show AppwriteException;
 import 'package:appwrite/models.dart';
 import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
@@ -198,6 +200,7 @@ class AuthRepository implements AuthRepoInterface {
         url: AppwriteConfig.passwordRecoveryUrl,
       );
     } on AppwriteException catch (e) {
+      log('Password reset request failed: ${e.type}, code: ${e.code}, message: ${e.message}');
       // Unknown address: report success anyway. Answering identically for
       // registered and unregistered emails is what stops this form being used
       // to discover who has an account. It also normalises a behaviour change
