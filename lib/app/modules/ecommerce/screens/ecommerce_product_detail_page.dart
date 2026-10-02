@@ -35,7 +35,15 @@ import 'package:go_router/go_router.dart';
 class EcommerceProductDetailPage extends StatefulWidget {
   final ProductModel product;
 
-  const EcommerceProductDetailPage({super.key, required this.product});
+  /// The cart line this page was opened from (cart page). Its variations are
+  /// pre-selected so the page shows — and updates — that exact line.
+  final CartItemModel? cartItem;
+
+  const EcommerceProductDetailPage({
+    super.key,
+    required this.product,
+    this.cartItem,
+  });
 
   @override
   State<EcommerceProductDetailPage> createState() =>
@@ -190,6 +198,10 @@ class _EcommerceProductDetailPageState
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    final cartItem = widget.cartItem;
+    if (cartItem != null) {
+      _selectedVariants.addAll(_selectionFrom(cartItem.selectedVariants));
+    }
     _syncQtyWithCart();
     _fetchProductDetails();
     _loadSuggested(widget.product.categoryId);
@@ -232,9 +244,36 @@ class _EcommerceProductDetailPageState
         await Get.find<ProductController>().getProductById(widget.product.id);
     if (!mounted) return;
     setState(() {
-      if (fresh != null) _product = fresh;
+      if (fresh != null) {
+        _product = fresh;
+        // Options are matched by identity, so re-point the current selection
+        // at the fresh product's options or the chips would lose it.
+        final current = _buildSelectedVariants();
+        _selectedVariants
+          ..clear()
+          ..addAll(_selectionFrom(current));
+      }
       _isRefreshing = false;
     });
+  }
+
+  /// Rebuilds the in-memory selection map from saved variant selections,
+  /// matching groups by title and options by name against [product]. Options
+  /// that no longer exist are dropped.
+  Map<String, dynamic> _selectionFrom(List<SelectedVariant> saved) {
+    final result = <String, dynamic>{};
+    for (final variant in product.variants) {
+      final savedGroup =
+          saved.firstWhereOrNull((s) => s.groupTitle == variant.title);
+      if (savedGroup == null) continue;
+      final names = savedGroup.selections.map((s) => s.optionName).toSet();
+      final options =
+          variant.options.where((o) => names.contains(o.name)).toList();
+      if (options.isEmpty) continue;
+      result[variant.title] =
+          variant.type == 'radio' ? options.first : options;
+    }
+    return result;
   }
 
   /// Loads related products from the same category, excluding the current one.

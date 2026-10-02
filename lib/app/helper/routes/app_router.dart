@@ -10,6 +10,7 @@ import 'package:appwrite_user_app/app/models/category_model.dart';
 import 'package:appwrite_user_app/app/models/coupon_model.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
+import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/modules/address/screens/add_edit_address_page.dart';
 import 'package:appwrite_user_app/app/modules/address/screens/addresses_page.dart';
 import 'package:appwrite_user_app/app/modules/address/screens/full_screen_map_page.dart';
@@ -387,9 +388,16 @@ abstract class AppRouter {
         path: productDetailPath,
         name: RouteNames.productDetail,
         builder: (context, state) {
-          final product = state.extra;
-          if (product is ProductModel) {
-            return EcommerceProductDetailPage(product: product);
+          final extra = state.extra;
+          if (extra is ProductModel) {
+            return EcommerceProductDetailPage(product: extra);
+          }
+          // Opened from a cart line: show that line's configuration.
+          if (extra case (ProductModel product, CartItemModel cartItem)) {
+            return EcommerceProductDetailPage(
+              product: product,
+              cartItem: cartItem,
+            );
           }
           return _DeepLinkLoader<ProductModel>(
             fetch: () => Get.find<ProductController>()

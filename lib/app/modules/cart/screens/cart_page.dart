@@ -6,6 +6,7 @@ import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/helper/currency_helper.dart';
 import 'package:appwrite_user_app/app/helper/nav_bar_visibility.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
+import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
@@ -373,9 +374,19 @@ class _CartPageState extends State<CartPage> {
         }
 
         if (product != null && context.mounted) {
-          // Open the product details (dialog on desktop web, bottom sheet on
-          // mobile) with the existing cart item passed in.
-          ProductDetailBottomSheet.show(context, product, cartItem: item);
+          if (product.moduleType == ModuleController.ecommerce) {
+            // Shop items open their full product page, with this line's
+            // variations pre-selected.
+            context.pushNamed(
+              RouteNames.productDetail,
+              pathParameters: {'id': product.id},
+              extra: (product, item),
+            );
+          } else {
+            // Food: the details dialog (desktop web) / bottom sheet (mobile)
+            // with the existing cart item passed in.
+            ProductDetailBottomSheet.show(context, product, cartItem: item);
+          }
         } else if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('failed_to_load_product_details'.tr)),
