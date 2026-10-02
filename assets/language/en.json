@@ -722,6 +722,7 @@
   "reset_link_expires_in_one_hour": "The link expires in 1 hour and can be used once.",
   "resend_reset_link": "Resend link",
   "resend_in_seconds": "Resend in @seconds s",
+  "try_again_in_seconds": "Try again in @seconds s",
   "back_to_sign_in": "Back to Sign In",
   "reset_your_password": "Reset your password",
   "reset_password_subtitle": "Choose a new password for your account.",

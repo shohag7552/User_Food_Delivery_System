@@ -711,6 +711,7 @@
   "reset_link_expires_in_one_hour": "লিংকটি ১ ঘণ্টা পর মেয়াদ শেষ হবে এবং একবারই ব্যবহার করা যাবে।",
   "resend_reset_link": "আবার লিংক পাঠান",
   "resend_in_seconds": "@seconds সেকেন্ড পর আবার পাঠান",
+  "try_again_in_seconds": "@seconds সেকেন্ড পরে আবার চেষ্টা করুন",
   "back_to_sign_in": "সাইন ইনে ফিরে যান",
   "reset_your_password": "পাসওয়ার্ড রিসেট করুন",
   "reset_password_subtitle": "আপনার অ্যাকাউন্টের জন্য নতুন পাসওয়ার্ড দিন।",

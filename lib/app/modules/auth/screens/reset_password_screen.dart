@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:appwrite_user_app/app/common/widgets/custom_button.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
@@ -43,6 +45,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   /// here by the API with an error the user cannot act on.
   static const int _minPasswordLength = 8;
 
+  /// Lock-out after each submit. Appwrite rate-limits the recovery endpoint,
+  /// and a burst of retries on a bad link only earns a confusing 429.
+  static const int _submitCooldownSeconds = 60;
+
   final _formKey = GlobalKey<FormState>();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
@@ -51,6 +57,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
   bool _done = false;
+
+  Timer? _cooldownTimer;
+  int _cooldownLeft = 0;
+  bool get _coolingDown => _cooldownLeft > 0;
 
   bool get _hasCredentials =>
       widget.userId.isNotEmpty && widget.secret.isNotEmpty;
@@ -69,14 +79,37 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     _passwordController.dispose();
     _confirmController.dispose();
     _confirmFocus.dispose();
+    _cooldownTimer?.cancel();
     super.dispose();
   }
 
+  void _startCooldown() {
+    _cooldownTimer?.cancel();
+    setState(() => _cooldownLeft = _submitCooldownSeconds);
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() => _cooldownLeft--);
+      if (_cooldownLeft <= 0) timer.cancel();
+    });
+  }
+
   Future<void> _submit() async {
+    final controller = Get.find<AuthController>();
+    // The keyboard's "done" action reaches here too, so guard it as well as
+    // disabling the button.
+    if (_coolingDown || controller.isResettingPassword) return;
+
     FocusScope.of(context).unfocus();
+    // A form the user still has to fix is not a request — no cooldown.
     if (!_formKey.currentState!.validate()) return;
 
-    final success = await Get.find<AuthController>().resetPasswordWithLink(
+    // The countdown starts the moment the request goes out, so it also covers
+    // the time spent waiting on the server.
+    _startCooldown();
+    final success = await controller.resetPasswordWithLink(
       userId: widget.userId,
       secret: widget.secret,
       password: _passwordController.text,
@@ -84,8 +117,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
     if (!mounted || !success) return;
 
+    _cooldownTimer?.cancel();
     customToster('password_updated_success'.tr, isSuccess: true);
-    setState(() => _done = true);
+    setState(() {
+      _cooldownLeft = 0;
+      _done = true;
+    });
   }
 
   /// Appwrite does not create a session for a completed recovery, so the user
@@ -287,8 +324,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   CustomButton(
-                    buttonText: 'update_password'.tr,
-                    onPressed: _submit,
+                    // While cooling down the button is disabled and counts
+                    // down, so the user can see when they may try again.
+                    buttonText: _coolingDown && !controller.isResettingPassword
+                        ? 'try_again_in_seconds'.trParams({
+                            'seconds': '$_cooldownLeft',
+                          })
+                        : 'update_password'.tr,
+                    onPressed: _coolingDown ? null : _submit,
                     isLoading: controller.isResettingPassword,
                   ),
                   if (controller.resetErrorKey != null)

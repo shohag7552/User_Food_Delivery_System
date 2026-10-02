@@ -688,6 +688,7 @@
   "reset_link_expires_in_one_hour": "تنتهي صلاحية الرابط خلال ساعة ويمكن استخدامه مرة واحدة.",
   "resend_reset_link": "إعادة إرسال الرابط",
   "resend_in_seconds": "إعادة الإرسال خلال @seconds ثانية",
+  "try_again_in_seconds": "حاول مرة أخرى خلال @seconds ثانية",
   "back_to_sign_in": "العودة إلى تسجيل الدخول",
   "reset_your_password": "إعادة تعيين كلمة المرور",
   "reset_password_subtitle": "اختر كلمة مرور جديدة لحسابك.",
