@@ -209,10 +209,14 @@ class _AuthDialogState extends State<AuthDialog> {
                   ),
                 const SizedBox(height: 20),
                 GetBuilder<AuthController>(
+                  // Standard web button height: the 56px mobile default
+                  // dwarfs the dialog's compact fields.
                   builder: (auth) => CustomButton(
                     buttonText: _isSignup ? 'sign_up'.tr : 'login'.tr,
                     isLoading: auth.isLoading,
                     onPressed: _submit,
+                    height: 48,
+                    elevation: 0,
                   ),
                 ),
                 const SizedBox(height: 16),
