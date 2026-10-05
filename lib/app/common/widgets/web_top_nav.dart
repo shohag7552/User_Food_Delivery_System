@@ -17,6 +17,7 @@ import 'package:appwrite_user_app/app/resources/images.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -151,31 +152,46 @@ class WebTopNav extends StatelessWidget implements PreferredSizeWidget {
                     child: Row(
                       children: [
                         // Brand — capped so it never crowds the nav items.
+                        // Clicking it goes Home from anywhere, like the Home
+                        // destination; already on Home, it scrolls to top.
                         ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 160),
-                          child: ShaderMask(
-                            shaderCallback: (bounds) => ColorResource
-                                .primaryGradient
-                                .createShader(bounds),
-                            child: Row(
-                              children: [
-                                Image.asset(
-                                  Images.logo,
-                                  height: 28,
-                                  cacheHeight: 30,
-                                ),
-                                const SizedBox(width: 8),
+                          child: Tooltip(
+                            message: 'home'.tr,
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () {
+                                  onDestinationSelected(0);
+                                  DashboardTabs.requestHomeScrollToTop();
+                                },
+                                child: ShaderMask(
+                                  shaderCallback: (bounds) => ColorResource
+                                      .primaryGradient
+                                      .createShader(bounds),
+                                  child: Row(
+                                    children: [
+                                      Image.asset(
+                                        Images.logo,
+                                        height: 28,
+                                        cacheHeight: 30,
+                                      ),
+                                      const SizedBox(width: 8),
 
-                                Text(
-                                  Constants.appName,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: poppinsBold.copyWith(
-                                    fontSize: Constants.fontSizeOverLarge,
-                                    color: ColorResource.textWhite,
+                                      Text(
+                                        Constants.appName,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: poppinsBold.copyWith(
+                                          fontSize: Constants.fontSizeOverLarge,
+                                          color: ColorResource.textWhite,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ],
+                              ),
                             ),
                           ),
                         ),

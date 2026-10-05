@@ -26,6 +26,7 @@ import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/images.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
@@ -63,6 +64,7 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
   @override
   void initState() {
     super.initState();
+    DashboardTabs.homeScrollToTop.addListener(_scrollHomeToTop);
     _scrollController.addListener(_onScroll);
     _bellPulseController = AnimationController(
       vsync: this,
@@ -98,8 +100,19 @@ class _EcommerceHomeViewState extends State<EcommerceHomeView>
     }
   }
 
+  /// Brand-logo tap while Home is open: glide back to the top.
+  void _scrollHomeToTop() {
+    if (!_scrollController.hasClients) return;
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
   @override
   void dispose() {
+    DashboardTabs.homeScrollToTop.removeListener(_scrollHomeToTop);
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _topScrollController.dispose();

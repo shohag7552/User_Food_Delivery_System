@@ -27,6 +27,12 @@ class DashboardTabs {
     return index == -1 ? null : index;
   }
 
+  /// Bumped to ask the visible home view (Food or Shop) to scroll back to
+  /// the top — e.g. the web brand logo when Home is already open.
+  static final ValueNotifier<int> homeScrollToTop = ValueNotifier<int>(0);
+
+  static void requestHomeScrollToTop() => homeScrollToTop.value++;
+
   /// Navigate to the dashboard with [index]'s tab encoded in the URL.
   static void open(BuildContext context, int index) {
     context.goNamed(

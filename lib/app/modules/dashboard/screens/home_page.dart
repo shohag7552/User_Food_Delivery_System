@@ -20,6 +20,7 @@ import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart'
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -63,6 +64,7 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
+    DashboardTabs.homeScrollToTop.addListener(_scrollHomeToTop);
 
     _introController = AnimationController(
       vsync: this,
@@ -179,12 +181,23 @@ class _HomePageState extends State<HomePage>
         productController.newErrorMessage != null;
   }
 
+  /// Brand-logo tap while Home is open: glide back to the top.
+  void _scrollHomeToTop() {
+    if (!_scrollController.hasClients) return;
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
   @override
   void dispose() {
     _connectivitySubscription?.cancel();
     _reconnectReloadTimer?.cancel();
     _introController.dispose();
     _bellPulseController.dispose();
+    DashboardTabs.homeScrollToTop.removeListener(_scrollHomeToTop);
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
