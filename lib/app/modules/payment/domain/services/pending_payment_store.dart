@@ -35,6 +35,42 @@ class PendingPayment {
   /// and would silently fall back to food.
   final String moduleType;
 
+  // ── Payment identity — what the return page verifies against Stripe ──
+
+  /// Temporary reference the Checkout Session was created with (Stripe's
+  /// client_reference_id). The function refuses to confirm a session that
+  /// belongs to a different one.
+  final String? reference;
+
+  /// Stripe Checkout Session id returned by `/stripe/create`.
+  final String? sessionId;
+
+  /// Amount sent to Stripe, in minor units, and its currency — the paid
+  /// session must match both before an order is written.
+  final int? amountMinor;
+  final String? currency;
+
+  /// When the customer left for Stripe. Orders older than [maxAge] are not
+  /// resumed: a checkout session expires long before that.
+  final DateTime? createdAt;
+
+  /// Set while a return page is writing the order, so a reload or second tab
+  /// cannot write it twice.
+  final DateTime? processingAt;
+
+  static const Duration maxAge = Duration(hours: 24);
+
+  /// How long a "processing" marker blocks another attempt. Longer than any
+  /// order write; a page closed mid-write frees the order again after this.
+  static const Duration processingLease = Duration(minutes: 2);
+
+  bool get isExpired =>
+      createdAt != null && DateTime.now().difference(createdAt!) > maxAge;
+
+  bool get isBeingProcessed =>
+      processingAt != null &&
+      DateTime.now().difference(processingAt!) < processingLease;
+
   const PendingPayment({
     required this.customerId,
     required this.address,
@@ -52,7 +88,38 @@ class PendingPayment {
     this.shippingCost,
     this.shippingMethod,
     required this.moduleType,
+    this.reference,
+    this.sessionId,
+    this.amountMinor,
+    this.currency,
+    this.createdAt,
+    this.processingAt,
   });
+
+  PendingPayment withProcessingAt(DateTime? at) => PendingPayment(
+        customerId: customerId,
+        address: address,
+        cartItems: cartItems,
+        totalAmount: totalAmount,
+        deliveryFee: deliveryFee,
+        taxAmount: taxAmount,
+        discountAmount: discountAmount,
+        couponDiscount: couponDiscount,
+        paymentMethod: paymentMethod,
+        deliveryInstructions: deliveryInstructions,
+        deliveryType: deliveryType,
+        scheduledDate: scheduledDate,
+        scheduledTimeSlot: scheduledTimeSlot,
+        shippingCost: shippingCost,
+        shippingMethod: shippingMethod,
+        moduleType: moduleType,
+        reference: reference,
+        sessionId: sessionId,
+        amountMinor: amountMinor,
+        currency: currency,
+        createdAt: createdAt,
+        processingAt: at,
+      );
 
   Map<String, dynamic> toJson() => {
         'customer_id': customerId,
@@ -71,6 +138,12 @@ class PendingPayment {
         'shipping_cost': shippingCost,
         'shipping_method': shippingMethod,
         'module_type': moduleType,
+        'reference': reference,
+        'session_id': sessionId,
+        'amount_minor': amountMinor,
+        'currency': currency,
+        'created_at': createdAt?.toIso8601String(),
+        'processing_at': processingAt?.toIso8601String(),
       };
 
   factory PendingPayment.fromJson(Map<String, dynamic> json) {
@@ -97,8 +170,19 @@ class PendingPayment {
       shippingCost: (json['shipping_cost'] as num?)?.toDouble(),
       shippingMethod: json['shipping_method'] as String?,
       moduleType: json['module_type'] as String,
+      // Absent on payloads saved by an older build — still resumable, just
+      // with fewer checks (Stripe verification itself always runs).
+      reference: json['reference'] as String?,
+      sessionId: json['session_id'] as String?,
+      amountMinor: (json['amount_minor'] as num?)?.toInt(),
+      currency: json['currency'] as String?,
+      createdAt: _date(json['created_at']),
+      processingAt: _date(json['processing_at']),
     );
   }
+
+  static DateTime? _date(dynamic raw) =>
+      raw is String ? DateTime.tryParse(raw) : null;
 }
 
 abstract class PendingPaymentStore {
@@ -133,5 +217,35 @@ abstract class PendingPaymentStore {
   static Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_key);
+  }
+
+  /// Claims the pending order for writing. Returns false when another page
+  /// (reload, second tab) is already writing it.
+  static Future<bool> tryMarkProcessing() async {
+    final pending = await read();
+    if (pending == null || pending.isBeingProcessed) return false;
+    await save(pending.withProcessingAt(DateTime.now()));
+    return true;
+  }
+
+  /// Releases the claim after a failed write so a retry can run.
+  static Future<void> releaseProcessing() async {
+    final pending = await read();
+    if (pending == null) return;
+    await save(pending.withProcessingAt(null));
+  }
+
+  static const String _completedKey = 'last_completed_payment_session';
+
+  /// Remembers the session whose order was written, so a reload of the
+  /// success URL shows the order instead of reporting a missing payment.
+  static Future<void> rememberCompleted(String sessionId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_completedKey, sessionId);
+  }
+
+  static Future<bool> wasCompleted(String sessionId) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_completedKey) == sessionId;
   }
 }

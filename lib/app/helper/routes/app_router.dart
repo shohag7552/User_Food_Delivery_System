@@ -49,6 +49,7 @@ import 'package:appwrite_user_app/app/modules/maintenance/screens/maintenance_sc
 import 'package:appwrite_user_app/app/modules/splash/screens/splash_screen.dart';
 import 'package:appwrite_user_app/app/modules/update/screens/force_update_screen.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -617,8 +618,12 @@ abstract class AppRouter {
       GoRoute(
         path: payment,
         name: RouteNames.payment,
-        redirect: (context, state) =>
-            state.extra is PaymentArgs ? null : dashboard,
+        // Mobile only: web pays in the full tab (see checkout) and returns on
+        // /payment/success — the in-app WebView is never used there.
+        redirect: (context, state) {
+          if (kIsWeb) return checkout;
+          return state.extra is PaymentArgs ? null : dashboard;
+        },
         builder: (context, state) {
           final args = state.extra as PaymentArgs;
           return PaymentWebViewScreen(
@@ -630,8 +635,12 @@ abstract class AppRouter {
       GoRoute(
         path: paymentSuccess,
         name: RouteNames.paymentSuccess,
-        builder: (context, state) =>
-            const PaymentReturnPage(result: PaymentResult.success),
+        // Stripe appends ?session_id=cs_… — the page verifies it before
+        // writing any order.
+        builder: (context, state) => PaymentReturnPage(
+          result: PaymentResult.success,
+          sessionId: state.uri.queryParameters['session_id'],
+        ),
       ),
       GoRoute(
         path: paymentFail,

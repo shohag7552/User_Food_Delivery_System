@@ -379,36 +379,4 @@ class ProductRepository implements ProductRepoInterface {
       return null;
     }
   }
-
-  @override
-  Future<ProductSaleResult> recordSale(String productId, int quantity) async {
-    try {
-      // One read and one write per product rather than two of each: stock and
-      // the sold count move for the same reason at the same moment, and doing
-      // them separately is how they end up disagreeing.
-      final response = await appwriteService.getDocument(
-        tableId: AppwriteConfig.productsCollection,
-        rowId: productId,
-      );
-
-      final currentStock = (response.data['stock'] as num?)?.toInt() ?? 0;
-      final currentSold = (response.data['order_count'] as num?)?.toInt() ?? 0;
-
-      final newStock = (currentStock - quantity) < 0 ? 0 : currentStock - quantity;
-      final newSold = currentSold + quantity;
-
-      await appwriteService.updateTable(
-        tableId: AppwriteConfig.productsCollection,
-        rowId: productId,
-        data: {'stock': newStock, 'order_count': newSold},
-      );
-
-      log('====> Sale for $productId: stock $currentStock -> $newStock, '
-          'sold $currentSold -> $newSold (x$quantity)');
-      return ProductSaleResult(stock: newStock, soldCount: newSold);
-    } catch (e) {
-      log('====> Error recording sale for $productId: $e');
-      rethrow;
-    }
-  }
 }

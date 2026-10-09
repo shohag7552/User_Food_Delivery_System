@@ -2063,6 +2063,15 @@ class _CheckoutPageState extends State<CheckoutPage> {
             customerName: profile?.name,
             customerEmail: profile?.email,
             customerPhone: profile?.phone,
+            // Web returns to the site it is actually served from, so the
+            // success page always finds the order saved below. Mobile keeps
+            // the function's configured URLs (its WebView matches the path).
+            successURL: kIsWeb
+                ? '${Uri.base.origin}${PaymentService.successPath}'
+                : null,
+            cancelURL: kIsWeb
+                ? '${Uri.base.origin}${PaymentService.cancelPath}'
+                : null,
           );
         } catch (e) {
           log('Payment initiation error: $e');
@@ -2106,6 +2115,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
               shippingCost: _showsShipping ? deliveryFee : null,
               shippingMethod: _showsShipping ? _selectedShipping?.name : null,
               moduleType: ModuleController.current,
+              // What the return page checks against Stripe before writing.
+              reference: tempReference,
+              sessionId: paymentResult['data']?['sessionId'] as String?,
+              amountMinor: amountInSmallest,
+              currency: currency,
+              createdAt: DateTime.now(),
             ),
           );
 

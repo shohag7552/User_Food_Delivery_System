@@ -3,6 +3,7 @@ import 'package:appwrite_user_app/app/models/cart_item_model.dart';
 import 'package:appwrite_user_app/app/models/product_filter_model.dart';
 import 'package:appwrite_user_app/app/models/product_model.dart';
 import 'package:appwrite_user_app/app/modules/products/domain/repository/product_repo_interface.dart';
+import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:get/get.dart';
 
 enum ProductListFilter { all, veg, nonVeg }
@@ -447,10 +448,16 @@ class ProductController extends GetxController implements GetxService {
   /// Called once the order row exists. Failures per product are logged but
   /// never abort the order flow — a miscounted product is a smaller problem
   /// than an order the customer thinks failed.
+  /// Reflects a just-placed order in the products already on screen.
+  ///
+  /// Local only: the real stock / sold-count write happens server-side (the
+  /// catalog sync in the notification function, on the order's create
+  /// event), because customers may not write the products table. Same rule
+  /// as the server and the POS — stock moves for Shop items only; food is
+  /// made to order.
   Future<void> recordSaleForItems(List<CartItemModel> items) async {
     if (items.isEmpty) return;
 
-    // Aggregate quantities so the same product is only written once.
     final Map<String, int> quantities = {};
     for (final item in items) {
       if (item.productId.isEmpty) continue;
@@ -460,16 +467,39 @@ class ProductController extends GetxController implements GetxService {
 
     bool hasChanges = false;
     for (final entry in quantities.entries) {
-      try {
-        final result =
-            await productRepoInterface.recordSale(entry.key, entry.value);
-        hasChanges = _applySaleToCache(entry.key, result) || hasChanges;
-      } catch (e) {
-        log('====> Failed to record sale for ${entry.key}: $e');
-      }
+      final cached = _findCachedProduct(entry.key);
+      if (cached == null) continue;
+      final takesStock = cached.moduleType == ModuleController.ecommerce;
+      final newStock = takesStock
+          ? (cached.stock - entry.value).clamp(0, cached.stock)
+          : cached.stock;
+      hasChanges = _applySaleToCache(
+            entry.key,
+            ProductSaleResult(
+              stock: newStock,
+              soldCount: cached.soldCount + entry.value,
+            ),
+          ) ||
+          hasChanges;
     }
 
     if (hasChanges) update();
+  }
+
+  ProductModel? _findCachedProduct(String productId) {
+    for (final list in [
+      _products,
+      _specialProducts,
+      _popularProducts,
+      _newProducts,
+      _topProducts,
+      _offerProducts,
+    ]) {
+      for (final product in list) {
+        if (product.id == productId) return product;
+      }
+    }
+    return null;
   }
 
   bool _applySaleToCache(String productId, ProductSaleResult result) {

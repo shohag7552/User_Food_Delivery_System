@@ -42,16 +42,11 @@ abstract class ProductRepoInterface {
   Future<List<ProductModel>> searchProducts(String query);
   Future<ProductModel?> getProductById(String id);
 
-  /// Decrease a product's stock by [quantity] (never below 0).
-  /// Returns the product's new stock value.
-  /// Commits one product's share of a placed order: stock down, sold count up.
-  ///
-  /// Both happen in the same write, so a product can never be sold without the
-  /// sale being counted.
-  Future<ProductSaleResult> recordSale(String productId, int quantity);
+
 }
 
-/// What a product row looks like after [ProductRepoInterface.recordSale].
+/// A product's stock and sold count after an order, as shown locally until
+/// the server-side catalog sync's own write is fetched.
 class ProductSaleResult {
   const ProductSaleResult({required this.stock, required this.soldCount});
 

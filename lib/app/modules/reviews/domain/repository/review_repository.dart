@@ -60,9 +60,10 @@ class ReviewRepository implements ReviewRepoInterface {
         data: review.toJson(),
       );
 
-      final createdReview = ReviewModel.fromJson(response.data);
-      await _syncProductRatingSummary(review.productId);
-      return createdReview;
+      // The product's avg_rating / rating_count are recalculated server-side
+      // (catalog sync in the notification function, on this row's create
+      // event) — customers may not write the products table.
+      return ReviewModel.fromJson(response.data);
     } catch (e) {
       log('Error submitting review: $e');
       rethrow;
@@ -79,9 +80,8 @@ class ReviewRepository implements ReviewRepoInterface {
         data: data,
       );
 
-      final updatedReview = ReviewModel.fromJson(response.data);
-      await _syncProductRatingSummary(updatedReview.productId);
-      return updatedReview;
+      // Rating summary: recalculated server-side on the update event.
+      return ReviewModel.fromJson(response.data);
     } catch (e) {
       log('Error updating review: $e');
       rethrow;
@@ -91,25 +91,11 @@ class ReviewRepository implements ReviewRepoInterface {
   @override
   Future<void> deleteReview(String reviewId) async {
     try {
-      final response = await appwriteService.listTable(
-        tableId: AppwriteConfig.reviewsCollection,
-        queries: [
-          Query.equal('\$id', reviewId),
-          Query.limit(1),
-        ],
-      );
-      final productId = response.rows.isNotEmpty
-          ? (response.rows.first.data['product_id'] ?? '').toString()
-          : '';
-
+      // Rating summary: recalculated server-side on the delete event.
       await appwriteService.deleteRow(
         collectionId: AppwriteConfig.reviewsCollection,
         rowId: reviewId,
       );
-
-      if (productId.isNotEmpty) {
-        await _syncProductRatingSummary(productId);
-      }
     } catch (e) {
       log('Error deleting review: $e');
       rethrow;
@@ -265,23 +251,5 @@ class ReviewRepository implements ReviewRepoInterface {
     }
 
     return reviews;
-  }
-
-  Future<void> _syncProductRatingSummary(String productId) async {
-    final reviews = await _getAllProductReviews(productId);
-    final ratingCount = reviews.length;
-    final avgRating = ratingCount == 0
-        ? 0.0
-        : reviews.fold<int>(0, (sum, review) => sum + review.rating) /
-            ratingCount;
-
-    await appwriteService.updateTable(
-      tableId: AppwriteConfig.productsCollection,
-      rowId: productId,
-      data: {
-        'rating_count': ratingCount,
-        'avg_rating': avgRating,
-      },
-    );
   }
 }
