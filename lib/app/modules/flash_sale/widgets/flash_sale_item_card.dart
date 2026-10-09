@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:appwrite_user_app/app/common/widgets/auth_dialog.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
+import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
@@ -52,6 +53,10 @@ class FlashSaleItemCard extends StatefulWidget {
 }
 
 class _FlashSaleItemCardState extends State<FlashSaleItemCard> {
+  /// Matches [EcommerceProductCard]'s rating so both card types read alike.
+  static const double _ratingIconSize = 12;
+  static const double _ratingLineHeight = 18;
+
   // ── Hover-gallery constants (mirrors EcommerceProductCard) ──────────────────
   static const Duration _indicatorFade = Duration(milliseconds: 160);
   static const Duration _preloadDelay = Duration(milliseconds: 120);
@@ -202,7 +207,23 @@ class _FlashSaleItemCardState extends State<FlashSaleItemCard> {
                           color: context.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      // Rating, same as the Shop product cards. The line is
+                      // always reserved so cards with and without reviews keep
+                      // identical image heights side by side in the strip.
+                      SizedBox(
+                        height: _ratingLineHeight,
+                        child: product.avgRating > 0
+                            ? Align(
+                                alignment: AlignmentDirectional.centerStart,
+                                child: RatingStars(
+                                  rating: product.avgRating,
+                                  reviewCount: product.ratingCount,
+                                  size: _ratingIconSize,
+                                ),
+                              )
+                            : null,
+                      ),
+                      const SizedBox(height: 4),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
