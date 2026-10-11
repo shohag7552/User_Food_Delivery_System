@@ -1,5 +1,4 @@
 import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
-import 'package:appwrite_user_app/app/controllers/splash_controller.dart';
 import 'package:get/get.dart';
 
 /// Centralized currency formatting helper
@@ -17,7 +16,6 @@ class CurrencyHelper {
       return businessSetup?.currency ?? '\$';
       
       // For now, using default
-      return '\$';
     } catch (e) {
       return '\$'; // Default fallback
     }

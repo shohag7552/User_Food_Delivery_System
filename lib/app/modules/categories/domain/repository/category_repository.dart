@@ -6,7 +6,6 @@ import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
 import 'package:appwrite_user_app/app/controllers/module_controller.dart';
 import 'package:appwrite_user_app/app/models/category_model.dart';
 import 'package:appwrite_user_app/app/modules/categories/domain/repository/category_repo_interface.dart';
-import 'package:image_picker/image_picker.dart';
 
 
 class CategoryRepository implements CategoryRepoInterface {

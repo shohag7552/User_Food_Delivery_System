@@ -31,7 +31,6 @@ class BrandProductsPage extends StatefulWidget {
 
 class _BrandProductsPageState extends State<BrandProductsPage> {
   static const int _pageSize = 10;
-  static const double _maxContentWidth = WebTopNav.maxContentWidth;
 
   static const List<double> _staggerRatios = [1, 0.82, 1, 0.75, 0.9, 1, 0.8];
 

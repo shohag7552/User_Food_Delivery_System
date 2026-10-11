@@ -47,16 +47,6 @@ class FavoriteModel {
     );
   }
 
-  ProductModel? _getProduct(Map<String, dynamic> jsonData) {
-    try{
-      if(jsonData?['product'] == null) {
-        return null;
-      }
-      return ProductModel.fromJson(jsonData?['product']);
-    } catch(e) {
-      return null;
-    }
-  }
 
   // Convert to JSON for Appwrite
   Map<String, dynamic> toJson() {

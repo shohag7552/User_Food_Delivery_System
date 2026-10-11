@@ -14,7 +14,7 @@ class LocalizationController extends GetxController implements GetxService {
   //   loadCurrentLanguage();
   // }
 
-  Locale _locale = Locale(Constants.languages[0].languageCode!, Constants.languages[0].countryCode);
+  Locale _locale = Locale(Constants.languages[0].languageCode, Constants.languages[0].countryCode);
   Locale get locale => _locale;
 
   bool _isLtr = true;
@@ -61,7 +61,7 @@ class LocalizationController extends GetxController implements GetxService {
 
   void loadCurrentLanguage() async {
     _locale = Locale(
-      sharedPreferences.getString(Constants.languageCode) ?? Constants.languages[0].languageCode!,
+      sharedPreferences.getString(Constants.languageCode) ?? Constants.languages[0].languageCode,
       sharedPreferences.getString(Constants.countryCode) ?? Constants.languages[0].countryCode,
     );
 

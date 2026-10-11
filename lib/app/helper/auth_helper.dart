@@ -1,4 +1,3 @@
-import 'package:appwrite/models.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:get/get.dart';
 
