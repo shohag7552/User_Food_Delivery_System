@@ -6,6 +6,7 @@ import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
 import 'package:appwrite_user_app/app/resources/constants.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite_user_app/app/resources/text_style.dart';
 import 'package:get/get.dart';
@@ -33,6 +34,8 @@ class _SignupScreenState extends State<SignupScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  late final TapGestureRecognizer _termsRecognizer;
+  late final TapGestureRecognizer _privacyRecognizer;
 
   @override
   void initState() {
@@ -52,6 +55,10 @@ class _SignupScreenState extends State<SignupScreen>
           ),
         );
     _animationController.forward();
+    _termsRecognizer = TapGestureRecognizer()
+      ..onTap = () => _openPolicy(PolicyType.terms);
+    _privacyRecognizer = TapGestureRecognizer()
+      ..onTap = () => _openPolicy(PolicyType.privacy);
   }
 
   @override
@@ -62,16 +69,20 @@ class _SignupScreenState extends State<SignupScreen>
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _animationController.dispose();
+    _termsRecognizer.dispose();
+    _privacyRecognizer.dispose();
     super.dispose();
+  }
+
+  /// Pushed (not `go`) so returning keeps the half-filled signup form.
+  void _openPolicy(String type) {
+    context.pushNamed(RouteNames.policy, pathParameters: {'type': type});
   }
 
   Future<void> _handleSignup() async {
     if (_formKey.currentState!.validate()) {
       if (!_agreeToTerms) {
-        customToster(
-          'Please agree to the Terms & Conditions',
-          isSuccess: false,
-        );
+        customToster('please_agree_to_terms'.tr, isSuccess: false);
         return;
       }
 
@@ -133,10 +144,6 @@ class _SignupScreenState extends State<SignupScreen>
                       _buildHeader(context),
                       const SizedBox(height: Constants.paddingSizeExtraLarge),
                       _buildForm(context),
-                      const SizedBox(height: Constants.paddingSizeExtraLarge),
-                      _buildDivider(context),
-                      const SizedBox(height: Constants.paddingSizeLarge),
-                      _buildSocialButtons(context),
                       const SizedBox(height: Constants.paddingSizeExtraLarge),
                       _buildLoginLink(context),
                     ],
@@ -386,24 +393,26 @@ class _SignupScreenState extends State<SignupScreen>
                 child: RichText(
                   text: TextSpan(
                     style: poppinsRegular.copyWith(
-                      fontSize: 13,
+                      fontSize: Constants.fontSizeSmall,
                       color: context.textSecondary,
                     ),
                     children: [
-                      const TextSpan(text: 'I agree to the '),
+                      TextSpan(text: 'i_agree_to_the'.tr),
                       TextSpan(
-                        text: 'Terms & Conditions',
+                        text: 'terms_and_conditions'.tr,
+                        recognizer: _termsRecognizer,
                         style: poppinsMedium.copyWith(
-                          fontSize: 13,
+                          fontSize: Constants.fontSizeSmall,
                           color: ColorResource.primaryDark,
                           decoration: TextDecoration.underline,
                         ),
                       ),
-                      const TextSpan(text: ' and '),
+                      TextSpan(text: 'and'.tr),
                       TextSpan(
-                        text: 'Privacy Policy',
+                        text: 'privacy_policy'.tr,
+                        recognizer: _privacyRecognizer,
                         style: poppinsMedium.copyWith(
-                          fontSize: 13,
+                          fontSize: Constants.fontSizeSmall,
                           color: ColorResource.primaryDark,
                           decoration: TextDecoration.underline,
                         ),
@@ -425,67 +434,6 @@ class _SignupScreenState extends State<SignupScreen>
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildDivider(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Divider(
-            color: context.textLight.withValues(alpha: 0.2),
-            thickness: 1,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'or'.tr,
-            style: poppinsMedium.copyWith(
-              fontSize: 14,
-              color: context.textSecondary,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Divider(
-            color: context.textLight.withValues(alpha: 0.2),
-            thickness: 1,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSocialButtons(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _SocialSignupButton(
-          icon: Icons.g_mobiledata_rounded,
-          label: 'Google',
-          onTap: () {
-            Get.find<AuthController>().logout();
-            // TODO: Implement Google signup
-          },
-        ),
-        const SizedBox(width: 16),
-        _SocialSignupButton(
-          icon: Icons.facebook,
-          label: 'Facebook',
-          onTap: () {
-            // TODO: Implement Facebook signup
-          },
-        ),
-        const SizedBox(width: 16),
-        _SocialSignupButton(
-          icon: Icons.apple,
-          label: 'Apple',
-          onTap: () {
-            // TODO: Implement Apple signup
-          },
-        ),
-      ],
     );
   }
 
@@ -514,46 +462,6 @@ class _SignupScreenState extends State<SignupScreen>
           ),
         ),
       ],
-    );
-  }
-}
-
-class _SocialSignupButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _SocialSignupButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 60,
-        height: 60,
-        decoration: BoxDecoration(
-          color: context.cardBackground,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.grey.shade800
-                : Colors.grey.shade200,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Icon(icon, size: 32, color: ColorResource.primaryDark),
-      ),
     );
   }
 }
