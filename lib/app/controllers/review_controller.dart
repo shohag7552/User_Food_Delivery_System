@@ -1,8 +1,8 @@
 import 'dart:developer';
-import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
-import 'package:appwrite_user_app/app/controllers/product_controller.dart';
-import 'package:appwrite_user_app/app/models/review_model.dart';
-import 'package:appwrite_user_app/app/modules/reviews/domain/repository/review_repo_interface.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_toster.dart';
+import 'package:kikomart_user_app/app/controllers/product_controller.dart';
+import 'package:kikomart_user_app/app/models/review_model.dart';
+import 'package:kikomart_user_app/app/modules/reviews/domain/repository/review_repo_interface.dart';
 import 'package:get/get.dart';
 
 class ReviewController extends GetxController implements GetxService {

@@ -1,7 +1,7 @@
 import 'dart:io' show Platform;
 
-import 'package:appwrite_user_app/app/models/business_setup_model.dart';
-import 'package:appwrite_user_app/app/resources/constants.dart';
+import 'package:kikomart_user_app/app/models/business_setup_model.dart';
+import 'package:kikomart_user_app/app/resources/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';

@@ -1,4 +1,4 @@
-import 'package:appwrite_user_app/app/models/order_model.dart';
+import 'package:kikomart_user_app/app/models/order_model.dart';
 
 abstract class OrderRepoInterface {
   /// Creates a new order and returns a map with:

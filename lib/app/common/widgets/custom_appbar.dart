@@ -1,5 +1,5 @@
-import 'package:appwrite_user_app/app/common/widgets/directional_flip.dart';
-import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:kikomart_user_app/app/common/widgets/directional_flip.dart';
+import 'package:kikomart_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';

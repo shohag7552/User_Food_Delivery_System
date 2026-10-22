@@ -1,10 +1,10 @@
 import 'dart:developer';
 
 import 'package:appwrite/appwrite.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
-import 'package:appwrite_user_app/app/models/deliveryman_review_model.dart';
-import 'package:appwrite_user_app/app/modules/reviews/domain/repository/deliveryman_review_repo_interface.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_config.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_service.dart';
+import 'package:kikomart_user_app/app/models/deliveryman_review_model.dart';
+import 'package:kikomart_user_app/app/modules/reviews/domain/repository/deliveryman_review_repo_interface.dart';
 
 class DeliverymanReviewRepository implements DeliverymanReviewRepoInterface {
   final AppwriteService appwriteService;

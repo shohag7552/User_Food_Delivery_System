@@ -1,4 +1,4 @@
-import 'package:appwrite_user_app/app/resources/constants.dart';
+import 'package:kikomart_user_app/app/resources/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 

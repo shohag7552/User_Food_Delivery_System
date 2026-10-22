@@ -1,4 +1,4 @@
-import 'package:appwrite_user_app/app/models/cart_item_model.dart';
+import 'package:kikomart_user_app/app/models/cart_item_model.dart';
 
 abstract class CartRepoInterface {
   Future<List<CartItemModel>> getCartItems();

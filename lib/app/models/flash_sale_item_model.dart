@@ -1,4 +1,4 @@
-import 'package:appwrite_user_app/app/models/product_model.dart';
+import 'package:kikomart_user_app/app/models/product_model.dart';
 
 /// A product participating in a flash sale. [flashPrice] is the absolute sale
 /// price; the joined [product] (hydrated by the repository) supplies the

@@ -1,25 +1,25 @@
-import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
-import 'package:appwrite_user_app/app/common/widgets/floating_module_switcher.dart';
-import 'package:appwrite_user_app/app/common/widgets/hover_lift.dart';
-import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
-import 'package:appwrite_user_app/app/common/widgets/web_module_switcher.dart';
-import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
-import 'package:appwrite_user_app/app/controllers/module_controller.dart';
-import 'package:appwrite_user_app/app/controllers/order_controller.dart';
-import 'package:appwrite_user_app/app/helper/currency_helper.dart';
-import 'package:appwrite_user_app/app/helper/nav_bar_visibility.dart';
-import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
-import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
-import 'package:appwrite_user_app/app/models/order_model.dart';
-import 'package:appwrite_user_app/app/resources/colors.dart';
-import 'package:appwrite_user_app/app/resources/constants.dart';
-import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:kikomart_user_app/app/common/widgets/auth_gate.dart';
+import 'package:kikomart_user_app/app/common/widgets/floating_module_switcher.dart';
+import 'package:kikomart_user_app/app/common/widgets/hover_lift.dart';
+import 'package:kikomart_user_app/app/common/widgets/web_footer.dart';
+import 'package:kikomart_user_app/app/common/widgets/web_module_switcher.dart';
+import 'package:kikomart_user_app/app/common/widgets/web_top_nav.dart';
+import 'package:kikomart_user_app/app/controllers/module_controller.dart';
+import 'package:kikomart_user_app/app/controllers/order_controller.dart';
+import 'package:kikomart_user_app/app/helper/currency_helper.dart';
+import 'package:kikomart_user_app/app/helper/nav_bar_visibility.dart';
+import 'package:kikomart_user_app/app/helper/dashboard_tab_bus.dart';
+import 'package:kikomart_user_app/app/helper/routes/app_router.dart';
+import 'package:kikomart_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
+import 'package:kikomart_user_app/app/models/order_model.dart';
+import 'package:kikomart_user_app/app/resources/colors.dart';
+import 'package:kikomart_user_app/app/resources/constants.dart';
+import 'package:kikomart_user_app/app/resources/text_style.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
-import 'package:appwrite_user_app/app/helper/store_time_helper.dart';
+import 'package:kikomart_user_app/app/helper/store_time_helper.dart';
 
 class OrdersPage extends StatefulWidget {
   /// True when this page is its own route rather than a tab inside

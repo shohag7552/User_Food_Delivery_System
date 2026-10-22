@@ -1,9 +1,9 @@
 import 'dart:developer';
-import 'package:appwrite_user_app/app/models/cart_item_model.dart';
-import 'package:appwrite_user_app/app/models/product_filter_model.dart';
-import 'package:appwrite_user_app/app/models/product_model.dart';
-import 'package:appwrite_user_app/app/modules/products/domain/repository/product_repo_interface.dart';
-import 'package:appwrite_user_app/app/controllers/module_controller.dart';
+import 'package:kikomart_user_app/app/models/cart_item_model.dart';
+import 'package:kikomart_user_app/app/models/product_filter_model.dart';
+import 'package:kikomart_user_app/app/models/product_model.dart';
+import 'package:kikomart_user_app/app/modules/products/domain/repository/product_repo_interface.dart';
+import 'package:kikomart_user_app/app/controllers/module_controller.dart';
 import 'package:get/get.dart';
 
 enum ProductListFilter { all, veg, nonVeg }

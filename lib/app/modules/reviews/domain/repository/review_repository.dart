@@ -1,9 +1,9 @@
 import 'dart:developer';
 import 'package:appwrite/appwrite.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
-import 'package:appwrite_user_app/app/models/review_model.dart';
-import 'package:appwrite_user_app/app/modules/reviews/domain/repository/review_repo_interface.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_config.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_service.dart';
+import 'package:kikomart_user_app/app/models/review_model.dart';
+import 'package:kikomart_user_app/app/modules/reviews/domain/repository/review_repo_interface.dart';
 
 class ReviewRepository implements ReviewRepoInterface {
   final AppwriteService appwriteService;

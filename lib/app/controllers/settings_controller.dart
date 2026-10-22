@@ -1,7 +1,7 @@
-import 'package:appwrite_user_app/app/models/business_setup_model.dart';
-import 'package:appwrite_user_app/app/models/store_setup_model.dart';
-import 'package:appwrite_user_app/app/modules/settings/domain/repository/settings_repo_interface.dart';
-import 'package:appwrite_user_app/app/resources/constants.dart';
+import 'package:kikomart_user_app/app/models/business_setup_model.dart';
+import 'package:kikomart_user_app/app/models/store_setup_model.dart';
+import 'package:kikomart_user_app/app/modules/settings/domain/repository/settings_repo_interface.dart';
+import 'package:kikomart_user_app/app/resources/constants.dart';
 import 'package:get/get.dart';
 import 'package:latlong2/latlong.dart';
 

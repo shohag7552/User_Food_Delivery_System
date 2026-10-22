@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:appwrite/models.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
-import 'package:appwrite_user_app/app/models/address_model.dart';
-import 'package:appwrite_user_app/app/models/geocoded_address_model.dart';
-import 'package:appwrite_user_app/app/modules/address/domain/repository/address_repo_interface.dart';
-import 'package:appwrite_user_app/app/resources/constants.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_config.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_service.dart';
+import 'package:kikomart_user_app/app/models/address_model.dart';
+import 'package:kikomart_user_app/app/models/geocoded_address_model.dart';
+import 'package:kikomart_user_app/app/modules/address/domain/repository/address_repo_interface.dart';
+import 'package:kikomart_user_app/app/resources/constants.dart';
 import 'package:dart_appwrite/dart_appwrite.dart';
 import 'package:flutter/foundation.dart';
 import 'package:geocoding/geocoding.dart' show placemarkFromCoordinates;

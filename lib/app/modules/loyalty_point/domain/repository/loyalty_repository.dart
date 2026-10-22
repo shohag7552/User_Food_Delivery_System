@@ -1,12 +1,12 @@
 import 'dart:developer';
 
 import 'package:appwrite/appwrite.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
-import 'package:appwrite_user_app/app/models/loyalty_history_model.dart';
-import 'package:appwrite_user_app/app/models/order_model.dart';
-import 'package:appwrite_user_app/app/models/user_model.dart';
-import 'package:appwrite_user_app/app/modules/loyalty_point/domain/repository/loyalty_repo_interface.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_config.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_service.dart';
+import 'package:kikomart_user_app/app/models/loyalty_history_model.dart';
+import 'package:kikomart_user_app/app/models/order_model.dart';
+import 'package:kikomart_user_app/app/models/user_model.dart';
+import 'package:kikomart_user_app/app/modules/loyalty_point/domain/repository/loyalty_repo_interface.dart';
 
 class LoyaltyRepository implements LoyaltyRepoInterface {
   final AppwriteService appwriteService;

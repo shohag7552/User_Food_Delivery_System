@@ -1,4 +1,4 @@
-import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 

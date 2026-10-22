@@ -2,12 +2,12 @@ import 'dart:developer';
 
 import 'package:appwrite/appwrite.dart' show AppwriteException;
 import 'package:appwrite/models.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
-import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
-import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
-import 'package:appwrite_user_app/app/modules/auth/domain/services/password_reset_failure.dart';
-import 'package:appwrite_user_app/app/resources/constants.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_config.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_service.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_toster.dart';
+import 'package:kikomart_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
+import 'package:kikomart_user_app/app/modules/auth/domain/services/password_reset_failure.dart';
+import 'package:kikomart_user_app/app/resources/constants.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';

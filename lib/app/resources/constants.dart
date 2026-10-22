@@ -1,5 +1,5 @@
 
-import 'package:appwrite_user_app/app/resources/images.dart';
+import 'package:kikomart_user_app/app/resources/images.dart';
 
 /// App-wide configuration.
 ///

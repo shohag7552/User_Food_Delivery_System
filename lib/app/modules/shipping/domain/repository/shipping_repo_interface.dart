@@ -1,4 +1,4 @@
-import 'package:appwrite_user_app/app/models/shipping_method_model.dart';
+import 'package:kikomart_user_app/app/models/shipping_method_model.dart';
 
 abstract class ShippingRepoInterface {
   /// Active shipping methods, ordered by sort order.

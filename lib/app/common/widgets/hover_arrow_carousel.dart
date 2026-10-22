@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
-import 'package:appwrite_user_app/app/resources/colors.dart';
+import 'package:kikomart_user_app/app/common/widgets/web_top_nav.dart';
+import 'package:kikomart_user_app/app/resources/colors.dart';
 import 'package:flutter/material.dart';
 
 /// Overlays desktop-web hover-revealed scroll arrows on any carousel — the

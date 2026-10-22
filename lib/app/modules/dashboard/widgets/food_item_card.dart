@@ -1,13 +1,13 @@
-import 'package:appwrite_user_app/app/common/widgets/custom_clickable_widget.dart';
-import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
-import 'package:appwrite_user_app/app/helper/price_helper.dart';
-import 'package:appwrite_user_app/app/common/widgets/favorite_button.dart';
-import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
-import 'package:appwrite_user_app/app/models/product_model.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_clickable_widget.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_network_image.dart';
+import 'package:kikomart_user_app/app/helper/price_helper.dart';
+import 'package:kikomart_user_app/app/common/widgets/favorite_button.dart';
+import 'package:kikomart_user_app/app/common/widgets/rating_stars.dart';
+import 'package:kikomart_user_app/app/models/product_model.dart';
 import 'package:flutter/material.dart';
-import 'package:appwrite_user_app/app/resources/text_style.dart';
-import 'package:appwrite_user_app/app/resources/colors.dart';
-import 'package:appwrite_user_app/app/resources/constants.dart';
+import 'package:kikomart_user_app/app/resources/text_style.dart';
+import 'package:kikomart_user_app/app/resources/colors.dart';
+import 'package:kikomart_user_app/app/resources/constants.dart';
 
 /// A single, consistent product card used by every horizontal home section
 /// (Today's Specials, Popular Dishes, New Items).

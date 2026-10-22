@@ -1,4 +1,4 @@
-import 'package:appwrite_user_app/app/common/widgets/hover_arrow_carousel.dart';
+import 'package:kikomart_user_app/app/common/widgets/hover_arrow_carousel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

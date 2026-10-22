@@ -1,4 +1,4 @@
-import 'package:appwrite_user_app/app/models/user_model.dart';
+import 'package:kikomart_user_app/app/models/user_model.dart';
 import 'package:image_picker/image_picker.dart';
 
 abstract class ProfileRepoInterface {

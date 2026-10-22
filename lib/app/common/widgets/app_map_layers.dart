@@ -1,5 +1,5 @@
-import 'package:appwrite_user_app/app/resources/constants.dart';
-import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:kikomart_user_app/app/resources/constants.dart';
+import 'package:kikomart_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:url_launcher/url_launcher.dart';

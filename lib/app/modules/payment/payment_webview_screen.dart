@@ -1,8 +1,8 @@
 // lib/screens/payment_webview_screen.dart
 
-import 'package:appwrite_user_app/app/appwrite/payment_service.dart';
-import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
-import 'package:appwrite_user_app/app/resources/colors.dart';
+import 'package:kikomart_user_app/app/appwrite/payment_service.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_appbar.dart';
+import 'package:kikomart_user_app/app/resources/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:go_router/go_router.dart';

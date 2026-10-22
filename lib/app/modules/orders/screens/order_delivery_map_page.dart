@@ -1,9 +1,9 @@
-import 'package:appwrite_user_app/app/common/widgets/app_map_layers.dart';
-import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
-import 'package:appwrite_user_app/app/models/order_model.dart';
-import 'package:appwrite_user_app/app/resources/colors.dart';
-import 'package:appwrite_user_app/app/resources/constants.dart';
-import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:kikomart_user_app/app/common/widgets/app_map_layers.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_appbar.dart';
+import 'package:kikomart_user_app/app/models/order_model.dart';
+import 'package:kikomart_user_app/app/resources/colors.dart';
+import 'package:kikomart_user_app/app/resources/constants.dart';
+import 'package:kikomart_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:get/get.dart';

@@ -1,10 +1,10 @@
-import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
-import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
-import 'package:appwrite_user_app/app/controllers/splash_controller.dart';
-import 'package:appwrite_user_app/app/controllers/update_controller.dart';
-import 'package:appwrite_user_app/app/helper/dependencies.dart';
-import 'package:appwrite_user_app/app/helper/notification_helper.dart';
-import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
+import 'package:kikomart_user_app/app/controllers/auth_controller.dart';
+import 'package:kikomart_user_app/app/controllers/settings_controller.dart';
+import 'package:kikomart_user_app/app/controllers/splash_controller.dart';
+import 'package:kikomart_user_app/app/controllers/update_controller.dart';
+import 'package:kikomart_user_app/app/helper/dependencies.dart';
+import 'package:kikomart_user_app/app/helper/notification_helper.dart';
+import 'package:kikomart_user_app/app/helper/routes/app_router.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;

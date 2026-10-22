@@ -1,5 +1,5 @@
-import 'package:appwrite_user_app/app/models/flash_sale_item_model.dart';
-import 'package:appwrite_user_app/app/models/flash_sale_model.dart';
+import 'package:kikomart_user_app/app/models/flash_sale_item_model.dart';
+import 'package:kikomart_user_app/app/models/flash_sale_model.dart';
 
 abstract class FlashSaleRepoInterface {
   /// The currently running flash sale (active flag + inside its time window),

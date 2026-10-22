@@ -1,11 +1,11 @@
-import 'package:appwrite_user_app/app/controllers/banner_controller.dart';
-import 'package:appwrite_user_app/app/controllers/brand_controller.dart';
-import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
-import 'package:appwrite_user_app/app/controllers/category_controller.dart';
-import 'package:appwrite_user_app/app/controllers/flash_sale_controller.dart';
-import 'package:appwrite_user_app/app/controllers/module_controller.dart';
-import 'package:appwrite_user_app/app/controllers/order_controller.dart';
-import 'package:appwrite_user_app/app/controllers/product_controller.dart';
+import 'package:kikomart_user_app/app/controllers/banner_controller.dart';
+import 'package:kikomart_user_app/app/controllers/brand_controller.dart';
+import 'package:kikomart_user_app/app/controllers/cart_controller.dart';
+import 'package:kikomart_user_app/app/controllers/category_controller.dart';
+import 'package:kikomart_user_app/app/controllers/flash_sale_controller.dart';
+import 'package:kikomart_user_app/app/controllers/module_controller.dart';
+import 'package:kikomart_user_app/app/controllers/order_controller.dart';
+import 'package:kikomart_user_app/app/controllers/product_controller.dart';
 import 'package:get/get.dart';
 
 /// Switches the active storefront module and refreshes module-scoped data so

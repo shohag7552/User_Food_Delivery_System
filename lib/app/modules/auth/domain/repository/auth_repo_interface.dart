@@ -1,5 +1,5 @@
 import 'package:appwrite/models.dart';
-import 'package:appwrite_user_app/app/modules/auth/domain/services/password_reset_failure.dart';
+import 'package:kikomart_user_app/app/modules/auth/domain/services/password_reset_failure.dart';
 
 abstract class AuthRepoInterface {
   // Future<bool> auth(String email, String password);

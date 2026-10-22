@@ -1,7 +1,7 @@
-import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
-import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
-import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
-import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
+import 'package:kikomart_user_app/app/controllers/auth_controller.dart';
+import 'package:kikomart_user_app/app/controllers/cart_controller.dart';
+import 'package:kikomart_user_app/app/controllers/favorites_controller.dart';
+import 'package:kikomart_user_app/app/controllers/profile_controller.dart';
 import 'package:get/get.dart';
 
 /// Whether a user session is currently active.

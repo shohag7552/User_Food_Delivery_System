@@ -1,9 +1,9 @@
 import 'dart:developer';
 import 'package:appwrite/models.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
-import 'package:appwrite_user_app/app/models/favorite_model.dart';
-import 'package:appwrite_user_app/app/modules/favorites/domain/repository/favorites_repo_interface.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_config.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_service.dart';
+import 'package:kikomart_user_app/app/models/favorite_model.dart';
+import 'package:kikomart_user_app/app/modules/favorites/domain/repository/favorites_repo_interface.dart';
 import 'package:dart_appwrite/dart_appwrite.dart';
 
 class FavoritesRepository implements FavoritesRepoInterface {

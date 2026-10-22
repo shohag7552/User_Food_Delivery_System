@@ -1,9 +1,9 @@
 import 'dart:developer';
 import 'package:appwrite/appwrite.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
-import 'package:appwrite_user_app/app/models/shipping_method_model.dart';
-import 'package:appwrite_user_app/app/modules/shipping/domain/repository/shipping_repo_interface.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_config.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_service.dart';
+import 'package:kikomart_user_app/app/models/shipping_method_model.dart';
+import 'package:kikomart_user_app/app/modules/shipping/domain/repository/shipping_repo_interface.dart';
 
 class ShippingRepository implements ShippingRepoInterface {
   final AppwriteService appwriteService;

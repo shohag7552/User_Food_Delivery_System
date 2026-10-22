@@ -1,4 +1,4 @@
-import 'package:appwrite_user_app/app/controllers/cart_animation_controller.dart';
+import 'package:kikomart_user_app/app/controllers/cart_animation_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

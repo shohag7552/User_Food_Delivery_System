@@ -1,10 +1,10 @@
 import 'dart:developer';
 import 'package:appwrite/models.dart';
-import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
-import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
-import 'package:appwrite_user_app/app/helper/session_manager.dart';
-import 'package:appwrite_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
-import 'package:appwrite_user_app/app/modules/auth/domain/services/password_reset_failure.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_toster.dart';
+import 'package:kikomart_user_app/app/controllers/settings_controller.dart';
+import 'package:kikomart_user_app/app/helper/session_manager.dart';
+import 'package:kikomart_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
+import 'package:kikomart_user_app/app/modules/auth/domain/services/password_reset_failure.dart';
 import 'package:get/get.dart';
 
 /// What a forgot-password request ended up doing.

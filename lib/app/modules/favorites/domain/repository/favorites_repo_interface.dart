@@ -1,4 +1,4 @@
-import 'package:appwrite_user_app/app/models/favorite_model.dart';
+import 'package:kikomart_user_app/app/models/favorite_model.dart';
 
 abstract class FavoritesRepoInterface {
   /// Get all favorites for the current user

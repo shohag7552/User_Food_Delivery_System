@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:appwrite_user_app/app/common/widgets/cookie_consent_banner.dart';
-import 'package:appwrite_user_app/app/common/widgets/no_internet_screen.dart';
-import 'package:appwrite_user_app/app/controllers/localization_controller.dart';
-import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
-import 'package:appwrite_user_app/app/resources/constants.dart';
-import 'package:appwrite_user_app/app/resources/messages.dart';
-import 'package:appwrite_user_app/global.dart';
+import 'package:kikomart_user_app/app/common/widgets/cookie_consent_banner.dart';
+import 'package:kikomart_user_app/app/common/widgets/no_internet_screen.dart';
+import 'package:kikomart_user_app/app/controllers/localization_controller.dart';
+import 'package:kikomart_user_app/app/helper/routes/app_router.dart';
+import 'package:kikomart_user_app/app/resources/constants.dart';
+import 'package:kikomart_user_app/app/resources/messages.dart';
+import 'package:kikomart_user_app/global.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';

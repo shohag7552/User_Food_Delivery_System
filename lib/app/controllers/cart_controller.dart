@@ -1,11 +1,11 @@
 import 'dart:developer';
-import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
-import 'package:appwrite_user_app/app/controllers/product_controller.dart';
-import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
-import 'package:appwrite_user_app/app/helper/session_manager.dart';
-import 'package:appwrite_user_app/app/models/cart_item_model.dart';
-import 'package:appwrite_user_app/app/models/coupon_model.dart';
-import 'package:appwrite_user_app/app/modules/cart/domain/repository/cart_repo_interface.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_toster.dart';
+import 'package:kikomart_user_app/app/controllers/product_controller.dart';
+import 'package:kikomart_user_app/app/controllers/settings_controller.dart';
+import 'package:kikomart_user_app/app/helper/session_manager.dart';
+import 'package:kikomart_user_app/app/models/cart_item_model.dart';
+import 'package:kikomart_user_app/app/models/coupon_model.dart';
+import 'package:kikomart_user_app/app/modules/cart/domain/repository/cart_repo_interface.dart';
 import 'package:get/get.dart';
 
 class CartController extends GetxController implements GetxService {

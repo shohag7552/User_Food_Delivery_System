@@ -1,9 +1,9 @@
-import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
-import 'package:appwrite_user_app/app/helper/currency_helper.dart';
-import 'package:appwrite_user_app/app/models/coupon_model.dart';
-import 'package:appwrite_user_app/app/modules/coupons/widgets/coupon_hero_card.dart';
-import 'package:appwrite_user_app/app/resources/colors.dart';
-import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_appbar.dart';
+import 'package:kikomart_user_app/app/helper/currency_helper.dart';
+import 'package:kikomart_user_app/app/models/coupon_model.dart';
+import 'package:kikomart_user_app/app/modules/coupons/widgets/coupon_hero_card.dart';
+import 'package:kikomart_user_app/app/resources/colors.dart';
+import 'package:kikomart_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';

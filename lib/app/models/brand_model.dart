@@ -1,4 +1,4 @@
-import 'package:appwrite_user_app/app/helper/model_json_converter.dart';
+import 'package:kikomart_user_app/app/helper/model_json_converter.dart';
 
 /// Ecommerce brand (e.g. Nike, Samsung). Name is a multilang JSON map.
 class BrandModel {

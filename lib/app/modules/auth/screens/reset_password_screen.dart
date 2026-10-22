@@ -1,15 +1,15 @@
 import 'dart:async';
 
-import 'package:appwrite_user_app/app/common/widgets/custom_button.dart';
-import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
-import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
-import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
-import 'package:appwrite_user_app/app/modules/auth/widgets/auth_field_decoration.dart';
-import 'package:appwrite_user_app/app/modules/auth/widgets/auth_status_panel.dart';
-import 'package:appwrite_user_app/app/resources/colors.dart';
-import 'package:appwrite_user_app/app/resources/constants.dart';
-import 'package:appwrite_user_app/app/resources/images.dart';
-import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_button.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_toster.dart';
+import 'package:kikomart_user_app/app/controllers/auth_controller.dart';
+import 'package:kikomart_user_app/app/helper/routes/app_router.dart';
+import 'package:kikomart_user_app/app/modules/auth/widgets/auth_field_decoration.dart';
+import 'package:kikomart_user_app/app/modules/auth/widgets/auth_status_panel.dart';
+import 'package:kikomart_user_app/app/resources/colors.dart';
+import 'package:kikomart_user_app/app/resources/constants.dart';
+import 'package:kikomart_user_app/app/resources/images.dart';
+import 'package:kikomart_user_app/app/resources/text_style.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

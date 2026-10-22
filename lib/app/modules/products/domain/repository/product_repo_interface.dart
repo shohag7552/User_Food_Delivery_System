@@ -1,4 +1,4 @@
-import 'package:appwrite_user_app/app/models/product_model.dart';
+import 'package:kikomart_user_app/app/models/product_model.dart';
 
 abstract class ProductRepoInterface {
   /// The paginated product list for the active module.

@@ -1,11 +1,11 @@
-import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
-import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
-import 'package:appwrite_user_app/app/controllers/review_controller.dart';
-import 'package:appwrite_user_app/app/models/review_model.dart';
-import 'package:appwrite_user_app/app/modules/reviews/widgets/review_card.dart';
-import 'package:appwrite_user_app/app/resources/colors.dart';
-import 'package:appwrite_user_app/app/resources/constants.dart';
-import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_toster.dart';
+import 'package:kikomart_user_app/app/common/widgets/rating_stars.dart';
+import 'package:kikomart_user_app/app/controllers/review_controller.dart';
+import 'package:kikomart_user_app/app/models/review_model.dart';
+import 'package:kikomart_user_app/app/modules/reviews/widgets/review_card.dart';
+import 'package:kikomart_user_app/app/resources/colors.dart';
+import 'package:kikomart_user_app/app/resources/constants.dart';
+import 'package:kikomart_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

@@ -1,6 +1,6 @@
 import 'dart:developer';
-import 'package:appwrite_user_app/app/models/category_model.dart';
-import 'package:appwrite_user_app/app/modules/categories/domain/repository/category_repo_interface.dart';
+import 'package:kikomart_user_app/app/models/category_model.dart';
+import 'package:kikomart_user_app/app/modules/categories/domain/repository/category_repo_interface.dart';
 import 'package:get/get.dart';
 
 class CategoryController extends GetxController implements GetxService {
