@@ -1,7 +1,9 @@
 import 'package:appwrite_user_app/app/models/business_setup_model.dart';
 import 'package:appwrite_user_app/app/models/store_setup_model.dart';
 import 'package:appwrite_user_app/app/modules/settings/domain/repository/settings_repo_interface.dart';
+import 'package:appwrite_user_app/app/resources/constants.dart';
 import 'package:get/get.dart';
+import 'package:latlong2/latlong.dart';
 
 class SettingsController extends GetxController implements GetxService {
   final SettingsRepoInterface settingsRepoInterface;
@@ -13,6 +15,22 @@ class SettingsController extends GetxController implements GetxService {
 
   StoreSetupModel? _storeSetup;
   StoreSetupModel? get storeSetup => _storeSetup;
+
+  /// Where a map opens when there is no saved or current location: the
+  /// store's own location from business setup. Falls back to [Constants]
+  /// only when the store hasn't set one (or setup failed to load).
+  LatLng get defaultMapLocation {
+    final lat = _businessSetup?.storeLatitude;
+    final lng = _businessSetup?.storeLongitude;
+    // 0,0 is the unset default of a numeric column, not a real store.
+    if (lat != null && lng != null && !(lat == 0 && lng == 0)) {
+      return LatLng(lat, lng);
+    }
+    return const LatLng(
+      Constants.mapDefaultLatitude,
+      Constants.mapDefaultLongitude,
+    );
+  }
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;

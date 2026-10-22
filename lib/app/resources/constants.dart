@@ -80,7 +80,8 @@ class Constants {
   static const String mapAttribution = '© OpenStreetMap contributors';
   static const String mapAttributionUrl = 'https://www.openstreetmap.org/copyright';
 
-  /// Where a map opens when there is no saved or current location yet.
+  /// Fallback map centre, used only when business setup has no store
+  /// location — maps normally open on the store's own location.
   static const double mapDefaultLatitude = 23.8103;
   static const double mapDefaultLongitude = 90.4125;
 

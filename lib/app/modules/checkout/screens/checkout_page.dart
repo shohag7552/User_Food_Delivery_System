@@ -187,10 +187,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
     final initial = (base.latitude != null && base.longitude != null)
         ? LatLng(base.latitude!, base.longitude!)
-        : const LatLng(
-            Constants.mapDefaultLatitude,
-            Constants.mapDefaultLongitude,
-          );
+        : Get.find<SettingsController>().defaultMapLocation;
 
     final picked = await context.pushNamed<LatLng?>(
       RouteNames.mapPicker,

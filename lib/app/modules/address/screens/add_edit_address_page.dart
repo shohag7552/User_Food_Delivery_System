@@ -5,6 +5,7 @@ import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
 import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
 import 'package:appwrite_user_app/app/controllers/address_controller.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
+import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
 import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
@@ -55,10 +56,8 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
 
   late MapController _mapController;
   LatLng? _selectedLocation;
-  final LatLng _defaultLocation = const LatLng(
-    Constants.mapDefaultLatitude,
-    Constants.mapDefaultLongitude,
-  );
+  LatLng get _defaultLocation =>
+      Get.find<SettingsController>().defaultMapLocation;
 
   final loc.Location _locationService = loc.Location();
   bool _isLoadingLocation = false;

@@ -1,4 +1,4 @@
-import 'package:appwrite_user_app/app/resources/constants.dart';
+import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
 import 'package:appwrite_user_app/app/controllers/brand_controller.dart';
 import 'package:appwrite_user_app/app/controllers/category_controller.dart';
 import 'package:appwrite_user_app/app/controllers/coupon_controller.dart';
@@ -600,10 +600,7 @@ abstract class AppRouter {
         builder: (context, state) => FullScreenMapPage(
           initialLocation:
               state.extra as LatLng? ??
-              const LatLng(
-                Constants.mapDefaultLatitude,
-                Constants.mapDefaultLongitude,
-              ),
+              Get.find<SettingsController>().defaultMapLocation,
         ),
       ),
       GoRoute(
