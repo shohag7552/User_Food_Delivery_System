@@ -1,5 +1,5 @@
 {
-  "your_business_name": "Kiko",
+  "your_business_name": "KikoMart",
   "order_placed_successfully": "Order Placed Successfully!",
   "order_placed_notification_title": "Order Placed Successfully! 🍔",
   "order_placed_notification_body": "We will deliver your order #@orderId soon.",
@@ -452,6 +452,10 @@
   "set_as_default": "Set as Default",
   "address_saved_successfully": "Address saved successfully",
   "address_deleted_successfully": "Address deleted successfully",
+  "address_added_successfully": "Address added successfully",
+  "address_updated_successfully": "Address updated successfully",
+  "default_address_updated": "Default address updated",
+  "failed_to_add_address": "Failed to add address",
   "pay_securely_online": "Pay securely online via Stripe",
   "pay_from_wallet_balance": "Pay from your wallet balance",
   "please_select_delivery_address": "Please select a delivery address",

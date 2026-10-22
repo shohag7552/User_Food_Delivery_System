@@ -1,3 +1,4 @@
+import 'package:appwrite_user_app/app/common/widgets/app_map_layers.dart';
 import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:appwrite_user_app/app/models/order_model.dart';
 import 'package:appwrite_user_app/app/resources/colors.dart';
@@ -77,10 +78,7 @@ class _OrderDeliveryMapPageState extends State<OrderDeliveryMapPage> {
     return Scaffold(
       backgroundColor: context.scaffoldBackground,
       appBar: widget.showBackButton
-          ? CustomAppbar(
-              title: 'delivery_location'.tr,
-              showBackButton: true,
-            )
+          ? CustomAppbar(title: 'delivery_location'.tr, showBackButton: true)
           : null,
       body: Stack(
         children: [
@@ -92,10 +90,7 @@ class _OrderDeliveryMapPageState extends State<OrderDeliveryMapPage> {
               onMapReady: _bindMapWithMarkers,
             ),
             children: [
-              TileLayer(
-                urlTemplate: Constants.streetMapTheme,
-                userAgentPackageName: Constants.packageName,
-              ),
+              const AppTileLayer(),
               MarkerLayer(
                 markers: [
                   Marker(
@@ -143,7 +138,10 @@ class _OrderDeliveryMapPageState extends State<OrderDeliveryMapPage> {
               left: 16,
               right: 16,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: context.cardBackground,
                   borderRadius: BorderRadius.circular(Constants.radiusLarge),
@@ -157,8 +155,7 @@ class _OrderDeliveryMapPageState extends State<OrderDeliveryMapPage> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: ColorResource.primaryDark
-                            .withValues(alpha: 0.1),
+                        color: ColorResource.primaryDark.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(
@@ -199,49 +196,57 @@ class _OrderDeliveryMapPageState extends State<OrderDeliveryMapPage> {
             left: 16,
             right: 16,
             bottom: 20,
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: context.cardBackground,
-                borderRadius: BorderRadius.circular(Constants.radiusLarge),
-                boxShadow: ColorResource.customShadow,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (_deliverymanLocation != null) ...[
-                    _buildLocationInfo(
-                      icon: Icons.delivery_dining,
-                      iconColor: Colors.red,
-                      title: widget.deliveryman?.name.isNotEmpty == true
-                          ? widget.deliveryman!.name
-                          : 'deliveryman'.tr,
-                      subtitle: 'current_location'.tr,
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  _buildLocationInfo(
-                    icon: Icons.storefront,
-                    iconColor: ColorResource.primaryDark,
-                    title: widget.businessName.isNotEmpty
-                        ? widget.businessName
-                        : 'business'.tr,
-                    subtitle: widget.businessAddress.isNotEmpty
-                        ? widget.businessAddress
-                        : 'business_location'.tr,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const MapAttribution(),
+                const SizedBox(height: Constants.paddingSizeSmall),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: context.cardBackground,
+                    borderRadius: BorderRadius.circular(Constants.radiusLarge),
+                    boxShadow: ColorResource.customShadow,
                   ),
-                  const SizedBox(height: 12),
-                  _buildLocationInfo(
-                    icon: Icons.location_on,
-                    iconColor: Colors.green,
-                    title: 'delivery_address'.tr,
-                    subtitle: widget.deliveryAddress.isNotEmpty
-                        ? widget.deliveryAddress
-                        : 'customer_location'.tr,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_deliverymanLocation != null) ...[
+                        _buildLocationInfo(
+                          icon: Icons.delivery_dining,
+                          iconColor: Colors.red,
+                          title: widget.deliveryman?.name.isNotEmpty == true
+                              ? widget.deliveryman!.name
+                              : 'deliveryman'.tr,
+                          subtitle: 'current_location'.tr,
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                      _buildLocationInfo(
+                        icon: Icons.storefront,
+                        iconColor: ColorResource.primaryDark,
+                        title: widget.businessName.isNotEmpty
+                            ? widget.businessName
+                            : 'business'.tr,
+                        subtitle: widget.businessAddress.isNotEmpty
+                            ? widget.businessAddress
+                            : 'business_location'.tr,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildLocationInfo(
+                        icon: Icons.location_on,
+                        iconColor: Colors.green,
+                        title: 'delivery_address'.tr,
+                        subtitle: widget.deliveryAddress.isNotEmpty
+                            ? widget.deliveryAddress
+                            : 'customer_location'.tr,
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
