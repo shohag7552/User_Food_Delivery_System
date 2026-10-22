@@ -1,5 +1,5 @@
 import 'package:appwrite_user_app/app/common/widgets/custom_network_image.dart';
-import 'package:appwrite_user_app/app/common/widgets/rive_rating_stars.dart';
+import 'package:appwrite_user_app/app/common/widgets/rating_stars.dart';
 import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
 import 'package:appwrite_user_app/app/controllers/review_controller.dart';
 import 'package:appwrite_user_app/app/modules/reviews/widgets/review_sheet_header.dart';
@@ -321,9 +321,10 @@ class _SubmitReviewBottomSheetState extends State<SubmitReviewBottomSheet> {
             borderRadius: BorderRadius.circular(Constants.radiusDefault),
           ),
           child: Center(
-            child: RiveRatingStars(
+            child: InteractiveRatingStars(
               rating: _rating,
               onRatingChanged: (rating) => setState(() => _rating = rating),
+              size: 42,
             ),
           ),
         ),

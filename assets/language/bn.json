@@ -1,5 +1,5 @@
 {
-  "your_business_name": "Kiko",
+  "your_business_name": "KikoMart",
   "order_placed_successfully": "অর্ডার সফলভাবে দেওয়া হয়েছে!",
   "order_placed_notification_title": "অর্ডার সফলভাবে সম্পন্ন হয়েছে! 🍔",
   "order_placed_notification_body": "আমরা শীঘ্রই আপনার অর্ডার #@orderId পৌঁছে দেব।",
@@ -820,7 +820,6 @@
   "offline": "অফলাইন",
   "reconnecting": "পুনরায় সংযোগ হচ্ছে",
   "we_will_reconnect_automatically": "সংযোগ ফিরলে নিজেই লোড হবে",
-  "tap_the_water_to_feed_the_fish": "পানিতে ট্যাপ করে মাছকে খাওয়ান",
   "share": "শেয়ার",
   "link_copied": "লিংক কপি হয়েছে",
   "sold_count": "@count টি বিক্রি",
