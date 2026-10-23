@@ -52,7 +52,7 @@ class BrandController extends GetxController implements GetxService {
       update();
     } catch (e) {
       _isLoading = false;
-      _errorMessage = 'Failed to load brands';
+      _errorMessage = 'failed_to_load_brands'.tr;
       update();
       log('Error in getBrands: $e');
     }

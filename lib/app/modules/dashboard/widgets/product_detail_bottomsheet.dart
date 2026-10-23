@@ -672,8 +672,8 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
   Widget _buildProductImage() {
     bool hasDiscount = widget.product.hasDiscount;
     String? discountPercentage = hasDiscount ? (widget.product.discountType == 'percentage'
-        ? '${widget.product.discountValue?.toInt()}% OFF'
-        : '${PriceHelper.formatPrice(widget.product.discountValue?.toDouble()??0)} OFF') : null;
+        ? 'discount_off'.trParams({'value': '${widget.product.discountValue?.toInt()}%'})
+        : 'discount_off'.trParams({'value': PriceHelper.formatPrice(widget.product.discountValue?.toDouble()??0)})) : null;
 
     final images = widget.product.displayImages;
     final hasMultiple = images.length > 1;
@@ -762,7 +762,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                             borderRadius: BorderRadius.circular(Constants.radiusDefault),
                           ),
                           child: Text(
-                            'OUT OF STOCK',
+                            'out_of_stock'.tr.toUpperCase(),
                             style: poppinsBold.copyWith(
                               fontSize: Constants.fontSizeDefault,
                               color: ColorResource.textWhite,
@@ -799,8 +799,8 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                             ),
                             child: Text(
                               widget.product.isOutOfStock
-                                  ? 'Unavailable'
-                                  : '${widget.product.stock} in stock',
+                                  ? 'unavailable'.tr
+                                  : 'stock_count_in_stock'.trParams({'count': '${widget.product.stock}'}),
                               style: poppinsMedium.copyWith(
                                 fontSize: Constants.fontSizeSmall,
                                 color: ColorResource.textWhite,
@@ -950,7 +950,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  'Save ${PriceHelper.formatPrice(widget.product.price - widget.product.finalPrice)}',
+                  'save_amount'.trParams({'amount': PriceHelper.formatPrice(widget.product.price - widget.product.finalPrice)}),
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeExtraSmall,
                     color: ColorResource.success,
@@ -1130,7 +1130,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
-                variant.required ? 'Required' : 'Optional',
+                variant.required ? 'required'.tr : 'optional_tag'.tr,
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeExtraSmall,
                   color: variant.required
@@ -1144,8 +1144,8 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
         const SizedBox(height: 4),
         Text(
           variant.type == 'radio'
-              ? 'Select one option'
-              : 'Select one or more options',
+              ? 'select_one_option'.tr
+              : 'select_one_or_more_options'.tr,
           style: poppinsRegular.copyWith(
             fontSize: Constants.fontSizeExtraSmall,
             color: context.textSecondary,
@@ -1236,7 +1236,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
                       child: Text(
-                        'Included at no extra cost',
+                        'included_no_extra_cost'.tr,
                         style: poppinsRegular.copyWith(
                           fontSize: Constants.fontSizeExtraSmall,
                           color: context.textSecondary,
@@ -1341,7 +1341,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
                       child: Text(
-                        'Included at no extra cost',
+                        'included_no_extra_cost'.tr,
                         style: poppinsRegular.copyWith(
                           fontSize: Constants.fontSizeExtraSmall,
                           color: context.textSecondary,
@@ -1423,7 +1423,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                 children: [
                   Expanded(
                     child: Text(
-                      'Total: ${PriceHelper.formatPrice(_totalPrice)}',
+                      'total_with_amount'.trParams({'amount': PriceHelper.formatPrice(_totalPrice)}),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: poppinsBold.copyWith(
@@ -1516,9 +1516,9 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                         Navigator.pop(this.context);
 
                         if (_matchingCartItem == null && widget.cartItem == null) {
-                          customToster('${widget.product.nameMap.trLanguage} added to cart!');
+                          customToster('product_added_to_cart'.trParams({'name': widget.product.nameMap.trLanguage}));
                         } else {
-                          customToster('${widget.product.nameMap.trLanguage} updated!');
+                          customToster('product_updated_in_cart'.trParams({'name': widget.product.nameMap.trLanguage}));
                         }
                       } catch (e) {
                         if (mounted) {
@@ -1527,7 +1527,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                           });
                         }
                         Navigator.pop(this.context);
-                        customToster('Failed to add to cart');
+                        customToster('failed_to_add_to_cart'.tr);
                       }
                     },
               child: AnimatedContainer(
@@ -1579,10 +1579,10 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                           const SizedBox(width: 12),
                           Text(
                             outOfStock
-                                ? 'Out of stock'
+                                ? 'out_of_stock'.tr
                                 : isUpdate
-                                    ? 'Update cart'
-                                    : 'Add to cart',
+                                    ? 'update_cart'.tr
+                                    : 'add_to_cart'.tr,
                             style: poppinsBold.copyWith(
                               fontSize: Constants.fontSizeDefault,
                               color: ColorResource.textWhite,
@@ -1664,7 +1664,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Customer reviews',
+          'customer_reviews'.tr,
           style: poppinsBold.copyWith(
             fontSize: Constants.fontSizeLarge,
             color: context.textPrimary,
@@ -1672,7 +1672,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
         ),
         const SizedBox(height: 4),
         Text(
-          'See what other customers are saying before you order.',
+          'see_what_customers_say'.tr,
           style: poppinsRegular.copyWith(
             fontSize: Constants.fontSizeSmall,
             color: context.textSecondary,

@@ -41,6 +41,13 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+/// A checkout failure whose [message] is already translated and safe to show
+/// to the customer (unlike a raw exception).
+class _OrderError implements Exception {
+  final String message;
+  const _OrderError(this.message);
+}
+
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
 
@@ -388,7 +395,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ? 'tomorrow'.tr
             : WeeklyBusinessHours.dayNames[next.weekday % 7];
     final time = TimeOfDay.fromDateTime(next).format(context);
-    return '${'opens'.tr} $dayLabel ${'at'.tr} $time';
+    return 'opens_day_at_time'.trParams({'day': dayLabel, 'time': time});
   }
   
   @override
@@ -655,7 +662,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           if (isOutsideRadius) ...[
             const SizedBox(height: 8),
             Text(
-              'Selected address is outside the delivery radius.',
+              'address_outside_delivery_radius'.tr,
               style: poppinsMedium.copyWith(
                 fontSize: Constants.fontSizeSmall,
                 color: Colors.red,
@@ -1537,7 +1544,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Choose gateway',
+                          'choose_gateway'.tr,
                           style: poppinsMedium.copyWith(
                             fontSize: Constants.fontSizeSmall,
                             color: context.textSecondary,
@@ -1684,7 +1691,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           Align(
                             alignment: AlignmentDirectional.centerStart,
                             child: Text(
-                              'Selected address is outside the delivery radius.',
+                              'address_outside_delivery_radius'.tr,
                               style: poppinsMedium.copyWith(
                                 fontSize: Constants.fontSizeSmall,
                                 color: Colors.red,
@@ -1913,7 +1920,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final settingsController = Get.find<SettingsController>();
     // Delivery radius + store hours only constrain the food module.
     if (!_isEcommerce && _isOutsideDeliveryRadius(settingsController)) {
-      customToster('Selected address is outside the delivery radius.', isSuccess: false);
+      customToster('address_outside_delivery_radius'.tr, isSuccess: false);
       return;
     }
 
@@ -1938,7 +1945,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
       if (walletBalance < total) {
         customToster(
-          'Insufficient wallet balance. Your balance is ${CurrencyHelper.formatAmount(walletBalance)} but order total is ${CurrencyHelper.formatAmount(total)}.',
+          'insufficient_wallet_balance_detail'.trParams({
+            'balance': CurrencyHelper.formatAmount(walletBalance),
+            'total': CurrencyHelper.formatAmount(total),
+          }),
           isSuccess: false,
         );
         return;
@@ -1954,7 +1964,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           style: poppinsBold.copyWith(fontSize: Constants.fontSizeLarge),
         ),
         content: Text(
-          'Are you sure you want to place this order for ${CurrencyHelper.formatAmount(total)}?',
+          'confirm_place_order_for_amount'.trParams({'amount': CurrencyHelper.formatAmount(total)}),
           style: poppinsRegular.copyWith(fontSize: Constants.fontSizeDefault),
         ),
         actions: [
@@ -1985,7 +1995,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       String? userId = await authController.getUserId();
 
       if (userId == null) {
-        throw Exception('User not logged in');
+        throw _OrderError('login_required'.tr);
       }
 
       final itemDiscountTotal = cartController.itemDiscountTotal;
@@ -2077,7 +2087,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
         final paymentURL = paymentResult['data']?['paymentURL'] as String?;
         if (paymentURL == null || paymentURL.isEmpty) {
-          throw Exception('Payment gateway returned no URL');
+          log('Payment gateway returned no URL');
+          throw _OrderError('payment_failed_try_again'.tr);
         }
 
         // ── Web: hand the whole tab over to the gateway ──
@@ -2122,7 +2133,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           );
           if (!launched) {
             await PendingPaymentStore.clear();
-            throw Exception('could_not_open_payment_page'.tr);
+            throw _OrderError('could_not_open_payment_page'.tr);
           }
           return;
         }
@@ -2164,7 +2175,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       }
 
       if (result['success'] != true) {
-        throw Exception(result['error'] ?? 'Failed to place order');
+        throw _OrderError(result['error'] ?? 'failed_to_place_order'.tr);
       }
 
       final orderNumber = result['orderNumber'] as String;
@@ -2182,12 +2193,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
         );
       }
     } catch (e) {
+      log('Place order failed: $e');
       // Navigate to failed page
       if (mounted) {
         context.pushNamed(
           RouteNames.orderFailed,
           extra: OrderFailedArgs(
-            errorMessage: e.toString().replaceAll('Exception: ', ''),
+            errorMessage: e is _OrderError ? e.message : 'failed_to_place_order'.tr,
             onRetry: () => _placeOrder(cartController, total, deliveryFee, taxAmount),
           ),
         );

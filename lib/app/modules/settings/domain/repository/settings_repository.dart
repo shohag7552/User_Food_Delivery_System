@@ -4,6 +4,7 @@ import 'package:kikomart_user_app/app/appwrite/appwrite_service.dart';
 import 'package:kikomart_user_app/app/models/business_setup_model.dart';
 import 'package:kikomart_user_app/app/models/store_setup_model.dart';
 import 'package:kikomart_user_app/app/modules/settings/domain/repository/settings_repo_interface.dart';
+import 'package:flutter/foundation.dart';
 
 class SettingsRepository implements SettingsRepoInterface {
   final AppwriteService appwriteService;
@@ -25,10 +26,10 @@ class SettingsRepository implements SettingsRepoInterface {
       
       return null;
     } on AppwriteException catch (e) {
-      print('Error fetching business setup: ${e.message}');
+      debugPrint('Error fetching business setup: ${e.message}');
       return null;
     } catch (e) {
-      print('Unexpected error fetching business setup: $e');
+      debugPrint('Unexpected error fetching business setup: $e');
       return null;
     }
   }
@@ -48,10 +49,10 @@ class SettingsRepository implements SettingsRepoInterface {
       
       return null;
     } on AppwriteException catch (e) {
-      print('Error fetching store setup: ${e.message}');
+      debugPrint('Error fetching store setup: ${e.message}');
       return null;
     } catch (e) {
-      print('Unexpected error fetching store setup: $e');
+      debugPrint('Unexpected error fetching store setup: $e');
       return null;
     }
   }

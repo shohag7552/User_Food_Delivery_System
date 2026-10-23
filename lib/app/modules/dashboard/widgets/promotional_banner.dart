@@ -347,7 +347,7 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
               Icon(Icons.error_outline, color: ColorResource.error, size: 40),
               const SizedBox(height: 12),
               Text(
-                'Failed to load banners',
+                'failed_to_load_banners'.tr,
                 style: poppinsMedium.copyWith(
                   fontSize: Constants.fontSizeDefault,
                   color: context.textPrimary,
@@ -358,7 +358,7 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
                 TextButton(
                   onPressed: widget.onRetry,
                   child: Text(
-                    'Retry',
+                    'retry'.tr,
                     style: poppinsMedium.copyWith(
                       fontSize: Constants.fontSizeDefault,
                       color: ColorResource.primaryDark,
@@ -379,7 +379,7 @@ class _PromotionalBannerState extends State<PromotionalBanner> {
   /// Only called when [BannerModel.hasAction] is true, so actionValue is set.
   Future<void> _handleBannerTap(BannerModel banner) async {
     final value = banner.actionValue!;
-    print('====> Banner tapped: ${banner.actionType} - $value');
+    debugPrint('====> Banner tapped: ${banner.actionType} - $value');
 
     switch (banner.actionType) {
       case 'product':

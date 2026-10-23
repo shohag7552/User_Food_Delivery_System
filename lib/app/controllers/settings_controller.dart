@@ -4,6 +4,7 @@ import 'package:kikomart_user_app/app/modules/settings/domain/repository/setting
 import 'package:kikomart_user_app/app/resources/constants.dart';
 import 'package:get/get.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:flutter/foundation.dart';
 
 class SettingsController extends GetxController implements GetxService {
   final SettingsRepoInterface settingsRepoInterface;
@@ -56,7 +57,7 @@ class SettingsController extends GetxController implements GetxService {
       // Return true only if both are successfully fetched
       return _businessSetup != null && _storeSetup != null;
     } catch (e) {
-      print('Error in fetchSettings: $e');
+      debugPrint('Error in fetchSettings: $e');
       _isLoading = false;
       update();
       return false;
@@ -70,7 +71,7 @@ class SettingsController extends GetxController implements GetxService {
       update();
       return _businessSetup != null;
     } catch (e) {
-      print('Error fetching business setup: $e');
+      debugPrint('Error fetching business setup: $e');
       return false;
     }
   }
@@ -82,7 +83,7 @@ class SettingsController extends GetxController implements GetxService {
       update();
       return _storeSetup != null;
     } catch (e) {
-      print('Error fetching store setup: $e');
+      debugPrint('Error fetching store setup: $e');
       return false;
     }
   }

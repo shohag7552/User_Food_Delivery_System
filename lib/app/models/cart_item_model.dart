@@ -119,8 +119,8 @@ class CartItemModel {
               .map((e) => SelectedVariant.fromJson(e))
               .toList()
           : [],
-      quantity: json['quantity'] as int,
-      itemTotal: (json['item_total'] as num).toDouble(),
+      quantity: (json['quantity'] as num?)?.toInt() ?? 1,
+      itemTotal: (json['item_total'] as num?)?.toDouble() ?? 0.0,
       moduleType: json['module_type'] as String? ?? 'food',
     );
   }

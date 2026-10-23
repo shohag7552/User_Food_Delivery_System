@@ -1365,7 +1365,7 @@ class _EcommerceProductDetailPageState
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        outOfStock ? 'out_of_stock'.tr : '${product.stock} ${'in_stock'.tr}',
+        outOfStock ? 'out_of_stock'.tr : 'stock_count_in_stock'.trParams({'count': '${product.stock}'}),
         style: poppinsMedium.copyWith(
           fontSize: Constants.fontSizeSmall,
           color: outOfStock ? ColorResource.error : ColorResource.success,

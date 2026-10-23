@@ -90,7 +90,7 @@ class LoyaltyController extends GetxController implements GetxService {
       _history = await loyaltyRepoInterface.getLoyaltyHistory(user.id);
     } catch (e) {
       log('Error fetching loyalty history: $e');
-      customToster('Failed to load loyalty history', isSuccess: false);
+      customToster('failed_to_load_loyalty_history'.tr, isSuccess: false);
     } finally {
       _isLoading = false;
       update();
@@ -102,12 +102,12 @@ class LoyaltyController extends GetxController implements GetxService {
     final user = profileController.userProfile;
 
     if (user == null) {
-      customToster('Failed to load profile', isSuccess: false);
+      customToster('failed_to_load_profile'.tr, isSuccess: false);
       return false;
     }
 
     if (points <= 0 || points > user.loyaltyPoints || walletConversionRate <= 0) {
-      customToster('Enter valid loyalty points', isSuccess: false);
+      customToster('enter_valid_loyalty_points'.tr, isSuccess: false);
       return false;
     }
 
@@ -123,11 +123,11 @@ class LoyaltyController extends GetxController implements GetxService {
 
       profileController.setUserProfile(updatedUser);
       await fetchHistory();
-      customToster('Loyalty points converted to wallet');
+      customToster('loyalty_points_converted_to_wallet'.tr);
       return true;
     } catch (e) {
       log('Error converting loyalty points: $e');
-      customToster('Failed to convert loyalty points', isSuccess: false);
+      customToster('failed_to_convert_loyalty_points'.tr, isSuccess: false);
       return false;
     } finally {
       _isConverting = false;

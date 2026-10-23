@@ -165,17 +165,17 @@ class AuthController extends GetxController implements GetxService {
       //   customToster('Login failed. Please check your credentials.');
       // }
     } catch (e) {
-      String errorMessage = 'Login failed. Please try again.';
+      String errorMessage = 'login_failed_try_again'.tr;
 
       final error = e.toString().toLowerCase();
       if (error.contains('blocked')) {
         errorMessage = 'account_blocked_login'.tr;
       } else if (e.toString().contains('Invalid credentials') ||
           e.toString().contains('401')) {
-        errorMessage = 'Invalid email or password.';
+        errorMessage = 'invalid_email_or_password'.tr;
       } else if (e.toString().contains('network') ||
           e.toString().contains('connection')) {
-        errorMessage = 'Network error. Please check your connection.';
+        errorMessage = 'network_error_check_connection'.tr;
       }
 
       customToster(errorMessage);
@@ -214,21 +214,22 @@ class AuthController extends GetxController implements GetxService {
       if (isSuccess) {
         _isLoggedIn = true;
         SessionManager.loadUserData();
-        customToster('Account created successfully!');
+        customToster('account_created_successfully'.tr);
       } else {
-        customToster('Failed to create account. Please try again.');
+        customToster('failed_to_create_account'.tr);
       }
     } catch (e) {
       isSuccess = false;
-      String errorMessage = 'An error occurred during signup';
+      String errorMessage = 'signup_error_occurred'.tr;
 
       if (e.toString().contains('409') ||
           e.toString().contains('already exists')) {
-        errorMessage = 'Email already registered. Please login instead.';
+        errorMessage = 'email_already_registered'.tr;
       } else if (e.toString().contains('network')) {
-        errorMessage = 'Network error. Please check your connection.';
+        errorMessage = 'network_error_check_connection'.tr;
       }
-      customToster('Signup Failed: $errorMessage');
+      log('Signup error: $e');
+      customToster('signup_failed_with_reason'.trParams({'reason': errorMessage}));
     }
 
     _isLoading = false;

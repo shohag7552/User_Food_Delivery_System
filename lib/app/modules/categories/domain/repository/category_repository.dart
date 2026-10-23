@@ -6,6 +6,7 @@ import 'package:kikomart_user_app/app/appwrite/appwrite_service.dart';
 import 'package:kikomart_user_app/app/controllers/module_controller.dart';
 import 'package:kikomart_user_app/app/models/category_model.dart';
 import 'package:kikomart_user_app/app/modules/categories/domain/repository/category_repo_interface.dart';
+import 'package:flutter/foundation.dart';
 
 
 class CategoryRepository implements CategoryRepoInterface {
@@ -20,7 +21,7 @@ class CategoryRepository implements CategoryRepoInterface {
       queries: [Query.equal('module_type', ModuleController.current)],
     );
     return response.rows.map((post) {
-      print('===> Category Data: ${post.data}');
+      debugPrint('===> Category Data: ${post.data}');
       return CategoryModel.fromJson(post.data);
     }).toList();
   }

@@ -184,7 +184,7 @@ class _Header extends StatelessWidget {
                   Text(
                     itemCount == 1
                         ? 'cart_item_count_one'.tr
-                        : 'cart_items_count'.trParams({'count': '$itemCount'}),
+                        : 'cart_item_count_other'.trParams({'count': '$itemCount'}),
                     style: poppinsRegular.copyWith(
                       fontSize: Constants.fontSizeSmall,
                       color: context.textSecondary,

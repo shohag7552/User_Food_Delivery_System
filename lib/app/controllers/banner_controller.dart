@@ -39,7 +39,7 @@ class BannerController extends GetxController implements GetxService {
       update();
     } catch (e) {
       _isLoading = false;
-      _errorMessage = 'Failed to load banners: $e';
+      _errorMessage = 'failed_to_load_banners'.tr;
       log('====> Error loading banners: $e');
       update();
     }

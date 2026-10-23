@@ -107,7 +107,7 @@ class CartController extends GetxController implements GetxService {
       update();
     } catch (e) {
       _isLoading = false;
-      _errorMessage = 'Failed to load cart: $e';
+      _errorMessage = 'failed_to_load_cart'.tr;
       log('Error loading cart: $e');
       update();
     }
@@ -131,11 +131,14 @@ class CartController extends GetxController implements GetxService {
         // Ensure stock limit before updating
         final stock = _productStocks[item.productId];
         if (stock != null && newTotalQuantity > stock) {
-          customToster('Cannot add more. You already have ${existingItem.quantity} in cart and only $stock are available in stock.');
+          customToster('cannot_add_more_stock_limit'.trParams({
+            'inCart': '${existingItem.quantity}',
+            'stock': '$stock',
+          }));
           throw Exception('Stock limit exceeded');
         }
 
-        customToster('Updated quantity of identical item in cart.');
+        customToster('updated_identical_item_quantity'.tr);
         if (existingItem.finalPrice != item.finalPrice) {
           // Same product but new pricing (e.g. a flash sale started or ended
           // since the line was added) — merge quantities AND adopt the
@@ -167,7 +170,7 @@ class CartController extends GetxController implements GetxService {
       log('Item added to cart successfully');
     } catch (e) {
       if (e.toString() != 'Exception: Stock limit exceeded') {
-        _errorMessage = 'Failed to add item: $e';
+        _errorMessage = 'failed_to_add_item'.tr;
         log('Error adding to cart: $e');
         update();
       }
@@ -210,7 +213,7 @@ class CartController extends GetxController implements GetxService {
         update();
       }
     } catch (e) {
-      _errorMessage = 'Failed to update quantity: $e';
+      _errorMessage = 'failed_to_update_quantity'.tr;
       log('Error updating quantity: $e');
       update();
     }
@@ -229,7 +232,7 @@ class CartController extends GetxController implements GetxService {
       }
       log('Item details updated successfully');
     } catch (e) {
-      _errorMessage = 'Failed to update item details: $e';
+      _errorMessage = 'failed_to_update_item_details'.tr;
       log('Error updating item details: $e');
       update();
       rethrow;
@@ -243,7 +246,7 @@ class CartController extends GetxController implements GetxService {
     // Check stock if available
     final stock = _productStocks[item.productId];
     if (stock != null && item.quantity >= stock) {
-      customToster('Maximum stock limit reached.');
+      customToster('maximum_stock_limit_reached'.tr);
       return;
     }
     
@@ -269,7 +272,7 @@ class CartController extends GetxController implements GetxService {
       
       log('Item removed from cart');
     } catch (e) {
-      _errorMessage = 'Failed to remove item: $e';
+      _errorMessage = 'failed_to_remove_item'.tr;
       log('Error removing item: $e');
       update();
     }
@@ -284,7 +287,7 @@ class CartController extends GetxController implements GetxService {
       
       log('Cart cleared successfully');
     } catch (e) {
-      _errorMessage = 'Failed to clear cart: $e';
+      _errorMessage = 'failed_to_clear_cart'.tr;
       log('Error clearing cart: $e');
       update();
     }
@@ -301,31 +304,33 @@ class CartController extends GetxController implements GetxService {
     
     // Check if coupon is active
     if (!coupon.isActive) {
-      customToster('This coupon is not currently active');
+      customToster('coupon_not_currently_active'.tr);
       return;
     }
 
     // Check validity period
     final now = DateTime.now();
     if (now.isBefore(coupon.validFrom)) {
-      customToster('This coupon is not yet valid, will be valid from ${_formatDate(coupon.validFrom)}');
+      customToster('coupon_valid_from_date'.trParams({'date': _formatDate(coupon.validFrom)}));
       return;
     }
 
     if (now.isAfter(coupon.validUntil)) {
-      customToster('This coupon expired on ${_formatDate(coupon.validUntil)}');
+      customToster('coupon_expired_on_date'.trParams({'date': _formatDate(coupon.validUntil)}));
       return;
     }
 
     // Check usage limit
     if (coupon.usageLimit != null && coupon.usedCount >= coupon.usageLimit!) {
-      customToster('This coupon has reached its maximum usage limit');
+      customToster('coupon_max_usage_reached'.tr);
       return;
     }
 
     // Check minimum order amount
     if (coupon.minOrderAmount != null && subtotal < coupon.minOrderAmount!) {
-      customToster('Minimum Order Not Met, add \$${(coupon.minOrderAmount! - subtotal).toStringAsFixed(2)} more to use this coupon');
+      customToster('coupon_min_order_not_met'.trParams({
+        'amount': '\$${(coupon.minOrderAmount! - subtotal).toStringAsFixed(2)}',
+      }));
       return;
     }
 
@@ -337,7 +342,10 @@ class CartController extends GetxController implements GetxService {
     final discount = coupon.calculateDiscount(subtotal);
     log('Coupon applied successfully: ${coupon.code}, discount: $discount');
 
-    customToster('Coupon Applied! You saved \$${discount.toStringAsFixed(2)} with ${coupon.code}');
+    customToster('coupon_applied_you_saved'.trParams({
+      'amount': '\$${discount.toStringAsFixed(2)}',
+      'code': coupon.code,
+    }));
   }
 
   String _formatDate(DateTime date) {
@@ -353,7 +361,7 @@ class CartController extends GetxController implements GetxService {
     log('Coupon removed');
     
     if (removedCode != null) {
-      customToster('Coupon $removedCode has been removed');
+      customToster('coupon_code_removed'.trParams({'code': removedCode}));
     }
   }
 

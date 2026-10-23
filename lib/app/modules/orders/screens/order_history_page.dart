@@ -105,7 +105,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                 onPressed: () => context.pop(),
               ),
               title: Text(
-                'Order History',
+                'order_history'.tr,
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeLarge,
                   color: ColorResource.textWhite,
@@ -145,7 +145,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
                     child: Text(
-                      'Order History',
+                      'order_history'.tr,
                       style: poppinsBold.copyWith(
                         fontSize: Constants.fontSizeOverLarge,
                         color: context.textPrimary,
@@ -390,9 +390,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
 
   Widget _buildFilterChips() {
     final filters = [
-      {'label': 'All', 'value': 'all'},
-      {'label': 'Delivered', 'value': 'delivered'},
-      {'label': 'Cancelled', 'value': 'cancelled'},
+      {'label': 'all'.tr, 'value': 'all'},
+      {'label': 'delivered'.tr, 'value': 'delivered'},
+      {'label': 'cancelled'.tr, 'value': 'cancelled'},
     ];
 
     return Container(
@@ -460,7 +460,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Loading your order history...',
+            'loading_your_order_history'.tr,
             style: poppinsMedium.copyWith(
               fontSize: Constants.fontSizeDefault,
               color: context.textSecondary,
@@ -507,7 +507,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             ),
             const SizedBox(height: 24),
             Text(
-              'No Order History',
+              'no_order_history'.tr,
               style: poppinsBold.copyWith(
                 fontSize: 24,
                 color: context.textPrimary,
@@ -515,7 +515,11 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             ),
             const SizedBox(height: 12),
             Text(
-              'You don\'t have any ${_selectedFilter == 'all' ? 'completed' : _selectedFilter} orders yet.\nStart ordering to see your history here!',
+              _selectedFilter == 'all'
+                  ? 'no_completed_orders_yet'.tr
+                  : _selectedFilter == 'delivered'
+                      ? 'no_delivered_orders_yet'.tr
+                      : 'no_cancelled_orders_yet'.tr,
               textAlign: TextAlign.center,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,
@@ -626,7 +630,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    '${order.items.length} ${order.items.length == 1 ? 'Item' : 'Items'}',
+                    '${order.items.length} ${order.items.length == 1 ? 'item'.tr : 'items'.tr}',
                     style: poppinsBold.copyWith(
                       fontSize: Constants.fontSizeLarge,
                       color: context.textPrimary,
@@ -637,7 +641,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        'Total Paid',
+                        'total_paid'.tr,
                         style: poppinsRegular.copyWith(
                           fontSize: Constants.fontSizeSmall,
                           color: context.textSecondary,
@@ -676,7 +680,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Delivery Address',
+                          'delivery_address'.tr,
                           style: poppinsBold.copyWith(
                             fontSize: Constants.fontSizeDefault,
                             color: context.textPrimary,
@@ -716,13 +720,13 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
         backgroundColor = Colors.green.shade100;
         textColor = Colors.green.shade700;
         icon = Icons.check_circle;
-        label = 'Delivered';
+        label = 'delivered'.tr;
         break;
       case 'cancelled':
         backgroundColor = Colors.red.shade100;
         textColor = Colors.red.shade700;
         icon = Icons.cancel;
-        label = 'Cancelled';
+        label = 'cancelled'.tr;
         break;
       default:
         backgroundColor = Colors.grey.shade100;

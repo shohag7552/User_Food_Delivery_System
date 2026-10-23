@@ -101,7 +101,9 @@ class CartHelper {
 
   /// Confirm the add with the app's standard toast (no "View Cart" action).
   static void _showSuccessSnackbar(BuildContext context, ProductModel product) {
-    customToster('${product.nameMap.trLanguage} added to cart!');
+    customToster(
+      'product_added_to_cart'.trParams({'name': product.nameMap.trLanguage}),
+    );
   }
 
   /// Show error snackbar
@@ -109,7 +111,7 @@ class CartHelper {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Failed to add to cart',
+          'failed_to_add_to_cart'.tr,
           style: poppinsMedium.copyWith(
             color: ColorResource.textWhite,
           ),

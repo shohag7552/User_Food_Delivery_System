@@ -454,7 +454,10 @@ class _FlashSaleItemCardState extends State<FlashSaleItemCard> {
         ),
         const SizedBox(height: 4),
         Text(
-          '${'sold'.tr} ${item.soldCount} • ${item.remainingStock} ${'left'.tr}',
+          'flash_sold_and_left'.trParams({
+            'sold': '${item.soldCount}',
+            'left': '${item.remainingStock}',
+          }),
           style: poppinsRegular.copyWith(
             fontSize: Constants.fontSizeExtraSmall,
             color: ColorResource.textSecondary,

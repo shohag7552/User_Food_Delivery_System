@@ -183,7 +183,7 @@ class ProductController extends GetxController implements GetxService {
       update();
     } catch (e) {
       _isLoading = false;
-      _errorMessage = 'Failed to load products: $e';
+      _errorMessage = 'failed_to_load_products'.tr;
       log('====> Error loading products: $e');
       update();
     }
@@ -249,7 +249,7 @@ class ProductController extends GetxController implements GetxService {
       update();
     } catch (e) {
       _isLoadingSpecials = false;
-      _specialsErrorMessage = 'Failed to load special products: $e';
+      _specialsErrorMessage = 'failed_to_load_specials'.tr;
       log('====> Error loading special products: $e');
       update();
     }
@@ -271,7 +271,7 @@ class ProductController extends GetxController implements GetxService {
       update();
     } catch (e) {
       _isLoadingPopular = false;
-      _popularErrorMessage = 'Failed to load popular products: $e';
+      _popularErrorMessage = 'failed_to_load_popular_products'.tr;
       log('====> Error loading popular products: $e');
       update();
     }
@@ -293,7 +293,7 @@ class ProductController extends GetxController implements GetxService {
       update();
     } catch (e) {
       _isLoadingNew = false;
-      _newErrorMessage = 'Failed to load new products: $e';
+      _newErrorMessage = 'failed_to_load_new_items'.tr;
       log('====> Error loading new products: $e');
       update();
     }
@@ -315,7 +315,7 @@ class ProductController extends GetxController implements GetxService {
       update();
     } catch (e) {
       _isLoadingTop = false;
-      _topErrorMessage = 'Failed to load top products: $e';
+      _topErrorMessage = 'failed_to_load_top_products'.tr;
       log('====> Error loading top products: $e');
       update();
     }
@@ -337,7 +337,7 @@ class ProductController extends GetxController implements GetxService {
       update();
     } catch (e) {
       _isLoadingOffers = false;
-      _offersErrorMessage = 'Failed to load offer products: $e';
+      _offersErrorMessage = 'failed_to_load_offers'.tr;
       log('====> Error loading offer products: $e');
       update();
     }

@@ -288,6 +288,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     );
   }
 
+  // Kept for the (currently commented-out) "still need help" section above.
+  // ignore: unused_element
   Widget _stillNeedHelpCard(StoreSetupModel? store) {
     return _StillNeedHelpCard(
       store: store,

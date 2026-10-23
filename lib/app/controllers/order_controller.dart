@@ -176,7 +176,7 @@ class OrderController extends GetxController implements GetxService {
       _isPlacingOrder = false;
       update();
       log('Error placing order: $e');
-      return {'success': false, 'error': e.toString()};
+      return {'success': false, 'error': 'failed_to_place_order'.tr};
     }
   }
 

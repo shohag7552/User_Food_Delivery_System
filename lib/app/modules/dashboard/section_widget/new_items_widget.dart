@@ -47,7 +47,7 @@ class NewItemsWidget extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      'NEW',
+                      'new_badge'.tr,
                       style: poppinsBold.copyWith(
                         fontSize: Constants.fontSizeSmall,
                         color: ColorResource.info,

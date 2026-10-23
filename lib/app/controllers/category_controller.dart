@@ -43,7 +43,7 @@ class CategoryController extends GetxController implements GetxService {
       update();
     } catch (e) {
       _isLoading = false;
-      _errorMessage = 'Failed to load categories: $e';
+      _errorMessage = 'failed_to_load_categories'.tr;
       log('====> Error loading categories: $e');
       update();
     }

@@ -50,7 +50,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
             )
           : AppBar(
               title: Text(
-                'Loyalty Points',
+                'loyalty_points'.tr,
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeExtraLarge,
                   color: Colors.white,
@@ -129,7 +129,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                                           children: [
                                             if (isWeb) ...[
                                               Text(
-                                                'Loyalty Points',
+                                                'loyalty_points'.tr,
                                                 style: poppinsBold.copyWith(
                                                   fontSize: Constants
                                                       .fontSizeOverLarge,
@@ -170,7 +170,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                                                               .start,
                                                       children: [
                                                         Text(
-                                                          'Points activity',
+                                                          'points_activity'.tr,
                                                           style: poppinsBold.copyWith(
                                                             fontSize: Constants
                                                                 .fontSizeLarge,
@@ -184,7 +184,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                                                           height: 8,
                                                         ),
                                                         Text(
-                                                          'Track how points are earned and redeemed across your account.',
+                                                          'track_points_earned_redeemed'.tr,
                                                           style: poppinsRegular
                                                               .copyWith(
                                                                 color: isDark
@@ -243,7 +243,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                                               ),
                                               const SizedBox(height: 24),
                                               Text(
-                                                'Points activity',
+                                                'points_activity'.tr,
                                                 style: poppinsBold.copyWith(
                                                   fontSize:
                                                       Constants.fontSizeLarge,
@@ -254,7 +254,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                                               ),
                                               const SizedBox(height: 8),
                                               Text(
-                                                'Track how points are earned and redeemed across your account.',
+                                                'track_points_earned_redeemed'.tr,
                                                 style: poppinsRegular.copyWith(
                                                   color: isDark
                                                       ? Colors.white70
@@ -409,7 +409,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'VIP CLUB',
+                          'vip_club'.tr,
                           style: poppinsBold.copyWith(
                             color: const Color(0xFFFFD700),
                             fontSize: 14,
@@ -437,7 +437,10 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                         ),
                       ),
                       child: Text(
-                        '$walletConversionRate pts = ${CurrencyHelper.formatAmount(1)}',
+                        'pts_conversion_rate'.trParams({
+                          'points': '$walletConversionRate',
+                          'amount': CurrencyHelper.formatAmount(1),
+                        }),
                         style: poppinsBold.copyWith(
                           color: const Color(0xFFFFD700),
                           fontSize: Constants.fontSizeSmall - 1,
@@ -450,7 +453,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                 Text(
                   userName?.isNotEmpty == true
                       ? userName!.toUpperCase()
-                      : 'LOYALTY MEMBER',
+                      : 'loyalty_member'.tr,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: poppinsBold.copyWith(
@@ -475,7 +478,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'PTS',
+                      'pts'.tr,
                       style: poppinsBold.copyWith(
                         color: const Color(0xFFFFD700),
                         fontSize: 14,
@@ -486,7 +489,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  'Convert your reward points to wallet credit instantly.',
+                  'convert_points_to_wallet_instantly'.tr,
                   style: poppinsRegular.copyWith(
                     color: Colors.white.withValues(alpha: 0.8),
                     fontSize: Constants.fontSizeDefault,
@@ -562,7 +565,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                                 ),
                               )
                             : Text(
-                                'Convert to Wallet',
+                                'convert_to_wallet'.tr,
                                 style: poppinsBold.copyWith(
                                   fontSize: 16,
                                   color:
@@ -636,7 +639,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  transaction.title,
+                  _localizedHistoryTitle(transaction.title),
                   style: poppinsMedium.copyWith(
                     fontSize: Constants.fontSizeLarge,
                     color: isDark ? Colors.white : context.textPrimary,
@@ -644,7 +647,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  transaction.description,
+                  _localizedHistoryDescription(transaction.description),
                   style: poppinsRegular.copyWith(
                     color: isDark ? Colors.white70 : context.textSecondary,
                   ),
@@ -675,7 +678,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
               ),
               const SizedBox(height: 4),
               Text(
-                'points',
+                'points'.tr,
                 style: poppinsRegular.copyWith(
                   fontSize: Constants.fontSizeSmall,
                   color: isDark ? Colors.white54 : context.textLight,
@@ -716,7 +719,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                 borderRadius: BorderRadius.circular(24),
               ),
               title: Text(
-                'Convert loyalty points',
+                'convert_loyalty_points'.tr,
                 style: poppinsBold.copyWith(fontSize: 20),
               ),
               content: SingleChildScrollView(
@@ -725,12 +728,17 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Available points: ${NumberFormat.decimalPattern().format(totalPoints)}',
+                      'available_points_count'.trParams({
+                        'points': NumberFormat.decimalPattern().format(totalPoints),
+                      }),
                       style: poppinsMedium.copyWith(color: context.textPrimary),
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Conversion rate: $walletConversionRate points = ${CurrencyHelper.formatAmount(1)}',
+                      'conversion_rate_points_to_amount'.trParams({
+                        'points': '$walletConversionRate',
+                        'amount': CurrencyHelper.formatAmount(1),
+                      }),
                       style: poppinsRegular.copyWith(
                         color: context.textSecondary,
                       ),
@@ -743,8 +751,8 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                       autofocus: true,
                       onChanged: (_) => setDialogState(() {}),
                       decoration: InputDecoration(
-                        labelText: 'Enter points to convert',
-                        hintText: 'e.g. 100',
+                        labelText: 'enter_points_to_convert'.tr,
+                        hintText: 'points_input_hint'.tr,
                         errorText: validationMessage,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -772,7 +780,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'You will receive',
+                            'you_will_receive'.tr,
                             style: poppinsRegular.copyWith(
                               fontSize: Constants.fontSizeSmall,
                               color: context.textSecondary,
@@ -796,7 +804,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
                   child: Text(
-                    'Cancel',
+                    'cancel'.tr,
                     style: poppinsMedium.copyWith(color: context.textSecondary),
                   ),
                 ),
@@ -815,7 +823,7 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
                                   Navigator.of(dialogContext).pop();
                                 }
                               },
-                        buttonText: 'Convert',
+                        buttonText: 'convert'.tr,
                         height: 46,
                         elevation: 0,
                         isLoading: controller.isConverting,
@@ -837,27 +845,56 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
     required double walletConversionRate,
   }) {
     if (value.isEmpty) {
-      return 'Enter loyalty points to convert';
+      return 'enter_loyalty_points_to_convert'.tr;
     }
 
     if (walletConversionRate <= 0) {
-      return 'Wallet conversion is unavailable';
+      return 'wallet_conversion_unavailable'.tr;
     }
 
     final points = int.tryParse(value);
     if (points == null) {
-      return 'Enter a valid number';
+      return 'enter_valid_number'.tr;
     }
 
     if (points <= 0) {
-      return 'Points must be greater than 0';
+      return 'points_must_be_greater_than_zero'.tr;
     }
 
     if (points > totalPoints) {
-      return 'You only have ${NumberFormat.decimalPattern().format(totalPoints)} points';
+      return 'you_only_have_points'.trParams({
+        'points': NumberFormat.decimalPattern().format(totalPoints),
+      });
     }
 
     return null;
+  }
+
+  /// History rows store English `title` / `description` text in the
+  /// database; map the known values to translated strings for display and
+  /// fall back to the stored text for anything else.
+  String _localizedHistoryTitle(String title) {
+    switch (title) {
+      case 'Order reward':
+        return 'loyalty_order_reward'.tr;
+      case 'Wallet conversion':
+        return 'loyalty_wallet_conversion'.tr;
+      default:
+        return title;
+    }
+  }
+
+  String _localizedHistoryDescription(String description) {
+    if (description == 'Converted to wallet balance') {
+      return 'loyalty_converted_to_wallet_balance'.tr;
+    }
+    const earnedPrefix = 'Earned from order #';
+    if (description.startsWith(earnedPrefix)) {
+      return 'loyalty_earned_from_order'.trParams({
+        'order': description.substring(earnedPrefix.length),
+      });
+    }
+    return description;
   }
 
   Widget _buildEmptyState(BuildContext context) {
@@ -884,14 +921,14 @@ class _LoyaltyPointsPageState extends State<LoyaltyPointsPage> {
           ),
           const SizedBox(height: 12),
           Text(
-            'No loyalty activity yet',
+            'no_loyalty_activity_yet'.tr,
             style: poppinsMedium.copyWith(
               color: isDark ? Colors.white : context.textPrimary,
             ),
           ),
           const SizedBox(height: 6),
           Text(
-            'Delivered orders will appear here with earned points.',
+            'delivered_orders_appear_with_points'.tr,
             textAlign: TextAlign.center,
             style: poppinsRegular.copyWith(
               color: isDark ? Colors.white70 : context.textSecondary,

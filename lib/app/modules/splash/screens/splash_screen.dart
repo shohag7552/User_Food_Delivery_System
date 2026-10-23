@@ -5,8 +5,10 @@ import 'package:kikomart_user_app/app/controllers/settings_controller.dart';
 import 'package:kikomart_user_app/app/controllers/splash_controller.dart';
 import 'package:kikomart_user_app/app/controllers/update_controller.dart';
 import 'package:kikomart_user_app/app/helper/routes/app_router.dart';
+import 'package:kikomart_user_app/app/resources/colors.dart';
 import 'package:kikomart_user_app/app/resources/constants.dart';
 import 'package:kikomart_user_app/app/resources/images.dart';
+import 'package:kikomart_user_app/app/resources/text_style.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -33,6 +35,10 @@ class _SplashScreenState extends State<SplashScreen> {
   bool _hasConnection = true;
   bool _isBootstrapping = false;
   bool _hasNavigated = false;
+
+  /// Settings could not be loaded (backend unreachable or misconfigured).
+  /// Shows a retry instead of leaving the logo up forever.
+  bool _loadFailed = false;
 
   @override
   void initState() {
@@ -82,16 +88,26 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     _isBootstrapping = true;
+    if (_loadFailed) setState(() => _loadFailed = false);
 
-    // Prime the cached auth state so login-gated pages render correctly.
-    await Get.find<AuthController>().isAlreadyLoggedIn();
-    final settingsFetched = await Get.find<SplashController>().fetchSettings();
+    bool settingsFetched = false;
+    try {
+      // Prime the cached auth state so login-gated pages render correctly.
+      await Get.find<AuthController>().isAlreadyLoggedIn();
+      settingsFetched = await Get.find<SplashController>().fetchSettings();
+    } catch (e) {
+      debugPrint('Splash bootstrap failed: $e');
+    }
 
     if (!mounted) return;
 
     _isBootstrapping = false;
 
-    if (!settingsFetched || _hasNavigated) return;
+    if (_hasNavigated) return;
+    if (!settingsFetched) {
+      setState(() => _loadFailed = true);
+      return;
+    }
 
     _hasNavigated = true;
 
@@ -134,18 +150,55 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: context.scaffoldBackground,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-
-            ClipRRect(borderRadius: BorderRadius.circular(Constants.radiusExtraLarge), child: Image.asset(Images.logo, width: 150, height: 150)),
-            SizedBox(height: 20),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
+              child: Image.asset(
+                Images.logo,
+                width: Constants.splashLogoSize,
+                height: Constants.splashLogoSize,
+              ),
+            ),
+            const SizedBox(height: Constants.paddingSizeLarge),
 
             Text(
               Constants.appName,
-              style: TextStyle(fontSize: 24),
+              style: poppinsBold.copyWith(
+                fontSize: Constants.fontSizeOverLarge,
+                color: context.textPrimary,
+              ),
             ),
+
+            if (_loadFailed) ...[
+              const SizedBox(height: Constants.paddingSizeExtraLarge),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Constants.paddingSizeExtraLarge,
+                ),
+                child: Text(
+                  'could_not_load_store_settings'.tr,
+                  textAlign: TextAlign.center,
+                  style: poppinsRegular.copyWith(
+                    fontSize: Constants.fontSizeDefault,
+                    color: context.textSecondary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: Constants.paddingSizeDefault),
+              ElevatedButton.icon(
+                onPressed: _bootstrapApp,
+                icon: const Icon(Icons.refresh_rounded),
+                label: Text('retry'.tr),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ColorResource.primaryDark,
+                  foregroundColor: ColorResource.textWhite,
+                ),
+              ),
+            ],
           ],
         ),
       ),

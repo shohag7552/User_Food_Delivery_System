@@ -2,6 +2,7 @@ import 'package:kikomart_user_app/app/modules/splash/domain/repository/splash_re
 import 'package:kikomart_user_app/app/controllers/module_controller.dart';
 import 'package:kikomart_user_app/app/controllers/settings_controller.dart';
 import 'package:get/get.dart';
+import 'package:flutter/foundation.dart';
 
 class SplashController extends GetxController implements GetxService{
   SplashRepoInterface splashRepositoryInterface;
@@ -50,7 +51,7 @@ class SplashController extends GetxController implements GetxService{
       Get.find<ModuleController>().init();
       return success;
     } catch (e) {
-      print('Error fetching settings in SplashController: $e');
+      debugPrint('Error fetching settings in SplashController: $e');
       return false;
     }
   }

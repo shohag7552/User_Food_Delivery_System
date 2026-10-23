@@ -14,12 +14,12 @@ class TimeSlot {
   factory TimeSlot.fromJson(Map<String, dynamic> json) {
     return TimeSlot(
       openTime: TimeOfDay(
-        hour: json['open_hour'] as int,
-        minute: json['open_minute'] as int,
+        hour: (json['open_hour'] as num?)?.toInt() ?? 0,
+        minute: (json['open_minute'] as num?)?.toInt() ?? 0,
       ),
       closeTime: TimeOfDay(
-        hour: json['close_hour'] as int,
-        minute: json['close_minute'] as int,
+        hour: (json['close_hour'] as num?)?.toInt() ?? 23,
+        minute: (json['close_minute'] as num?)?.toInt() ?? 59,
       ),
     );
   }
@@ -58,8 +58,8 @@ class DaySchedule {
 
   factory DaySchedule.fromJson(Map<String, dynamic> json) {
     return DaySchedule(
-      isOpen: json['is_open'] as bool,
-      timeSlots: (json['time_slots'] as List)
+      isOpen: json['is_open'] as bool? ?? false,
+      timeSlots: ((json['time_slots'] as List?) ?? const [])
           .map((e) => TimeSlot.fromJson(e))
           .toList(),
     );

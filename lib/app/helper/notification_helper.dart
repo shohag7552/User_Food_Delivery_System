@@ -15,7 +15,7 @@ class NotificationHelper {
     flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()!.requestNotificationsPermission();
     flutterLocalNotificationsPlugin.initialize(settings: initializationsSettings, onDidReceiveNotificationResponse: (NotificationResponse response) async {
       try{
-        print('===payload: ${response.payload}');
+        debugPrint('===payload: ${response.payload}');
       }catch (_) {}
       return;
     });
@@ -51,9 +51,9 @@ class NotificationHelper {
           // ? message.data['image'].startsWith('http') ? message.data['image']
           // : '${AppUrls.baseUrl}/storage/app/public/notification/${message.data['image']}' : null;
 
-      print('==========message : $title ,  $image');
+      debugPrint('==========message : $title ,  $image');
 
-      print('==========message 2: $title ,  $body');
+      debugPrint('==========message 2: $title ,  $body');
       await showBigTextNotification(title, body!, orderID, null, fln);
     }
   }

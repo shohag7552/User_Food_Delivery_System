@@ -362,7 +362,9 @@ class _SearchPageState extends State<SearchPage> {
                 ),
               ),
               TextSpan(
-                text: 'results_found'.tr,
+                text: _allSearchResults.length == 1
+                    ? 'result_found'.tr
+                    : 'results_found'.tr,
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeExtraLarge,
                   color: context.textPrimary,
@@ -863,7 +865,10 @@ class _SearchPageState extends State<SearchPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${_allSearchResults.length} ${'results_found'.tr}',
+                (_allSearchResults.length == 1
+                        ? 'search_result_count_one'
+                        : 'search_result_count_other')
+                    .trParams({'count': '${_allSearchResults.length}'}),
                 style: poppinsBold.copyWith(
                   fontSize: Constants.fontSizeLarge,
                   color: context.textPrimary,
@@ -979,7 +984,7 @@ class _SearchPageState extends State<SearchPage> {
                   borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
                 ),
                 child: Text(
-                  '$discountPercentage% OFF',
+                  'discount_off'.trParams({'value': '$discountPercentage%'}),
                   style: poppinsBold.copyWith(
                     fontSize: Constants.fontSizeExtraSmall,
                     color: ColorResource.textWhite,

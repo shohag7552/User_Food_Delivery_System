@@ -85,7 +85,7 @@ class ProfileController extends GetxController implements GetxService {
       _isLoading = false;
       update();
       log('Error fetching user profile: $e');
-      customToster('Failed to load profile', isSuccess: false);
+      customToster('failed_to_load_profile'.tr, isSuccess: false);
     }
   }
 
@@ -116,13 +116,13 @@ class ProfileController extends GetxController implements GetxService {
       _isUpdating = false;
       update();
 
-      customToster('Profile updated successfully');
+      customToster('profile_updated_successfully'.tr);
       return true;
     } catch (e) {
       _isUpdating = false;
       update();
       log('Error updating profile: $e');
-      customToster('Failed to update profile', isSuccess: false);
+      customToster('failed_to_update_profile'.tr, isSuccess: false);
       return false;
     }
   }
@@ -151,7 +151,7 @@ class ProfileController extends GetxController implements GetxService {
         final updatedUser = _userProfile!.copyWith(profileImageUrl: imageUrl);
         _userProfile = await profileRepoInterface.updateProfile(updatedUser);
 
-        customToster('Profile picture updated');
+        customToster('profile_picture_updated'.tr);
       }
 
       _isUploadingImage = false;
@@ -160,7 +160,7 @@ class ProfileController extends GetxController implements GetxService {
       _isUploadingImage = false;
       update();
       log('Error uploading profile image: $e');
-      customToster('Failed to upload image', isSuccess: false);
+      customToster('failed_to_upload_image'.tr, isSuccess: false);
     }
   }
 
@@ -188,7 +188,7 @@ class ProfileController extends GetxController implements GetxService {
         final updatedUser = _userProfile!.copyWith(profileImageUrl: imageUrl);
         _userProfile = await profileRepoInterface.updateProfile(updatedUser);
 
-        customToster('Profile picture updated');
+        customToster('profile_picture_updated'.tr);
       }
 
       _isUploadingImage = false;
@@ -197,17 +197,17 @@ class ProfileController extends GetxController implements GetxService {
       _isUploadingImage = false;
       update();
       log('Error taking photo: $e');
-      customToster('Failed to upload image', isSuccess: false);
+      customToster('failed_to_upload_image'.tr, isSuccess: false);
     }
   }
 
   /// Validate name
   String? validateName(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Name is required';
+      return 'name_is_required'.tr;
     }
     if (value.trim().length < 2) {
-      return 'Name must be at least 2 characters';
+      return 'name_min_2_chars'.tr;
     }
     return null;
   }
@@ -215,13 +215,13 @@ class ProfileController extends GetxController implements GetxService {
   /// Validate email
   String? validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Email is required';
+      return 'email_is_required'.tr;
     }
 
     // Basic email validation
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(value.trim())) {
-      return 'Enter a valid email';
+      return 'please_enter_a_valid_email'.tr;
     }
     return null;
   }
@@ -229,7 +229,7 @@ class ProfileController extends GetxController implements GetxService {
   /// Validate phone
   String? validatePhone(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Phone number is required';
+      return 'phone_number_is_required'.tr;
     }
 
     // Remove spaces and dashes
@@ -237,7 +237,7 @@ class ProfileController extends GetxController implements GetxService {
 
     // Basic phone validation (at least 10 digits)
     if (cleanedPhone.length < 10) {
-      return 'Enter a valid phone number';
+      return 'invalid_phone'.tr;
     }
     return null;
   }

@@ -5,6 +5,7 @@ import 'package:kikomart_user_app/app/appwrite/appwrite_service.dart';
 import 'package:kikomart_user_app/app/models/notification_model.dart';
 import 'package:kikomart_user_app/app/modules/notification/domain/repository/notification_repo_interface.dart';
 import 'package:appwrite/models.dart' as models;
+import 'package:flutter/foundation.dart';
 
 class NotificationRepository implements NotificationRepoInterface {
   final AppwriteService appwriteService;
@@ -29,7 +30,7 @@ class NotificationRepository implements NotificationRepoInterface {
         ],
       );
 
-      print('==> Fetched ${response.rows.length} notifications for user ${user.$id}');
+      debugPrint('==> Fetched ${response.rows.length} notifications for user ${user.$id}');
 
       return response.rows
           .map((row) => NotificationModel.fromJson(row.data))

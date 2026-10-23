@@ -41,7 +41,7 @@ class Global {
         final RemoteMessage? remoteMessage =
             await FirebaseMessaging.instance.getInitialMessage();
         if (remoteMessage != null) {
-          print('===initial message: ${remoteMessage.data}');
+          debugPrint('===initial message: ${remoteMessage.data}');
         }
         await NotificationHelper.initialize(flutterLocalNotificationsPlugin);
         FirebaseMessaging.onBackgroundMessage(myBackgroundMessageHandler);

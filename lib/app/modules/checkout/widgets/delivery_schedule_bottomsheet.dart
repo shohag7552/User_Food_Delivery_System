@@ -49,8 +49,8 @@ class _DeliveryScheduleBottomSheetState
   String? _selectedTimeSlot;
 
   static const _monthNames = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    'month_jan', 'month_feb', 'month_mar', 'month_apr', 'month_may', 'month_jun',
+    'month_jul', 'month_aug', 'month_sep', 'month_oct', 'month_nov', 'month_dec'
   ];
 
   @override
@@ -506,7 +506,10 @@ class _DeliveryScheduleBottomSheetState
       statusText = 'no_slots_available'.tr;
     } else {
       statusColor = ColorResource.success;
-      statusText = '${availability.slotCount} ${'slots_available'.tr}';
+      statusText = (availability.slotCount == 1
+              ? 'slots_available_count_one'
+              : 'slots_available_count_other')
+          .trParams({'count': '${availability.slotCount}'});
     }
 
     return GestureDetector(
@@ -576,7 +579,7 @@ class _DeliveryScheduleBottomSheetState
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        _monthNames[date.month - 1],
+                        _monthNames[date.month - 1].tr,
                         style: poppinsMedium.copyWith(
                           fontSize: Constants.fontSizeExtraSmall,
                           height: 1,
@@ -770,7 +773,7 @@ class _DeliveryScheduleBottomSheetState
     final isSchedule = _deliveryType == 'schedule';
     final hasSelection = _selectedDate != null && _selectedTimeSlot != null;
     final summary = isSchedule && hasSelection
-        ? '${_selectedDate!.day} ${_monthNames[_selectedDate!.month - 1]} · $_selectedTimeSlot'
+        ? '${_selectedDate!.day} ${_monthNames[_selectedDate!.month - 1].tr} · $_selectedTimeSlot'
         : null;
 
     return Container(

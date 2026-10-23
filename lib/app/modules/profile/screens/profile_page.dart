@@ -420,7 +420,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       const SizedBox(height: 12),
                       if (isLoggedIn) ...[
                         Text(
-                          user?.name ?? 'Loading...',
+                          user?.name ?? 'loading_ellipsis'.tr,
                           style: poppinsBold.copyWith(
                             fontSize: Constants.fontSizeLarge,
                             color: ColorResource.textWhite,
@@ -807,7 +807,7 @@ class _ThemeModeOption extends StatelessWidget {
         ),
       ),
       title: Text(
-        'Dark mode',
+        'dark_mode'.tr,
         style: poppinsMedium.copyWith(
           fontSize: Constants.fontSizeDefault,
           color: isDark ? Colors.white : context.textPrimary,
@@ -815,8 +815,8 @@ class _ThemeModeOption extends StatelessWidget {
       ),
       subtitle: Text(
         isDarkMode
-            ? 'Use a darker appearance across the app'
-            : 'Switch to a brighter appearance across the app',
+            ? 'dark_mode_on_subtitle'.tr
+            : 'dark_mode_off_subtitle'.tr,
         style: poppinsRegular.copyWith(
           fontSize: Constants.fontSizeSmall,
           color: isDark ? Colors.white60 : context.textSecondary,

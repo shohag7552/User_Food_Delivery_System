@@ -122,7 +122,7 @@ class _LanguageScreenState extends State<LanguageScreen> with SingleTickerProvid
   void _onLanguageTapped(LocalizationController controller, int index, LanguageModel language) {
     controller.setSelectLanguageIndex(index);
     controller.setLanguage(
-      Locale(language.languageCode!, language.countryCode),
+      Locale(language.languageCode, language.countryCode),
     );
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) context.pop();
@@ -192,7 +192,7 @@ class _LanguageCard extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(6),
                     child: Image.asset(
-                      language.imageUrl ?? '',
+                      language.imageUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, _) => Container(
                         color: ColorResource.primaryLight.withValues(alpha: 0.2),
@@ -211,7 +211,7 @@ class _LanguageCard extends StatelessWidget {
                 // Language name
                 Expanded(
                   child: Text(
-                    language.languageName ?? '',
+                    language.languageName,
                     style: (isSelected ? poppinsBold : poppinsMedium).copyWith(
                       fontSize: Constants.fontSizeLarge,
                       color: isSelected ? ColorResource.primaryDark : context.textPrimary,

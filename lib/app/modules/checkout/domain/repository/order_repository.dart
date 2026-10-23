@@ -9,7 +9,7 @@ import 'package:kikomart_user_app/app/controllers/module_controller.dart';
 import 'package:kikomart_user_app/app/helper/store_time_helper.dart';
 import 'package:kikomart_user_app/app/models/order_model.dart';
 import 'package:kikomart_user_app/app/modules/checkout/domain/repository/order_repo_interface.dart';
-import 'package:dart_appwrite/dart_appwrite.dart';
+import 'package:appwrite/appwrite.dart';
 
 class OrderRepository implements OrderRepoInterface {
   final AppwriteService appwriteService;

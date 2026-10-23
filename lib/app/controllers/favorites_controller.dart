@@ -5,6 +5,7 @@ import 'package:kikomart_user_app/app/models/favorite_model.dart';
 import 'package:kikomart_user_app/app/models/product_model.dart';
 import 'package:kikomart_user_app/app/modules/favorites/domain/repository/favorites_repo_interface.dart';
 import 'package:get/get.dart';
+import 'package:flutter/foundation.dart';
 
 class FavoritesController extends GetxController implements GetxService {
   final FavoritesRepoInterface favoritesRepoInterface;
@@ -62,7 +63,7 @@ class FavoritesController extends GetxController implements GetxService {
       _favorites = await favoritesRepoInterface.getFavorites(loadWithProduct: loadWithProduct);
       _favoriteProductIds = _favorites.map((fav) => fav.productId).toSet();
 
-      print('----controller--Fetched ${_favorites.length} favorites : $_favorites');
+      debugPrint('----controller--Fetched ${_favorites.length} favorites : $_favorites');
 
       _isLoading = false;
       update();
@@ -70,7 +71,7 @@ class FavoritesController extends GetxController implements GetxService {
       _isLoading = false;
       update();
       log('Error fetching favorites: $e');
-      customToster('Failed to load favorites', isSuccess: false);
+      customToster('failed_to_load_favorites'.tr, isSuccess: false);
     }
   }
 
@@ -101,7 +102,7 @@ class FavoritesController extends GetxController implements GetxService {
       _toggleLoadingStates[product.id] = false;
       update();
       log('Error toggling favorite: $e');
-      customToster('Failed to update favorite', isSuccess: false);
+      customToster('failed_to_update_favorite'.tr, isSuccess: false);
     }
   }
 
@@ -117,7 +118,7 @@ class FavoritesController extends GetxController implements GetxService {
       // Update with actual data
       _favorites.add(favorite.copyWith(product: product));
       
-      customToster('Added to favorites', isSuccess: true);
+      customToster('added_to_favorites'.tr, isSuccess: true);
     } catch (e) {
       // Revert optimistic update
       _favoriteProductIds.remove(product.id);
@@ -141,7 +142,7 @@ class FavoritesController extends GetxController implements GetxService {
 
       await favoritesRepoInterface.removeFavorite(favorite.id);
       
-      customToster('Removed from favorites', isSuccess: true);
+      customToster('removed_from_favorites'.tr, isSuccess: true);
     } catch (e) {
       // Revert optimistic update by refetching
       await fetchFavorites();
@@ -167,13 +168,13 @@ class FavoritesController extends GetxController implements GetxService {
       _toggleLoadingStates[productId] = false;
       update();
       
-      customToster('Removed from favorites', isSuccess: true);
+      customToster('removed_from_favorites'.tr, isSuccess: true);
     } catch (e) {
       // Revert and clear loading
       _toggleLoadingStates[productId] = false;
       await fetchFavorites();
       log('Error removing favorite: $e');
-      customToster('Failed to remove favorite', isSuccess: false);
+      customToster('failed_to_remove_favorite'.tr, isSuccess: false);
     }
   }
 }

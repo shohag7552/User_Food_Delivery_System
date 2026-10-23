@@ -141,8 +141,8 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                             : Icons.light_mode_outlined,
                         title: 'dark_mode'.tr,
                         subtitle: lc.darkTheme
-                            ? 'Use a lighter appearance'
-                            : 'Use a darker appearance',
+                            ? 'use_lighter_appearance'.tr
+                            : 'use_darker_appearance'.tr,
                         value: lc.darkTheme,
                         onChanged: (v) => lc.setTheme(isDark: v),
                       ),

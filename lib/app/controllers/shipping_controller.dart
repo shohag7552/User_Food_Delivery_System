@@ -29,7 +29,7 @@ class ShippingController extends GetxController implements GetxService {
       update();
     } catch (e) {
       _isLoading = false;
-      _errorMessage = 'Failed to load shipping methods';
+      _errorMessage = 'failed_to_load_shipping_methods'.tr;
       update();
       log('Error in getShippingMethods: $e');
     }

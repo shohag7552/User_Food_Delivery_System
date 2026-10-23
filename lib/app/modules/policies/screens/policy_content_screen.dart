@@ -7,6 +7,7 @@ import 'package:kikomart_user_app/app/resources/text_style.dart';
 import 'package:kikomart_user_app/app/resources/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
 class PolicyContentScreen extends StatelessWidget {
@@ -22,6 +23,8 @@ class PolicyContentScreen extends StatelessWidget {
 
   /// Widest the prose itself goes, independent of the band it sits in. Long
   /// lines are the fastest way to make a policy page unreadable.
+  // Used by the commented-out width cap below.
+  // ignore: unused_field
   static const double _readableMeasure = 860;
 
   @override
@@ -310,7 +313,7 @@ class PolicyContentScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            'Content Not Available',
+            'content_not_available'.tr,
             style: poppinsBold.copyWith(
               fontSize: Constants.fontSizeLarge,
               color: ColorResource.textSecondary,
@@ -318,7 +321,7 @@ class PolicyContentScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'This section is currently being updated.\nPlease check back later.',
+            'section_being_updated_check_later'.tr,
             textAlign: TextAlign.center,
             style: poppinsRegular.copyWith(
               fontSize: Constants.fontSizeDefault,

@@ -453,7 +453,7 @@ class _CouponCard extends StatelessWidget {
                                   ),
                                 ),
                                 TextSpan(
-                                  text: ' OFF',
+                                  text: ' ${'off'.tr}',
                                   style: poppinsMedium.copyWith(
                                     fontSize: Constants.fontSizeDefault,
                                     color: bodyColor ?? context.textSecondary,
@@ -505,7 +505,7 @@ class _CouponCard extends StatelessWidget {
                         ),
                         icon: const Icon(Icons.copy_rounded, size: 18),
                         label: Text(
-                          'Copy',
+                          'copy'.tr,
                           style: poppinsMedium.copyWith(
                             fontSize: Constants.fontSizeSmall,
                           ),

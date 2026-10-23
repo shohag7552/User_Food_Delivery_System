@@ -45,7 +45,7 @@ class NotificationController extends GetxController implements GetxService {
       update();
     } catch (e) {
       _isLoading = false;
-      _errorMessage = 'Failed to load notifications';
+      _errorMessage = 'failed_to_load_notifications'.tr;
       log('Error loading notifications: $e');
       update();
     }

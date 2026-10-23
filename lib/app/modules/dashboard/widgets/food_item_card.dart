@@ -1,3 +1,4 @@
+import 'package:get/get.dart';
 import 'package:kikomart_user_app/app/common/widgets/custom_clickable_widget.dart';
 import 'package:kikomart_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:kikomart_user_app/app/helper/price_helper.dart';
@@ -55,9 +56,9 @@ class FoodItemCard extends StatelessWidget {
 
   String get _discountLabel {
     if (product?.discountType == 'percentage') {
-      return '${product?.discountValue?.toInt()}% OFF';
+      return 'discount_off'.trParams({'value': '${product?.discountValue?.toInt()}%'});
     }
-    return '${PriceHelper.formatPrice(product?.discountValue?.toDouble() ?? 0)} OFF';
+    return 'discount_off'.trParams({'value': PriceHelper.formatPrice(product?.discountValue?.toDouble() ?? 0)});
   }
 
   bool get _hasOldPrice => oldPrice != null && oldPrice! > price;

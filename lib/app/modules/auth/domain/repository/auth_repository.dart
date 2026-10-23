@@ -9,7 +9,8 @@ import 'package:kikomart_user_app/app/modules/auth/domain/repository/auth_repo_i
 import 'package:kikomart_user_app/app/modules/auth/domain/services/password_reset_failure.dart';
 import 'package:kikomart_user_app/app/resources/constants.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
+import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthRepository implements AuthRepoInterface {
@@ -117,29 +118,29 @@ class AuthRepository implements AuthRepoInterface {
             await appwriteService.setupMessaging(fcmToken: fcmToken);
           }
         } catch (e) {
-          print('Post-login device registration skipped: $e');
+          debugPrint('Post-login device registration skipped: $e');
         }
       }
 
       // If successful, show success message
-      print('Login successful for: $userId');
+      debugPrint('Login successful for: $userId');
       return userId != null;
     } catch (e) {
       // Handle login errors
-      String errorMessage = 'Login failed. Please try again.';
+      String errorMessage = 'login_failed_try_again'.tr;
 
       if (e.toString().contains('Invalid credentials') ||
           e.toString().contains('401') ||
           e.toString().contains('Invalid email or password')) {
-        errorMessage = 'Invalid email or password.';
+        errorMessage = 'invalid_email_or_password'.tr;
       } else if (e.toString().contains('network') ||
           e.toString().contains('connection')) {
-        errorMessage = 'Network error. Please check your connection.';
+        errorMessage = 'network_error_check_connection'.tr;
       } else if (e.toString().contains('User not found')) {
-        errorMessage = 'No account found with this email.';
+        errorMessage = 'no_account_found_with_email'.tr;
       }
 
-      print('Login error: $e');
+      debugPrint('Login error: $e');
       // Show error toast to user
       // Note: The toast will be shown by the controller/UI layer
       customToster(errorMessage);
@@ -166,7 +167,7 @@ class AuthRepository implements AuthRepoInterface {
       name: name,
     );
 
-    print('Signup Response: ${data.response}');
+    debugPrint('Signup Response: ${data.response}');
     // 2. Create user document in users collection
     if (data.response.$id.isEmpty) {
       return false;
@@ -362,13 +363,13 @@ class AuthRepository implements AuthRepoInterface {
         String? token = await messaging.getToken();
 
         if (token != null) {
-          print('==> FCM Token: $token');
+          debugPrint('==> FCM Token: $token');
           return token;
         }
       }
     } catch (e) {
       // FCM is a non-critical add-on; never let it fail auth.
-      print('FCM token unavailable: $e');
+      debugPrint('FCM token unavailable: $e');
     }
     return null;
   }

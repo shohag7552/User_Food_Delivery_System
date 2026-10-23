@@ -9,10 +9,10 @@ import 'package:get/get.dart';
 /// "Mar 5, 2026" — shared by the hero card and the details sections.
 String formatCouponDate(DateTime date) {
   const months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'month_jan', 'month_feb', 'month_mar', 'month_apr', 'month_may', 'month_jun',
+    'month_jul', 'month_aug', 'month_sep', 'month_oct', 'month_nov', 'month_dec',
   ];
-  return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  return '${months[date.month - 1].tr} ${date.day}, ${date.year}';
 }
 
 /// The single state a coupon is in, most blocking first — the hero shows one
@@ -72,7 +72,7 @@ class CouponHeroCard extends StatelessWidget {
         if (_state != _CouponState.active) return until;
         return days <= 0
             ? '$until  •  ${'expires_today'.tr}'
-            : '$until  •  $days ${'days_left'.tr}';
+            : '$until  •  ${(days == 1 ? 'coupon_days_left_one' : 'coupon_days_left_other').trParams({'count': '$days'})}';
     }
   }
 

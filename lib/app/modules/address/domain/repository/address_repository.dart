@@ -7,7 +7,7 @@ import 'package:kikomart_user_app/app/models/address_model.dart';
 import 'package:kikomart_user_app/app/models/geocoded_address_model.dart';
 import 'package:kikomart_user_app/app/modules/address/domain/repository/address_repo_interface.dart';
 import 'package:kikomart_user_app/app/resources/constants.dart';
-import 'package:dart_appwrite/dart_appwrite.dart';
+import 'package:appwrite/appwrite.dart';
 import 'package:flutter/foundation.dart';
 import 'package:geocoding/geocoding.dart' show placemarkFromCoordinates;
 import 'package:http/http.dart' as http;

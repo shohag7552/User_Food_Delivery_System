@@ -548,8 +548,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         ),
                         child: Text(
                           product.discountType == 'percentage'
-                              ? '${product.discountValue!.toInt()}% OFF'
-                              : '${PriceHelper.formatPrice(product.discountValue!.toDouble())} OFF',
+                              ? 'discount_amount_off'.trParams({
+                                  'amount': '${product.discountValue!.toInt()}%',
+                                })
+                              : 'discount_amount_off'.trParams({
+                                  'amount': PriceHelper.formatPrice(
+                                    product.discountValue!.toDouble(),
+                                  ),
+                                }),
                           style: poppinsBold.copyWith(
                             fontSize: 10,
                             color: ColorResource.textWhite,

@@ -1067,26 +1067,26 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         statusBgColor = Colors.green.shade100;
         statusTextColor = Colors.green.shade700;
         statusIcon = Icons.check_circle;
-        statusLabel = 'Paid';
+        statusLabel = 'payment_status_paid'.tr;
         break;
       case 'failed':
         statusBgColor = Colors.red.shade100;
         statusTextColor = Colors.red.shade700;
         statusIcon = Icons.error;
-        statusLabel = 'Failed';
+        statusLabel = 'payment_status_failed'.tr;
         break;
       case 'cancelled':
         statusBgColor = Colors.orange.shade100;
         statusTextColor = Colors.orange.shade700;
         statusIcon = Icons.cancel;
-        statusLabel = 'Cancelled';
+        statusLabel = 'cancelled'.tr;
         break;
       case 'unpaid':
       default:
         statusBgColor = Colors.amber.shade100;
         statusTextColor = Colors.amber.shade800;
         statusIcon = Icons.schedule;
-        statusLabel = 'Unpaid';
+        statusLabel = 'payment_status_unpaid'.tr;
     }
 
     return Container(

@@ -62,7 +62,7 @@ class AllProductsWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Failed to load products',
+                    'failed_to_load_products'.tr,
                     style: poppinsMedium.copyWith(
                       fontSize: Constants.fontSizeDefault,
                       color: context.textSecondary,
@@ -72,7 +72,7 @@ class AllProductsWidget extends StatelessWidget {
                   TextButton(
                     onPressed: () => controller.getProducts(refresh: true),
                     child: Text(
-                      'Retry',
+                      'retry'.tr,
                       style: poppinsBold.copyWith(
                         fontSize: Constants.fontSizeDefault,
                         color: ColorResource.primaryDark,
@@ -99,7 +99,7 @@ class AllProductsWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'No products available',
+                    'no_products_available'.tr,
                     style: poppinsMedium.copyWith(
                       fontSize: Constants.fontSizeDefault,
                       color: context.textSecondary,
@@ -361,8 +361,8 @@ class AllProductsWidget extends StatelessWidget {
                       ),
                       child: Text(
                         product.discountType == 'percentage'
-                            ? '${product.discountValue!.toInt()}% OFF'
-                            : '${PriceHelper.formatPrice(product.discountValue!.toDouble())} OFF',
+                            ? 'discount_off'.trParams({'value': '${product.discountValue!.toInt()}%'})
+                            : 'discount_off'.trParams({'value': PriceHelper.formatPrice(product.discountValue!.toDouble())}),
                         style: poppinsBold.copyWith(
                           fontSize: Constants.fontSizeExtraSmall,
                           color: ColorResource.textWhite,

@@ -5,6 +5,7 @@ import 'package:kikomart_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:kikomart_user_app/app/resources/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
 enum PaymentResult { success, failed, cancelled }
@@ -62,19 +63,19 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
     final shouldLeave = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Cancel Payment?'),
-        content: const Text(
-          'Your payment is not complete. Are you sure you want to leave?',
+        title: Text('cancel_payment_question'.tr),
+        content: Text(
+          'payment_not_complete_leave_confirm'.tr,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Stay'),
+            child: Text('stay'.tr),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Leave'),
+            child: Text('leave'.tr),
           ),
         ],
       ),
@@ -96,7 +97,7 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
       },
       child: Scaffold(
         appBar: CustomAppbar(
-          title: 'Pay with ${widget.gatewayName}',
+          title: 'pay_with_gateway'.trParams({'gateway': widget.gatewayName}),
           showBackButton: true,
           onBackButtonPressed: () async {
             final shouldLeave = await _onBackPressed();
@@ -184,14 +185,14 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
           children: [
             Icon(Icons.wifi_off_rounded, size: 64, color: Colors.grey.shade400),
             const SizedBox(height: 16),
-            const Text(
-              'Failed to load payment page',
+            Text(
+              'failed_to_load_payment_page'.tr,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              'Please check your internet connection and try again.',
+              'check_internet_and_try_again'.tr,
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               textAlign: TextAlign.center,
             ),
@@ -206,12 +207,12 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
                 _controller?.reload();
               },
               icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              label: Text('retry'.tr),
             ),
             const SizedBox(height: 12),
             TextButton(
               onPressed: () => context.pop(PaymentResult.cancelled),
-              child: const Text('Cancel Payment'),
+              child: Text('cancel_payment'.tr),
             ),
           ],
         ),

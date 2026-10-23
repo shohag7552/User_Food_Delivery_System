@@ -1,6 +1,5 @@
 import UIKit
 import Flutter
-import Firebase
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -8,7 +7,8 @@ import Firebase
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    FirebaseApp.configure()
+    // Firebase is initialised from Dart (lib/global.dart) inside a try/catch,
+    // so a missing GoogleService-Info.plist cannot crash the app at launch.
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }

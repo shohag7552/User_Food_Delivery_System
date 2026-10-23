@@ -6,7 +6,7 @@ import 'package:appwrite/enums.dart';
 import 'package:appwrite/models.dart';
 import 'package:kikomart_user_app/app/appwrite/appwrite_config.dart';
 import 'package:kikomart_user_app/app/common/widgets/custom_toster.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -187,7 +187,7 @@ class AppwriteService {
         password: password,
         name: name,
       );
-      print('====> Signup successful for user: ${user.$id}');
+      debugPrint('====> Signup successful for user: ${user.$id}');
       // Automatically create a session after signup
       await account.createEmailPasswordSession(
         email: email,
@@ -275,7 +275,14 @@ class AppwriteService {
       return response.userId;
     } on AppwriteException catch (e) {
       log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
-      customToster('${e.message}');
+      final raw = '${e.type} ${e.message}'.toLowerCase();
+      customToster(
+        raw.contains('blocked')
+            ? 'account_blocked_login'.tr
+            : e.code == 401
+                ? 'invalid_email_or_password'.tr
+                : 'login_failed_try_again'.tr,
+      );
       return null;
     } catch (e) {
       log('Login error: $e');
@@ -295,7 +302,7 @@ class AppwriteService {
         providerId: AppwriteConfig
             .messagingProviderId, // Get this from Messaging > Providers
       );
-      print("✅ Device registered for notifications!");
+      debugPrint("✅ Device registered for notifications!");
 
       await messaging.createSubscriber(
         topicId: AppwriteConfig
@@ -303,9 +310,9 @@ class AppwriteService {
         subscriberId: ID.unique(),
         targetId: target.$id, // Link the device target we just created
       );
-      print("✅ Subscriber created for topic 'all_users'!");
+      debugPrint("✅ Subscriber created for topic 'all_users'!");
     } on AppwriteException catch (e) {
-      print("❌ Failed to register device: ${e.message}");
+      debugPrint("❌ Failed to register device: ${e.message}");
     } catch (e) {
       log('Login error: $e');
       throw Exception('Login failed: $e');
@@ -316,18 +323,18 @@ class AppwriteService {
     try {
       // Step 1: Check if Session Exists
       // If this fails (throws error), user is not logged in at all.
-      print('=====> Checking current user session...');
+      debugPrint('=====> Checking current user session...');
       // await account.get();
       User? user = await getCurrentUser();
       if (user != null && user.email.isNotEmpty) {
-        print('===========here=====1');
+        debugPrint('===========here=====1');
         return true;
       } else {
-        print('===========here=====2');
+        debugPrint('===========here=====2');
         return false;
       }
     } catch (e) {
-      print("❌ User is not logged in.");
+      debugPrint("❌ User is not logged in.");
       return false;
     }
   }
@@ -506,7 +513,7 @@ class AppwriteService {
     // Functions functions = Functions(client);
 
     try {
-      print("====> Requesting Server to send Stripe payment...");
+      debugPrint("====> Requesting Server to send Stripe payment...");
 
       /// Executing the serverless function directly via the Appwrite SDK
       final execution = await functions.createExecution(

@@ -71,7 +71,7 @@ class FlashSaleController extends GetxController implements GetxService {
       update();
     } catch (e) {
       _isLoading = false;
-      _errorMessage = 'Failed to load flash sale: $e';
+      _errorMessage = 'failed_to_load_flash_sale'.tr;
       log('====> Error loading flash sale: $e');
       update();
     }

@@ -129,8 +129,9 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
         _isLoading = false;
       });
     } catch (e) {
+      debugPrint('Failed to load category products: $e');
       setState(() {
-        _errorMessage = 'Failed to load products: $e';
+        _errorMessage = 'failed_to_load_products'.tr;
         _isLoading = false;
       });
     }
@@ -167,8 +168,8 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
       });
 
       Get.snackbar(
-        'Error',
-        'Failed to load more products',
+        'error'.tr,
+        'failed_to_load_more_products'.tr,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: ColorResource.error.withValues(alpha: 0.9),
         colorText: ColorResource.textWhite,
@@ -582,7 +583,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
           CircularProgressIndicator(color: ColorResource.primaryDark),
           const SizedBox(height: 16),
           Text(
-            'Loading products...',
+            'loading_products'.tr,
             style: poppinsMedium.copyWith(
               fontSize: Constants.fontSizeDefault,
               color: context.textSecondary,
@@ -603,7 +604,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
             Icon(Icons.error_outline, size: 80, color: ColorResource.error),
             const SizedBox(height: 24),
             Text(
-              'Oops!',
+              'oops'.tr,
               style: poppinsBold.copyWith(
                 fontSize: 24,
                 color: context.textPrimary,
@@ -611,7 +612,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
             ),
             const SizedBox(height: 12),
             Text(
-              _errorMessage ?? 'Something went wrong',
+              _errorMessage ?? 'something_went_wrong'.tr,
               textAlign: TextAlign.center,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,
@@ -663,7 +664,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
             ),
             const SizedBox(height: 24),
             Text(
-              'No Products Found',
+              'no_products_found'.tr,
               style: poppinsBold.copyWith(
                 fontSize: 24,
                 color: context.textPrimary,
@@ -671,7 +672,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> {
             ),
             const SizedBox(height: 12),
             Text(
-              'We couldn\'t find any products in this category yet.\nCheck back soon!',
+              'no_products_in_category_yet'.tr,
               textAlign: TextAlign.center,
               style: poppinsRegular.copyWith(
                 fontSize: Constants.fontSizeDefault,

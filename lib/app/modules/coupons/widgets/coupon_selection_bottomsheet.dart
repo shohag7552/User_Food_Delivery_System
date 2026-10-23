@@ -603,7 +603,7 @@ class _CouponCard extends StatelessWidget {
                             ),
                           ),
                           TextSpan(
-                            text: ' OFF',
+                            text: ' ${'off'.tr}',
                             style: poppinsMedium.copyWith(
                               fontSize: Constants.fontSizeSmall,
                               color: bodyColor,
@@ -723,19 +723,19 @@ class _CouponCard extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+      'month_jan',
+      'month_feb',
+      'month_mar',
+      'month_apr',
+      'month_may',
+      'month_jun',
+      'month_jul',
+      'month_aug',
+      'month_sep',
+      'month_oct',
+      'month_nov',
+      'month_dec',
     ];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+    return '${months[date.month - 1].tr} ${date.day}, ${date.year}';
   }
 }

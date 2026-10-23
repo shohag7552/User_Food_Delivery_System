@@ -128,6 +128,9 @@ class Constants {
   /// auth outcome panels).
   static const double iconCircleSize = 88.0;
 
+  /// Width/height of the brand logo on the splash screen.
+  static const double splashLogoSize = 150.0;
+
   /// Icon glyph size inside [iconCircleSize].
   static const double iconSizeLarge = 44.0;
 

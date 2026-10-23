@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:kikomart_user_app/app/common/widgets/custom_toster.dart';
 import 'package:kikomart_user_app/app/models/coupon_model.dart';
 import 'package:kikomart_user_app/app/modules/coupons/domain/repository/coupon_repo_interface.dart';
@@ -42,7 +44,8 @@ class CouponController extends GetxController implements GetxService {
       _isLoading = false;
       update();
       if (showError) {
-        customToster('Failed to load coupons: $e', isSuccess: false);
+        log('Error loading coupons: $e');
+        customToster('failed_to_load_coupons'.tr, isSuccess: false);
       }
     }
   }
@@ -62,31 +65,37 @@ class CouponController extends GetxController implements GetxService {
       final coupon = await couponRepoInterface.getCouponByCode(code);
 
       if (coupon == null) {
-        customToster('Coupon code not found', isSuccess: false);
+        customToster('coupon_not_found'.tr, isSuccess: false);
         return null;
       }
 
       if (!coupon.isValid(orderAmount: orderAmount)) {
         if (!coupon.isActive) {
-          customToster('This coupon is no longer active', isSuccess: false);
+          customToster('coupon_no_longer_active'.tr, isSuccess: false);
         } else if (DateTime.now().isBefore(coupon.validFrom)) {
-          customToster('This coupon is not yet valid', isSuccess: false);
+          customToster('coupon_not_yet_valid'.tr, isSuccess: false);
         } else if (DateTime.now().isAfter(coupon.validUntil)) {
-          customToster('This coupon has expired', isSuccess: false);
+          customToster('coupon_has_expired'.tr, isSuccess: false);
         } else if (coupon.usageLimit != null && coupon.usedCount >= coupon.usageLimit!) {
-          customToster('This coupon has reached its usage limit', isSuccess: false);
+          customToster('coupon_usage_limit_reached'.tr, isSuccess: false);
         } else if (coupon.minOrderAmount != null && orderAmount != null && orderAmount < coupon.minOrderAmount!) {
-          customToster('Minimum order amount of \$${coupon.minOrderAmount!.toStringAsFixed(2)} required', isSuccess: false);
+          customToster(
+            'coupon_min_order_amount_required'.trParams({
+              'amount': '\$${coupon.minOrderAmount!.toStringAsFixed(2)}',
+            }),
+            isSuccess: false,
+          );
         } else {
-          customToster('This coupon is not valid', isSuccess: false);
+          customToster('coupon_not_valid'.tr, isSuccess: false);
         }
         return null;
       }
 
-      customToster('Coupon applied successfully!', isSuccess: true);
+      customToster('coupon_applied_successfully'.tr, isSuccess: true);
       return coupon;
     } catch (e) {
-      customToster('Failed to validate coupon: $e', isSuccess: false);
+      log('Error validating coupon: $e');
+      customToster('failed_to_validate_coupon'.tr, isSuccess: false);
       return null;
     }
   }
@@ -122,11 +131,11 @@ class CouponController extends GetxController implements GetxService {
       bool success = await couponRepoInterface.addCoupon(coupon);
 
       if (success) {
-        customToster('Coupon added successfully', isSuccess: true);
+        customToster('coupon_added_successfully'.tr, isSuccess: true);
         await getCoupons();
         resetForm();
       } else {
-        customToster('Failed to add coupon', isSuccess: false);
+        customToster('failed_to_add_coupon'.tr, isSuccess: false);
       }
 
       _isLoading = false;
@@ -136,7 +145,8 @@ class CouponController extends GetxController implements GetxService {
     } catch (e) {
       _isLoading = false;
       update();
-      customToster('Failed to add coupon: $e', isSuccess: false);
+      log('Error adding coupon: $e');
+      customToster('failed_to_add_coupon'.tr, isSuccess: false);
       return false;
     }
   }
@@ -176,7 +186,7 @@ class CouponController extends GetxController implements GetxService {
       final updatedCoupon = await couponRepoInterface.updateCoupon(id, coupon);
 
       if (updatedCoupon != null) {
-        customToster('Coupon updated successfully', isSuccess: true);
+        customToster('coupon_updated_successfully'.tr, isSuccess: true);
 
         // Update in local list
         final index = _coupons!.indexWhere((c) => c.id == id);
@@ -186,7 +196,7 @@ class CouponController extends GetxController implements GetxService {
 
         resetForm();
       } else {
-        customToster('Failed to update coupon', isSuccess: false);
+        customToster('failed_to_update_coupon'.tr, isSuccess: false);
       }
 
       _isLoading = false;
@@ -196,7 +206,8 @@ class CouponController extends GetxController implements GetxService {
     } catch (e) {
       _isLoading = false;
       update();
-      customToster('Failed to update coupon: $e', isSuccess: false);
+      log('Error updating coupon: $e');
+      customToster('failed_to_update_coupon'.tr, isSuccess: false);
       return false;
     }
   }
@@ -211,9 +222,9 @@ class CouponController extends GetxController implements GetxService {
 
       if (success) {
         _coupons?.removeWhere((c) => c.id == id);
-        customToster('Coupon deleted successfully', isSuccess: true);
+        customToster('coupon_deleted_successfully'.tr, isSuccess: true);
       } else {
-        customToster('Failed to delete coupon', isSuccess: false);
+        customToster('failed_to_delete_coupon'.tr, isSuccess: false);
       }
 
       _isLoading = false;
@@ -223,7 +234,8 @@ class CouponController extends GetxController implements GetxService {
     } catch (e) {
       _isLoading = false;
       update();
-      customToster('Failed to delete coupon: $e', isSuccess: false);
+      log('Error deleting coupon: $e');
+      customToster('failed_to_delete_coupon'.tr, isSuccess: false);
       return false;
     }
   }
@@ -269,31 +281,31 @@ class CouponController extends GetxController implements GetxService {
   // Validation methods
   String? validateCode(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Coupon code is required';
+      return 'coupon_code_required'.tr;
     }
     if (value.trim().length < 3) {
-      return 'Coupon code must be at least 3 characters';
+      return 'coupon_code_min_3_chars'.tr;
     }
     return null;
   }
 
   String? validateDescription(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Description is required';
+      return 'description_required'.tr;
     }
     return null;
   }
 
   String? validateDiscountValue(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Discount value is required';
+      return 'discount_value_required'.tr;
     }
     final discount = double.tryParse(value);
     if (discount == null || discount <= 0) {
-      return 'Please enter a valid discount value';
+      return 'enter_valid_discount_value'.tr;
     }
     if (_discountType == 'percentage' && discount > 100) {
-      return 'Percentage cannot exceed 100%';
+      return 'percentage_cannot_exceed_100'.tr;
     }
     return null;
   }
@@ -304,7 +316,7 @@ class CouponController extends GetxController implements GetxService {
     }
     final amount = double.tryParse(value);
     if (amount == null || amount < 0) {
-      return 'Please enter a valid amount';
+      return 'enter_valid_amount'.tr;
     }
     return null;
   }
@@ -315,7 +327,7 @@ class CouponController extends GetxController implements GetxService {
     }
     final limit = int.tryParse(value);
     if (limit == null || limit < 1) {
-      return 'Please enter a valid usage limit';
+      return 'enter_valid_usage_limit'.tr;
     }
     return null;
   }

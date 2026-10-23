@@ -335,7 +335,7 @@ class _HomePageState extends State<HomePage>
                   ),
                 ),
                 PopupMenuButton<ProductListFilter>(
-                  tooltip: 'Filter products',
+                  tooltip: 'filter_products'.tr,
                   onSelected: (filter) async {
                     await productController.setProductFilter(filter);
                   },
