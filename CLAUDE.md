@@ -4,7 +4,7 @@ Guidance for working in this repository. Follow these conventions exactly — th
 
 ## Project
 
-`appwrite_store_app` — a Flutter **store-admin** panel (multi-module: Food / Ecommerce) backed by **Appwrite**. Companion customer app lives in the sibling repo `appwrite_user_app`.
+`appwrite_store_app` — a Flutter **store-admin** panel (multi-module: Food / Ecommerce) backed by **Appwrite**. Companion customer app lives in the sibling repo `kikomart_user_app`.
 
 - **State management + DI:** GetX (`get`)
 - **Routing:** `go_router` mounted via `GetMaterialApp.router`

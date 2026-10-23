@@ -1,5 +1,5 @@
-import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
-import 'package:appwrite_user_app/app/resources/constants.dart';
+import 'package:kikomart_user_app/app/common/widgets/web_top_nav.dart';
+import 'package:kikomart_user_app/app/resources/constants.dart';
 
 /// Single source of truth for the ecommerce storefront's desktop-web product
 /// card geometry.

@@ -1,4 +1,4 @@
-import 'package:appwrite_user_app/app/models/deliveryman_review_model.dart';
+import 'package:kikomart_user_app/app/models/deliveryman_review_model.dart';
 
 abstract class DeliverymanReviewRepoInterface {
   /// The review this customer left for one delivery, or null if they have not

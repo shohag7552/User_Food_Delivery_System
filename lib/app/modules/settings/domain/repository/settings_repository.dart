@@ -1,9 +1,9 @@
 import 'package:appwrite/appwrite.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
-import 'package:appwrite_user_app/app/models/business_setup_model.dart';
-import 'package:appwrite_user_app/app/models/store_setup_model.dart';
-import 'package:appwrite_user_app/app/modules/settings/domain/repository/settings_repo_interface.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_config.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_service.dart';
+import 'package:kikomart_user_app/app/models/business_setup_model.dart';
+import 'package:kikomart_user_app/app/models/store_setup_model.dart';
+import 'package:kikomart_user_app/app/modules/settings/domain/repository/settings_repo_interface.dart';
 
 class SettingsRepository implements SettingsRepoInterface {
   final AppwriteService appwriteService;

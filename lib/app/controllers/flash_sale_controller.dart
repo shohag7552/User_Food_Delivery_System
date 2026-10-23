@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:appwrite_user_app/app/models/cart_item_model.dart';
-import 'package:appwrite_user_app/app/models/flash_sale_item_model.dart';
-import 'package:appwrite_user_app/app/models/flash_sale_model.dart';
-import 'package:appwrite_user_app/app/modules/flash_sale/domain/repository/flash_sale_repo_interface.dart';
+import 'package:kikomart_user_app/app/models/cart_item_model.dart';
+import 'package:kikomart_user_app/app/models/flash_sale_item_model.dart';
+import 'package:kikomart_user_app/app/models/flash_sale_model.dart';
+import 'package:kikomart_user_app/app/modules/flash_sale/domain/repository/flash_sale_repo_interface.dart';
 import 'package:get/get.dart';
 
 /// Flash sale state for the ecommerce module: the currently running sale, its

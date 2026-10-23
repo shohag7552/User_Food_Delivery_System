@@ -1,9 +1,9 @@
 import 'dart:developer';
-import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
-import 'package:appwrite_user_app/app/helper/session_manager.dart';
-import 'package:appwrite_user_app/app/models/favorite_model.dart';
-import 'package:appwrite_user_app/app/models/product_model.dart';
-import 'package:appwrite_user_app/app/modules/favorites/domain/repository/favorites_repo_interface.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_toster.dart';
+import 'package:kikomart_user_app/app/helper/session_manager.dart';
+import 'package:kikomart_user_app/app/models/favorite_model.dart';
+import 'package:kikomart_user_app/app/models/product_model.dart';
+import 'package:kikomart_user_app/app/modules/favorites/domain/repository/favorites_repo_interface.dart';
 import 'package:get/get.dart';
 
 class FavoritesController extends GetxController implements GetxService {

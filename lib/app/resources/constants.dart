@@ -1,5 +1,5 @@
 
-import 'package:appwrite_user_app/app/resources/images.dart';
+import 'package:kikomart_user_app/app/resources/images.dart';
 
 /// App-wide configuration.
 ///
@@ -66,11 +66,37 @@ class Constants {
   /// with its own copies, and a mismatch strands the customer mid-payment.
   static const String paymentCallbackBaseUrl = webBaseUrl;
 
-  // static const String defaultMapTheme = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-  // static const String lightMapTheme = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
-  static const String streetMapTheme = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
-  // static const String satelliteMapTheme = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-  // static const String darkMapTheme = 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png';
+  /// ── Maps ──────────────────────────────────────────────────────────────
+  /// Every map in the app is configured here (see "Map setup" in the docs).
+
+  /// Raster tile source; flutter_map fills in `{z}/{x}/{y}`. The default is
+  /// OpenStreetMap's free community server, which is meant for light use —
+  /// switch to your own provider (most take a `?key=` in this URL) before
+  /// going live with real traffic.
+  static const String mapTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+  /// Highest zoom level [mapTileUrl] serves. Zooming past it upscales the
+  /// last level instead of showing blank tiles. OpenStreetMap: 19.
+  static const int mapMaxNativeZoom = 19;
+
+  /// Credit shown on every map. The tile/data licence requires it — change it
+  /// together with [mapTileUrl], never remove it.
+  static const String mapAttribution = '© OpenStreetMap contributors';
+  static const String mapAttributionUrl = 'https://www.openstreetmap.org/copyright';
+
+  /// Fallback map centre, used only when business setup has no store
+  /// location — maps normally open on the store's own location.
+  static const double mapDefaultLatitude = 23.8103;
+  static const double mapDefaultLongitude = 90.4125;
+
+  /// Reverse geocoding (map position → address). Android/iOS use the phone's
+  /// built-in geocoder; web, desktop and phones without one call this
+  /// Nominatim-compatible server instead.
+  static const String nominatimBaseUrl = 'https://nominatim.openstreetmap.org';
+
+  /// Contact e-mail sent with Nominatim requests, as its usage policy asks.
+  /// Optional — leave empty to omit.
+  static const String nominatimEmail = '';
 
   static double fontSizeExtraSmall = 10;
   static double fontSizeSmall = 12;

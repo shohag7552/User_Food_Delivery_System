@@ -1,4 +1,4 @@
-import 'package:appwrite_user_app/app/models/business_hours_model.dart';
+import 'package:kikomart_user_app/app/models/business_hours_model.dart';
 import 'package:get/get.dart';
 
 class BusinessSetupModel {

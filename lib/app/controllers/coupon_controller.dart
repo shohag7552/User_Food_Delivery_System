@@ -1,6 +1,6 @@
-import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
-import 'package:appwrite_user_app/app/models/coupon_model.dart';
-import 'package:appwrite_user_app/app/modules/coupons/domain/repository/coupon_repo_interface.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_toster.dart';
+import 'package:kikomart_user_app/app/models/coupon_model.dart';
+import 'package:kikomart_user_app/app/modules/coupons/domain/repository/coupon_repo_interface.dart';
 import 'package:get/get.dart';
 
 class CouponController extends GetxController implements GetxService {

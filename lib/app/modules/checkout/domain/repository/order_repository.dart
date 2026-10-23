@@ -3,12 +3,12 @@ import 'dart:developer';
 // with dart:developer's logging `log` used throughout this file.
 import 'dart:math' show Random;
 import 'package:appwrite/models.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
-import 'package:appwrite_user_app/app/controllers/module_controller.dart';
-import 'package:appwrite_user_app/app/helper/store_time_helper.dart';
-import 'package:appwrite_user_app/app/models/order_model.dart';
-import 'package:appwrite_user_app/app/modules/checkout/domain/repository/order_repo_interface.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_config.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_service.dart';
+import 'package:kikomart_user_app/app/controllers/module_controller.dart';
+import 'package:kikomart_user_app/app/helper/store_time_helper.dart';
+import 'package:kikomart_user_app/app/models/order_model.dart';
+import 'package:kikomart_user_app/app/modules/checkout/domain/repository/order_repo_interface.dart';
 import 'package:dart_appwrite/dart_appwrite.dart';
 
 class OrderRepository implements OrderRepoInterface {

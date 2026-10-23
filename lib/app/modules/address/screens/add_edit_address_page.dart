@@ -1,22 +1,24 @@
-import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
-import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
-import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
-import 'package:appwrite_user_app/app/controllers/address_controller.dart';
-import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
-import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
-import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
-import 'package:appwrite_user_app/app/models/address_model.dart';
-import 'package:appwrite_user_app/app/modules/address/widgets/address_form_field.dart';
-import 'package:appwrite_user_app/app/modules/address/widgets/address_form_section.dart';
-import 'package:appwrite_user_app/app/modules/address/widgets/address_save_bar.dart';
-import 'package:appwrite_user_app/app/resources/colors.dart';
-import 'package:appwrite_user_app/app/resources/constants.dart';
-import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:kikomart_user_app/app/common/widgets/app_map_layers.dart';
+import 'package:kikomart_user_app/app/common/widgets/auth_gate.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_appbar.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_toster.dart';
+import 'package:kikomart_user_app/app/common/widgets/web_top_nav.dart';
+import 'package:kikomart_user_app/app/controllers/address_controller.dart';
+import 'package:kikomart_user_app/app/controllers/auth_controller.dart';
+import 'package:kikomart_user_app/app/controllers/settings_controller.dart';
+import 'package:kikomart_user_app/app/helper/dashboard_tab_bus.dart';
+import 'package:kikomart_user_app/app/helper/routes/app_router.dart';
+import 'package:kikomart_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
+import 'package:kikomart_user_app/app/models/address_model.dart';
+import 'package:kikomart_user_app/app/modules/address/widgets/address_form_field.dart';
+import 'package:kikomart_user_app/app/modules/address/widgets/address_form_section.dart';
+import 'package:kikomart_user_app/app/modules/address/widgets/address_save_bar.dart';
+import 'package:kikomart_user_app/app/resources/colors.dart';
+import 'package:kikomart_user_app/app/resources/constants.dart';
+import 'package:kikomart_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart' as loc;
@@ -51,11 +53,11 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
 
   bool _isDefault = false;
   bool _isSaving = false;
-  bool _isFetchingAddress = false;
 
   late MapController _mapController;
   LatLng? _selectedLocation;
-  final LatLng _defaultLocation = const LatLng(23.8103, 90.4125); // Dhaka, Bangladesh
+  LatLng get _defaultLocation =>
+      Get.find<SettingsController>().defaultMapLocation;
 
   final loc.Location _locationService = loc.Location();
   bool _isLoadingLocation = false;
@@ -92,42 +94,17 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
     super.dispose();
   }
 
+  /// Fills the address fields from the pinned map position. Keeps the
+  /// current text when nothing is found or the map has moved on since.
   Future<void> _getAddressFromLatLng(LatLng position) async {
-    setState(() => _isFetchingAddress = true);
-    try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
-      if (placemarks.isNotEmpty) {
-        Placemark place = placemarks.first;
-        setState(() {
-          String streetInfo = '';
-          if (place.street != null && place.street!.isNotEmpty && !place.street!.contains('+')) {
-            streetInfo += place.street!;
-          }
-          if (place.subLocality != null && place.subLocality!.isNotEmpty) {
-            if (streetInfo.isNotEmpty) streetInfo += ', ';
-            streetInfo += place.subLocality!;
-          }
-          if (streetInfo.isEmpty) {
-            streetInfo = place.name ?? '';
-          }
-
-          if (_nameController.text.isEmpty) {
-            _nameController.text = place.name ?? '';
-          }
-          _addressLine1Controller.text = streetInfo;
-
-          String cityInfo = place.locality ?? place.subAdministrativeArea ?? place.administrativeArea ?? '';
-          _cityController.text = cityInfo;
-          _postalCodeController.text = place.postalCode ?? '';
-        });
-      }
-    } catch (e) {
-      debugPrint('Error fetching address: $e');
-    } finally {
-      if (mounted) {
-        setState(() => _isFetchingAddress = false);
-      }
-    }
+    final place = await Get.find<AddressController>()
+        .reverseGeocode(position.latitude, position.longitude);
+    if (!mounted || place == null) return;
+    setState(() {
+      _addressLine1Controller.text = place.addressLine;
+      _cityController.text = place.city;
+      _postalCodeController.text = place.postalCode;
+    });
   }
 
   Future<void> _openFullScreenMap() async {
@@ -311,10 +288,14 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
                   }
                 },
               ),
-              children: [
-                TileLayer(
-                  urlTemplate: Constants.streetMapTheme,
-                  userAgentPackageName: Constants.packageName,
+              children: const [
+                AppTileLayer(),
+                Align(
+                  alignment: AlignmentDirectional.bottomStart,
+                  child: Padding(
+                    padding: EdgeInsets.all(Constants.paddingSizeExtraSmall),
+                    child: MapAttribution(),
+                  ),
                 ),
               ],
             ),
@@ -328,31 +309,34 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
                 ),
               ),
             ),
-            if (_isFetchingAddress)
-              Positioned(
-                top: Constants.paddingSizeSmall,
-                left: Constants.paddingSizeSmall,
-                child: _mapChip(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(
-                        width: 14,
-                        height: 14,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      const SizedBox(width: Constants.paddingSizeSmall),
-                      Text(
-                        'fetching_address'.tr,
-                        style: poppinsMedium.copyWith(
-                          fontSize: Constants.fontSizeSmall,
-                          color: Colors.black87,
+            Positioned(
+              top: Constants.paddingSizeSmall,
+              left: Constants.paddingSizeSmall,
+              child: GetBuilder<AddressController>(
+                builder: (addressController) => addressController.isGeocoding
+                    ? _mapChip(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            const SizedBox(width: Constants.paddingSizeSmall),
+                            Text(
+                              'fetching_address'.tr,
+                              style: poppinsMedium.copyWith(
+                                fontSize: Constants.fontSizeSmall,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                ),
+                      )
+                    : const SizedBox.shrink(),
               ),
+            ),
             Positioned(
               top: Constants.paddingSizeSmall,
               right: Constants.paddingSizeSmall,
@@ -633,7 +617,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
       }
     } catch (e) {
       debugPrint('Error getting location: $e');
-      Get.snackbar('error'.tr, 'could_not_fetch_location'.tr);
+      customToster('could_not_fetch_location'.tr, isSuccess: false);
     } finally {
       if (mounted) {
         setState(() => _isLoadingLocation = false);
@@ -679,12 +663,7 @@ class _AddEditAddressPageState extends State<AddEditAddressPage> {
         context.pop();
       }
     } catch (e) {
-      Get.snackbar(
-        'error'.tr,
-        'failed_to_save_address'.tr,
-        backgroundColor: ColorResource.error,
-        colorText: ColorResource.textWhite,
-      );
+      customToster('failed_to_save_address'.tr, isSuccess: false);
     } finally {
       if (mounted) {
         setState(() => _isSaving = false);

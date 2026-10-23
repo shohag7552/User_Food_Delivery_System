@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:appwrite_user_app/app/resources/colors.dart';
+import 'package:kikomart_user_app/app/resources/colors.dart';
 import 'package:flutter/material.dart';
 
 /// The order-confirmation success mark, drawn rather than faded in.

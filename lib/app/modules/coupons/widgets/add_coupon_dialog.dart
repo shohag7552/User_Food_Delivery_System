@@ -1,9 +1,9 @@
-import 'package:appwrite_user_app/app/common/widgets/custom_button.dart';
-import 'package:appwrite_user_app/app/common/widgets/custom_text_field.dart';
-import 'package:appwrite_user_app/app/controllers/coupon_controller.dart';
-import 'package:appwrite_user_app/app/models/coupon_model.dart';
-import 'package:appwrite_user_app/app/resources/constants.dart';
-import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_button.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_text_field.dart';
+import 'package:kikomart_user_app/app/controllers/coupon_controller.dart';
+import 'package:kikomart_user_app/app/models/coupon_model.dart';
+import 'package:kikomart_user_app/app/resources/constants.dart';
+import 'package:kikomart_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

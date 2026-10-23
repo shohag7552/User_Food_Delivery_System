@@ -1,9 +1,9 @@
-import 'package:appwrite_user_app/app/common/widgets/floating_module_switcher.dart';
-import 'package:appwrite_user_app/app/common/widgets/web_module_switcher.dart';
-import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
-import 'package:appwrite_user_app/app/controllers/module_controller.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/screens/home_page.dart';
-import 'package:appwrite_user_app/app/modules/ecommerce/screens/ecommerce_home_view.dart';
+import 'package:kikomart_user_app/app/common/widgets/floating_module_switcher.dart';
+import 'package:kikomart_user_app/app/common/widgets/web_module_switcher.dart';
+import 'package:kikomart_user_app/app/common/widgets/web_top_nav.dart';
+import 'package:kikomart_user_app/app/controllers/module_controller.dart';
+import 'package:kikomart_user_app/app/modules/dashboard/screens/home_page.dart';
+import 'package:kikomart_user_app/app/modules/ecommerce/screens/ecommerce_home_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

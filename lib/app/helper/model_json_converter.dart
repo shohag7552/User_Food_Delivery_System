@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:appwrite_user_app/app/controllers/localization_controller.dart';
+import 'package:kikomart_user_app/app/controllers/localization_controller.dart';
 import 'package:get/get.dart';
 
 class ModelJsonConverter {

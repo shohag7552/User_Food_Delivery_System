@@ -1,8 +1,8 @@
-import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
-import 'package:appwrite_user_app/app/helper/localization_extension_helper.dart';
-import 'package:appwrite_user_app/app/helper/price_helper.dart';
-import 'package:appwrite_user_app/app/models/product_model.dart';
-import 'package:appwrite_user_app/app/resources/constants.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_toster.dart';
+import 'package:kikomart_user_app/app/helper/localization_extension_helper.dart';
+import 'package:kikomart_user_app/app/helper/price_helper.dart';
+import 'package:kikomart_user_app/app/models/product_model.dart';
+import 'package:kikomart_user_app/app/resources/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';

@@ -1,4 +1,4 @@
-import 'package:appwrite_user_app/app/resources/constants.dart';
+import 'package:kikomart_user_app/app/resources/constants.dart';
 
 class AppwriteConfig {
   static const String projectId = Constants.projectId;

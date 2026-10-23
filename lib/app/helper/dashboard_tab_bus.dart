@@ -1,4 +1,4 @@
-import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
+import 'package:kikomart_user_app/app/helper/routes/app_router.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 

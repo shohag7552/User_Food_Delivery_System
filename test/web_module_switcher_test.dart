@@ -1,5 +1,5 @@
-import 'package:appwrite_user_app/app/common/widgets/web_module_switcher.dart';
-import 'package:appwrite_user_app/app/controllers/module_controller.dart';
+import 'package:kikomart_user_app/app/common/widgets/web_module_switcher.dart';
+import 'package:kikomart_user_app/app/controllers/module_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';

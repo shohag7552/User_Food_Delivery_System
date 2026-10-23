@@ -1,4 +1,4 @@
-import 'package:appwrite_user_app/app/models/coupon_model.dart';
+import 'package:kikomart_user_app/app/models/coupon_model.dart';
 
 abstract class CouponRepoInterface {
   /// Fetch all coupons

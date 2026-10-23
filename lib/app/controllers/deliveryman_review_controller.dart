@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
-import 'package:appwrite_user_app/app/models/deliveryman_review_model.dart';
-import 'package:appwrite_user_app/app/models/order_model.dart';
-import 'package:appwrite_user_app/app/modules/reviews/domain/repository/deliveryman_review_repo_interface.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_toster.dart';
+import 'package:kikomart_user_app/app/models/deliveryman_review_model.dart';
+import 'package:kikomart_user_app/app/models/order_model.dart';
+import 'package:kikomart_user_app/app/modules/reviews/domain/repository/deliveryman_review_repo_interface.dart';
 import 'package:get/get.dart';
 
 /// Owns everything about rating the person who delivered an order: who is

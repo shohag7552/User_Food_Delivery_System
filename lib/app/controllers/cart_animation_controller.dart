@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:appwrite_user_app/app/common/widgets/add_to_cart_animation.dart';
+import 'package:kikomart_user_app/app/common/widgets/add_to_cart_animation.dart';
 
 class CartAnimationController extends GetxController {
   /// Single source of truth for where the fly-to-cart animation runs:

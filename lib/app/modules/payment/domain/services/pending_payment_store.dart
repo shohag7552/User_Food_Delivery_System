@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:appwrite_user_app/app/models/address_model.dart';
-import 'package:appwrite_user_app/app/models/cart_item_model.dart';
+import 'package:kikomart_user_app/app/models/address_model.dart';
+import 'package:kikomart_user_app/app/models/cart_item_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Everything needed to write the order once the gateway says the money

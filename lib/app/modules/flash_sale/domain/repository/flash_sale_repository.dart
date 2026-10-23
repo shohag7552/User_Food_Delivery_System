@@ -1,13 +1,13 @@
 import 'dart:developer';
 
 import 'package:appwrite/appwrite.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
-import 'package:appwrite_user_app/app/controllers/module_controller.dart';
-import 'package:appwrite_user_app/app/models/flash_sale_item_model.dart';
-import 'package:appwrite_user_app/app/models/flash_sale_model.dart';
-import 'package:appwrite_user_app/app/models/product_model.dart';
-import 'package:appwrite_user_app/app/modules/flash_sale/domain/repository/flash_sale_repo_interface.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_config.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_service.dart';
+import 'package:kikomart_user_app/app/controllers/module_controller.dart';
+import 'package:kikomart_user_app/app/models/flash_sale_item_model.dart';
+import 'package:kikomart_user_app/app/models/flash_sale_model.dart';
+import 'package:kikomart_user_app/app/models/product_model.dart';
+import 'package:kikomart_user_app/app/modules/flash_sale/domain/repository/flash_sale_repo_interface.dart';
 
 class FlashSaleRepository implements FlashSaleRepoInterface {
   final AppwriteService appwriteService;

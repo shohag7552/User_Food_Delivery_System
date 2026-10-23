@@ -1,4 +1,4 @@
-# appwrite_user_app
+# kikomart_user_app
 
 A new Flutter project.
 

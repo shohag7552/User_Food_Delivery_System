@@ -1,4 +1,4 @@
-import 'package:appwrite_user_app/app/models/product_model.dart';
+import 'package:kikomart_user_app/app/models/product_model.dart';
 
 /// Per-unit price of a shop (ecommerce) product for a given variation
 /// selection.

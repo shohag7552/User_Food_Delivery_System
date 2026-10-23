@@ -1,9 +1,9 @@
 import 'dart:developer';
 import 'package:appwrite/appwrite.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
-import 'package:appwrite_user_app/app/models/brand_model.dart';
-import 'package:appwrite_user_app/app/modules/brands/domain/repository/brand_repo_interface.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_config.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_service.dart';
+import 'package:kikomart_user_app/app/models/brand_model.dart';
+import 'package:kikomart_user_app/app/modules/brands/domain/repository/brand_repo_interface.dart';
 
 class BrandRepository implements BrandRepoInterface {
   final AppwriteService appwriteService;

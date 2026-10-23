@@ -1,42 +1,42 @@
 import 'dart:developer' show log;
 
-import 'package:appwrite_user_app/app/appwrite/payment_service.dart';
-import 'package:appwrite_user_app/app/modules/payment/domain/services/pending_payment_store.dart';
+import 'package:kikomart_user_app/app/appwrite/payment_service.dart';
+import 'package:kikomart_user_app/app/modules/payment/domain/services/pending_payment_store.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:url_launcher/url_launcher.dart';
-import 'package:appwrite_user_app/app/common/widgets/auth_gate.dart';
-import 'package:appwrite_user_app/app/common/widgets/custom_appbar.dart';
-import 'package:appwrite_user_app/app/common/widgets/web_footer.dart';
-import 'package:appwrite_user_app/app/common/widgets/web_top_nav.dart';
-import 'package:appwrite_user_app/app/helper/dashboard_tab_bus.dart';
-import 'package:appwrite_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
-import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
-import 'package:appwrite_user_app/app/controllers/address_controller.dart';
-import 'package:appwrite_user_app/app/controllers/auth_controller.dart';
-import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
-import 'package:appwrite_user_app/app/controllers/module_controller.dart';
-import 'package:appwrite_user_app/app/controllers/order_controller.dart';
-import 'package:appwrite_user_app/app/controllers/shipping_controller.dart';
-import 'package:appwrite_user_app/app/models/shipping_method_model.dart';
-import 'package:appwrite_user_app/app/controllers/profile_controller.dart';
-import 'package:appwrite_user_app/app/controllers/settings_controller.dart';
-import 'package:appwrite_user_app/app/enums/payment_method_enum.dart';
-import 'package:appwrite_user_app/app/helper/currency_helper.dart';
-import 'package:appwrite_user_app/app/helper/store_time_helper.dart';
-import 'package:appwrite_user_app/app/helper/routes/app_router.dart';
-import 'package:appwrite_user_app/app/models/address_model.dart';
-import 'package:appwrite_user_app/app/models/business_hours_model.dart';
-import 'package:appwrite_user_app/app/modules/checkout/widgets/address_selection_bottomsheet.dart';
-import 'package:appwrite_user_app/app/modules/checkout/widgets/edit_address_info_bottomsheet.dart';
-import 'package:appwrite_user_app/app/modules/checkout/widgets/delivery_schedule_bottomsheet.dart';
-import 'package:appwrite_user_app/app/modules/coupons/widgets/coupon_selection_bottomsheet.dart';
-import 'package:appwrite_user_app/app/modules/payment/payment_webview_screen.dart';
-import 'package:appwrite_user_app/app/resources/colors.dart';
-import 'package:appwrite_user_app/app/resources/constants.dart';
-import 'package:appwrite_user_app/app/resources/text_style.dart';
+import 'package:kikomart_user_app/app/common/widgets/app_map_layers.dart';
+import 'package:kikomart_user_app/app/common/widgets/auth_gate.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_appbar.dart';
+import 'package:kikomart_user_app/app/common/widgets/web_footer.dart';
+import 'package:kikomart_user_app/app/common/widgets/web_top_nav.dart';
+import 'package:kikomart_user_app/app/helper/dashboard_tab_bus.dart';
+import 'package:kikomart_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_toster.dart';
+import 'package:kikomart_user_app/app/controllers/address_controller.dart';
+import 'package:kikomart_user_app/app/controllers/auth_controller.dart';
+import 'package:kikomart_user_app/app/controllers/cart_controller.dart';
+import 'package:kikomart_user_app/app/controllers/module_controller.dart';
+import 'package:kikomart_user_app/app/controllers/order_controller.dart';
+import 'package:kikomart_user_app/app/controllers/shipping_controller.dart';
+import 'package:kikomart_user_app/app/models/shipping_method_model.dart';
+import 'package:kikomart_user_app/app/controllers/profile_controller.dart';
+import 'package:kikomart_user_app/app/controllers/settings_controller.dart';
+import 'package:kikomart_user_app/app/enums/payment_method_enum.dart';
+import 'package:kikomart_user_app/app/helper/currency_helper.dart';
+import 'package:kikomart_user_app/app/helper/store_time_helper.dart';
+import 'package:kikomart_user_app/app/helper/routes/app_router.dart';
+import 'package:kikomart_user_app/app/models/address_model.dart';
+import 'package:kikomart_user_app/app/models/business_hours_model.dart';
+import 'package:kikomart_user_app/app/modules/checkout/widgets/address_selection_bottomsheet.dart';
+import 'package:kikomart_user_app/app/modules/checkout/widgets/edit_address_info_bottomsheet.dart';
+import 'package:kikomart_user_app/app/modules/checkout/widgets/delivery_schedule_bottomsheet.dart';
+import 'package:kikomart_user_app/app/modules/coupons/widgets/coupon_selection_bottomsheet.dart';
+import 'package:kikomart_user_app/app/modules/payment/payment_webview_screen.dart';
+import 'package:kikomart_user_app/app/resources/colors.dart';
+import 'package:kikomart_user_app/app/resources/constants.dart';
+import 'package:kikomart_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
@@ -187,7 +187,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
     final initial = (base.latitude != null && base.longitude != null)
         ? LatLng(base.latitude!, base.longitude!)
-        : const LatLng(23.8103, 90.4125); // Dhaka fallback
+        : Get.find<SettingsController>().defaultMapLocation;
 
     final picked = await context.pushNamed<LatLng?>(
       RouteNames.mapPicker,
@@ -216,23 +216,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
     String city = base.city;
     String postal = base.postalCode;
 
-    try {
-      final placemarks =
-          await placemarkFromCoordinates(pos.latitude, pos.longitude);
-      if (placemarks.isNotEmpty) {
-        final p = placemarks.first;
-        final street = [p.street, p.subLocality]
-            .whereType<String>()
-            .where((e) => e.trim().isNotEmpty && !e.contains('+'))
-            .join(', ');
-        if (street.isNotEmpty) line1 = street;
-        final resolvedCity =
-            p.locality ?? p.subAdministrativeArea ?? p.administrativeArea ?? '';
-        if (resolvedCity.isNotEmpty) city = resolvedCity;
-        if ((p.postalCode ?? '').isNotEmpty) postal = p.postalCode!;
-      }
-    } catch (_) {
-      // Keep existing textual address if geocoding fails.
+    final place = await Get.find<AddressController>()
+        .reverseGeocode(pos.latitude, pos.longitude);
+    // Keep the existing textual address for any part that wasn't found.
+    if (place != null) {
+      if (place.street.isNotEmpty) line1 = place.street;
+      if (place.city.isNotEmpty) city = place.city;
+      if (place.postalCode.isNotEmpty) postal = place.postalCode;
     }
 
     return base.copyWith(
@@ -846,10 +836,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 ),
               ),
               children: [
-                TileLayer(
-                  urlTemplate: Constants.streetMapTheme,
-                  userAgentPackageName: Constants.packageName,
-                ),
+                const AppTileLayer(),
                 MarkerLayer(
                   markers: [
                     Marker(
@@ -865,6 +852,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   ],
                 ),
               ],
+            ),
+            const PositionedDirectional(
+              bottom: Constants.paddingSizeExtraSmall,
+              start: Constants.paddingSizeExtraSmall,
+              child: MapAttribution(),
             ),
             if (address.isDefault)
               Positioned(top: 8, left: 8, child: _buildDefaultChip()),

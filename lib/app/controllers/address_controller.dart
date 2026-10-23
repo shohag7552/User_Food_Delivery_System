@@ -1,8 +1,9 @@
 import 'dart:developer';
-import 'package:appwrite_user_app/app/common/widgets/custom_toster.dart';
-import 'package:appwrite_user_app/app/helper/session_manager.dart';
-import 'package:appwrite_user_app/app/models/address_model.dart';
-import 'package:appwrite_user_app/app/modules/address/domain/repository/address_repo_interface.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_toster.dart';
+import 'package:kikomart_user_app/app/helper/session_manager.dart';
+import 'package:kikomart_user_app/app/models/address_model.dart';
+import 'package:kikomart_user_app/app/models/geocoded_address_model.dart';
+import 'package:kikomart_user_app/app/modules/address/domain/repository/address_repo_interface.dart';
 import 'package:get/get.dart';
 
 class AddressController extends GetxController implements GetxService {
@@ -28,6 +29,11 @@ class AddressController extends GetxController implements GetxService {
   }
 
   bool get hasAddresses => _addresses.isNotEmpty;
+
+  /// True while the latest map-position → address lookup is running.
+  bool _isGeocoding = false;
+  bool get isGeocoding => _isGeocoding;
+  int _geocodeRequestId = 0;
 
   @override
   void onInit() {
@@ -60,7 +66,7 @@ class AddressController extends GetxController implements GetxService {
       _isLoading = false;
       update();
       log('Error fetching addresses: $e');
-      Get.snackbar('error'.tr, 'failed_to_load_addresses'.tr);
+      customToster('failed_to_load_addresses'.tr, isSuccess: false);
     }
   }
 
@@ -70,11 +76,11 @@ class AddressController extends GetxController implements GetxService {
     try {
       await addressRepoInterface.addAddress(address);
       await fetchAddresses(); // Refresh list
-      customToster('Address added successfully');
+      customToster('address_added_successfully'.tr);
       return true;
     } catch (e) {
       log('Error adding address: $e');
-      customToster('Failed to add address', isSuccess: false);
+      customToster('failed_to_add_address'.tr, isSuccess: false);
       return false;
     }
   }
@@ -85,15 +91,11 @@ class AddressController extends GetxController implements GetxService {
     try {
       await addressRepoInterface.updateAddress(id, address);
       await fetchAddresses(); // Refresh list
-      Get.snackbar(
-        'Success',
-        'Address updated successfully',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      customToster('address_updated_successfully'.tr);
       return true;
     } catch (e) {
       log('Error updating address: $e');
-      Get.snackbar('error'.tr, 'failed_to_update_address'.tr);
+      customToster('failed_to_update_address'.tr, isSuccess: false);
       return false;
     }
   }
@@ -117,14 +119,10 @@ class AddressController extends GetxController implements GetxService {
     try {
       await addressRepoInterface.deleteAddress(id);
       await fetchAddresses(); // Refresh list
-      Get.snackbar(
-        'Success',
-        'Address deleted successfully',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      customToster('address_deleted_successfully'.tr);
     } catch (e) {
       log('Error deleting address: $e');
-      Get.snackbar('error'.tr, 'failed_to_delete_address'.tr);
+      customToster('failed_to_delete_address'.tr, isSuccess: false);
     }
   }
 
@@ -133,14 +131,10 @@ class AddressController extends GetxController implements GetxService {
     try {
       await addressRepoInterface.setDefaultAddress(id);
       await fetchAddresses(); // Refresh list
-      Get.snackbar(
-        'Success',
-        'Default address updated',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      customToster('default_address_updated'.tr);
     } catch (e) {
       log('Error setting default address: $e');
-      Get.snackbar('error'.tr, 'failed_to_set_default_address'.tr);
+      customToster('failed_to_set_default_address'.tr, isSuccess: false);
     }
   }
 
@@ -148,5 +142,36 @@ class AddressController extends GetxController implements GetxService {
   void selectAddress(AddressModel address) {
     _selectedAddress = address;
     update();
+  }
+
+  /// Resolves a map position to an address for the address screens.
+  ///
+  /// Only the latest call wins: when the map moves again before an earlier
+  /// lookup finishes, the earlier one returns null so it can't overwrite the
+  /// newer address. Null also means nothing was found or the lookup failed —
+  /// callers simply keep what they already show.
+  Future<GeocodedAddressModel?> reverseGeocode(
+    double latitude,
+    double longitude,
+  ) async {
+    final requestId = ++_geocodeRequestId;
+    _isGeocoding = true;
+    update();
+
+    GeocodedAddressModel? result;
+    try {
+      result = await addressRepoInterface.reverseGeocode(
+        latitude,
+        longitude,
+        languageCode: Get.locale?.languageCode,
+      );
+    } catch (e) {
+      log('Error resolving address from map position: $e');
+    }
+
+    if (requestId != _geocodeRequestId) return null;
+    _isGeocoding = false;
+    update();
+    return result;
   }
 }

@@ -1,6 +1,6 @@
-import 'package:appwrite_user_app/app/resources/colors.dart';
-import 'package:appwrite_user_app/app/resources/constants.dart';
-import 'package:appwrite_user_app/app/resources/images.dart';
+import 'package:kikomart_user_app/app/resources/colors.dart';
+import 'package:kikomart_user_app/app/resources/constants.dart';
+import 'package:kikomart_user_app/app/resources/images.dart';
 import 'package:flutter/material.dart';
 
 /// Brand-shaded photo backdrop behind the flash-sale countdown panels (home

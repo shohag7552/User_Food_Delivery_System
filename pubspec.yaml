@@ -1,4 +1,4 @@
-name: appwrite_user_app
+name: kikomart_user_app
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -65,7 +65,6 @@ dependencies:
   # being forced into a guessed childAspectRatio.
   flutter_staggered_grid_view: ^0.7.0
   http: ^1.6.0
-  googleapis_auth: ^2.0.0
   flutter_html: ^3.0.0-beta.2
   flutter_map: ^8.3.1
   latlong2: ^0.9.1
@@ -73,11 +72,6 @@ dependencies:
   location: ^8.0.1
   connectivity_plus: ^7.1.1
   flutter_inappwebview: ^6.1.5
-  # Rive state-machine animations (the rating stars in the review sheets).
-  # 0.14.x pulls in `rive_native` — prebuilt native binaries per platform — so
-  # this is not a pure-Dart dependency; see RiveRatingStars for the fallback
-  # that keeps the sheets working if it fails to load on a given platform.
-  rive: ^0.14.11
   # Native share sheet on mobile, the Web Share API (with a clipboard fallback)
   # in the browser — used by the product share action.
   share_plus: ^12.0.0
@@ -108,7 +102,6 @@ flutter:
   assets:
     - assets/images/
     - assets/language/
-    - assets/animations/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

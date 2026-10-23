@@ -1,8 +1,8 @@
-import 'package:appwrite_user_app/app/common/widgets/auth_dialog.dart';
-import 'package:appwrite_user_app/app/controllers/favorites_controller.dart';
-import 'package:appwrite_user_app/app/helper/session_manager.dart';
-import 'package:appwrite_user_app/app/models/product_model.dart';
-import 'package:appwrite_user_app/app/resources/colors.dart';
+import 'package:kikomart_user_app/app/common/widgets/auth_dialog.dart';
+import 'package:kikomart_user_app/app/controllers/favorites_controller.dart';
+import 'package:kikomart_user_app/app/helper/session_manager.dart';
+import 'package:kikomart_user_app/app/models/product_model.dart';
+import 'package:kikomart_user_app/app/resources/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

@@ -1,6 +1,6 @@
 import 'dart:developer';
-import 'package:appwrite_user_app/app/models/shipping_method_model.dart';
-import 'package:appwrite_user_app/app/modules/shipping/domain/repository/shipping_repo_interface.dart';
+import 'package:kikomart_user_app/app/models/shipping_method_model.dart';
+import 'package:kikomart_user_app/app/modules/shipping/domain/repository/shipping_repo_interface.dart';
 import 'package:get/get.dart';
 
 class ShippingController extends GetxController implements GetxService {

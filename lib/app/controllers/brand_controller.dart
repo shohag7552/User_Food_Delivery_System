@@ -1,6 +1,6 @@
 import 'dart:developer';
-import 'package:appwrite_user_app/app/models/brand_model.dart';
-import 'package:appwrite_user_app/app/modules/brands/domain/repository/brand_repo_interface.dart';
+import 'package:kikomart_user_app/app/models/brand_model.dart';
+import 'package:kikomart_user_app/app/modules/brands/domain/repository/brand_repo_interface.dart';
 import 'package:get/get.dart';
 
 class BrandController extends GetxController implements GetxService {

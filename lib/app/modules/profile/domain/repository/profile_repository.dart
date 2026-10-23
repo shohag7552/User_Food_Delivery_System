@@ -1,9 +1,9 @@
 import 'dart:developer';
 import 'package:appwrite/models.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_config.dart';
-import 'package:appwrite_user_app/app/appwrite/appwrite_service.dart';
-import 'package:appwrite_user_app/app/models/user_model.dart';
-import 'package:appwrite_user_app/app/modules/profile/domain/repository/profile_repo_interface.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_config.dart';
+import 'package:kikomart_user_app/app/appwrite/appwrite_service.dart';
+import 'package:kikomart_user_app/app/models/user_model.dart';
+import 'package:kikomart_user_app/app/modules/profile/domain/repository/profile_repo_interface.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ProfileRepository implements ProfileRepoInterface {

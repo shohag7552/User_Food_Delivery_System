@@ -1,15 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-import 'package:appwrite_user_app/app/controllers/cart_controller.dart';
-import 'package:appwrite_user_app/app/controllers/flash_sale_controller.dart';
-import 'package:appwrite_user_app/app/controllers/product_controller.dart';
-import 'package:appwrite_user_app/app/enums/payment_method_enum.dart';
-import 'package:appwrite_user_app/app/helper/session_manager.dart';
-import 'package:appwrite_user_app/app/models/address_model.dart';
-import 'package:appwrite_user_app/app/models/cart_item_model.dart';
-import 'package:appwrite_user_app/app/models/order_model.dart';
-import 'package:appwrite_user_app/app/modules/checkout/domain/repository/order_repo_interface.dart';
+import 'package:kikomart_user_app/app/controllers/cart_controller.dart';
+import 'package:kikomart_user_app/app/controllers/flash_sale_controller.dart';
+import 'package:kikomart_user_app/app/controllers/product_controller.dart';
+import 'package:kikomart_user_app/app/enums/payment_method_enum.dart';
+import 'package:kikomart_user_app/app/helper/session_manager.dart';
+import 'package:kikomart_user_app/app/models/address_model.dart';
+import 'package:kikomart_user_app/app/models/cart_item_model.dart';
+import 'package:kikomart_user_app/app/models/order_model.dart';
+import 'package:kikomart_user_app/app/modules/checkout/domain/repository/order_repo_interface.dart';
 import 'package:get/get.dart';
 
 class OrderController extends GetxController implements GetxService {
