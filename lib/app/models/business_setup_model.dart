@@ -82,6 +82,10 @@ class BusinessSetupModel {
   final String? copyrightText;
   final String? cookiesText;
 
+  /// LocationIQ access token set by the store owner; empty means the free
+  /// OpenStreetMap servers are used. Read-only here: absent from [toJson].
+  final String? locationIqKey;
+
   /// The store's UTC offset as a [Duration].
   Duration get timezoneOffset => Duration(minutes: timezoneOffsetMinutes);
 
@@ -139,6 +143,7 @@ class BusinessSetupModel {
     this.updatedAt,
     this.copyrightText,
     this.cookiesText,
+    this.locationIqKey,
   });
 
   factory BusinessSetupModel.fromJson(Map<String, dynamic> json) {
@@ -196,6 +201,7 @@ class BusinessSetupModel {
           : null,
       copyrightText: json['copyright_text'] as String?,
       cookiesText: json['cookies_text'] as String?,
+      locationIqKey: json['location_iq_key'] as String?,
     );
   }
 
@@ -289,6 +295,7 @@ class BusinessSetupModel {
     DateTime? updatedAt,
     String? copyrightText,
     String? cookiesText,
+    String? locationIqKey,
   }) {
     return BusinessSetupModel(
       id: id ?? this.id,
@@ -342,6 +349,7 @@ class BusinessSetupModel {
       updatedAt: updatedAt ?? this.updatedAt,
       copyrightText: copyrightText ?? this.copyrightText,
       cookiesText: cookiesText ?? this.cookiesText,
+      locationIqKey: locationIqKey ?? this.locationIqKey,
     );
   }
 

@@ -33,6 +33,21 @@ class SettingsController extends GetxController implements GetxService {
     );
   }
 
+  /// LocationIQ key from business setup; empty means the free OpenStreetMap
+  /// servers are used for map tiles and address lookups.
+  String get locationIqKey => _businessSetup?.locationIqKey?.trim() ?? '';
+  bool get usesLocationIq => locationIqKey.isNotEmpty;
+
+  String get mapTileUrl => usesLocationIq
+      ? '${Constants.locationIqTileUrl}?key=$locationIqKey'
+      : Constants.mapTileUrl;
+  String get mapAttribution => usesLocationIq
+      ? Constants.locationIqAttribution
+      : Constants.mapAttribution;
+  String get mapAttributionUrl => usesLocationIq
+      ? Constants.locationIqAttributionUrl
+      : Constants.mapAttributionUrl;
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 

@@ -10,9 +10,12 @@ abstract class AddressRepoInterface {
 
   /// Resolves a map position to an address. Returns null when nothing was
   /// found there or a newer lookup superseded this one; throws on failure.
+  /// With a [locationIqKey] the online lookup uses LocationIQ instead of the
+  /// public Nominatim server.
   Future<GeocodedAddressModel?> reverseGeocode(
     double latitude,
     double longitude, {
     String? languageCode,
+    String? locationIqKey,
   });
 }

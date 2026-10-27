@@ -94,6 +94,17 @@ class Constants {
   /// Optional — leave empty to omit.
   static const String nominatimEmail = '';
 
+  /// LocationIQ replaces the free OpenStreetMap servers above (tiles and
+  /// reverse geocoding) once the store owner saves a LocationIQ key in
+  /// Business setup. The key itself lives in the database, never here.
+  static const String locationIqBaseUrl = 'https://us1.locationiq.com/v1';
+  static const String locationIqTileUrl =
+      'https://{s}-tiles.locationiq.com/v3/streets/r/{z}/{x}/{y}.png';
+  static const String locationIqAttribution =
+      '© LocationIQ © OpenStreetMap contributors';
+  static const String locationIqAttributionUrl =
+      'https://locationiq.com/attribution';
+
   static double fontSizeExtraSmall = 10;
   static double fontSizeSmall = 12;
   static double fontSizeDefault = 14;

@@ -141,6 +141,7 @@ class AddressRepository implements AddressRepoInterface {
     double latitude,
     double longitude, {
     String? languageCode,
+    String? locationIqKey,
   }) async {
     // ~1 m precision: dropping the pin on the same spot reuses the answer.
     final cacheKey =
@@ -158,7 +159,12 @@ class AddressRepository implements AddressRepoInterface {
       }
     }
     if (result == null || result.isEmpty) {
-      result = await _geocodeNominatim(latitude, longitude, languageCode);
+      result = await _geocodeNominatim(
+        latitude,
+        longitude,
+        languageCode,
+        locationIqKey,
+      );
     }
 
     if (result != null && !result.isEmpty) {
@@ -193,7 +199,12 @@ class AddressRepository implements AddressRepoInterface {
     double latitude,
     double longitude,
     String? languageCode,
+    String? locationIqKey,
   ) async {
+    // LocationIQ speaks the same API; it only needs its key and `json`
+    // (it has no `jsonv2`).
+    final useLocationIq = locationIqKey != null && locationIqKey.isNotEmpty;
+
     // Queue behind the previous request to respect the 1 req/s limit, and
     // skip the call entirely if a newer lookup arrived while waiting (the
     // map was dragged again) — only the latest position matters.
@@ -205,16 +216,19 @@ class AddressRepository implements AddressRepoInterface {
     if (wait > Duration.zero) await Future.delayed(wait);
     if (generation != _nominatimGeneration) return null;
 
-    final uri = Uri.parse('${Constants.nominatimBaseUrl}/reverse').replace(
+    final baseUrl =
+        useLocationIq ? Constants.locationIqBaseUrl : Constants.nominatimBaseUrl;
+    final uri = Uri.parse('$baseUrl/reverse').replace(
       queryParameters: {
-        'format': 'jsonv2',
+        if (useLocationIq) 'key': locationIqKey,
+        'format': useLocationIq ? 'json' : 'jsonv2',
         'lat': '$latitude',
         'lon': '$longitude',
         'zoom': '18',
         'addressdetails': '1',
         if (languageCode != null && languageCode.isNotEmpty)
           'accept-language': languageCode,
-        if (Constants.nominatimEmail.isNotEmpty)
+        if (!useLocationIq && Constants.nominatimEmail.isNotEmpty)
           'email': Constants.nominatimEmail,
       },
     );
@@ -230,7 +244,7 @@ class AddressRepository implements AddressRepoInterface {
             },
     ).timeout(const Duration(seconds: 10));
     if (response.statusCode != 200) {
-      throw Exception('Nominatim responded ${response.statusCode}');
+      throw Exception('Geocoder responded ${response.statusCode}');
     }
 
     final json = jsonDecode(utf8.decode(response.bodyBytes));
@@ -250,7 +264,10 @@ class AddressRepository implements AddressRepoInterface {
     final road = pick(['road', 'pedestrian', 'footway', 'path']);
     final houseNumber = pick(['house_number']);
     final area = pick(['neighbourhood', 'quarter', 'suburb', 'city_district']);
-    final name = json['name'];
+    // `json` format (LocationIQ) has no top-level name; the place's name is
+    // under its kind in `address` instead.
+    final name = json['name'] ??
+        pick(['amenity', 'shop', 'tourism', 'attraction', 'building', 'office']);
 
     return GeocodedAddressModel(
       street: [

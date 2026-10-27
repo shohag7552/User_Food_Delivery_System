@@ -1,18 +1,20 @@
+import 'package:kikomart_user_app/app/controllers/settings_controller.dart';
 import 'package:kikomart_user_app/app/resources/constants.dart';
 import 'package:kikomart_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// The tile layer every map in the app uses, so the provider is configured in
-/// one place ([Constants.mapTileUrl]).
+/// one place ([SettingsController.mapTileUrl]).
 class AppTileLayer extends StatelessWidget {
   const AppTileLayer({super.key});
 
   @override
   Widget build(BuildContext context) {
     return TileLayer(
-      urlTemplate: Constants.mapTileUrl,
+      urlTemplate: Get.find<SettingsController>().mapTileUrl,
       // Identifies the app to the tile server — OpenStreetMap's usage policy
       // blocks requests without it.
       userAgentPackageName: Constants.packageName,
@@ -21,7 +23,7 @@ class AppTileLayer extends StatelessWidget {
   }
 }
 
-/// Licence credit for the map data ([Constants.mapAttribution]); tapping it
+/// Licence credit for the map data ([SettingsController.mapAttribution]); tapping it
 /// opens the provider's copyright page. Must stay visible on every map.
 ///
 /// Map tiles are always light, so the chip is deliberately light in both
@@ -31,13 +33,14 @@ class MapAttribution extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settings = Get.find<SettingsController>();
     return Material(
       color: Colors.white.withValues(alpha: 0.85),
       borderRadius: BorderRadius.circular(Constants.radiusSmall),
       child: InkWell(
         borderRadius: BorderRadius.circular(Constants.radiusSmall),
         onTap: () => launchUrl(
-          Uri.parse(Constants.mapAttributionUrl),
+          Uri.parse(settings.mapAttributionUrl),
           mode: LaunchMode.externalApplication,
         ),
         child: Padding(
@@ -46,7 +49,7 @@ class MapAttribution extends StatelessWidget {
             vertical: Constants.paddingSizeExtraSmall / 2,
           ),
           child: Text(
-            Constants.mapAttribution,
+            settings.mapAttribution,
             style: poppinsRegular.copyWith(
               fontSize: Constants.fontSizeExtraSmall,
               color: Colors.black87,

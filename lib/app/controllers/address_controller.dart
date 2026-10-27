@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:kikomart_user_app/app/common/widgets/custom_toster.dart';
+import 'package:kikomart_user_app/app/controllers/settings_controller.dart';
 import 'package:kikomart_user_app/app/helper/session_manager.dart';
 import 'package:kikomart_user_app/app/models/address_model.dart';
 import 'package:kikomart_user_app/app/models/geocoded_address_model.dart';
@@ -164,6 +165,7 @@ class AddressController extends GetxController implements GetxService {
         latitude,
         longitude,
         languageCode: Get.locale?.languageCode,
+        locationIqKey: Get.find<SettingsController>().locationIqKey,
       );
     } catch (e) {
       log('Error resolving address from map position: $e');
