@@ -20,9 +20,13 @@ class Constants {
 
   static const int primaryColorValue = 0xFFC92A2A;
 
-  static const String projectId = '6aa44c20000b0b73b432';
-  static const String endpoint = 'https://fra.cloud.appwrite.io/v1';
-  static const String databaseId = '6aa44dc40005d989a0e4';
+  /// Appwrite Console → Settings. Replace every `YOUR_…` value below with the
+  /// ids from your own Appwrite project.
+  static const String projectId = 'YOUR_PROJECT_ID';
+  /// Your project's API endpoint, e.g. `https://<region>.cloud.appwrite.io/v1`
+  /// or `https://appwrite.your-domain.com/v1` when self-hosted.
+  static const String endpoint = 'https://cloud.appwrite.io/v1';
+  static const String databaseId = 'YOUR_DATABASE_ID';
   // No Appwrite API key here: a key compiled into a client app can be
   // extracted by anyone. Server keys live only in Function environments.
 
@@ -31,22 +35,22 @@ class Constants {
   static const String dbId = databaseId;
 
   /// Storage bucket for every uploaded image (products, banners, logos).
-  static const String postsBucketId = '6aa44e8d0013091f9c27';
+  static const String postsBucketId = 'YOUR_STORAGE_BUCKET_ID';
 
   /// FCM push plumbing.
-  static const String messagingProviderId = '6aa451f2002cbb748e9d';
-  static const String notificationFunctionId = 'notification_function1';
+  static const String messagingProviderId = 'YOUR_MESSAGING_PROVIDER_ID';
+  static const String notificationFunctionId = 'YOUR_NOTIFICATION_FUNCTION_ID';
 
   /// Topic customers subscribe to for promotional broadcasts. The store app
   /// calls this same id `broadCastTopicId`.
-  static const String topicId = '6aa5a40a00120693b5eb';
+  static const String topicId = 'YOUR_BROADCAST_TOPIC_ID';
 
   /// Topic every store-admin device subscribes to — carries new-order alerts.
-  static const String storeAdminTopicId = '6aa5a4aa003371f66577';
+  static const String storeAdminTopicId = 'YOUR_STORE_ADMIN_TOPIC_ID';
 
   /// Processes Stripe payments via a cloud function. Customer-app only — the
   /// store app has no counterpart for this one.
-  static const String stripePaymentFunctionId = '6ab68f360015285299a5';
+  static const String stripePaymentFunctionId = 'YOUR_STRIPE_PAYMENT_FUNCTION_ID';
 
   /// Host the gateway returns the customer to, as
   /// `<host>/payment/success|fail|cancel`.
