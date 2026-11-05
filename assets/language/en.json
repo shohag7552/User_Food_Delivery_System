@@ -1047,5 +1047,17 @@
   "loading_ellipsis": "Loading...",
   "discount_amount_off": "@amount OFF",
   "update_your_account_password": "Update your account password",
-  "cart_item_count_other": "@count items"
+  "cart_item_count_other": "@count items",
+  "prices_changed_review_order": "Some prices in your cart have changed. Please review your order and try again.",
+  "insufficient_wallet_balance": "Your wallet balance is not enough for this order.",
+  "cart_item_no_longer_available": "An item in your cart is no longer available as it was. Please review your cart.",
+  "refund": "Refund",
+  "request_refund": "Request refund",
+  "request_refund_confirm": "Ask the store to refund this order to your wallet?",
+  "refund_available_hint": "This order was cancelled after payment. You can ask the store to refund @amount to your wallet.",
+  "refund_requested_waiting": "Refund requested. The store will review it soon.",
+  "refund_added_to_wallet": "@amount has been refunded to your wallet.",
+  "refund_request_rejected": "The store declined this refund request. Please contact support if you have questions.",
+  "refund_request_sent": "Refund request sent",
+  "refund_request_failed": "Could not send the refund request. Please try again."
 }

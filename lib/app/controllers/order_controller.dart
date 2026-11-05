@@ -1,10 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer';
+import 'package:kikomart_user_app/app/appwrite/backend_exception.dart';
 import 'package:kikomart_user_app/app/controllers/cart_controller.dart';
 import 'package:kikomart_user_app/app/controllers/flash_sale_controller.dart';
 import 'package:kikomart_user_app/app/controllers/product_controller.dart';
-import 'package:kikomart_user_app/app/enums/payment_method_enum.dart';
 import 'package:kikomart_user_app/app/helper/session_manager.dart';
 import 'package:kikomart_user_app/app/models/address_model.dart';
 import 'package:kikomart_user_app/app/models/cart_item_model.dart';
@@ -42,6 +41,9 @@ class OrderController extends GetxController implements GetxService {
   bool get isLoadingMore => _isLoadingMore;
   bool get isOrderDetailsLoading => _isOrderDetailsLoading;
   bool get isCancellingOrder => _isCancellingOrder;
+
+  bool _isRequestingRefund = false;
+  bool get isRequestingRefund => _isRequestingRefund;
   String get selectedStatus => _selectedStatus;
   String get searchQuery => _searchQuery;
   bool get hasMore => _hasMore;
@@ -74,9 +76,17 @@ class OrderController extends GetxController implements GetxService {
     // No update() — the caller refetches immediately and updates once.
   }
 
-  /// Place a new order
+  /// Place a new order.
+  ///
+  /// The backend function prices it from the customer's cart, takes the
+  /// payment (wallet) or checks it (gateway), and writes it; the totals passed
+  /// here are what the customer was shown, and a disagreement comes back as
+  /// `prices_changed_review_order` with `code: 'price_changed'`.
+  ///
+  /// [requestId] names this checkout attempt, so retrying it can never place
+  /// a second order.
   Future<Map<String, dynamic>> placeOrder({
-    required String customerId,
+    required String requestId,
     required AddressModel address,
     required List<CartItemModel> cartItems,
     required double totalAmount,
@@ -85,13 +95,14 @@ class OrderController extends GetxController implements GetxService {
     double discountAmount = 0.0,
     double couponDiscount = 0.0,
     required String paymentMethod,
-    String paymentStatus = 'unpaid',
+    String? couponId,
+    String? shippingMethodId,
+    String? paymentSessionId,
+    String? paymentReference,
     String? deliveryInstructions,
     String? deliveryType,
     DateTime? scheduledDate,
     String? scheduledTimeSlot,
-    double? shippingCost,
-    String? shippingMethod,
     String? moduleType,
   }) async {
     // An order with no lines is not an order. The checkout screen already hides
@@ -108,60 +119,23 @@ class OrderController extends GetxController implements GetxService {
       _isPlacingOrder = true;
       update();
 
-      // Convert address to JSON
-      final addressJson = jsonEncode({
-        'name': address.name,
-        'phone': address.phone,
-        'address': address.fullAddress,
-        'lat': address.latitude ?? 0.0,
-        'lng': address.longitude ?? 0.0,
-      });
-
-      // Convert cart items to order items JSON
-      final orderItems = cartItems.map((item) {
-        return {
-          'product_id': item.productId, // ✨ Added for review linking
-          'product_name': item.productName,
-          'base_price': item.basePrice,
-          'price': item.finalPrice,
-          'quantity': item.quantity,
-          'product_image': item.productImage,
-          'selected_variants': item.selectedVariants
-              .expand((v) => v.selections)
-              .map((s) => s.optionName)
-              .toList(),
-        };
-      }).toList();
-
-      final orderItemsJson = jsonEncode(orderItems);
-
-      // A gateway payment has already cleared before the row is written, so
-      // the order skips the store's "pending" review. Wallet and COD orders
-      // still start pending.
-      final status =
-          paymentMethod == PaymentMethod.online.name && paymentStatus == 'paid'
-              ? 'confirmed'
-              : 'pending';
-
-      // Order number is now generated inside the repository (sequential: 10001, 10002, ...)
       final result = await orderRepoInterface.createOrder(
-        customerId: customerId,
-        deliveryAddress: addressJson,
-        orderItems: orderItemsJson,
+        requestId: requestId,
+        addressId: address.id,
+        paymentMethod: paymentMethod,
         totalAmount: totalAmount,
         deliveryFee: deliveryFee,
         taxAmount: taxAmount,
         discountAmount: discountAmount,
         couponDiscount: couponDiscount,
-        paymentMethod: paymentMethod,
-        paymentStatus: paymentStatus,
-        status: status,
+        couponId: couponId,
+        shippingMethodId: shippingMethodId,
+        paymentSessionId: paymentSessionId,
+        paymentReference: paymentReference,
         deliveryInstructions: deliveryInstructions,
         deliveryType: deliveryType,
         scheduledDate: scheduledDate,
         scheduledTimeSlot: scheduledTimeSlot,
-        shippingCost: shippingCost,
-        shippingMethod: shippingMethod,
         moduleType: moduleType,
       );
 
@@ -172,6 +146,15 @@ class OrderController extends GetxController implements GetxService {
         'orderId': result['orderId'],
         'orderNumber': result['orderNumber'],
       };
+    } on BackendException catch (e) {
+      _isPlacingOrder = false;
+      update();
+      log('Order refused: $e');
+      return {
+        'success': false,
+        'code': e.code,
+        'error': _placeOrderErrorKey(e.code).tr,
+      };
     } catch (e) {
       _isPlacingOrder = false;
       update();
@@ -179,6 +162,61 @@ class OrderController extends GetxController implements GetxService {
       return {'success': false, 'error': 'failed_to_place_order'.tr};
     }
   }
+
+  /// What the order costs as the server prices it — the amounts to show,
+  /// charge and confirm — or null when they cannot be had (the server is
+  /// unreachable, or an item can no longer be priced; [quoteError] says why).
+  ///
+  /// Returns the app's own figures unchanged while the server's are not yet
+  /// binding (`enforced` false during a store's rollout).
+  Future<OrderQuote?> quoteOrder({
+    required AddressModel address,
+    required OrderQuote fallback,
+    String? couponId,
+    String? shippingMethodId,
+  }) async {
+    _quoteError = null;
+    try {
+      final q = await orderRepoInterface.quoteOrder(
+        addressId: address.id,
+        couponId: couponId,
+        shippingMethodId: shippingMethodId,
+      );
+      if (q['enforced'] != true) return fallback;
+      double n(String k) => (q[k] as num?)?.toDouble() ?? 0.0;
+      return OrderQuote(
+        total: n('total'),
+        deliveryFee: n('delivery_fee'),
+        tax: n('tax'),
+        itemDiscount: n('item_discount'),
+        couponDiscount: n('coupon_discount'),
+      );
+    } on BackendException catch (e) {
+      log('Quote refused: $e');
+      _quoteError = _placeOrderErrorKey(e.code).tr;
+      return null;
+    } catch (e) {
+      log('Quote failed: $e');
+      _quoteError = 'failed_to_place_order'.tr;
+      return null;
+    }
+  }
+
+  String? _quoteError;
+
+  /// Why the last [quoteOrder] returned null, translated.
+  String? get quoteError => _quoteError;
+
+  /// The message for each reason the backend refuses an order.
+  static String _placeOrderErrorKey(String code) => switch (code) {
+    'price_changed' => 'prices_changed_review_order',
+    'insufficient_wallet' => 'insufficient_wallet_balance',
+    'payment_unverified' || 'payment_already_used' => 'payment_failed_try_again',
+    'cart_item_unavailable' || 'cart_item_changed' => 'cart_item_no_longer_available',
+    'cart_empty' => 'cannot_place_order_empty_cart',
+    'address_required' => 'please_select_delivery_address',
+    _ => 'failed_to_place_order',
+  };
 
   /// Runs the bookkeeping that follows an order actually being written: sale
   /// counters first, then emptying the cart it came from.
@@ -199,17 +237,6 @@ class OrderController extends GetxController implements GetxService {
     final cartController = Get.find<CartController>();
     await cartController.clearCart();
     cartController.removeCoupon();
-  }
-
-  /// Update payment status of an existing order
-  Future<bool> updatePaymentStatus(String orderId, String paymentStatus) async {
-    try {
-      await orderRepoInterface.updatePaymentStatus(orderId, paymentStatus);
-      return true;
-    } catch (e) {
-      log('Error updating payment status: $e');
-      return false;
-    }
   }
 
   /// Fetch user's orders with current filters
@@ -346,6 +373,42 @@ class OrderController extends GetxController implements GetxService {
     await fetchOrderDetails(orderId, showLoader: false);
   }
 
+  /// Whether [order] may ask for a refund: cancelled, paid from the wallet or
+  /// by card, and not asked before. The server checks the same rule.
+  bool canRequestRefund(OrderModel order) {
+    final method = order.paymentMethod.toLowerCase();
+    return order.status.toLowerCase() == 'cancelled' &&
+        order.paymentStatus.toLowerCase() == 'paid' &&
+        (method == 'wallet' || method == 'online') &&
+        order.refundStatus.isEmpty &&
+        order.totalAmount > 0;
+  }
+
+  Future<bool> requestRefund(String orderId) async {
+    try {
+      _isRequestingRefund = true;
+      update();
+
+      await orderRepoInterface.requestRefund(orderId);
+
+      if (_selectedOrder?.id == orderId) {
+        _selectedOrder = _selectedOrder!.copyWith(refundStatus: 'requested');
+      }
+      final orderIndex = _orders.indexWhere((order) => order.id == orderId);
+      if (orderIndex != -1) {
+        _orders[orderIndex] =
+            _orders[orderIndex].copyWith(refundStatus: 'requested');
+      }
+      return true;
+    } catch (e) {
+      log('Error requesting refund: $e');
+      return false;
+    } finally {
+      _isRequestingRefund = false;
+      update();
+    }
+  }
+
   Future<bool> cancelOrder(String orderId) async {
     try {
       _isCancellingOrder = true;
@@ -372,4 +435,21 @@ class OrderController extends GetxController implements GetxService {
       return false;
     }
   }
+}
+
+/// The amounts an order is shown, confirmed and charged with.
+class OrderQuote {
+  final double total;
+  final double deliveryFee;
+  final double tax;
+  final double itemDiscount;
+  final double couponDiscount;
+
+  const OrderQuote({
+    required this.total,
+    required this.deliveryFee,
+    required this.tax,
+    required this.itemDiscount,
+    required this.couponDiscount,
+  });
 }

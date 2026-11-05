@@ -1047,5 +1047,17 @@
   "loading_ellipsis": "جارٍ التحميل...",
   "discount_amount_off": "خصم @amount",
   "update_your_account_password": "تحديث كلمة مرور حسابك",
-  "cart_item_count_other": "@count عناصر"
+  "cart_item_count_other": "@count عناصر",
+  "prices_changed_review_order": "تغيّرت بعض الأسعار في سلتك. يرجى مراجعة طلبك والمحاولة مرة أخرى.",
+  "insufficient_wallet_balance": "رصيد محفظتك غير كافٍ لهذا الطلب.",
+  "cart_item_no_longer_available": "أحد المنتجات في سلتك لم يعد متاحًا كما كان. يرجى مراجعة سلتك.",
+  "refund": "استرداد",
+  "request_refund": "طلب استرداد",
+  "request_refund_confirm": "هل تريد أن تطلب من المتجر استرداد مبلغ هذا الطلب إلى محفظتك؟",
+  "refund_available_hint": "أُلغي هذا الطلب بعد الدفع. يمكنك أن تطلب من المتجر استرداد @amount إلى محفظتك.",
+  "refund_requested_waiting": "تم إرسال طلب الاسترداد. سيراجعه المتجر قريبًا.",
+  "refund_added_to_wallet": "تم استرداد @amount إلى محفظتك.",
+  "refund_request_rejected": "رفض المتجر طلب الاسترداد هذا. يرجى التواصل مع الدعم إذا كانت لديك أسئلة.",
+  "refund_request_sent": "تم إرسال طلب الاسترداد",
+  "refund_request_failed": "تعذّر إرسال طلب الاسترداد. يرجى المحاولة مرة أخرى."
 }

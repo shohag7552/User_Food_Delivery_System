@@ -1,5 +1,6 @@
 import 'package:kikomart_user_app/app/common/widgets/auth_gate.dart';
 import 'package:kikomart_user_app/app/common/widgets/custom_appbar.dart';
+import 'package:kikomart_user_app/app/common/widgets/custom_toster.dart';
 import 'package:kikomart_user_app/app/common/widgets/custom_network_image.dart';
 import 'package:kikomart_user_app/app/common/widgets/web_footer.dart';
 import 'package:kikomart_user_app/app/common/widgets/web_top_nav.dart';
@@ -18,6 +19,7 @@ import 'package:kikomart_user_app/app/modules/reviews/widgets/deliveryman_rating
 import 'package:kikomart_user_app/app/modules/reviews/widgets/deliveryman_review_section.dart';
 import 'package:kikomart_user_app/app/modules/reviews/widgets/submit_review_bottomsheet.dart';
 import 'package:kikomart_user_app/app/modules/orders/widgets/delivery_code_card.dart';
+import 'package:kikomart_user_app/app/modules/orders/widgets/refund_request_card.dart';
 import 'package:kikomart_user_app/app/resources/colors.dart';
 import 'package:kikomart_user_app/app/helper/price_helper.dart';
 import 'package:kikomart_user_app/app/resources/constants.dart';
@@ -219,6 +221,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           const SizedBox(height: 16),
           _buildVerificationCode(order),
         ],
+        if (_shouldShowRefund(order)) ...[
+          const SizedBox(height: 16),
+          _buildRefundCard(order),
+        ],
         if (showTimeline) ...[
           const SizedBox(height: 16),
           _buildStatusTimeline(order),
@@ -282,6 +288,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       // customer needs at hand when the deliveryman arrives.
       if (_shouldShowVerificationCode(order)) ...[
         _buildVerificationCode(order),
+        const SizedBox(height: 16),
+      ],
+      if (_shouldShowRefund(order)) ...[
+        _buildRefundCard(order),
         const SizedBox(height: 16),
       ],
       if (showTimeline) ...[
@@ -1599,6 +1609,67 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       margin: EdgeInsets.symmetric(
         horizontal: isWide ? 0 : Constants.paddingSizeDefault,
       ),
+    );
+  }
+
+  /// A cancelled order paid by wallet or card can be refunded; once asked
+  /// for, the card stays to show where the request stands.
+  bool _shouldShowRefund(OrderModel order) =>
+      _orderController.canRequestRefund(order) || order.refundStatus.isNotEmpty;
+
+  Widget _buildRefundCard(OrderModel order) {
+    final isWide = MediaQuery.of(context).size.width >= _webBreakpoint;
+    return RefundRequestCard(
+      order: order,
+      canRequest: _orderController.canRequestRefund(order),
+      isBusy: _orderController.isRequestingRefund,
+      onRequest: () => _confirmRefundRequest(order),
+      margin: EdgeInsets.symmetric(
+        horizontal: isWide ? 0 : Constants.paddingSizeDefault,
+      ),
+    );
+  }
+
+  Future<void> _confirmRefundRequest(OrderModel order) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          'request_refund'.tr,
+          style: poppinsBold.copyWith(fontSize: Constants.fontSizeLarge),
+        ),
+        content: Text(
+          'request_refund_confirm'.tr,
+          style: poppinsRegular.copyWith(fontSize: Constants.fontSizeDefault),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(
+              'close'.tr,
+              style: poppinsMedium.copyWith(color: context.textSecondary),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ColorResource.primaryDark,
+            ),
+            child: Text(
+              'request_refund'.tr,
+              style: poppinsBold.copyWith(color: ColorResource.textWhite),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+
+    final success = await _orderController.requestRefund(order.id);
+    if (!mounted) return;
+    customToster(
+      success ? 'refund_request_sent'.tr : 'refund_request_failed'.tr,
+      isSuccess: success,
     );
   }
 

@@ -27,8 +27,9 @@ class PendingPayment {
   final String? deliveryType;
   final DateTime? scheduledDate;
   final String? scheduledTimeSlot;
-  final double? shippingCost;
-  final String? shippingMethod;
+  /// What the server prices the order with when the customer returns.
+  final String? couponId;
+  final String? shippingMethodId;
 
   /// Storefront the order was placed in. Carried because the return lands on
   /// a cold app, where [ModuleController.current] has not been resolved yet
@@ -85,8 +86,8 @@ class PendingPayment {
     this.deliveryType,
     this.scheduledDate,
     this.scheduledTimeSlot,
-    this.shippingCost,
-    this.shippingMethod,
+    this.couponId,
+    this.shippingMethodId,
     required this.moduleType,
     this.reference,
     this.sessionId,
@@ -110,8 +111,8 @@ class PendingPayment {
         deliveryType: deliveryType,
         scheduledDate: scheduledDate,
         scheduledTimeSlot: scheduledTimeSlot,
-        shippingCost: shippingCost,
-        shippingMethod: shippingMethod,
+        couponId: couponId,
+        shippingMethodId: shippingMethodId,
         moduleType: moduleType,
         reference: reference,
         sessionId: sessionId,
@@ -135,8 +136,8 @@ class PendingPayment {
         'delivery_type': deliveryType,
         'scheduled_date': scheduledDate?.toIso8601String(),
         'scheduled_time_slot': scheduledTimeSlot,
-        'shipping_cost': shippingCost,
-        'shipping_method': shippingMethod,
+        'coupon_id': couponId,
+        'shipping_method_id': shippingMethodId,
         'module_type': moduleType,
         'reference': reference,
         'session_id': sessionId,
@@ -167,8 +168,8 @@ class PendingPayment {
           ? DateTime.tryParse(json['scheduled_date'] as String)
           : null,
       scheduledTimeSlot: json['scheduled_time_slot'] as String?,
-      shippingCost: (json['shipping_cost'] as num?)?.toDouble(),
-      shippingMethod: json['shipping_method'] as String?,
+      couponId: json['coupon_id'] as String?,
+      shippingMethodId: json['shipping_method_id'] as String?,
       moduleType: json['module_type'] as String,
       // Absent on payloads saved by an older build — still resumable, just
       // with fewer checks (Stripe verification itself always runs).

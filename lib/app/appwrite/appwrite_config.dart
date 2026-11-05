@@ -52,6 +52,9 @@ class AppwriteConfig {
   static const String notificationsCollection = 'notifications';
   static const String privacyPolicyCollection = 'privacy_policy';
   static const String driversCollection = 'drivers';
+  /// The customer's delivery code for each order (row id = order id), kept
+  /// off the order row because delivery men can read orders.
+  static const String orderCodesCollection = 'order_codes';
   /// Customer ratings of the deliveryman who handed an order over.
   /// Kept apart from [reviewsCollection] (products) so neither table's
   /// queries or rating aggregates leak into the other.

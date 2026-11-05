@@ -111,9 +111,9 @@ class FlashSaleController extends GetxController implements GetxService {
     return null;
   }
 
-  /// Records sold quantities after a confirmed order (best effort): bumps
-  /// sold_count for every ordered product that was part of the running sale,
-  /// and mirrors the change into the cached items.
+  /// Mirrors a confirmed order into the cached items so the sold bar moves at
+  /// once. The stored sold_count is incremented by the backend function when
+  /// it places the order.
   Future<void> recordSoldItems(List<CartItemModel> orderedItems) async {
     if (!hasActiveSale) return;
 
@@ -122,10 +122,6 @@ class FlashSaleController extends GetxController implements GetxService {
       final flashItem = itemForProduct(ordered.productId);
       if (flashItem == null) continue;
 
-      await flashSaleRepoInterface.incrementSoldCount(
-        flashItem.id,
-        ordered.quantity,
-      );
       _items = [
         for (final item in _items)
           if (item.id == flashItem.id)

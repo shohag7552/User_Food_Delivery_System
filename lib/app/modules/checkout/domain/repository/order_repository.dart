@@ -1,7 +1,4 @@
 import 'dart:developer';
-// `show Random` on purpose — dart:math also exports `log`, which would collide
-// with dart:developer's logging `log` used throughout this file.
-import 'dart:math' show Random;
 import 'package:appwrite/models.dart';
 import 'package:kikomart_user_app/app/appwrite/appwrite_config.dart';
 import 'package:kikomart_user_app/app/appwrite/appwrite_service.dart';
@@ -16,150 +13,84 @@ class OrderRepository implements OrderRepoInterface {
 
   OrderRepository({required this.appwriteService});
 
-  /// Mints the order's delivery verification code — six digits the customer
-  /// reads out on the doorstep for the deliveryman to type in.
-  ///
-  /// Uses [Random.secure] rather than the default generator on purpose: the
-  /// code is the only thing standing between a parcel and the wrong person, so
-  /// it must not be predictable from other orders' codes. For the same reason
-  /// it is NOT derived from the sequential order number.
-  ///
-  /// No uniqueness check against existing orders, and none is needed: the code
-  /// is only ever checked against the one order being delivered, so two orders
-  /// sharing a code proves nothing to anybody. A round-trip to the database per
-  /// checkout would cost real latency to buy nothing.
-  String _generateDeliveryVerificationCode() {
-    final random = Random.secure();
-    return List.generate(6, (_) => random.nextInt(10)).join();
-  }
-
-  /// Generates the next sequential order number (e.g. 10001, 10002, …)
-  Future<String> _getNextOrderNumber() async {
-    try {
-      final response = await appwriteService.listTable(
-        tableId: AppwriteConfig.ordersCollection,
-        queries: [Query.limit(1)], // only need the total count
-      );
-      // response.total is the total number of documents in the collection
-      final nextNumber = 10001 + response.total;
-      return nextNumber.toString();
-    } catch (e) {
-      // Fallback: use timestamp-based if count query fails
-      final now = DateTime.now();
-      return '${now.millisecondsSinceEpoch}';
-    }
+  @override
+  Future<Map<String, dynamic>> quoteOrder({
+    required String addressId,
+    String? couponId,
+    String? shippingMethodId,
+    String? moduleType,
+  }) {
+    return appwriteService.callBackend('quote_order', {
+      'address_id': addressId,
+      'module_type': moduleType ?? ModuleController.current,
+      'coupon_id': ?couponId,
+      'shipping_method_id': ?shippingMethodId,
+    });
   }
 
   @override
   Future<Map<String, String>> createOrder({
-    required String customerId,
-    required String deliveryAddress,
-    required String orderItems,
+    required String requestId,
+    required String addressId,
+    required String paymentMethod,
     required double totalAmount,
     required double deliveryFee,
     double taxAmount = 0.0,
     double discountAmount = 0.0,
     double couponDiscount = 0.0,
-    required String paymentMethod,
-    String paymentStatus = 'unpaid',
-    String status = 'pending',
+    String? couponId,
+    String? shippingMethodId,
+    String? paymentSessionId,
+    String? paymentReference,
     String? deliveryInstructions,
     String? deliveryType,
     DateTime? scheduledDate,
     String? scheduledTimeSlot,
-    double? shippingCost,
-    String? shippingMethod,
     String? moduleType,
   }) async {
-    try {
-      // Generate sequential readable order number
-      final orderNumber = await _getNextOrderNumber();
-
-      final orderData = {
-        'customer_id': customerId,
-        'order_number': orderNumber,
-        'status': status,
-        'payment_method': paymentMethod,
-        'payment_status': paymentStatus,
-        'total_amount': totalAmount,
-        'delivery_fee': deliveryFee,
-        'tax_amount': taxAmount,
-        'discount_amount': discountAmount,
-        'coupon_discount': couponDiscount,
-        'delivery_address': deliveryAddress,
-        'order_items': orderItems,
-        // Store as an absolute UTC instant (the customer app is the writer, so
-        // the trailing 'Z' keeps it unambiguous across devices/timezones).
-        'created_at': DateTime.now().toUtc().toIso8601String(),
-        'module_type': moduleType ?? ModuleController.current,
-        // Written on every order regardless of the store's
-        // `is_order_verification_active` setting — that switch can be flipped
-        // at any time, and orders already in flight when it happens still need
-        // a code the deliveryman can check.
-        'delivery_verification_code': _generateDeliveryVerificationCode(),
-      };
-
-      // Add delivery schedule information if provided
-      if (deliveryType != null) {
-        orderData['delivery_type'] = deliveryType;
-      }
-      if (scheduledDate != null) {
-        orderData['scheduled_date'] = scheduledDate.toIso8601String();
-      }
-      if (scheduledTimeSlot != null) {
-        orderData['scheduled_time_slot'] = scheduledTimeSlot;
-      }
-      // Resolve the chosen slot to absolute UTC start/end instants (computed in
-      // the store timezone) — the machine-usable source of truth for scheduled
-      // orders. scheduled_date / scheduled_time_slot above stay only as
-      // human-readable display values.
-      if (scheduledDate != null && scheduledTimeSlot != null) {
-        final range = StoreTime.slotToUtcRange(scheduledDate, scheduledTimeSlot);
-        if (range != null) {
-          orderData['scheduled_start'] = range.start.toIso8601String();
-          orderData['scheduled_end'] = range.end.toIso8601String();
-        }
-      }
-      if (deliveryInstructions != null && deliveryInstructions.isNotEmpty) {
-        orderData['delivery_instructions'] = deliveryInstructions;
-      }
-      // Ecommerce shipping snapshot.
-      if (shippingCost != null) {
-        orderData['shipping_cost'] = shippingCost;
-      }
-      if (shippingMethod != null && shippingMethod.isNotEmpty) {
-        orderData['shipping_method'] = shippingMethod;
-      }
-
-      final row = await appwriteService.createRow(
-        collectionId: AppwriteConfig.ordersCollection,
-        data: orderData,
-      );
-
-      await appwriteService.notifyOrderPlaced(customerId, orderNumber);
-
-      return {
-        'orderId': row.$id,
-        'orderNumber': orderNumber,
-      };
-    } catch (e) {
-      log('Error creating order: $e');
-      rethrow;
+    final body = <String, dynamic>{
+      'request_id': requestId,
+      'address_id': addressId,
+      'payment_method': paymentMethod,
+      'module_type': moduleType ?? ModuleController.current,
+      'expected_total': totalAmount,
+      'expected_delivery_fee': deliveryFee,
+      'expected_tax': taxAmount,
+      'expected_item_discount': discountAmount,
+      'expected_coupon_discount': couponDiscount,
+      'coupon_id': ?couponId,
+      'shipping_method_id': ?shippingMethodId,
+      'payment_session_id': ?paymentSessionId,
+      'payment_reference': ?paymentReference,
+      'delivery_type': ?deliveryType,
+      'scheduled_date': ?scheduledDate?.toIso8601String(),
+      'scheduled_time_slot': ?scheduledTimeSlot,
+    };
+    if (deliveryInstructions != null && deliveryInstructions.isNotEmpty) {
+      body['delivery_instructions'] = deliveryInstructions;
     }
-  }
-
-  @override
-  Future<void> updatePaymentStatus(String orderId, String paymentStatus) async {
-    try {
-      await appwriteService.updateTable(
-        tableId: AppwriteConfig.ordersCollection,
-        rowId: orderId,
-        data: {'payment_status': paymentStatus},
-      );
-    } catch (e) {
-      log('Error updating payment status: $e');
-      rethrow;
+    // Resolve the chosen slot to absolute UTC start/end instants (computed in
+    // the store timezone) — the machine-usable source of truth for scheduled
+    // orders. scheduled_date / scheduled_time_slot stay only as human-readable
+    // display values.
+    if (scheduledDate != null && scheduledTimeSlot != null) {
+      final range = StoreTime.slotToUtcRange(scheduledDate, scheduledTimeSlot);
+      if (range != null) {
+        body['scheduled_start'] = range.start.toIso8601String();
+        body['scheduled_end'] = range.end.toIso8601String();
+      }
     }
+
+    final result = await appwriteService.callBackend('place_order', body);
+    final orderId = result['order_id']?.toString() ?? '';
+    final orderNumber = result['order_number']?.toString() ?? '';
+
+    final user = await appwriteService.getCurrentUser();
+    if (user != null) {
+      await appwriteService.notifyOrderPlaced(user.$id, orderNumber);
+    }
+
+    return {'orderId': orderId, 'orderNumber': orderNumber};
   }
 
   @override
@@ -221,19 +152,37 @@ class OrderRepository implements OrderRepoInterface {
 
       OrderModel order = OrderModel.fromJson(response.data);
 
-      if ((order.driverId?.isNotEmpty ?? false) && order.deliveryman == null) {
+      // The order carries the driver's name, phone and photo from the moment
+      // they accepted; their position comes from the backend, because the
+      // drivers table (every driver's earnings) is not readable by customers.
+      if ((order.driverId?.isNotEmpty ?? false) &&
+          !(order.deliveryman?.hasLocation ?? false)) {
         try {
-          final driverResponse = await appwriteService.getDocument(
-            tableId: AppwriteConfig.driversCollection,
-            rowId: order.driverId!,
-          );
-
-          final deliveryman = DeliverymanInfo.fromJson(driverResponse.data);
+          final driver = await appwriteService.callBackend('driver_summary', {
+            'driver_id': order.driverId,
+          });
+          final deliveryman = DeliverymanInfo.fromJson(driver);
           if (deliveryman.hasData) {
             order = order.copyWith(deliveryman: deliveryman);
           }
         } catch (e) {
           log('Error fetching deliveryman info: $e');
+        }
+      }
+
+      // New orders keep the delivery code in order_codes, out of drivers'
+      // sight; older ones still carry it on the order.
+      if ((order.deliveryVerificationCode ?? '').isEmpty) {
+        try {
+          final code = await appwriteService.getDocument(
+            tableId: AppwriteConfig.orderCodesCollection,
+            rowId: orderId,
+          );
+          order = order.copyWith(
+            deliveryVerificationCode: code.data['code']?.toString(),
+          );
+        } catch (_) {
+          // No code for this order (counter sales, older orders).
         }
       }
 
@@ -247,13 +196,20 @@ class OrderRepository implements OrderRepoInterface {
   @override
   Future<void> cancelOrder(String orderId) async {
     try {
-      await appwriteService.updateTable(
-        tableId: AppwriteConfig.ordersCollection,
-        rowId: orderId,
-        data: {'status': 'cancelled'},
-      );
+      // Through the backend, which allows it only while the order is pending.
+      await appwriteService.callBackend('cancel_order', {'order_id': orderId});
     } catch (e) {
       log('Error cancelling order: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> requestRefund(String orderId) async {
+    try {
+      await appwriteService.callBackend('request_refund', {'order_id': orderId});
+    } catch (e) {
+      log('Error requesting refund: $e');
       rethrow;
     }
   }
