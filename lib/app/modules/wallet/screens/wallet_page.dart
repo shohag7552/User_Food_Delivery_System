@@ -35,7 +35,12 @@ class _WalletPageState extends State<WalletPage> {
   @override
   void initState() {
     super.initState();
-    Get.find<WalletController>().loadWallet();
+    // After the first frame: loading refreshes ProfileController, whose
+    // GetBuilders (e.g. the profile page underneath) must not be rebuilt while
+    // this page is still being built.
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => Get.find<WalletController>().loadWallet(),
+    );
     _scrollController.addListener(_onScroll);
   }
 

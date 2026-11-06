@@ -16,7 +16,9 @@ class WalletController extends GetxController implements GetxService {
   static const int _pageSize = 15;
 
   List<WalletTransactionModel> _transactions = [];
-  bool _isLoading = false;
+  // True until the first load, so the page opens on a spinner rather than
+  // flashing "no transactions" for the frame before loading starts.
+  bool _isLoading = true;
   bool _isLoadingMore = false;
   bool _hasMore = true;
 
@@ -37,6 +39,7 @@ class WalletController extends GetxController implements GetxService {
     if (!isUserLoggedIn()) {
       _transactions = [];
       _hasMore = false;
+      _isLoading = false;
       update();
       return;
     }

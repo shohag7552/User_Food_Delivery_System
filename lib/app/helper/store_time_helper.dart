@@ -49,9 +49,13 @@ class StoreTime {
         .subtract(offset);
   }
 
-  /// Formats a UTC [instant] in the store's timezone with [pattern].
-  static String format(DateTime instant, String pattern) =>
-      DateFormat(pattern).format(toStore(instant));
+  /// Formats a UTC [instant] in the store's timezone with [pattern]. Pass a
+  /// [locale] (e.g. `Get.locale?.languageCode`) for translated month names and
+  /// AM/PM; without one it formats in English. Digits stay Western in every
+  /// language, matching how prices are shown.
+  static String format(DateTime instant, String pattern, {String? locale}) =>
+      (DateFormat(pattern, locale)..useNativeDigits = false)
+          .format(toStore(instant));
 
   /// Resolves a delivery slot — a store wall-clock [date] plus a label like
   /// "10:00 AM - 11:00 AM" — into an absolute UTC start/end range. Slot labels

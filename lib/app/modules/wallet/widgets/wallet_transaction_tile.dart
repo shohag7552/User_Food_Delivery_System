@@ -57,6 +57,7 @@ class WalletTransactionTile extends StatelessWidget {
                   StoreTime.format(
                     transaction.createdAt,
                     'dd MMM yyyy, hh:mm a',
+                    locale: Get.locale?.languageCode,
                   ),
                   style: poppinsRegular.copyWith(
                     fontSize: Constants.fontSizeSmall,
