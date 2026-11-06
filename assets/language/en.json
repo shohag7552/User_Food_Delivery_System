@@ -1059,5 +1059,22 @@
   "refund_added_to_wallet": "@amount has been refunded to your wallet.",
   "refund_request_rejected": "The store declined this refund request. Please contact support if you have questions.",
   "refund_request_sent": "Refund request sent",
-  "refund_request_failed": "Could not send the refund request. Please try again."
+  "refund_request_failed": "Could not send the refund request. Please try again.",
+  "my_wallet": "My Wallet",
+  "wallet_menu_subtitle": "Balance and transactions",
+  "wallet_balance": "Wallet balance",
+  "wallet_balance_hint": "Use it to pay for orders at checkout. Refunds and converted loyalty points are added here.",
+  "wallet_transactions": "Transactions",
+  "wallet_transactions_subtitle": "Every payment, refund and top-up on your wallet",
+  "failed_to_load_wallet": "Could not load your wallet. Please try again.",
+  "no_wallet_transactions_yet": "No transactions yet",
+  "no_wallet_transactions_message": "Wallet payments, refunds and converted loyalty points will appear here.",
+  "wallet_tx_order_payment": "Payment for order #@number",
+  "wallet_tx_order_payment_plain": "Order payment",
+  "wallet_tx_order_refund": "Refund for order #@number",
+  "wallet_tx_order_refund_plain": "Order refund",
+  "wallet_tx_loyalty_conversion": "Loyalty points converted",
+  "wallet_tx_added_by_store": "Added by the store",
+  "wallet_tx_deducted_by_store": "Deducted by the store",
+  "wallet_transaction": "Wallet transaction"
 }

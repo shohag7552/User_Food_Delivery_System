@@ -60,6 +60,9 @@ class AppwriteConfig {
   /// queries or rating aggregates leak into the other.
   static const String deliverymanReviewsCollection = 'deliveryman_reviews';
   static const String loyaltyHistoryCollection = 'loyalty_history';
+  /// Wallet history (one row per balance change). Written by the backend
+  /// function and the store; each row is readable by its customer only.
+  static const String walletTransactionsCollection = 'wallet_transactions';
 
   // Ecommerce module collections
   static const String brandsCollection = 'brands';

@@ -1059,5 +1059,22 @@
   "refund_added_to_wallet": "@amount আপনার ওয়ালেটে ফেরত দেওয়া হয়েছে।",
   "refund_request_rejected": "স্টোর এই রিফান্ডের অনুরোধটি গ্রহণ করেনি। কোনো প্রশ্ন থাকলে সাপোর্টে যোগাযোগ করুন।",
   "refund_request_sent": "রিফান্ডের অনুরোধ পাঠানো হয়েছে",
-  "refund_request_failed": "রিফান্ডের অনুরোধ পাঠানো যায়নি। আবার চেষ্টা করুন।"
+  "refund_request_failed": "রিফান্ডের অনুরোধ পাঠানো যায়নি। আবার চেষ্টা করুন।",
+  "my_wallet": "আমার ওয়ালেট",
+  "wallet_menu_subtitle": "ব্যালেন্স ও লেনদেন",
+  "wallet_balance": "ওয়ালেট ব্যালেন্স",
+  "wallet_balance_hint": "চেকআউটে অর্ডারের পেমেন্টে ব্যবহার করুন। রিফান্ড ও রূপান্তরিত লয়্যালটি পয়েন্ট এখানে যোগ হয়।",
+  "wallet_transactions": "লেনদেন",
+  "wallet_transactions_subtitle": "আপনার ওয়ালেটের সব পেমেন্ট, রিফান্ড ও টপ-আপ",
+  "failed_to_load_wallet": "আপনার ওয়ালেট লোড করা যায়নি। আবার চেষ্টা করুন।",
+  "no_wallet_transactions_yet": "এখনও কোনো লেনদেন নেই",
+  "no_wallet_transactions_message": "ওয়ালেট পেমেন্ট, রিফান্ড ও রূপান্তরিত লয়্যালটি পয়েন্ট এখানে দেখাবে।",
+  "wallet_tx_order_payment": "অর্ডার #@number এর পেমেন্ট",
+  "wallet_tx_order_payment_plain": "অর্ডার পেমেন্ট",
+  "wallet_tx_order_refund": "অর্ডার #@number এর রিফান্ড",
+  "wallet_tx_order_refund_plain": "অর্ডার রিফান্ড",
+  "wallet_tx_loyalty_conversion": "লয়্যালটি পয়েন্ট রূপান্তর",
+  "wallet_tx_added_by_store": "স্টোর যোগ করেছে",
+  "wallet_tx_deducted_by_store": "স্টোর কেটে নিয়েছে",
+  "wallet_transaction": "ওয়ালেট লেনদেন"
 }

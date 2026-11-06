@@ -177,6 +177,14 @@ class _ProfilePageState extends State<ProfilePage> {
                               }),
                             ),
                             _ProfileOption(
+                              icon: Icons.account_balance_wallet_outlined,
+                              title: 'my_wallet'.tr,
+                              subtitle: 'wallet_menu_subtitle'.tr,
+                              onTap: _authGuard(isLoggedIn, () {
+                                context.pushNamed(RouteNames.wallet);
+                              }),
+                            ),
+                            _ProfileOption(
                               icon: Icons.card_giftcard_outlined,
                               title: 'loyalty_points'.tr,
                               subtitle: 'earn_and_redeem_points'.tr,
