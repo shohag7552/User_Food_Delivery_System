@@ -28,6 +28,10 @@ class OrderModel {
   final double shippingCost;
   final String? shippingMethod;
   final String? trackingNumber;
+
+  /// Refund request on a cancelled, paid order: '' (none), 'requested',
+  /// 'refunded' or 'rejected'. Written only by the backend function.
+  final String refundStatus;
   final String? courierName;
 
   /// 6-digit code the customer reads out on the doorstep so the deliveryman
@@ -60,6 +64,7 @@ class OrderModel {
     this.shippingCost = 0.0,
     this.shippingMethod,
     this.trackingNumber,
+    this.refundStatus = '',
     this.courierName,
     this.deliveryVerificationCode,
   });
@@ -99,6 +104,7 @@ class OrderModel {
       shippingCost: (json['shipping_cost'] as num?)?.toDouble() ?? 0.0,
       shippingMethod: json['shipping_method'] as String?,
       trackingNumber: json['tracking_number'] as String?,
+      refundStatus: json['refund_status']?.toString() ?? '',
       courierName: json['courier_name'] as String?,
       deliveryVerificationCode:
           json['delivery_verification_code'] as String?,
@@ -130,6 +136,7 @@ class OrderModel {
     double? shippingCost,
     String? shippingMethod,
     String? trackingNumber,
+    String? refundStatus,
     String? courierName,
     String? deliveryVerificationCode,
   }) {
@@ -158,6 +165,7 @@ class OrderModel {
       shippingCost: shippingCost ?? this.shippingCost,
       shippingMethod: shippingMethod ?? this.shippingMethod,
       trackingNumber: trackingNumber ?? this.trackingNumber,
+      refundStatus: refundStatus ?? this.refundStatus,
       courierName: courierName ?? this.courierName,
       deliveryVerificationCode:
           deliveryVerificationCode ?? this.deliveryVerificationCode,

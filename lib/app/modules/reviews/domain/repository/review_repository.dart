@@ -105,43 +105,14 @@ class ReviewRepository implements ReviewRepoInterface {
   @override
   Future<ReviewModel> toggleHelpful(String reviewId, String userId) async {
     try {
-      final response = await appwriteService.listTable(
-        tableId: AppwriteConfig.reviewsCollection,
-        queries: [
-          Query.equal('\$id', reviewId),
-          Query.limit(1),
-        ],
+      // Through the backend: marking a review helpful writes someone else's
+      // review row, which customers may no longer edit. The server toggles the
+      // signed-in user and keeps the count derived from the list.
+      final updated = await appwriteService.callBackend(
+        'toggle_review_helpful',
+        {'review_id': reviewId},
       );
-
-      if (response.rows.isEmpty) {
-        throw Exception('Review not found');
-      }
-
-      final reviewData = response.rows.first.data;
-      final helpfulUserIds = (reviewData['helpful_user_ids'] is List)
-          ? List<String>.from(
-              (reviewData['helpful_user_ids'] as List).map((e) => e.toString()),
-            )
-          : <String>[];
-
-      // Toggle this user's membership.
-      if (helpfulUserIds.contains(userId)) {
-        helpfulUserIds.remove(userId);
-      } else {
-        helpfulUserIds.add(userId);
-      }
-
-      // Keep the count derived from the list so they never drift apart.
-      final updated = await appwriteService.updateTable(
-        tableId: AppwriteConfig.reviewsCollection,
-        rowId: reviewId,
-        data: {
-          'helpful_user_ids': helpfulUserIds,
-          'helpful_count': helpfulUserIds.length,
-        },
-      );
-
-      return ReviewModel.fromJson(updated.data);
+      return ReviewModel.fromJson(updated);
     } catch (e) {
       log('Error toggling review helpful: $e');
       rethrow;

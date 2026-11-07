@@ -113,6 +113,15 @@ class _WebProfileDrawerState extends State<WebProfileDrawer> {
                       }),
                     ),
                     _item(
+                      icon: Icons.account_balance_wallet_outlined,
+                      title: 'my_wallet'.tr,
+                      subtitle: 'wallet_menu_subtitle'.tr,
+                      onTap: _authGuard(isLoggedIn, () {
+                        _close();
+                        context.pushNamed(RouteNames.wallet);
+                      }),
+                    ),
+                    _item(
                       icon: Icons.card_giftcard_outlined,
                       title: 'loyalty_points'.tr,
                       subtitle: 'earn_and_redeem_points'.tr,

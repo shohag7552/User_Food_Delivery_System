@@ -1,15 +1,17 @@
 import 'dart:async';
 
+import 'package:kikomart_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:kikomart_user_app/app/common/widgets/custom_button.dart';
 import 'package:kikomart_user_app/app/common/widgets/custom_toster.dart';
 import 'package:kikomart_user_app/app/controllers/auth_controller.dart';
 import 'package:kikomart_user_app/app/helper/routes/app_router.dart';
+import 'package:kikomart_user_app/app/modules/auth/widgets/auth_back_button.dart';
 import 'package:kikomart_user_app/app/modules/auth/widgets/auth_field_decoration.dart';
+import 'package:kikomart_user_app/app/modules/auth/widgets/auth_header.dart';
 import 'package:kikomart_user_app/app/modules/auth/widgets/auth_status_panel.dart';
 import 'package:kikomart_user_app/app/modules/auth/widgets/reset_code_field.dart';
 import 'package:kikomart_user_app/app/resources/colors.dart';
 import 'package:kikomart_user_app/app/resources/constants.dart';
-import 'package:kikomart_user_app/app/resources/images.dart';
 import 'package:kikomart_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -33,7 +35,6 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     with SingleTickerProviderStateMixin {
   static const double _maxContentWidth = 440;
-  static const double _logoSize = 76;
 
   /// Appwrite rate-limits `POST /account/recovery`; a cooldown keeps an
   /// impatient user from turning that into a confusing 429.
@@ -166,6 +167,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     _codeController.clear();
   }
 
+  void _backToSignIn() => goBackToSignIn(context);
+
   void _changeEmail() {
     Get.find<AuthController>().clearCodeReset();
     _codeController.clear();
@@ -174,8 +177,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Same breakpoint and chrome as the sign-in page: an app bar on phones,
+    // a round back button on wide screens.
+    final isWide = MediaQuery.of(context).size.width >= 900;
+
     return Scaffold(
       backgroundColor: context.scaffoldBackground,
+      appBar: isWide
+          ? null
+          : CustomAppbar(
+              title: 'forgot_password'.tr,
+              onBackButtonPressed: _backToSignIn,
+            ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -193,7 +206,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (context.canPop()) _buildBackButton(),
+                      if (isWide) const AuthBackButton(),
                       _buildHeader(),
                       const SizedBox(height: Constants.paddingSizeExtraLarge),
                       _buildBody(),
@@ -208,18 +221,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     );
   }
 
-  Widget _buildBackButton() {
-    return Align(
-      alignment: AlignmentDirectional.centerStart,
-      child: IconButton(
-        onPressed: () => context.pop(),
-        icon: const Icon(Icons.arrow_back_rounded),
-        color: context.textPrimary,
-        tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-      ),
-    );
-  }
-
   Widget _buildBody() {
     if (_emailSent) return _buildSentPanel();
     return switch (_codeStep) {
@@ -228,11 +229,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     };
   }
 
-  /// Title + subtitle for the current step.
-  (String, String?) get _headerText => switch (_codeStep) {
-    _ when _emailSent => ('forgot_password'.tr, null),
+  /// Title + subtitle for the current step. The page name is already in the
+  /// app bar, so the heading says what to do (as "Welcome back" does on the
+  /// sign-in page). The "check your inbox" panel has its own title.
+  (String?, String?) get _headerText => switch (_codeStep) {
+    _ when _emailSent => (null, null),
     _CodeStep.email => (
-      'forgot_password'.tr,
+      'reset_your_password'.tr,
       Get.find<AuthController>().usesEmailCodeReset
           ? 'forgot_password_code_subtitle'.tr
           : 'forgot_password_subtitle'.tr,
@@ -245,40 +248,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
 
   Widget _buildHeader() {
     final (title, subtitle) = _headerText;
-    return Column(
-      children: [
-        const SizedBox(height: Constants.paddingSizeSmall),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
-          child: Image.asset(
-            Images.logo,
-            width: _logoSize,
-            height: _logoSize,
-            fit: BoxFit.cover,
-          ),
-        ),
-        const SizedBox(height: Constants.paddingSizeLarge),
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: poppinsBold.copyWith(
-            fontSize: Constants.fontSizeOverLarge,
-            color: context.textPrimary,
-          ),
-        ),
-        if (subtitle != null) ...[
-          const SizedBox(height: Constants.paddingSizeExtraSmall),
-          Text(
-            subtitle,
-            textAlign: TextAlign.center,
-            style: poppinsRegular.copyWith(
-              fontSize: Constants.fontSizeDefault,
-              color: context.textSecondary,
-            ),
-          ),
-        ],
-      ],
-    );
+    return AuthHeader(title: title, subtitle: subtitle);
   }
 
   Widget _buildForm() {
@@ -336,7 +306,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
             const SizedBox(height: Constants.paddingSizeDefault),
             Center(
               child: TextButton(
-                onPressed: () => context.pop(),
+                onPressed: _backToSignIn,
                 style: TextButton.styleFrom(
                   foregroundColor: ColorResource.primaryDark,
                 ),
@@ -366,7 +336,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
       message: 'reset_link_sent_to'.trParams({'email': _sentToEmail}),
       footnote: 'reset_link_expires_in_one_hour'.tr,
       primaryLabel: 'back_to_sign_in'.tr,
-      onPrimary: () => context.pop(),
+      onPrimary: _backToSignIn,
       secondaryLabel: cooling
           ? 'resend_in_seconds'.trParams({'seconds': '$_resendIn'})
           : 'resend_reset_link'.tr,

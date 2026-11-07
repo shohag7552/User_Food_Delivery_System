@@ -10,7 +10,4 @@ abstract class FlashSaleRepoInterface {
   /// Items of [flashSaleId] with their products hydrated. Items whose product
   /// is missing or unavailable are dropped.
   Future<List<FlashSaleItemModel>> getFlashSaleItems(String flashSaleId);
-
-  /// Adds [quantity] to the item's sold_count (read-then-write, best effort).
-  Future<void> incrementSoldCount(String itemId, int quantity);
 }

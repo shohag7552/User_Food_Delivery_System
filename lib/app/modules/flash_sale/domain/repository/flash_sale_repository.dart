@@ -88,23 +88,4 @@ class FlashSaleRepository implements FlashSaleRepoInterface {
       rethrow;
     }
   }
-
-  @override
-  Future<void> incrementSoldCount(String itemId, int quantity) async {
-    try {
-      final row = await appwriteService.getDocument(
-        tableId: AppwriteConfig.flashSaleItemsCollection,
-        rowId: itemId,
-      );
-      final current = (row.data['sold_count'] as num?)?.toInt() ?? 0;
-      await appwriteService.updateTable(
-        tableId: AppwriteConfig.flashSaleItemsCollection,
-        rowId: itemId,
-        data: {'sold_count': current + quantity},
-      );
-    } catch (e) {
-      // Best effort — a failed counter must never surface to the order flow.
-      log('Error incrementing flash sale sold_count: $e');
-    }
-  }
 }

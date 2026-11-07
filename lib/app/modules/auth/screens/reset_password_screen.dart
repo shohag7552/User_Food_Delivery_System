@@ -5,10 +5,10 @@ import 'package:kikomart_user_app/app/common/widgets/custom_toster.dart';
 import 'package:kikomart_user_app/app/controllers/auth_controller.dart';
 import 'package:kikomart_user_app/app/helper/routes/app_router.dart';
 import 'package:kikomart_user_app/app/modules/auth/widgets/auth_field_decoration.dart';
+import 'package:kikomart_user_app/app/modules/auth/widgets/auth_header.dart';
 import 'package:kikomart_user_app/app/modules/auth/widgets/auth_status_panel.dart';
 import 'package:kikomart_user_app/app/resources/colors.dart';
 import 'package:kikomart_user_app/app/resources/constants.dart';
-import 'package:kikomart_user_app/app/resources/images.dart';
 import 'package:kikomart_user_app/app/resources/text_style.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -38,7 +38,6 @@ class ResetPasswordScreen extends StatefulWidget {
 
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   static const double _maxContentWidth = 440;
-  static const double _logoSize = 76;
 
   /// Appwrite's server-side minimum. The sign-in form accepts 6 because older
   /// accounts may have shorter passwords, but anything under 8 is rejected
@@ -199,40 +198,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   Widget _buildHeader() {
     final showSubtitle =
         _hasCredentials && !_done && !_checkingMode && !_linksDisabled;
-
-    return Column(
-      children: [
-        const SizedBox(height: Constants.paddingSizeLarge),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(Constants.radiusExtraLarge),
-          child: Image.asset(
-            Images.logo,
-            width: _logoSize,
-            height: _logoSize,
-            fit: BoxFit.cover,
-          ),
-        ),
-        if (showSubtitle) ...[
-          const SizedBox(height: Constants.paddingSizeLarge),
-          Text(
-            'reset_your_password'.tr,
-            textAlign: TextAlign.center,
-            style: poppinsBold.copyWith(
-              fontSize: Constants.fontSizeOverLarge,
-              color: context.textPrimary,
-            ),
-          ),
-          const SizedBox(height: Constants.paddingSizeExtraSmall),
-          Text(
-            'reset_password_subtitle'.tr,
-            textAlign: TextAlign.center,
-            style: poppinsRegular.copyWith(
-              fontSize: Constants.fontSizeDefault,
-              color: context.textSecondary,
-            ),
-          ),
-        ],
-      ],
+    return AuthHeader(
+      title: showSubtitle ? 'reset_your_password'.tr : null,
+      subtitle: showSubtitle ? 'reset_password_subtitle'.tr : null,
     );
   }
 

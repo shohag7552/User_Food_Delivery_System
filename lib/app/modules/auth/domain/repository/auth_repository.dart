@@ -72,11 +72,7 @@ class AuthRepository implements AuthRepoInterface {
     final user = await appwriteService.getCurrentUser();
     if (user != null) {
       try {
-        await appwriteService.updateTable(
-          tableId: AppwriteConfig.usersCollection,
-          rowId: user.$id,
-          data: {'is_active': false},
-        );
+        await appwriteService.updateOwnProfile({'is_active': false});
       } catch (_) {
         // Non-fatal: proceed to block the auth account regardless.
       }
@@ -108,11 +104,7 @@ class AuthRepository implements AuthRepoInterface {
         // never turn a successful login into a failure.
         try {
           String? fcmToken = await _getDeviceToken();
-          await appwriteService.updateTable(
-            tableId: AppwriteConfig.usersCollection,
-            rowId: userId,
-            data: {'fcm_token': fcmToken},
-          );
+          await appwriteService.updateOwnProfile({'fcm_token': fcmToken});
 
           if (fcmToken != null) {
             await appwriteService.setupMessaging(fcmToken: fcmToken);
@@ -304,11 +296,7 @@ class AuthRepository implements AuthRepoInterface {
 
     // Best-effort push registration, exactly as after a password login.
     try {
-      await appwriteService.updateTable(
-        tableId: AppwriteConfig.usersCollection,
-        rowId: userId,
-        data: {'fcm_token': fcmToken},
-      );
+      await appwriteService.updateOwnProfile({'fcm_token': fcmToken});
       if (fcmToken != null) {
         await appwriteService.setupMessaging(fcmToken: fcmToken);
       }

@@ -210,7 +210,9 @@ class _PaymentReturnPageState extends State<PaymentReturnPage> {
     _show(_ReturnState.working, 'finishing_your_order');
     final orderController = Get.find<OrderController>();
     final result = await orderController.placeOrder(
-      customerId: pending.customerId,
+      // The checkout's payment reference is the attempt id, so a reload of
+      // this page returns the order already placed instead of a second one.
+      requestId: pending.reference ?? sessionId,
       address: pending.address,
       cartItems: pending.cartItems,
       totalAmount: pending.totalAmount,
@@ -219,13 +221,15 @@ class _PaymentReturnPageState extends State<PaymentReturnPage> {
       discountAmount: pending.discountAmount,
       couponDiscount: pending.couponDiscount,
       paymentMethod: pending.paymentMethod,
-      paymentStatus: 'paid',
+      // The server checks this session with the payment function itself.
+      paymentSessionId: sessionId,
+      paymentReference: pending.reference,
+      couponId: pending.couponId,
+      shippingMethodId: pending.shippingMethodId,
       deliveryInstructions: pending.deliveryInstructions,
       deliveryType: pending.deliveryType,
       scheduledDate: pending.scheduledDate,
       scheduledTimeSlot: pending.scheduledTimeSlot,
-      shippingCost: pending.shippingCost,
-      shippingMethod: pending.shippingMethod,
       moduleType: pending.moduleType,
     );
 

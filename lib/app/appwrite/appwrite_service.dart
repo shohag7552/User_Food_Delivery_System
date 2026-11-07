@@ -5,6 +5,7 @@ import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/enums.dart';
 import 'package:appwrite/models.dart';
 import 'package:kikomart_user_app/app/appwrite/appwrite_config.dart';
+import 'package:kikomart_user_app/app/appwrite/backend_exception.dart';
 import 'package:kikomart_user_app/app/common/widgets/custom_toster.dart';
 import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:get/get.dart';
@@ -54,7 +55,15 @@ class AppwriteService {
         tableId: collectionId,
         rowId: documentId ?? ID.unique(),
         data: data,
-        permissions: permissions ?? [Permission.write(Role.user(user.$id))],
+        // Only the signed-in customer — read included: tables no longer let
+        // every signed-in user read every row.
+        permissions:
+            permissions ??
+            [
+              Permission.read(Role.user(user.$id)),
+              Permission.update(Role.user(user.$id)),
+              Permission.delete(Role.user(user.$id)),
+            ],
       );
     } on AppwriteException catch (e) {
       log('===> AppwriteException: ${e.response}');
@@ -216,46 +225,65 @@ class AppwriteService {
     }
   }
 
-  Future<Row> createUserDocument({
+  /// Creates the signed-in customer's `users` row if it does not exist yet.
+  ///
+  /// Through the backend function: the row holds the wallet, loyalty points
+  /// and role, so customers can read it but not write it. The server takes the
+  /// email from the account and starts every money field at zero.
+  Future<void> createUserDocument({
     required String userId,
     required String name,
     required String email,
     required String phone,
-    String role = 'customer',
     String? fcmToken,
   }) async {
-    try {
-      log('====> Creating user document for: $email');
+    log('====> Creating user document for: $email');
+    await callBackend('ensure_profile', {
+      'name': name,
+      'phone': phone,
+      'fcm_token': ?fcmToken,
+    });
+  }
 
-      return await databases.createRow(
-        databaseId: AppwriteConfig.databaseId,
-        tableId: AppwriteConfig.usersCollection,
-        rowId: userId,
-        data: {
-          'name': name,
-          'email': email,
-          'phone': phone,
-          'role': role,
-          'wallet_balance': 0.0,
-          'loyalty_points': 0,
-          'fcm_token': fcmToken,
-          // 'is_active': true,
-        },
-        // permissions: [
-        //   Permission.read(Role.user(userId)),
-        //   Permission.write(Role.user(userId)),
-        //   Permission.update(Role.user(userId)),
-        //   // Permission.read(Role.team('admin_team')),
-        //   // Permission.update(Role.team('admin_team')),
-        // ],
+  /// Writes the allowed fields of the signed-in customer's own `users` row
+  /// (name, phone, profile_image_url, fcm_token; is_active only to false).
+  /// Returns the updated row's data.
+  Future<Map<String, dynamic>> updateOwnProfile(Map<String, dynamic> data) =>
+      callBackend('update_profile', {'data': data});
+
+  /// Runs [action] on the backend function — the same function as push
+  /// notifications — which does what a customer may not write directly:
+  /// placing and cancelling orders, the wallet and loyalty points, and their
+  /// own profile row.
+  ///
+  /// Returns the action's `data`. Throws [BackendException] when the server
+  /// refuses, with its reason code.
+  Future<Map<String, dynamic>> callBackend(
+    String action, [
+    Map<String, dynamic> body = const {},
+  ]) async {
+    final execution = await functions.createExecution(
+      functionId: AppwriteConfig.notificationFunctionId,
+      body: jsonEncode({...body, 'action': action}),
+    );
+    final Map<String, dynamic> result;
+    try {
+      result = jsonDecode(execution.responseBody) as Map<String, dynamic>;
+    } catch (_) {
+      throw BackendException(
+        'server_error',
+        'Unreadable response (status ${execution.responseStatusCode})',
       );
-    } on AppwriteException catch (e) {
-      log('===> AppWriteException: ${e.code} ${e.message} ${e.response}');
-      rethrow;
-    } catch (e) {
-      log('Create user document error: $e');
-      rethrow;
     }
+    if (result['success'] == true) {
+      return Map<String, dynamic>.from(result['data'] as Map? ?? const {});
+    }
+    final error = result['error'];
+    throw BackendException(
+      error is Map ? (error['code']?.toString() ?? 'server_error') : 'server_error',
+      error is Map ? (error['message']?.toString() ?? '') : '$error',
+      details: error is Map ? Map<String, dynamic>.from(error) : const {},
+    );
   }
 
   Future<String?> signIn({

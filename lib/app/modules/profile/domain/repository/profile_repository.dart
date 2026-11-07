@@ -37,12 +37,9 @@ class ProfileRepository implements ProfileRepoInterface {
   @override
   Future<UserModel> updateProfile(UserModel user) async {
     try {
-      // Update user document
-      final response = await appwriteService.updateTable(
-        tableId: AppwriteConfig.usersCollection,
-        rowId: user.id,
-        data: user.toJson(),
-      );
+      // Through the backend: the row also holds the wallet and loyalty points,
+      // so only the profile fields of this map are written.
+      final updated = await appwriteService.updateOwnProfile(user.toJson());
 
       // Also update the account name if it changed
       try {
@@ -51,7 +48,7 @@ class ProfileRepository implements ProfileRepoInterface {
         log('Warning: Could not update account name: $e');
       }
 
-      return UserModel.fromJson(response.data);
+      return UserModel.fromJson(updated);
     } catch (e) {
       log('Error updating profile: $e');
       rethrow;
@@ -65,44 +62,6 @@ class ProfileRepository implements ProfileRepoInterface {
       return imageUrl;
     } catch (e) {
       log('Error uploading profile image: $e');
-      rethrow;
-    }
-  }
-
-  @override
-  Future<UserModel> deductWalletBalance(double amount) async {
-    try {
-      // Get current user
-      User? user = await appwriteService.getCurrentUser();
-      if (user == null) {
-        throw Exception('User not logged in');
-      }
-
-      // Fetch current wallet balance from database
-      final response = await appwriteService.getDocument(
-        tableId: AppwriteConfig.usersCollection,
-        rowId: user.$id,
-      );
-
-      final currentUser = UserModel.fromJson(response.data);
-      final currentBalance = currentUser.walletBalance;
-
-      if (currentBalance < amount) {
-        throw Exception('Insufficient wallet balance');
-      }
-
-      final newBalance = currentBalance - amount;
-
-      // Update only the wallet_balance field in Appwrite
-      final updatedResponse = await appwriteService.updateTable(
-        tableId: AppwriteConfig.usersCollection,
-        rowId: user.$id,
-        data: {'wallet_balance': newBalance},
-      );
-
-      return UserModel.fromJson(updatedResponse.data);
-    } catch (e) {
-      log('Error deducting wallet balance: $e');
       rethrow;
     }
   }

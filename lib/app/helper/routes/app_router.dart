@@ -35,6 +35,7 @@ import 'package:kikomart_user_app/app/modules/favorites/screens/favorites_screen
 import 'package:kikomart_user_app/app/modules/flash_sale/screens/flash_sale_screen.dart';
 import 'package:kikomart_user_app/app/modules/language/screens/language_screen.dart';
 import 'package:kikomart_user_app/app/modules/loyalty_point/screens/loyalty_points_page.dart';
+import 'package:kikomart_user_app/app/modules/wallet/screens/wallet_page.dart';
 import 'package:kikomart_user_app/app/modules/notification/screens/notification_screen.dart';
 import 'package:kikomart_user_app/app/modules/orders/screens/order_delivery_map_page.dart';
 import 'package:kikomart_user_app/app/modules/orders/screens/order_detail_page.dart';
@@ -92,6 +93,7 @@ abstract class RouteNames {
   static const favorites = 'favorites';
   static const notifications = 'notifications';
   static const loyalty = 'loyalty-points';
+  static const wallet = 'wallet';
   static const language = 'language';
   static const coupons = 'coupons';
   static const couponDetails = 'coupon-details';
@@ -252,6 +254,7 @@ abstract class AppRouter {
   static const String favorites = '/favorites';
   static const String notifications = '/notifications';
   static const String loyalty = '/loyalty-points';
+  static const String wallet = '/wallet';
   static const String language = '/language';
   static const String coupons = '/coupons';
   static const String couponDetailsPath = '/coupons/:id';
@@ -516,6 +519,11 @@ abstract class AppRouter {
         path: loyalty,
         name: RouteNames.loyalty,
         builder: (context, state) => const LoyaltyPointsPage(),
+      ),
+      GoRoute(
+        path: wallet,
+        name: RouteNames.wallet,
+        builder: (context, state) => const WalletPage(),
       ),
       GoRoute(
         path: language,

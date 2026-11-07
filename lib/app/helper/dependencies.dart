@@ -28,6 +28,7 @@ import 'package:kikomart_user_app/app/controllers/review_controller.dart';
 import 'package:kikomart_user_app/app/controllers/deliveryman_review_controller.dart';
 import 'package:kikomart_user_app/app/controllers/notification_controller.dart';
 import 'package:kikomart_user_app/app/controllers/loyalty_controller.dart';
+import 'package:kikomart_user_app/app/controllers/wallet_controller.dart';
 import 'package:kikomart_user_app/app/modules/auth/domain/repository/auth_repo_interface.dart';
 import 'package:kikomart_user_app/app/modules/auth/domain/repository/auth_repository.dart';
 import 'package:kikomart_user_app/app/modules/categories/domain/repository/category_repo_interface.dart';
@@ -58,6 +59,8 @@ import 'package:kikomart_user_app/app/modules/notification/domain/repository/not
 import 'package:kikomart_user_app/app/modules/notification/domain/repository/notification_repository.dart';
 import 'package:kikomart_user_app/app/modules/loyalty_point/domain/repository/loyalty_repo_interface.dart';
 import 'package:kikomart_user_app/app/modules/loyalty_point/domain/repository/loyalty_repository.dart';
+import 'package:kikomart_user_app/app/modules/wallet/domain/repository/wallet_repo_interface.dart';
+import 'package:kikomart_user_app/app/modules/wallet/domain/repository/wallet_repository.dart';
 import 'package:kikomart_user_app/app/modules/splash/domain/repository/splash_repo_interface.dart';
 import 'package:kikomart_user_app/app/modules/splash/domain/repository/splash_repository.dart';
 import 'package:kikomart_user_app/app/modules/policies/domain/repository/policy_repo_interface.dart';
@@ -179,6 +182,11 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
   );
   Get.lazyPut(() => loyaltyRepoInterface);
 
+  WalletRepoInterface walletRepoInterface = WalletRepository(
+    appwriteService: Get.find(),
+  );
+  Get.lazyPut(() => walletRepoInterface);
+
   /// Controller Initialization
   // Fly-to-cart animation exists on Android/iOS only (never on web).
   if (CartAnimationController.isSupported) {
@@ -209,6 +217,7 @@ Future<Map<String, Map<String, String>>> initializeDependencies() async {
     () => NotificationController(notificationRepoInterface: Get.find()),
   );
   Get.lazyPut(() => LoyaltyController(loyaltyRepoInterface: Get.find()));
+  Get.lazyPut(() => WalletController(walletRepoInterface: Get.find()));
   Get.lazyPut(() => SplashController(splashRepositoryInterface: Get.find()));
   Get.lazyPut(() => PolicyController(policyRepoInterface: Get.find()));
   Get.lazyPut(() => UpdateController());

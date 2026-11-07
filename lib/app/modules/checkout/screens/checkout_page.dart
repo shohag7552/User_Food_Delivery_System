@@ -1937,6 +1937,32 @@ class _CheckoutPageState extends State<CheckoutPage> {
       return;
     }
 
+    // ─── The price: once the store's server prices orders, its figures are
+    // the ones shown in the confirmation, charged and paid — a cart line keeps
+    // the price it was added at, which a sale ending can make stale. ───
+    final quote = await Get.find<OrderController>().quoteOrder(
+      address: _selectedAddress!,
+      couponId: cartController.appliedCoupon?.id,
+      shippingMethodId: _showsShipping ? _selectedShipping?.id : null,
+      fallback: OrderQuote(
+        total: total,
+        deliveryFee: deliveryFee,
+        tax: taxAmount,
+        itemDiscount: cartController.itemDiscountTotal,
+        couponDiscount: cartController.discountAmount,
+      ),
+    );
+    if (quote == null) {
+      customToster(
+        Get.find<OrderController>().quoteError ?? 'failed_to_place_order'.tr,
+        isSuccess: false,
+      );
+      return;
+    }
+    total = quote.total;
+    deliveryFee = quote.deliveryFee;
+    taxAmount = quote.tax;
+
     // ─── Wallet: pre-validate balance before confirmation dialog ───
     if (_selectedPaymentMethod == PaymentMethod.wallet) {
       final profileController = Get.find<ProfileController>();
@@ -1998,16 +2024,23 @@ class _CheckoutPageState extends State<CheckoutPage> {
         throw _OrderError('login_required'.tr);
       }
 
-      final itemDiscountTotal = cartController.itemDiscountTotal;
-      final couponDiscountAmount = cartController.discountAmount;
+      final itemDiscountTotal = quote.itemDiscount;
+      final couponDiscountAmount = quote.couponDiscount;
+      // One id per attempt: the server places at most one order for it.
+      final requestId = 'req_${DateTime.now().microsecondsSinceEpoch}';
 
-      // Writes the order row with the given final payment status. Called only
-      // once the payment outcome (or COD/wallet equivalent) is already known,
-      // so a failed/cancelled payment never leaves a row behind for the store
-      // to see.
-      Future<Map<String, dynamic>> createOrderRow(String paymentStatus) {
+      // Places the order through the backend, which prices it from the cart,
+      // charges the wallet or checks the gateway payment, and writes it. Called
+      // only once a gateway payment has gone through, so a failed or cancelled
+      // payment never leaves a row behind for the store to see.
+      Future<Map<String, dynamic>> createOrderRow({
+        String? paymentSessionId,
+        String? paymentReference,
+      }) {
         return orderController.placeOrder(
-          customerId: userId,
+          // A gateway payment's own reference doubles as the attempt id, so the
+          // web return page re-running cannot place it twice either.
+          requestId: paymentReference ?? requestId,
           address: _selectedAddress!,
           cartItems: cartController.cartItems,
           totalAmount: total,
@@ -2016,16 +2049,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
           discountAmount: itemDiscountTotal,
           couponDiscount: couponDiscountAmount,
           paymentMethod: _selectedPaymentMethod.name,
-          paymentStatus: paymentStatus,
+          couponId: cartController.appliedCoupon?.id,
+          shippingMethodId: _showsShipping ? _selectedShipping?.id : null,
+          paymentSessionId: paymentSessionId,
+          paymentReference: paymentReference,
           deliveryInstructions: _instructionsController.text.trim(),
           deliveryType: _isEcommerce ? null : _deliveryType,
           scheduledDate: _isEcommerce ? null : _selectedDate,
           scheduledTimeSlot: _isEcommerce ? null : _selectedTimeSlot,
-          // Courier-only fields. With shipping off the amount is a delivery
-          // fee, already sent as `deliveryFee` above — repeating it as
-          // `shippingCost` would report the same charge to the store twice.
-          shippingCost: _showsShipping ? deliveryFee : null,
-          shippingMethod: _showsShipping ? _selectedShipping?.name : null,
         );
       }
 
@@ -2039,8 +2070,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
         final profile = profileController.userProfile;
         final currency = 'usd'; // settingsController.businessSetup?.currency ?? 'BDT';
 
-        // Convert total to smallest currency unit (cents/poisha)
-        final amountInSmallest = (total * 100).toInt();
+        // Convert total to smallest currency unit (cents/poisha). Rounded, not
+        // truncated: 19.99 × 100 is 1998.999… in floating point.
+        final amountInSmallest = (total * 100).round();
 
         // No DB order exists yet, so the gateway only gets a local, temporary
         // reference — matches PaymentService.createPayment's own contract.
@@ -2115,8 +2147,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
               deliveryType: _isEcommerce ? null : _deliveryType,
               scheduledDate: _isEcommerce ? null : _selectedDate,
               scheduledTimeSlot: _isEcommerce ? null : _selectedTimeSlot,
-              shippingCost: _showsShipping ? deliveryFee : null,
-              shippingMethod: _showsShipping ? _selectedShipping?.name : null,
+              couponId: cartController.appliedCoupon?.id,
+              shippingMethodId: _showsShipping ? _selectedShipping?.id : null,
               moduleType: ModuleController.current,
               // What the return page checks against Stripe before writing.
               reference: tempReference,
@@ -2158,20 +2190,26 @@ class _CheckoutPageState extends State<CheckoutPage> {
           return;
         }
 
-        // ✅ Payment succeeded — now create the order, already marked paid.
-        result = await createOrderRow('paid');
-      } else if (_selectedPaymentMethod == PaymentMethod.wallet) {
-        // ── Wallet payment — deduct first, create the order only if it
-        // succeeds. ──
-        final deducted = await profileController.deductWalletBalance(total);
-        if (!deducted) {
-          customToster('failed_to_deduct_wallet_balance'.tr, isSuccess: false);
-          return;
-        }
-        result = await createOrderRow('paid');
+        // ✅ Paid at the gateway — the server confirms it with the payment
+        // function before writing the order.
+        result = await createOrderRow(
+          paymentSessionId: paymentResult['data']?['sessionId'] as String?,
+          paymentReference: tempReference,
+        );
       } else {
-        // ── Cash on delivery — no external payment step to fail. ──
-        result = await createOrderRow('unpaid');
+        // ── Wallet and cash on delivery. For the wallet, the server takes the
+        // balance in the same step that places the order, so a failed order
+        // can never cost the customer money. ──
+        result = await createOrderRow();
+      }
+
+      if (result['code'] == 'price_changed') {
+        // The cart's prices moved since it was filled (a sale ended, the store
+        // edited a price). Show the customer the new totals rather than
+        // charging them something they did not see.
+        customToster(result['error'] as String, isSuccess: false);
+        await cartController.getCartItems();
+        return;
       }
 
       if (result['success'] != true) {
