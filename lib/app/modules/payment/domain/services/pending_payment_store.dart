@@ -124,7 +124,10 @@ class PendingPayment {
 
   Map<String, dynamic> toJson() => {
         'customer_id': customerId,
-        'address': address.toJson(),
+        // AddressModel.toJson leaves out `$id` (it builds Appwrite row data),
+        // but place_order needs it: without it the restored address id is ''
+        // and the paid order is refused with `address_required`.
+        'address': {...address.toJson(), '\$id': address.id},
         'cart_items': cartItems.map((e) => e.toJson()).toList(),
         'total_amount': totalAmount,
         'delivery_fee': deliveryFee,
