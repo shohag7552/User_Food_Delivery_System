@@ -84,8 +84,9 @@ class OrderController extends GetxController implements GetxService {
   /// `prices_changed_review_order` with `code: 'price_changed'`.
   ///
   /// [requestId] names this checkout attempt, so retrying it can never place
-  /// a second order.
+  /// a second order. [pendingOrderId] is a paid [startOnlineOrder].
   Future<Map<String, dynamic>> placeOrder({
+    String? pendingOrderId,
     required String requestId,
     required AddressModel address,
     required List<CartItemModel> cartItems,
@@ -119,7 +120,8 @@ class OrderController extends GetxController implements GetxService {
       _isPlacingOrder = true;
       update();
 
-      final result = await orderRepoInterface.createOrder(
+      Future<Map<String, String>> attempt() => orderRepoInterface.createOrder(
+        pendingOrderId: pendingOrderId,
         requestId: requestId,
         addressId: address.id,
         paymentMethod: paymentMethod,
@@ -138,6 +140,19 @@ class OrderController extends GetxController implements GetxService {
         scheduledTimeSlot: scheduledTimeSlot,
         moduleType: moduleType,
       );
+
+      // A paid card order may be in the middle of being written by the
+      // payment webhook; that finishes within seconds, then the same order
+      // comes back here.
+      Map<String, String>? result;
+      for (var tries = 1; result == null; tries++) {
+        try {
+          result = await attempt();
+        } on BackendException catch (e) {
+          if (pendingOrderId == null || e.code != 'order_in_progress' || tries >= 5) rethrow;
+          await Future.delayed(const Duration(seconds: 2));
+        }
+      }
 
       _isPlacingOrder = false;
       update();
@@ -159,6 +174,68 @@ class OrderController extends GetxController implements GetxService {
       _isPlacingOrder = false;
       update();
       log('Error placing order: $e');
+      return {'success': false, 'error': 'failed_to_place_order'.tr};
+    }
+  }
+
+  /// Card checkout, step 1: has the server price the cart and keep it as a
+  /// pending order, whose id the payment gateway is then asked to charge —
+  /// the gateway reads the amount from that row, never from this app.
+  ///
+  /// Returns `success`, `pendingOrderId` and `totalAmount`, or `success: false`
+  /// with a translated `error` (and `code: 'price_changed'` when the server's
+  /// total differs from the one shown).
+  Future<Map<String, dynamic>> startOnlineOrder({
+    required AddressModel address,
+    required List<CartItemModel> cartItems,
+    required double totalAmount,
+    required double deliveryFee,
+    double taxAmount = 0.0,
+    double discountAmount = 0.0,
+    double couponDiscount = 0.0,
+    String? couponId,
+    String? shippingMethodId,
+    String? deliveryInstructions,
+    String? deliveryType,
+    DateTime? scheduledDate,
+    String? scheduledTimeSlot,
+  }) async {
+    if (cartItems.isEmpty) {
+      return {'success': false, 'error': 'cannot_place_order_empty_cart'.tr};
+    }
+    try {
+      final result = await orderRepoInterface.startOnlineOrder(
+        addressId: address.id,
+        totalAmount: totalAmount,
+        deliveryFee: deliveryFee,
+        taxAmount: taxAmount,
+        discountAmount: discountAmount,
+        couponDiscount: couponDiscount,
+        couponId: couponId,
+        shippingMethodId: shippingMethodId,
+        deliveryInstructions: deliveryInstructions,
+        deliveryType: deliveryType,
+        scheduledDate: scheduledDate,
+        scheduledTimeSlot: scheduledTimeSlot,
+      );
+      final pendingOrderId = result['pending_order_id']?.toString() ?? '';
+      if (pendingOrderId.isEmpty) {
+        return {'success': false, 'error': 'failed_to_place_order'.tr};
+      }
+      return {
+        'success': true,
+        'pendingOrderId': pendingOrderId,
+        'totalAmount': (result['total_amount'] as num?)?.toDouble() ?? totalAmount,
+      };
+    } on BackendException catch (e) {
+      log('Online order refused: $e');
+      return {
+        'success': false,
+        'code': e.code,
+        'error': _placeOrderErrorKey(e.code).tr,
+      };
+    } catch (e) {
+      log('Error starting online order: $e');
       return {'success': false, 'error': 'failed_to_place_order'.tr};
     }
   }

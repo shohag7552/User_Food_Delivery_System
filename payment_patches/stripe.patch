@@ -1,0 +1,183 @@
+diff -ruN --exclude=.git --exclude=.idea kikomart-stripe-function/.env.example kikomart-stripe-function/.env.example
+--- kikomart-stripe-function/.env.example	2026-11-11 22:39:46
++++ kikomart-stripe-function/.env.example	2026-11-13 11:23:44
+@@ -9,7 +9,7 @@
+ STRIPE_WEBHOOK_SECRET=whsec_xxx
+ PAYMENT_SUCCESS_URL=https://example.com/payment/success
+ PAYMENT_CANCEL_URL=https://example.com/payment/cancel
+-# Appwrite database that holds the `orders` table.
++# Appwrite database that holds the `pending_orders` table.
+ DATABASE_ID=
+ # "true" while old app versions still send temp_ order ids with a client amount; "false" to refuse them.
+ ALLOW_LEGACY_CLIENT_AMOUNT=true
+diff -ruN --exclude=.git --exclude=.idea kikomart-stripe-function/README.md kikomart-stripe-function/README.md
+--- kikomart-stripe-function/README.md	2026-11-11 22:39:46
++++ kikomart-stripe-function/README.md	2026-11-13 11:23:44
+@@ -19,31 +19,33 @@
+ Full reference — every environment variable, the webhook setup, the Flutter
+ flow, error codes and the go-live checklist — is in **[docs/STRIPE.md](docs/STRIPE.md)**.
+ 
+-## How payment works (order-first)
++## How payment works (server-priced)
+ 
+-The charge amount is **never taken from the client**. Your backend creates the
+-order first (`status = awaiting_payment`, `payment_status = unpaid`), then the
+-app calls `/stripe/create` with just `{"orderId": "..."}`. The function reads
+-the order row and charges `total_amount` in `currency_code`.
++The charge amount is **never taken from the client**. The KikoMart backend
++function prices the cart and writes a `pending_orders` row
++(`status = awaiting_payment`, `payment_status = unpaid`), then the app calls
++`/stripe/create` with just `{"orderId": "<pending order id>"}`. This function
++reads that row and charges `total_amount` in `currency_code`. After payment the
++backend turns the row into a real order.
+ 
+ - The caller must own the order (`x-appwrite-user-id` = `customer_id`); `x-api-secret` callers may pay any order.
+ - The order must be `payment_method = online`, `payment_status = unpaid`, `status = awaiting_payment`.
+ - `amount`, `currency`, `productName` and `customerEmail` in the body are ignored (a warning is logged if they differ).
+ - The Checkout Session expires after 30 minutes.
+ - `/stripe/verify` also checks the session's amount, currency and `client_reference_id` against the order and returns `amountMatchesOrder`.
+-- The webhook moves the order row: paid → `payment_status=paid`, `status=confirmed`, `payment_ref=<session id>`; expired/failed → `status=cancelled`. Both updates are conditional (only while still `awaiting_payment`), so redelivered events are harmless. Business side effects belong to your backend, triggered by the `orders` update event.
+-- Legacy: an `orderId` starting with `temp_` keeps the old client-supplied `amount`/`currency` behaviour while `ALLOW_LEGACY_CLIENT_AMOUNT` is not `false`. Set it to `false` once the app sends real order ids.
++- The webhook moves the order row: paid → `payment_status=paid`, `status=confirmed`, `payment_ref=<session id>`; expired/failed → `status=cancelled`. Both updates are conditional (only while still `awaiting_payment`), so redelivered events are harmless. Nothing is converted here: the backend writes the real order when the app reports the payment.
++- Legacy: an `orderId` starting with `temp_` keeps the old client-supplied `amount`/`currency` behaviour while `ALLOW_LEGACY_CLIENT_AMOUNT` is not `false`. Set it to `false` once every installed app sends pending order ids.
+ 
+ ### Database contract
+ 
+-Table `orders` in the database named by `DATABASE_ID`: `customer_id`, `order_number`,
++Table `pending_orders` (created by the store app seed script) in the database named by `DATABASE_ID`: `customer_id`, `order_number` (optional),
+ `payment_method` (`online`), `payment_status` (`unpaid`/`paid`), `status`
+-(`awaiting_payment` → `confirmed`/`cancelled`), `total_amount` (double, major units),
++(`awaiting_payment` → `confirmed`/`cancelled`; the backend sets `converted`), `total_amount` (double, major units),
+ `currency_code` (ISO 4217, e.g. `USD`), `payment_ref` (string).
+ 
+ ## Install
+ 
+-1. Create (or reuse) an Appwrite project with the `orders` table above, including the `currency_code` column.
++1. Create (or reuse) an Appwrite project with the `pending_orders` table above (run the store app seed script).
+ 2. Create a function: runtime **Go 1.23+**, entrypoint `main.go`, timeout **15 s**, and deploy this folder.
+ 3. **Scopes:** `rows.read` and `rows.write`.
+ 4. **Execute access:** roles `users` **and** `any`. `any` is required because Stripe's webhook is anonymous; it is protected by Stripe's signature. Every other route still requires a signed-in user or a valid `x-api-secret`.
+@@ -59,7 +61,7 @@
+ | `STRIPE_SECRET_KEY` | Your `sk_test_…` key |
+ | `STRIPE_WEBHOOK_SECRET` | The `whsec_…` signing secret |
+ | `PAYMENT_SUCCESS_URL` / `PAYMENT_CANCEL_URL` | Where the customer lands after paying / backing out |
+-| `DATABASE_ID` | Id of the database holding `orders` |
++| `DATABASE_ID` | Id of the database holding `pending_orders` |
+ | `ALLOW_LEGACY_CLIENT_AMOUNT` | `true` during migration, then `false` |
+ 
+ `PAYMENT_MODE` defaults to `test`, and a `sk_live_` key in test mode is refused.
+diff -ruN --exclude=.git --exclude=.idea kikomart-stripe-function/docs/STRIPE.md kikomart-stripe-function/docs/STRIPE.md
+--- kikomart-stripe-function/docs/STRIPE.md	2026-09-12 21:19:22
++++ kikomart-stripe-function/docs/STRIPE.md	2026-11-13 11:24:09
+@@ -90,6 +90,8 @@
+ | `PAYMENT_MAX_AMOUNT` | `100000000` | Sanity ceiling; catches a client sending cents twice |
+ | `ENABLE_DEBUG_ENDPOINT` | unset | Set to `true` to expose `/debug` |
+ | `PAYMENT_ALLOW_KEY_MISMATCH` | unset | Disables the live/test key guard |
++| `DATABASE_ID` | **required** | Appwrite database holding `pending_orders` (the function also needs the `rows.read` and `rows.write` scopes) |
++| `ALLOW_LEGACY_CLIENT_AMOUNT` | `true` | `false` refuses `temp_` ids that carry a client amount |
+ 
+ ---
+ 
+@@ -99,23 +101,24 @@
+ 
+ ```jsonc
+ {
+-  "amount": 1500,                        // required, minor units: 1500 = $15.00
+-  "currency": "USD",                     // required, ISO 4217 — NOT defaulted
+-  "orderId": "order_123",                // required, your order ID
+-  "productName": "Chicken Biryani x2",   // optional, shown on the Stripe page
+-  "description": "Order from Spice Hub", // optional
+-  "customerEmail": "a@b.com",            // optional, prefills the Stripe form
++  "orderId": "6650f1c2a8b3",             // required: the pending_orders row id
+   "successURL": "myapp://pay/ok",        // optional, overrides the env var
+   "cancelURL": "myapp://pay/cancel",     // optional
+   "metadata": {                          // optional, attached to the payment
+-    "restaurantId": "rest_9",
+-    "riderZone": "dhanmondi"
++    "restaurantId": "rest_9"
+   }
+ }
+ ```
+ 
+-**`currency` is required.** It used to default to `"usd"`, which meant a client
+-that forgot the field turned a ৳1,500 order into a **$15.00** charge, silently.
++The amount, currency and product name come from the `pending_orders` row
++(`total_amount`, `currency_code`, `order_number`). `amount`, `currency`,
++`productName` and `customerEmail` sent by a client are ignored and logged.
++
++**Legacy (`temp_` ids only, while `ALLOW_LEGACY_CLIENT_AMOUNT` is not `false`):**
++an `orderId` starting with `temp_` still takes `amount` (minor units, required)
++and `currency` (ISO 4217, required, never defaulted) from the body. This exists
++only for app versions released before server-side pricing; turn it off once
++they are gone.
+ 
+ Response `200`:
+ 
+diff -ruN --exclude=.git --exclude=.idea kikomart-stripe-function/gateways/orders.go kikomart-stripe-function/gateways/orders.go
+--- kikomart-stripe-function/gateways/orders.go	2026-11-11 22:36:12
++++ kikomart-stripe-function/gateways/orders.go	2026-11-13 11:23:14
+@@ -15,7 +15,9 @@
+ )
+ 
+ const (
+-	ordersTable           = "orders"
++	// The backend writes one row here per online checkout before payment; it
++	// becomes a real order only once paid.
++	ordersTable           = "pending_orders"
+ 	orderStatusAwaiting   = "awaiting_payment"
+ 	orderStatusConfirmed  = "confirmed"
+ 	orderStatusCancelled  = "cancelled"
+@@ -25,7 +27,7 @@
+ 	checkoutSessionExpiry = 30 * time.Minute
+ )
+ 
+-// order is the slice of the `orders` row this function reads.
++// order is the slice of the `pending_orders` row this function reads.
+ type order struct {
+ 	ID            string  `json:"$id"`
+ 	CustomerID    string  `json:"customer_id"`
+diff -ruN --exclude=.git --exclude=.idea kikomart-stripe-function/gateways/orders_test.go kikomart-stripe-function/gateways/orders_test.go
+--- kikomart-stripe-function/gateways/orders_test.go	2026-11-11 22:39:13
++++ kikomart-stripe-function/gateways/orders_test.go	2026-11-13 11:23:14
+@@ -12,7 +12,7 @@
+ 	"time"
+ )
+ 
+-// stubAppwrite stands in for the Appwrite REST API. It keeps one orders row in
++// stubAppwrite stands in for the Appwrite REST API. It keeps one pending_orders row in
+ // memory and honours the equal() queries of a bulk update, so a conditional
+ // update really is conditional.
+ type stubAppwrite struct {
+@@ -35,7 +35,7 @@
+ 			fmt.Fprint(w, `{"message":"no key"}`)
+ 			return
+ 		}
+-		base := "/tablesdb/db1/tables/orders/rows"
++		base := "/tablesdb/db1/tables/pending_orders/rows"
+ 		switch {
+ 		case r.Method == http.MethodGet && strings.HasPrefix(r.URL.Path, base+"/"):
+ 			if s.row == nil || strings.TrimPrefix(r.URL.Path, base+"/") != s.row["$id"] {
+diff -ruN --exclude=.git --exclude=.idea kikomart-stripe-function/gateways/stripe.go kikomart-stripe-function/gateways/stripe.go
+--- kikomart-stripe-function/gateways/stripe.go	2026-11-11 22:36:23
++++ kikomart-stripe-function/gateways/stripe.go	2026-11-13 11:23:14
+@@ -464,7 +464,10 @@
+ 		}
+ 		currency = strings.ToUpper(strings.TrimSpace(o.CurrencyCode))
+ 		amount = orderAmountMinor(o.TotalAmount, currency)
+-		productName = "Order #" + o.OrderNumber
++		productName = "Order " + orderID
++		if n := strings.TrimSpace(o.OrderNumber); n != "" {
++			productName = "Order #" + n
++		}
+ 		// The client's own figures are never used; flag any that disagree.
+ 		if (p.Amount != 0 && p.Amount != amount) ||
+ 			(strings.TrimSpace(p.Currency) != "" && !strings.EqualFold(strings.TrimSpace(p.Currency), currency)) ||
+@@ -791,7 +794,7 @@
+ 		eventType, summary["orderId"], summary["status"], summary["paid"]))
+ 
+ 	// The order row is the only state kept here. The backend runs the business
+-	// side effects from the orders update event.
++	// side effects when it turns the paid row into an order.
+ 	if oid := session.ClientReferenceID; oid != "" && !isLegacyOrderID(oid) {
+ 		result, err := applyOrderEvent(ctx, eventType, oid, &session)
+ 		if err != nil {

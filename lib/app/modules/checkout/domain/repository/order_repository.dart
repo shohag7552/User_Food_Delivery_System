@@ -29,7 +29,44 @@ class OrderRepository implements OrderRepoInterface {
   }
 
   @override
+  Future<Map<String, dynamic>> startOnlineOrder({
+    required String addressId,
+    required double totalAmount,
+    required double deliveryFee,
+    double taxAmount = 0.0,
+    double discountAmount = 0.0,
+    double couponDiscount = 0.0,
+    String? couponId,
+    String? shippingMethodId,
+    String? deliveryInstructions,
+    String? deliveryType,
+    DateTime? scheduledDate,
+    String? scheduledTimeSlot,
+    String? moduleType,
+  }) {
+    return appwriteService.callBackend(
+      'start_online_order',
+      _checkoutBody(
+        addressId: addressId,
+        totalAmount: totalAmount,
+        deliveryFee: deliveryFee,
+        taxAmount: taxAmount,
+        discountAmount: discountAmount,
+        couponDiscount: couponDiscount,
+        couponId: couponId,
+        shippingMethodId: shippingMethodId,
+        deliveryInstructions: deliveryInstructions,
+        deliveryType: deliveryType,
+        scheduledDate: scheduledDate,
+        scheduledTimeSlot: scheduledTimeSlot,
+        moduleType: moduleType,
+      ),
+    );
+  }
+
+  @override
   Future<Map<String, String>> createOrder({
+    String? pendingOrderId,
     required String requestId,
     required String addressId,
     required String paymentMethod,
@@ -48,10 +85,64 @@ class OrderRepository implements OrderRepoInterface {
     String? scheduledTimeSlot,
     String? moduleType,
   }) async {
-    final body = <String, dynamic>{
+    final body = _checkoutBody(
+      addressId: addressId,
+      totalAmount: totalAmount,
+      deliveryFee: deliveryFee,
+      taxAmount: taxAmount,
+      discountAmount: discountAmount,
+      couponDiscount: couponDiscount,
+      couponId: couponId,
+      shippingMethodId: shippingMethodId,
+      deliveryInstructions: deliveryInstructions,
+      deliveryType: deliveryType,
+      scheduledDate: scheduledDate,
+      scheduledTimeSlot: scheduledTimeSlot,
+      moduleType: moduleType,
+    );
+    body.addAll({
       'request_id': requestId,
-      'address_id': addressId,
       'payment_method': paymentMethod,
+      'pending_order_id': ?pendingOrderId,
+      'payment_session_id': ?paymentSessionId,
+      'payment_reference': ?paymentReference,
+    });
+
+    final result = await appwriteService.callBackend('place_order', body);
+    final orderId = result['order_id']?.toString() ?? '';
+    final orderNumber = result['order_number']?.toString() ?? '';
+
+    // A card order may be written by the payment webhook instead of this
+    // call, so the server sends its notifications itself.
+    if (pendingOrderId == null) {
+      final user = await appwriteService.getCurrentUser();
+      if (user != null) {
+        await appwriteService.notifyOrderPlaced(user.$id, orderNumber);
+      }
+    }
+
+    return {'orderId': orderId, 'orderNumber': orderNumber};
+  }
+
+  /// The checkout choices and the totals this app showed, as both
+  /// `start_online_order` and `place_order` read them.
+  Map<String, dynamic> _checkoutBody({
+    required String addressId,
+    required double totalAmount,
+    required double deliveryFee,
+    required double taxAmount,
+    required double discountAmount,
+    required double couponDiscount,
+    String? couponId,
+    String? shippingMethodId,
+    String? deliveryInstructions,
+    String? deliveryType,
+    DateTime? scheduledDate,
+    String? scheduledTimeSlot,
+    String? moduleType,
+  }) {
+    final body = <String, dynamic>{
+      'address_id': addressId,
       'module_type': moduleType ?? ModuleController.current,
       'expected_total': totalAmount,
       'expected_delivery_fee': deliveryFee,
@@ -60,8 +151,6 @@ class OrderRepository implements OrderRepoInterface {
       'expected_coupon_discount': couponDiscount,
       'coupon_id': ?couponId,
       'shipping_method_id': ?shippingMethodId,
-      'payment_session_id': ?paymentSessionId,
-      'payment_reference': ?paymentReference,
       'delivery_type': ?deliveryType,
       'scheduled_date': ?scheduledDate?.toIso8601String(),
       'scheduled_time_slot': ?scheduledTimeSlot,
@@ -80,17 +169,7 @@ class OrderRepository implements OrderRepoInterface {
         body['scheduled_end'] = range.end.toIso8601String();
       }
     }
-
-    final result = await appwriteService.callBackend('place_order', body);
-    final orderId = result['order_id']?.toString() ?? '';
-    final orderNumber = result['order_number']?.toString() ?? '';
-
-    final user = await appwriteService.getCurrentUser();
-    if (user != null) {
-      await appwriteService.notifyOrderPlaced(user.$id, orderNumber);
-    }
-
-    return {'orderId': orderId, 'orderNumber': orderNumber};
+    return body;
   }
 
   @override

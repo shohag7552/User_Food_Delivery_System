@@ -1,0 +1,101 @@
+diff --git a/lib/app/appwrite/appwrite_config.dart b/lib/app/appwrite/appwrite_config.dart
+index c452979..e0b7053 100644
+--- a/lib/app/appwrite/appwrite_config.dart
++++ b/lib/app/appwrite/appwrite_config.dart
+@@ -81,5 +81,6 @@ class AppwriteConfig {
+   static const String driverPresenceCollection = 'driver_presence';
+   static const String orderCodesCollection = 'order_codes';
+   static const String idempotencyKeysCollection = 'idempotency_keys';
++  static const String pendingOrdersCollection = 'pending_orders';
+   static const String countersCollection = 'counters';
+ }
+\ No newline at end of file
+diff --git a/lib/scripts/seed_database.dart b/lib/scripts/seed_database.dart
+index d7757ee..1ba47a2 100644
+--- a/lib/scripts/seed_database.dart
++++ b/lib/scripts/seed_database.dart
+@@ -211,6 +211,7 @@ void main(List<String> args) async {
+     await _setupIdempotencyKeys(databases);
+     await _setupCounters(databases);
+     await _setupOrderCodes(databases);
++    await _setupPendingOrders(databases);
+     await _setupDriverPresence(databases);
+     await _setupDriversTeam(client);
+     await _ensureDriverPresence(client, databases);
+@@ -361,6 +362,25 @@ Future<void> _widenStringColumn(
+   }
+ }
+ 
++/// Waits until [keys] on [tableId] are `available` (Appwrite builds columns in
++/// the background), giving up after about 30 seconds.
++Future<void> _waitForColumns(TablesDB db, String tableId, List<String> keys) async {
++  for (var attempt = 0; attempt < 30; attempt++) {
++    try {
++      final list = await db.listColumns(databaseId: AppwriteConfig.dbId, tableId: tableId);
++      final ready = list.columns
++          .whereType<Map>()
++          .where((c) => keys.contains(c['key']) && c['status'] == 'available')
++          .length;
++      if (ready == keys.length) return;
++    } catch (_) {
++      // Retried below.
++    }
++    await Future.delayed(const Duration(seconds: 1));
++  }
++  print("   ⚠️ Columns ${keys.join(', ')} on '$tableId' are still not available");
++}
++
+ /// Creates an index on a collection, ignoring the "already exists" (409) error.
+ /// Used e.g. for the fulltext index that powers Query.search().
+ Future<void> _createIndex(
+@@ -1457,8 +1477,17 @@ Future<void> _setupWalletTransactions(TablesDB db) async {
+         () => db.createStringColumn(databaseId: AppwriteConfig.dbId, tableId: t, key: 'order_number', size: 32, xrequired: false),
+         () => db.createStringColumn(databaseId: AppwriteConfig.dbId, tableId: t, key: 'note', size: 255, xrequired: false),
+         () => db.createDatetimeColumn(databaseId: AppwriteConfig.dbId, tableId: t, key: 'created_at', xrequired: true),
+-        () => db.createIndex(databaseId: AppwriteConfig.dbId, tableId: t, key: 'idx_wallet_user_date', type: IndexType.key, columns: ['user_id', 'created_at'], orders: ['ASC', 'DESC']),
+   ], _lockedPermissions[t]!);
++  // An index on columns Appwrite is still building fails, so wait for them.
++  await _waitForColumns(db, t, ['user_id', 'created_at']);
++  try {
++    await db.createIndex(databaseId: AppwriteConfig.dbId, tableId: t, key: 'idx_wallet_user_date', type: IndexType.key, columns: ['user_id', 'created_at'], orders: ['ASC', 'DESC']);
++    print("   🔎 Created index 'idx_wallet_user_date' on user_id, created_at");
++  } catch (e) {
++    if (!e.toString().contains('409')) {
++      print("   ⚠️ Error creating index 'idx_wallet_user_date': $e");
++    }
++  }
+ }
+ 
+ // ============================================================================
+@@ -2588,6 +2617,31 @@ Future<void> _setupOrderCodes(TablesDB db) async {
+   ], [Permission.read(Role.team('admin_team'))]);
+ }
+ 
++/// One row per card checkout, written by the backend function's
++/// start_online_order before the customer pays. The Stripe function charges
++/// its total_amount (never an amount from the app) and its webhook marks it
++/// confirmed or cancelled; the backend turns a paid row into a real order and
++/// marks it converted. Nothing here touches stock or the store's order lists.
++/// Server key only: no client may read or write it.
++Future<void> _setupPendingOrders(TablesDB db) async {
++  const t = AppwriteConfig.pendingOrdersCollection;
++  await _createCollection(db, t, 'Pending Orders', [
++        () => db.createStringColumn(databaseId: AppwriteConfig.dbId, tableId: t, key: 'customer_id', size: 64, xrequired: true),
++        // awaiting_payment → confirmed | cancelled → converted
++        () => db.createStringColumn(databaseId: AppwriteConfig.dbId, tableId: t, key: 'status', size: 32, xrequired: true),
++        () => db.createStringColumn(databaseId: AppwriteConfig.dbId, tableId: t, key: 'payment_method', size: 16, xrequired: true),
++        () => db.createStringColumn(databaseId: AppwriteConfig.dbId, tableId: t, key: 'payment_status', size: 16, xrequired: true),
++        () => db.createFloatColumn(databaseId: AppwriteConfig.dbId, tableId: t, key: 'total_amount', xrequired: true),
++        () => db.createStringColumn(databaseId: AppwriteConfig.dbId, tableId: t, key: 'currency_code', size: 3, xrequired: true),
++        // JSON: checkout choices, cart snapshot (≤ 100 lines) and server totals.
++        () => db.createStringColumn(databaseId: AppwriteConfig.dbId, tableId: t, key: 'payload', size: 1000000, xrequired: true),
++        () => db.createStringColumn(databaseId: AppwriteConfig.dbId, tableId: t, key: 'created_at', size: 64, xrequired: true),
++        () => db.createStringColumn(databaseId: AppwriteConfig.dbId, tableId: t, key: 'payment_ref', size: 255, xrequired: false),
++        () => db.createStringColumn(databaseId: AppwriteConfig.dbId, tableId: t, key: 'order_id', size: 64, xrequired: false),
++        () => db.createStringColumn(databaseId: AppwriteConfig.dbId, tableId: t, key: 'order_number', size: 32, xrequired: false),
++  ], const []);
++}
++
+ /// What a driver's app writes every few seconds: presence, location, load.
+ /// Split from `drivers` so the driver can write it while the drivers row
+ /// (wallet, approval) stays read-only for them. Row id = driver id.

@@ -128,7 +128,10 @@ class PendingPayment {
         // but place_order needs it: without it the restored address id is ''
         // and the paid order is refused with `address_required`.
         'address': {...address.toJson(), '\$id': address.id},
-        'cart_items': cartItems.map((e) => e.toJson()).toList(),
+        // Same for cart lines: CartItemModel.fromJson requires `$id`, so
+        // without it the saved checkout cannot be read back after Stripe.
+        'cart_items':
+            cartItems.map((e) => {...e.toJson(), '\$id': e.id}).toList(),
         'total_amount': totalAmount,
         'delivery_fee': deliveryFee,
         'tax_amount': taxAmount,
