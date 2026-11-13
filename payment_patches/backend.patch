@@ -1,0 +1,766 @@
+diff --git a/README.md b/README.md
+index b9e79fc..7e88495 100644
+--- a/README.md
++++ b/README.md
+@@ -29,7 +29,8 @@ signed-in executions, never from the request body.
+ | Action | Who | What |
+ |---|---|---|
+ | `quote_order` | customer | The server's totals for the cart |
+-| `place_order` | customer | Prices the cart from the products, charges the wallet atomically or verifies the Stripe session, numbers and writes the order |
++| `start_online_order` | customer | Card checkout, step 1: prices the cart (server prices are always binding here) and stores it in `pending_orders`; the Stripe function charges that row's `total_amount` |
++| `place_order` | customer | Prices the cart from the products, charges the wallet atomically or verifies the Stripe session, numbers and writes the order. With `pending_order_id` it writes the order from that paid pending row (its cart snapshot and totals) and ignores the app's other fields |
+ | `cancel_order` | customer | Cancels a `pending` order |
+ | `driver_summary` | customer | Name, phone, photo, rating and position of the driver on one of their orders |
+ | `ensure_profile` / `update_profile` | customer | Creates the `users` row; writes only name, phone, photo, FCM token |
+@@ -54,6 +55,7 @@ Responses are `{success: true, data}` or `{success: false, error: {code, message
+ | deliveryman review created / updated / deleted | Recounts `drivers.avg_rating`, `rating_count`. A new review is deleted unless the order's customer wrote it about that order's driver, once per order |
+ | order created (app orders) | `products.order_count += qty`; for Shop orders also `products.stock -= qty`; the customer can read rows the store's POS wrote for them |
+ | order updated to `cancelled` | Gives back exactly what was taken, once |
++| pending order updated to `confirmed` + `paid` (the Stripe webhook) | Writes the real order through `place_order`, so a customer whose app closed after paying still gets it. The app reports the same payment; the pending id is the idempotency key, so exactly one of them writes the order, and the order's pushes (customer + store topic) are sent once, from here |
+ | order updated to `delivered` | Loyalty points, once, whoever marked it delivered (POS orders skipped) |
+ | driver created / updated | Driver can read their own row; `driver_presence` row exists; `drivers_team` membership follows `is_approved` |
+ | loyalty history created | The customer can read the entries the store's POS wrote |
+@@ -67,7 +69,7 @@ or rewarded twice.
+ 
+ 1. **Database** — run the store app's seed script
+    (`appWrite_store_app/lib/scripts/seed_database.dart`). It creates
+-   `idempotency_keys`, `counters`, `order_codes`, `driver_presence`,
++   `idempotency_keys`, `counters`, `order_codes`, `pending_orders`, `driver_presence`,
+    `wallet_transactions`, the `drivers_team` team, and the new `orders` columns.
+ 
+    `wallet_transactions` is the customer's wallet history: this function writes
+@@ -86,6 +88,7 @@ or rewarded twice.
+    | `STORE_ADMIN_TOPIC_ID` | The store-admin push topic (the apps' `storeAdminTopicId`) |
+    | `DELIVERYMAN_TOPIC_ID` | The all-deliverymen push topic (`allDeliverymanTopicId`) |
+    | `SECURITY_ENFORCE` | `false` while rolling out, then `true` (see below) |
++   | `STORE_CURRENCY` | ISO 4217 code card payments are charged in (default `USD`), e.g. `BDT` |
+ 
+    Customers and delivery men may broadcast only to the two topics above, to
+    announce new orders and hand-offs. Every other topic is the store's alone.
+@@ -101,6 +104,7 @@ or rewarded twice.
+    databases.<DATABASE_ID>.tables.reviews.rows.*.delete
+    databases.<DATABASE_ID>.tables.orders.rows.*.create
+    databases.<DATABASE_ID>.tables.orders.rows.*.update
++   databases.<DATABASE_ID>.tables.pending_orders.rows.*.update
+    databases.<DATABASE_ID>.tables.drivers.rows.*.create
+    databases.<DATABASE_ID>.tables.drivers.rows.*.update
+    databases.<DATABASE_ID>.tables.deliveryman_reviews.rows.*.create
+diff --git a/api.go b/api.go
+index 64065e2..3351fd6 100644
+--- a/api.go
++++ b/api.go
+@@ -99,6 +99,7 @@ var actions = map[string]actionFunc{
+ 	"update_profile":        updateProfile,
+ 	"convert_loyalty":       convertLoyalty,
+ 	"quote_order":           quoteOrder,
++	"start_online_order":    startOnlineOrder,
+ 	"place_order":           placeOrder,
+ 	"cancel_order":          cancelOrder,
+ 	"driver_summary":        driverSummary,
+@@ -132,18 +133,7 @@ func handleAction(ctx openruntimes.Context, name string, body map[string]interfa
+ 		return respondError(ctx, fail(500, "config_error", "Server configuration error."))
+ 	}
+ 
+-	c := serverClient(ctx)
+-	a := &api{
+-		ctx:        ctx,
+-		uid:        uid,
+-		databaseID: databaseID,
+-		client:     c,
+-		db:         appwrite.NewTablesDB(c),
+-		teams:      appwrite.NewTeams(c),
+-		now:        time.Now().UTC(),
+-	}
+-
+-	data, err := fn(a, body)
++	data, err := fn(newAPI(ctx, uid, databaseID), body)
+ 	if err != nil {
+ 		var ae *apiError
+ 		if errors.As(err, &ae) {
+@@ -156,6 +146,20 @@ func handleAction(ctx openruntimes.Context, name string, body map[string]interfa
+ 	return ctx.Res.Json(map[string]interface{}{"success": true, "data": data})
+ }
+ 
++// newAPI is one action run as user uid, with the server's own client.
++func newAPI(ctx openruntimes.Context, uid, databaseID string) *api {
++	c := serverClient(ctx)
++	return &api{
++		ctx:        ctx,
++		uid:        uid,
++		databaseID: databaseID,
++		client:     c,
++		db:         appwrite.NewTablesDB(c),
++		teams:      appwrite.NewTeams(c),
++		now:        time.Now().UTC(),
++	}
++}
++
+ func respondError(ctx openruntimes.Context, e *apiError) openruntimes.Response {
+ 	errBody := map[string]interface{}{"code": e.code, "message": e.message}
+ 	for k, v := range e.data {
+diff --git a/catalog.go b/catalog.go
+index 7af237f..aca56de 100644
+--- a/catalog.go
++++ b/catalog.go
+@@ -145,6 +145,8 @@ func handleCatalogEvent(ctx openruntimes.Context, rawEvent string) openruntimes.
+ 		if xerr := sync.handleOrderUpdateExtras(row); xerr != nil {
+ 			err = errors.Join(err, xerr)
+ 		}
++	case ev.table == pendingOrdersTable && ev.action == "update":
++		err = convertPaidPending(ctx, databaseID, row)
+ 	case ev.table == driversTable && (ev.action == "create" || ev.action == "update"):
+ 		err = sync.syncDriver(row)
+ 	case ev.table == driverReviewsTable:
+diff --git a/orders.go b/orders.go
+index 12d9bdd..3962e78 100644
+--- a/orders.go
++++ b/orders.go
+@@ -32,23 +32,39 @@ const (
+ 	maxCartLines       = 100
+ )
+ 
+-// loadPricing gathers everything pricing needs for the caller's cart in one
+-// module, reading prices only from the product / flash-sale / coupon rows.
+-func (a *api) loadPricing(body map[string]interface{}) (pricingInput, map[string]interface{}, error) {
+-	in := pricingInput{now: a.now}
+-
+-	in.moduleType = strings.ToLower(bodyString(body, "module_type"))
+-	if in.moduleType == "" {
+-		in.moduleType = "food"
++func moduleOf(body map[string]interface{}) string {
++	if m := strings.ToLower(bodyString(body, "module_type")); m != "" {
++		return m
+ 	}
++	return "food"
++}
+ 
++// readCart returns the caller's cart rows in one module.
++func (a *api) readCart(moduleType string) ([]map[string]interface{}, error) {
+ 	rows, err := a.listRows(cartTable, []string{
+ 		query.Equal("user_id", a.uid),
+-		query.Equal("module_type", in.moduleType),
++		query.Equal("module_type", moduleType),
+ 		query.Limit(maxCartLines),
+ 	})
+ 	if err != nil {
+-		return in, nil, fmt.Errorf("read cart: %w", err)
++		return nil, fmt.Errorf("read cart: %w", err)
++	}
++	return rows, nil
++}
++
++// loadPricing gathers everything pricing needs for the caller's cart in one
++// module, reading prices only from the product / flash-sale / coupon rows.
++// cart is the cart rows to price; nil reads the caller's cart now.
++func (a *api) loadPricing(body map[string]interface{}, cart []map[string]interface{}) (pricingInput, map[string]interface{}, error) {
++	in := pricingInput{now: a.now}
++	in.moduleType = moduleOf(body)
++
++	rows := cart
++	if rows == nil {
++		var err error
++		if rows, err = a.readCart(in.moduleType); err != nil {
++			return in, nil, err
++		}
+ 	}
+ 	ids := []string{}
+ 	seen := map[string]bool{}
+@@ -167,7 +183,7 @@ func (a *api) activeFlashItems(productIDs []string) (map[string]*flashItem, erro
+ }
+ 
+ func quoteOrder(a *api, body map[string]interface{}) (interface{}, error) {
+-	in, _, err := a.loadPricing(body)
++	in, _, err := a.loadPricing(body, nil)
+ 	if err != nil {
+ 		return nil, err
+ 	}
+@@ -223,6 +239,19 @@ func clientTotalsFrom(body map[string]interface{}) clientTotals {
+ }
+ 
+ func placeOrder(a *api, body map[string]interface{}) (interface{}, error) {
++	// A paid pending order (start_online_order): the order is written from the
++	// stored row, so nothing the app sends besides the session id is used.
++	var pending *pendingOrder
++	var pendingCart []map[string]interface{}
++	if id := bodyString(body, "pending_order_id"); id != "" {
++		p, err := a.loadPendingOrder(id)
++		if err != nil {
++			return nil, err
++		}
++		pending, pendingCart = p, p.payload.Cart
++		body = p.placeBody(bodyString(body, "payment_session_id"))
++	}
++
+ 	method := strings.ToLower(bodyString(body, "payment_method"))
+ 	if method != payCOD && method != payWallet && method != payOnline {
+ 		return nil, fail(400, "invalid_payment_method", "Choose a payment method.")
+@@ -253,13 +282,18 @@ func placeOrder(a *api, body map[string]interface{}) (interface{}, error) {
+ 		}
+ 	}()
+ 
+-	in, address, err := a.loadPricing(body)
++	in, address, err := a.loadPricing(body, pendingCart)
+ 	if err != nil {
+ 		return nil, err
+ 	}
+ 	server, err := computeTotals(in)
+ 	if err != nil {
+-		if enforced() {
++		if pending != nil {
++			// Already paid for at the stored total: write the order from the
++			// cart snapshot rather than leave the customer charged with none.
++			a.ctx.Error(fmt.Sprintf("place_order: pending order %s no longer prices (%v); writing it at the paid total", pending.id, err))
++			server = &orderTotals{Lines: snapshotLines(in.lines)}
++		} else if enforced() {
+ 			return nil, asPriceError(err)
+ 		}
+ 		// Shadow phase: ordering must work exactly as before, so a line the
+@@ -278,7 +312,9 @@ func placeOrder(a *api, body map[string]interface{}) (interface{}, error) {
+ 		ItemDiscount:   server.ItemDiscount,
+ 		CouponDiscount: server.CouponDiscount,
+ 	}
+-	if math.Abs(client.Total-server.Total) > priceTolerance {
++	if pending != nil {
++		charge = pending.charge()
++	} else if math.Abs(client.Total-server.Total) > priceTolerance {
+ 		// A gateway payment has already been taken by now: refusing would
+ 		// leave the customer charged with no order. The payment check below
+ 		// holds it to the server's total instead.
+@@ -291,7 +327,7 @@ func placeOrder(a *api, body map[string]interface{}) (interface{}, error) {
+ 			a.uid, client.Total, client.DeliveryFee, client.Tax, client.CouponDiscount,
+ 			server.Total, server.DeliveryFee, server.Tax, server.CouponDiscount))
+ 	}
+-	if !enforced() {
++	if !enforced() && pending == nil {
+ 		charge = client
+ 	}
+ 	charge.Total = round2(charge.Total)
+@@ -325,8 +361,17 @@ func placeOrder(a *api, body map[string]interface{}) (interface{}, error) {
+ 		if err != nil {
+ 			return nil, err
+ 		}
+-		// The app sends (total × 100) truncated, so allow that one cent.
+-		if !check.paid || check.amountMinor < int64(math.Round(charge.Total*100))-1 {
++		var accepted bool
++		if pending != nil {
++			// The payment function charged this pending order's own total;
++			// hold the session to exactly that.
++			accepted = pending.paidInFull(check)
++		} else {
++			// Legacy temp_ checkout: the app sends (total × 100) truncated, so
++			// allow that one cent.
++			accepted = check.paid && check.amountMinor >= int64(math.Round(charge.Total*100))-1
++		}
++		if !accepted {
+ 			if check.paid {
+ 				// Paid, but less than the order now costs (prices moved between
+ 				// the quote and the payment). No order is written; the store
+@@ -411,6 +456,12 @@ func placeOrder(a *api, body map[string]interface{}) (interface{}, error) {
+ 	}
+ 	placed = true
+ 	orderID := row.Id
++	if pending != nil {
++		a.markPendingConverted(pending, orderID, strconv.Itoa(orderNumber), paymentRef)
++		// Sent here, not by the app: the order may be written by the payment
++		// webhook while the customer's app is closed.
++		a.announceOrder(strconv.Itoa(orderNumber))
++	}
+ 	if method == payWallet && charge.Total > 0 {
+ 		a.logWallet(walletEntry{userID: a.uid, kind: walletOrderPayment, amount: -charge.Total,
+ 			balanceAfter: walletPaidBalance, orderID: orderID, orderNumber: strconv.Itoa(orderNumber)})
+diff --git a/pending.go b/pending.go
+new file mode 100644
+index 0000000..a3067d9
+--- /dev/null
++++ b/pending.go
+@@ -0,0 +1,349 @@
++package handler
++
++// Online (card) checkout with server-side pricing.
++//
++//  1. start_online_order prices the customer's cart here and stores the
++//     result in pending_orders, a table no client can read or write.
++//  2. The app asks the payment function for a checkout session for that row's
++//     id. The payment function charges the row's total_amount in its
++//     currency_code; the app never sends an amount.
++//  3. After payment, place_order with pending_order_id writes the real order
++//     from the stored row (its cart snapshot and its totals), so the order is
++//     exactly what was paid for, whatever happened to the cart meanwhile.
++//
++// Nothing reaches `orders` before payment, so stock, order numbers and the
++// store's order lists only ever see paid orders.
++
++import (
++	"encoding/json"
++	"errors"
++	"fmt"
++	"math"
++	"os"
++	"strings"
++	"time"
++
++	"github.com/appwrite/sdk-for-go/appwrite"
++	"github.com/open-runtimes/types-for-go/v4/openruntimes"
++)
++
++const (
++	pendingOrdersTable   = "pending_orders"
++	pendingAwaiting      = "awaiting_payment"
++	pendingConverted     = "converted"
++	pendingCancelled     = "cancelled"
++	defaultStoreCurrency = "USD"
++
++	// The webhook path waits up to convertAttempts × convertRetryDelay for an
++	// in-flight app attempt; keep it inside the function's timeout.
++	convertAttempts   = 4
++	convertRetryDelay = 3 * time.Second
++)
++
++// pendingFields are the checkout choices stored with a pending order and
++// replayed into place_order. Anything else the app sends is ignored.
++var pendingFields = []string{
++	"module_type", "address_id", "coupon_id", "shipping_method_id",
++	"delivery_type", "scheduled_date", "scheduled_time_slot",
++	"scheduled_start", "scheduled_end", "delivery_instructions",
++}
++
++// cartSnapshotKeys are the cart_items columns cartLineFromRow reads.
++var cartSnapshotKeys = []string{
++	"$id", "product_id", "product_name", "product_image", "quantity",
++	"selected_variants", "base_price", "final_price",
++}
++
++// zeroDecimalCurrencies have no minor unit (Stripe's list; keep it in step
++// with the payment function).
++var zeroDecimalCurrencies = map[string]bool{
++	"BIF": true, "CLP": true, "DJF": true, "GNF": true, "JPY": true,
++	"KMF": true, "KRW": true, "MGA": true, "PYG": true, "RWF": true,
++	"UGX": true, "VND": true, "VUV": true, "XAF": true, "XOF": true,
++	"XPF": true,
++}
++
++// toMinor converts a major-unit amount to the gateway's minor units, the same
++// way the payment function does.
++func toMinor(total float64, currency string) int64 {
++	if zeroDecimalCurrencies[strings.ToUpper(strings.TrimSpace(currency))] {
++		return int64(math.Round(total))
++	}
++	return int64(math.Round(total * 100))
++}
++
++// storeCurrency is the ISO 4217 code online payments are charged in.
++func storeCurrency() string {
++	c := strings.ToUpper(strings.TrimSpace(os.Getenv("STORE_CURRENCY")))
++	if len(c) != 3 {
++		return defaultStoreCurrency
++	}
++	return c
++}
++
++type pendingTotals struct {
++	Total          float64 `json:"total"`
++	DeliveryFee    float64 `json:"delivery_fee"`
++	Tax            float64 `json:"tax"`
++	ItemDiscount   float64 `json:"item_discount"`
++	CouponDiscount float64 `json:"coupon_discount"`
++}
++
++// pendingPayload is the JSON kept in pending_orders.payload.
++type pendingPayload struct {
++	Fields map[string]string        `json:"fields"`
++	Cart   []map[string]interface{} `json:"cart"`
++	Totals pendingTotals            `json:"totals"`
++}
++
++type pendingOrder struct {
++	id       string
++	currency string
++	payload  pendingPayload
++}
++
++func buildPendingPayload(body map[string]interface{}, cart []map[string]interface{}, t *orderTotals) pendingPayload {
++	p := pendingPayload{
++		Fields: map[string]string{},
++		Cart:   []map[string]interface{}{},
++		Totals: pendingTotals{
++			Total:          round2(t.Total),
++			DeliveryFee:    round2(t.DeliveryFee),
++			Tax:            round2(t.Tax),
++			ItemDiscount:   round2(t.ItemDiscount),
++			CouponDiscount: round2(t.CouponDiscount),
++		},
++	}
++	for _, k := range pendingFields {
++		if v := bodyString(body, k); v != "" {
++			p.Fields[k] = v
++		}
++	}
++	for _, row := range cart {
++		line := map[string]interface{}{}
++		for _, k := range cartSnapshotKeys {
++			if v, ok := row[k]; ok {
++				line[k] = v
++			}
++		}
++		p.Cart = append(p.Cart, line)
++	}
++	return p
++}
++
++// placeBody is the place_order body for a paid pending order: only the stored
++// choices plus the payment the app reports. The app's own fields are dropped.
++func (p *pendingOrder) placeBody(sessionID string) map[string]interface{} {
++	body := map[string]interface{}{}
++	for k, v := range p.payload.Fields {
++		body[k] = v
++	}
++	body["payment_method"] = payOnline
++	body["payment_session_id"] = sessionID
++	body["payment_reference"] = p.id
++	// One order per pending order, however often the app retries.
++	body["request_id"] = p.id
++	return body
++}
++
++// charge is what the order is written with: exactly what was paid.
++func (p *pendingOrder) charge() clientTotals {
++	t := p.payload.Totals
++	return clientTotals{
++		Total:          t.Total,
++		DeliveryFee:    t.DeliveryFee,
++		Tax:            t.Tax,
++		ItemDiscount:   t.ItemDiscount,
++		CouponDiscount: t.CouponDiscount,
++	}
++}
++
++// paidInFull reports whether a verified gateway payment covers this pending
++// order exactly: same reference, same currency, same amount.
++func (p *pendingOrder) paidInFull(c *paymentCheck) bool {
++	return c.paid &&
++		c.reference == p.id &&
++		strings.EqualFold(c.currency, p.currency) &&
++		c.amountMinor == toMinor(p.payload.Totals.Total, p.currency)
++}
++
++func startOnlineOrder(a *api, body map[string]interface{}) (interface{}, error) {
++	cart, err := a.readCart(moduleOf(body))
++	if err != nil {
++		return nil, err
++	}
++	in, _, err := a.loadPricing(body, cart)
++	if err != nil {
++		return nil, err
++	}
++	// The server's prices are always binding here, whatever SECURITY_ENFORCE
++	// says: this total is what the card is charged.
++	t, err := computeTotals(in)
++	if err != nil {
++		return nil, asPriceError(err)
++	}
++	total := round2(t.Total)
++	if _, sent := body["expected_total"]; sent && math.Abs(num(body["expected_total"])-total) > priceTolerance {
++		e := fail(409, "price_changed", "Prices changed. Please review your order.")
++		e.data = map[string]interface{}{"totals": t}
++		return nil, e
++	}
++	if total <= 0 {
++		return nil, fail(400, "amount_too_small", "Nothing to pay online for this order.")
++	}
++
++	payload, err := json.Marshal(buildPendingPayload(body, cart, t))
++	if err != nil {
++		return nil, fmt.Errorf("encode pending order: %w", err)
++	}
++	currency := storeCurrency()
++	row, err := a.db.CreateRow(a.databaseID, pendingOrdersTable, "unique()", map[string]interface{}{
++		"customer_id":    a.uid,
++		"status":         pendingAwaiting,
++		"payment_method": payOnline,
++		"payment_status": "unpaid",
++		"total_amount":   total,
++		"currency_code":  currency,
++		"payload":        string(payload),
++		"created_at":     a.now.Format("2006-01-02T15:04:05.000Z"),
++	}, a.db.WithCreateRowPermissions([]string{})) // server key only
++	if err != nil {
++		return nil, fmt.Errorf("create pending order (is the pending_orders table created? run the seed script): %w", err)
++	}
++	return map[string]interface{}{
++		"pending_order_id": row.Id,
++		"total_amount":     total,
++		"currency_code":    currency,
++		"totals":           t,
++	}, nil
++}
++
++// loadPendingOrder reads a pending order the caller owns and may still turn
++// into an order.
++func (a *api) loadPendingOrder(id string) (*pendingOrder, error) {
++	row, err := a.getRow(pendingOrdersTable, id)
++	if err != nil {
++		if statusOf(err) == 404 {
++			return nil, fail(404, "payment_unverified", "Payment could not be confirmed.")
++		}
++		return nil, fmt.Errorf("read pending order: %w", err)
++	}
++	return pendingFromRow(id, row, a.uid)
++}
++
++// pendingFromRow checks ownership and state and decodes the stored payload.
++func pendingFromRow(id string, row map[string]interface{}, uid string) (*pendingOrder, error) {
++	if str(row["customer_id"]) != uid {
++		return nil, fail(403, "payment_unverified", "Payment could not be confirmed.")
++	}
++	if strings.EqualFold(str(row["status"]), pendingCancelled) {
++		return nil, fail(409, "payment_unverified", "This payment was cancelled.")
++	}
++	p := &pendingOrder{id: id, currency: str(row["currency_code"])}
++	if err := json.Unmarshal([]byte(str(row["payload"])), &p.payload); err != nil {
++		return nil, fmt.Errorf("decode pending order %s: %w", id, err)
++	}
++	if p.payload.Cart == nil {
++		p.payload.Cart = []map[string]interface{}{} // never fall back to the live cart
++	}
++	return p, nil
++}
++
++// markPendingConverted records which order a paid pending order became.
++// Best effort: the order exists either way.
++func (a *api) markPendingConverted(p *pendingOrder, orderID, orderNumber, paymentRef string) {
++	if _, err := a.db.UpdateRow(a.databaseID, pendingOrdersTable, p.id,
++		a.db.WithUpdateRowData(map[string]interface{}{
++			"status":         pendingConverted,
++			"payment_status": "paid",
++			"order_id":       orderID,
++			"order_number":   orderNumber,
++			"payment_ref":    paymentRef,
++		})); err != nil {
++		a.ctx.Error(fmt.Sprintf("place_order: pending order %s not marked converted: %v", p.id, err))
++	}
++}
++
++// shouldConvert reports whether a pending_orders row is paid and still waits
++// to become an order (the Stripe webhook sets confirmed + paid).
++func shouldConvert(row map[string]interface{}) bool {
++	return strings.EqualFold(str(row["status"]), "confirmed") &&
++		strings.EqualFold(str(row["payment_status"]), "paid")
++}
++
++// convertPaidPending runs on the pending_orders update event. When the Stripe
++// webhook has marked a row paid, it writes the order through place_order as
++// that customer, so a customer whose app closed after paying still gets their
++// order. The app reports the same payment itself; place_order's idempotency
++// key (the pending id) lets exactly one of the two write the order.
++func convertPaidPending(ctx openruntimes.Context, databaseID string, row map[string]interface{}) error {
++	if !shouldConvert(row) {
++		return nil
++	}
++	id, customer, session := str(row["$id"]), str(row["customer_id"]), str(row["payment_ref"])
++	if id == "" || customer == "" || session == "" {
++		return fmt.Errorf("pending order %q is paid but has no customer or payment_ref", id)
++	}
++	var (
++		res interface{}
++		err error
++	)
++	// While the customer's app is writing the same order, wait for it: if that
++	// attempt fails it releases the key and this one writes the order instead.
++	for attempt := 1; ; attempt++ {
++		res, err = placeOrder(newAPI(ctx, customer, databaseID), map[string]interface{}{
++			"pending_order_id":   id,
++			"payment_session_id": session,
++		})
++		var ae *apiError
++		if err == nil || !errors.As(err, &ae) || ae.code != "order_in_progress" || attempt == convertAttempts {
++			break
++		}
++		time.Sleep(convertRetryDelay)
++	}
++	if err != nil {
++		return fmt.Errorf("PAID PENDING ORDER %s NOT CONVERTED (customer %s, session %s) — check the payment and place or refund it: %w",
++			id, customer, session, err)
++	}
++	ctx.Log(fmt.Sprintf("pending order %s converted from the payment webhook: %v", id, res))
++	return nil
++}
++
++// announceOrder pushes "order placed" to the customer and "new order" to the
++// store topic. Best effort: an order must never fail over a notification.
++func (a *api) announceOrder(orderNumber string) {
++	key := strings.TrimSpace(os.Getenv("APPWRITE_API_KEY")) // needs messages.write
++	if key == "" {
++		a.ctx.Error("announceOrder: APPWRITE_API_KEY is not set; order " + orderNumber + " was not announced")
++		return
++	}
++	m := appwrite.NewMessaging(appwrite.NewClient(
++		appwrite.WithEndpoint(os.Getenv("APPWRITE_API_ENDPOINT")),
++		appwrite.WithProject(os.Getenv("APPWRITE_FUNCTION_PROJECT_ID")),
++		appwrite.WithKey(key),
++	))
++	data := map[string]interface{}{"click_action": "FLUTTER_NOTIFICATION_CLICK", "order_id": orderNumber}
++
++	data["type"] = "order_update"
++	if _, err := m.CreatePush("unique()",
++		m.WithCreatePushTitle("Order Placed Successfully!"),
++		m.WithCreatePushBody(fmt.Sprintf("We will deliver your order #%s soon.", orderNumber)),
++		m.WithCreatePushUsers([]string{a.uid}),
++		m.WithCreatePushData(data)); err != nil {
++		a.ctx.Error("announceOrder: customer push for order " + orderNumber + ": " + err.Error())
++	}
++
++	topic := strings.TrimSpace(os.Getenv("STORE_ADMIN_TOPIC_ID"))
++	if topic == "" {
++		a.ctx.Error("announceOrder: STORE_ADMIN_TOPIC_ID is not set; the store was not told about order " + orderNumber)
++		return
++	}
++	storeData := map[string]interface{}{"click_action": "FLUTTER_NOTIFICATION_CLICK", "order_id": orderNumber, "type": "broadcast"}
++	if _, err := m.CreatePush("unique()",
++		m.WithCreatePushTitle("New Order!"),
++		m.WithCreatePushBody(fmt.Sprintf("Order #%s has been placed. Tap to view.", orderNumber)),
++		m.WithCreatePushTopics([]string{topic}),
++		m.WithCreatePushData(storeData)); err != nil {
++		a.ctx.Error("announceOrder: store push for order " + orderNumber + ": " + err.Error())
++	}
++}
+diff --git a/pending_test.go b/pending_test.go
+new file mode 100644
+index 0000000..3eff708
+--- /dev/null
++++ b/pending_test.go
+@@ -0,0 +1,135 @@
++package handler
++
++import (
++	"encoding/json"
++	"testing"
++)
++
++func TestBuildPendingPayloadKeepsOnlyKnownFields(t *testing.T) {
++	body := map[string]interface{}{
++		"module_type": "food", "address_id": "addr1", "coupon_id": "c1",
++		"expected_total": 1.0, "payment_method": "cod", "total_amount": 0.01, // ignored
++	}
++	cart := []map[string]interface{}{{
++		"$id": "l1", "product_id": "p1", "quantity": 2.0, "final_price": 5.0,
++		"user_id": "u1", "$permissions": []string{"x"}, // dropped
++	}}
++	p := buildPendingPayload(body, cart, &orderTotals{Total: 10.004, DeliveryFee: 2, Tax: 0.5})
++
++	if len(p.Fields) != 3 || p.Fields["address_id"] != "addr1" || p.Fields["coupon_id"] != "c1" {
++		t.Fatalf("fields: %v", p.Fields)
++	}
++	if _, ok := p.Fields["payment_method"]; ok {
++		t.Fatal("payment_method must not be stored")
++	}
++	if len(p.Cart) != 1 || p.Cart[0]["user_id"] != nil || p.Cart[0]["product_id"] != "p1" {
++		t.Fatalf("cart: %v", p.Cart)
++	}
++	if p.Totals.Total != 10 || p.Totals.DeliveryFee != 2 || p.Totals.Tax != 0.5 {
++		t.Fatalf("totals: %+v", p.Totals)
++	}
++	// The cart snapshot must survive the JSON round trip into cartLineFromRow.
++	raw, _ := json.Marshal(p)
++	var back pendingPayload
++	if err := json.Unmarshal(raw, &back); err != nil {
++		t.Fatal(err)
++	}
++	if l := cartLineFromRow(back.Cart[0]); l.productID != "p1" || l.quantity != 2 || l.snapshotFinal != 5 {
++		t.Fatalf("line: %+v", l)
++	}
++}
++
++func TestPlaceBodyIgnoresClient(t *testing.T) {
++	p := &pendingOrder{id: "pend1", payload: pendingPayload{Fields: map[string]string{"address_id": "a", "module_type": "ecommerce"}}}
++	b := p.placeBody("cs_123")
++	want := map[string]string{
++		"address_id": "a", "module_type": "ecommerce", "payment_method": "online",
++		"payment_session_id": "cs_123", "payment_reference": "pend1", "request_id": "pend1",
++	}
++	if len(b) != len(want) {
++		t.Fatalf("body: %v", b)
++	}
++	for k, v := range want {
++		if b[k] != v {
++			t.Errorf("%s = %v, want %s", k, b[k], v)
++		}
++	}
++}
++
++func TestPaidInFull(t *testing.T) {
++	p := &pendingOrder{id: "pend1", currency: "USD", payload: pendingPayload{Totals: pendingTotals{Total: 19.99}}}
++	ok := &paymentCheck{paid: true, amountMinor: 1999, currency: "usd", reference: "pend1"}
++	if !p.paidInFull(ok) {
++		t.Fatal("exact payment refused")
++	}
++	for name, c := range map[string]paymentCheck{
++		"unpaid":         {paid: false, amountMinor: 1999, currency: "usd", reference: "pend1"},
++		"one cent short": {paid: true, amountMinor: 1998, currency: "usd", reference: "pend1"},
++		"other currency": {paid: true, amountMinor: 1999, currency: "eur", reference: "pend1"},
++		"other order":    {paid: true, amountMinor: 1999, currency: "usd", reference: "pend2"},
++	} {
++		c := c
++		if p.paidInFull(&c) {
++			t.Errorf("%s accepted", name)
++		}
++	}
++}
++
++func TestToMinor(t *testing.T) {
++	if got := toMinor(19.99, "usd"); got != 1999 {
++		t.Errorf("usd: %d", got)
++	}
++	if got := toMinor(1500, "JPY"); got != 1500 {
++		t.Errorf("jpy: %d", got)
++	}
++}
++
++func TestStoreCurrency(t *testing.T) {
++	t.Setenv("STORE_CURRENCY", "")
++	if storeCurrency() != "USD" {
++		t.Error("default")
++	}
++	t.Setenv("STORE_CURRENCY", " bdt ")
++	if storeCurrency() != "BDT" {
++		t.Error("bdt")
++	}
++	t.Setenv("STORE_CURRENCY", "taka")
++	if storeCurrency() != "USD" {
++		t.Error("invalid code must fall back")
++	}
++}
++
++func TestPendingFromRow(t *testing.T) {
++	row := map[string]interface{}{
++		"customer_id": "u1", "status": "awaiting_payment", "currency_code": "USD",
++		"payload": `{"fields":{"address_id":"a"},"totals":{"total":5}}`,
++	}
++	p, err := pendingFromRow("pend1", row, "u1")
++	if err != nil || p.payload.Totals.Total != 5 || p.payload.Cart == nil {
++		t.Fatalf("own row: %v %+v", err, p)
++	}
++	if _, err := pendingFromRow("pend1", row, "u2"); err == nil {
++		t.Error("another customer's pending order accepted")
++	}
++	row["status"] = "cancelled"
++	if _, err := pendingFromRow("pend1", row, "u1"); err == nil {
++		t.Error("cancelled pending order accepted")
++	}
++}
++
++func TestShouldConvert(t *testing.T) {
++	for _, c := range []struct {
++		status, payment string
++		want            bool
++	}{
++		{"confirmed", "paid", true},
++		{"awaiting_payment", "unpaid", false},
++		{"converted", "paid", false}, // already an order: the update this function makes itself
++		{"cancelled", "unpaid", false},
++		{"confirmed", "unpaid", false},
++	} {
++		if got := shouldConvert(map[string]interface{}{"status": c.status, "payment_status": c.payment}); got != c.want {
++			t.Errorf("%s/%s: got %v", c.status, c.payment, got)
++		}
++	}
++}

@@ -23,7 +23,11 @@ abstract class OrderRepoInterface {
   /// [requestId] identifies one checkout attempt: repeating it returns the
   /// order already placed instead of a second one. Throws [BackendException]
   /// on refusal. Returns `orderId` and `orderNumber`.
+  ///
+  /// With [pendingOrderId] (a paid [startOnlineOrder]) the server writes the
+  /// order from that stored checkout and ignores the other amounts sent.
   Future<Map<String, String>> createOrder({
+    String? pendingOrderId,
     required String requestId,
     required String addressId,
     required String paymentMethod,
@@ -38,6 +42,27 @@ abstract class OrderRepoInterface {
     String? paymentReference,
     String? deliveryInstructions,
     String? deliveryType, // 'now' or 'scheduled'
+    DateTime? scheduledDate,
+    String? scheduledTimeSlot,
+    String? moduleType,
+  });
+
+  /// Card checkout, step 1: the server prices the cart and stores it as a
+  /// pending order; the payment gateway then charges that stored total. The
+  /// expected amounts are what this app showed (`price_changed` when they
+  /// differ). Throws [BackendException] on refusal. Returns
+  /// `pending_order_id`, `total_amount` and `currency_code`.
+  Future<Map<String, dynamic>> startOnlineOrder({
+    required String addressId,
+    required double totalAmount,
+    required double deliveryFee,
+    double taxAmount = 0.0,
+    double discountAmount = 0.0,
+    double couponDiscount = 0.0,
+    String? couponId,
+    String? shippingMethodId,
+    String? deliveryInstructions,
+    String? deliveryType,
     DateTime? scheduledDate,
     String? scheduledTimeSlot,
     String? moduleType,

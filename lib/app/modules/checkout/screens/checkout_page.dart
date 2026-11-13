@@ -2017,7 +2017,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
     try {
       final orderController = Get.find<OrderController>();
       final authController = Get.find<AuthController>();
-      final profileController = Get.find<ProfileController>();
       String? userId = await authController.getUserId();
 
       if (userId == null) {
@@ -2036,8 +2035,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
       Future<Map<String, dynamic>> createOrderRow({
         String? paymentSessionId,
         String? paymentReference,
+        String? pendingOrderId,
       }) {
         return orderController.placeOrder(
+          pendingOrderId: pendingOrderId,
           // A gateway payment's own reference doubles as the attempt id, so the
           // web return page re-running cannot place it twice either.
           requestId: paymentReference ?? requestId,
@@ -2062,21 +2063,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
       final Map<String, dynamic> result;
 
-      // ── Online payment — pay first, create the order only once the gateway
-      // confirms. Nothing is written to Appwrite before that point, on either
-      // platform; only how the customer reaches the gateway differs. ──
+      // ── Online payment — the server prices the cart and keeps it as a
+      // pending order; the gateway charges that stored total (this app never
+      // sends an amount). The real order is written only once the payment is
+      // confirmed, on either platform; only how the customer reaches the
+      // gateway differs. ──
       if (_selectedPaymentMethod == PaymentMethod.online) {
         final paymentService = PaymentService();
-        final profile = profileController.userProfile;
-        final currency = 'usd'; // settingsController.businessSetup?.currency ?? 'BDT';
-
-        // Convert total to smallest currency unit (cents/poisha). Rounded, not
-        // truncated: 19.99 × 100 is 1998.999… in floating point.
-        final amountInSmallest = (total * 100).round();
-
-        // No DB order exists yet, so the gateway only gets a local, temporary
-        // reference — matches PaymentService.createPayment's own contract.
-        final tempReference = 'temp_${DateTime.now().millisecondsSinceEpoch}';
 
         // Show loading while creating payment session
         if (mounted) {
@@ -2087,26 +2080,39 @@ class _CheckoutPageState extends State<CheckoutPage> {
           );
         }
 
-        final Map<String, dynamic> paymentResult;
+        final Map<String, dynamic> started;
+        Map<String, dynamic> paymentResult = const {};
         try {
-          paymentResult = await paymentService.createPayment(
-            gateway: _selectedGateway.key,
-            amount: amountInSmallest,
-            orderId: tempReference,
-            currency: currency,
-            customerName: profile?.name,
-            customerEmail: profile?.email,
-            customerPhone: profile?.phone,
-            // Web returns to the site it is actually served from, so the
-            // success page always finds the order saved below. Mobile keeps
-            // the function's configured URLs (its WebView matches the path).
-            successURL: kIsWeb
-                ? '${Uri.base.origin}${PaymentService.successPath}'
-                : null,
-            cancelURL: kIsWeb
-                ? '${Uri.base.origin}${PaymentService.cancelPath}'
-                : null,
+          started = await orderController.startOnlineOrder(
+            address: _selectedAddress!,
+            cartItems: cartController.cartItems,
+            totalAmount: total,
+            deliveryFee: deliveryFee,
+            taxAmount: taxAmount,
+            discountAmount: itemDiscountTotal,
+            couponDiscount: couponDiscountAmount,
+            couponId: cartController.appliedCoupon?.id,
+            shippingMethodId: _showsShipping ? _selectedShipping?.id : null,
+            deliveryInstructions: _instructionsController.text.trim(),
+            deliveryType: _isEcommerce ? null : _deliveryType,
+            scheduledDate: _isEcommerce ? null : _selectedDate,
+            scheduledTimeSlot: _isEcommerce ? null : _selectedTimeSlot,
           );
+          if (started['success'] == true) {
+            paymentResult = await paymentService.createPayment(
+              gateway: _selectedGateway.key,
+              orderId: started['pendingOrderId'] as String,
+              // Web returns to the site it is actually served from, so the
+              // success page always finds the order saved below. Mobile keeps
+              // the function's configured URLs (its WebView matches the path).
+              successURL: kIsWeb
+                  ? '${Uri.base.origin}${PaymentService.successPath}'
+                  : null,
+              cancelURL: kIsWeb
+                  ? '${Uri.base.origin}${PaymentService.cancelPath}'
+                  : null,
+            );
+          }
         } catch (e) {
           log('Payment initiation error: $e');
           // Dismiss loading dialog safely
@@ -2116,6 +2122,19 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
         // Dismiss loading dialog
         if (mounted) Navigator.of(context).pop();
+
+        if (started['code'] == 'price_changed') {
+          // Same as the other methods: show the new totals, charge nothing.
+          customToster(started['error'] as String, isSuccess: false);
+          await cartController.getCartItems();
+          return;
+        }
+        if (started['success'] != true) {
+          throw _OrderError(started['error'] as String? ?? 'failed_to_place_order'.tr);
+        }
+        final pendingOrderId = started['pendingOrderId'] as String;
+        // What is charged: the server's total for the pending order.
+        total = started['totalAmount'] as double;
 
         final paymentURL = paymentResult['data']?['paymentURL'] as String?;
         if (paymentURL == null || paymentURL.isEmpty) {
@@ -2150,11 +2169,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
               couponId: cartController.appliedCoupon?.id,
               shippingMethodId: _showsShipping ? _selectedShipping?.id : null,
               moduleType: ModuleController.current,
-              // What the return page checks against Stripe before writing.
-              reference: tempReference,
+              // What the return page checks against Stripe before writing:
+              // the amount the payment function itself charged.
+              reference: pendingOrderId,
               sessionId: paymentResult['data']?['sessionId'] as String?,
-              amountMinor: amountInSmallest,
-              currency: currency,
+              amountMinor: (paymentResult['data']?['amount'] as num?)?.toInt(),
+              currency: paymentResult['data']?['currency'] as String?,
               createdAt: DateTime.now(),
             ),
           );
@@ -2194,7 +2214,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
         // function before writing the order.
         result = await createOrderRow(
           paymentSessionId: paymentResult['data']?['sessionId'] as String?,
-          paymentReference: tempReference,
+          paymentReference: pendingOrderId,
+          pendingOrderId: pendingOrderId,
         );
       } else {
         // ── Wallet and cash on delivery. For the wallet, the server takes the

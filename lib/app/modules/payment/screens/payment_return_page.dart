@@ -209,7 +209,12 @@ class _PaymentReturnPageState extends State<PaymentReturnPage> {
     // ── Verified: write the order as paid. ──
     _show(_ReturnState.working, 'finishing_your_order');
     final orderController = Get.find<OrderController>();
+    final reference = pending.reference;
     final result = await orderController.placeOrder(
+      // A server-priced checkout: the order is written from the pending row.
+      // A `temp_` reference was saved by an app version from before it.
+      pendingOrderId:
+          reference != null && !reference.startsWith('temp_') ? reference : null,
       // The checkout's payment reference is the attempt id, so a reload of
       // this page returns the order already placed instead of a second one.
       requestId: pending.reference ?? sessionId,
