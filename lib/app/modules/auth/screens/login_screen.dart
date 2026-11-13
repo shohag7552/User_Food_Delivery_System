@@ -49,12 +49,7 @@ class _LoginScreenState extends State<LoginScreen>
     super.initState();
 
     // Prefill from the last "remember me" sign-in, if there was one.
-    final remembered = Get.find<AuthController>().rememberedCredentials;
-    if (remembered != null) {
-      _emailController.text = remembered.email;
-      _passwordController.text = remembered.password;
-      _rememberMe = true;
-    }
+    _prefillRemembered();
 
     _animationController = AnimationController(
       vsync: this,
@@ -69,6 +64,19 @@ class _LoginScreenState extends State<LoginScreen>
       end: Offset.zero,
     ).animate(_fadeAnimation);
     _animationController.forward();
+  }
+
+  /// Prefills the form from the last "remember me" sign-in, if there was one.
+  /// The password comes from the keystore, so it arrives a moment later.
+  Future<void> _prefillRemembered() async {
+    final remembered = await Get.find<AuthController>().getRememberedCredentials();
+    // Skip if the screen closed or the user started typing meanwhile.
+    if (remembered == null || !mounted || _emailController.text.isNotEmpty) return;
+    setState(() {
+      _emailController.text = remembered.email;
+      _passwordController.text = remembered.password;
+      _rememberMe = true;
+    });
   }
 
   @override

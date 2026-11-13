@@ -132,8 +132,11 @@ class AuthController extends GetxController implements GetxService {
   /// Credentials the user asked the app to remember, or null when the option
   /// is off. The sign-in form reads this to prefill itself; [logout] leaves it
   /// untouched so the values are still there on the next visit.
-  ({String email, String password})? get rememberedCredentials =>
+  Future<({String email, String password})?> getRememberedCredentials() =>
       authRepoInterface.getRememberedCredentials();
+
+  /// Just the remembered email (no password read), e.g. for password reset.
+  String? get rememberedEmail => authRepoInterface.getRememberedEmail();
 
   /// [rememberMe] `true` stores the credentials for next time, `false` forgets
   /// any stored ones. Leave it null (the default) to not touch them at all —

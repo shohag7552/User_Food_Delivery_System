@@ -64,8 +64,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
 
     // Someone who has just failed to sign in almost certainly wants to reset
     // the address they were trying — save them retyping it.
-    final remembered = Get.find<AuthController>().rememberedCredentials;
-    if (remembered != null) _emailController.text = remembered.email;
+    final rememberedEmail = Get.find<AuthController>().rememberedEmail;
+    if (rememberedEmail != null) _emailController.text = rememberedEmail;
 
     _animationController = AnimationController(
       vsync: this,
