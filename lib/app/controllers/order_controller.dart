@@ -19,6 +19,7 @@ class OrderController extends GetxController implements GetxService {
   List<OrderModel> _orders = [];
   OrderModel? _selectedOrder;
   bool _isLoading = false;
+  int _fetchRequestId = 0;
   bool _isPlacingOrder = false;
   bool _isLoadingMore = false;
   bool _isOrderDetailsLoading = false;
@@ -324,6 +325,8 @@ class OrderController extends GetxController implements GetxService {
       update();
       return;
     }
+    // Fast status taps overlap; only the latest request may write the list.
+    final requestId = ++_fetchRequestId;
     try {
       if (refresh) {
         _currentPage = 0;
@@ -339,6 +342,7 @@ class OrderController extends GetxController implements GetxService {
         limit: _pageSize,
         offset: _currentPage * _pageSize,
       );
+      if (requestId != _fetchRequestId) return;
 
       if (refresh) {
         _orders = fetchedOrders;
@@ -352,6 +356,7 @@ class OrderController extends GetxController implements GetxService {
       _isLoading = false;
       update();
     } catch (e) {
+      if (requestId != _fetchRequestId) return;
       _isLoading = false;
       update();
       log('Error fetching orders: $e');
@@ -363,6 +368,7 @@ class OrderController extends GetxController implements GetxService {
     if (!isUserLoggedIn()) return;
     if (_isLoadingMore || !_hasMore) return;
 
+    final requestId = _fetchRequestId;
     try {
       _isLoadingMore = true;
       update();
@@ -375,6 +381,12 @@ class OrderController extends GetxController implements GetxService {
         limit: _pageSize,
         offset: _currentPage * _pageSize,
       );
+      // The status changed mid-request: this page belongs to the old list.
+      if (requestId != _fetchRequestId) {
+        _isLoadingMore = false;
+        update();
+        return;
+      }
 
       _orders.addAll(fetchedOrders);
       _hasMore = fetchedOrders.length >= _pageSize;
@@ -383,7 +395,8 @@ class OrderController extends GetxController implements GetxService {
       update();
     } catch (e) {
       _isLoadingMore = false;
-      _currentPage--; // Revert page increment on error
+      // Revert page increment on error, unless a status change already reset it.
+      if (requestId == _fetchRequestId) _currentPage--;
       update();
       log('Error loading more orders: $e');
     }
@@ -396,6 +409,9 @@ class OrderController extends GetxController implements GetxService {
     _selectedStatus = status;
     _currentPage = 0;
     _hasMore = true;
+    // Drop the previous status's orders so the list shows the loading shimmer,
+    // not stale results, until this status's response arrives.
+    _orders = [];
     fetchUserOrders(refresh: true);
   }
 

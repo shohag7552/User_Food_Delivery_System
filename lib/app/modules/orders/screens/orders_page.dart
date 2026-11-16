@@ -10,6 +10,7 @@ import 'package:kikomart_user_app/app/helper/currency_helper.dart';
 import 'package:kikomart_user_app/app/helper/nav_bar_visibility.dart';
 import 'package:kikomart_user_app/app/helper/dashboard_tab_bus.dart';
 import 'package:kikomart_user_app/app/helper/routes/app_router.dart';
+import 'package:kikomart_user_app/app/modules/dashboard/widgets/dashboard_shimmer.dart';
 import 'package:kikomart_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
 import 'package:kikomart_user_app/app/models/order_model.dart';
 import 'package:kikomart_user_app/app/resources/colors.dart';
@@ -104,7 +105,8 @@ class _OrdersPageState extends State<OrdersPage> {
     // success screen can't be returned to — or opened straight from a URL.
     // Without a fallback the app bar renders no back button and Android's back
     // gesture closes the app instead of leaving the page.
-    final needsHomeFallback = !canPop;
+    // As a navbar tab there is nowhere to go back to, so no back button at all.
+    final needsHomeFallback = widget.isStandalone && !canPop;
 
     final scaffold = Scaffold(
       key: _webScaffoldKey,
@@ -121,6 +123,7 @@ class _OrdersPageState extends State<OrdersPage> {
           : hideAppBar
           ? null
           : AppBar(
+              automaticallyImplyLeading: widget.isStandalone,
               // Null keeps Flutter's automatic back button whenever the route
               // really can pop; only the dead-end case is overridden.
               leading: needsHomeFallback
@@ -535,23 +538,63 @@ class _OrdersPageState extends State<OrdersPage> {
     );
   }
 
+  /// Placeholder order cards shown while a status's orders load.
   Widget _buildLoadingState() {
+    final radius = BorderRadius.circular(Constants.radiusLarge);
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(
-            color: ColorResource.primaryDark,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+        child: ListView.separated(
+          physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.symmetric(
+            horizontal: _isWide ? 20 : 16,
+            vertical: 16,
           ),
-          const SizedBox(height: 16),
-          Text(
-            'loading_your_orders'.tr,
-            style: poppinsMedium.copyWith(
-              fontSize: Constants.fontSizeDefault,
-              color: context.textSecondary,
+          itemCount: 6,
+          separatorBuilder: (_, _) => const SizedBox(height: 12),
+          itemBuilder: (_, _) => DashboardShimmer(
+            borderRadius: radius,
+            child: Container(
+              padding: const EdgeInsets.all(Constants.paddingSizeDefault),
+              decoration: BoxDecoration(
+                color: context.cardBackground,
+                borderRadius: radius,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      ShimmerBox(
+                        width: 120,
+                        height: 16,
+                        borderRadius: BorderRadius.circular(Constants.radiusSmall),
+                      ),
+                      const Spacer(),
+                      ShimmerBox(
+                        width: 72,
+                        height: 22,
+                        borderRadius: BorderRadius.circular(Constants.radiusLarge),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ShimmerBox(
+                    width: 180,
+                    height: 12,
+                    borderRadius: BorderRadius.circular(Constants.radiusSmall),
+                  ),
+                  const SizedBox(height: 8),
+                  ShimmerBox(
+                    width: 100,
+                    height: 12,
+                    borderRadius: BorderRadius.circular(Constants.radiusSmall),
+                  ),
+                ],
+              ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
