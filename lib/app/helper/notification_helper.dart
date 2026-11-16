@@ -12,7 +12,19 @@ class NotificationHelper {
     var androidInitialize = const AndroidInitializationSettings('notification_icon');
     var iOSInitialize = const DarwinInitializationSettings();
     var initializationsSettings = InitializationSettings(android: androidInitialize, iOS: iOSInitialize);
-    flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()!.requestNotificationsPermission();
+    // Android-only, and null on iOS: force-unwrapping it threw before any
+    // listener below was registered, so iOS had no notification handling.
+    final android = flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    await android?.requestNotificationsPermission();
+    // Created up front so pushes Firebase shows while the app is closed use
+    // it too (it is the manifest's default channel) and pop up as banners.
+    await android?.createNotificationChannel(const AndroidNotificationChannel(
+      'kikomart_notifications', 'KikoMart Notifications', importance: Importance.max,
+    ));
+    // iOS shows nothing while the app is open unless it is told to.
+    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+      alert: true, badge: true, sound: true,
+    );
     flutterLocalNotificationsPlugin.initialize(settings: initializationsSettings, onDidReceiveNotificationResponse: (NotificationResponse response) async {
       try{
         debugPrint('===payload: ${response.payload}');
@@ -46,6 +58,8 @@ class NotificationHelper {
       title = message.notification?.title ?? message.data['title'];
       body = message.notification?.body ?? message.data['body'];
       orderID = message.data['order_id'];
+      // A data-only push has no title/body; force-unwrapping it threw here.
+      if (title == null && body == null) return;
       image = '';
       // (message.data['image'] != null && message.data['image'].isNotEmpty)
           // ? message.data['image'].startsWith('http') ? message.data['image']
@@ -54,14 +68,14 @@ class NotificationHelper {
       debugPrint('==========message : $title ,  $image');
 
       debugPrint('==========message 2: $title ,  $body');
-      await showBigTextNotification(title, body!, orderID, null, fln);
+      await showBigTextNotification(title, body ?? '', orderID, null, fln);
     }
   }
 
   static Future<void> showTextNotification(String title, String body, String orderID, Map<String, String>? notificationBody, FlutterLocalNotificationsPlugin fln) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      'stackfood', 'stackfood', playSound: true,
-      importance: Importance.max, priority: Priority.max, sound: RawResourceAndroidNotificationSound('notification'),
+      'kikomart_alerts', 'KikoMart Alerts', playSound: true,
+      importance: Importance.max, priority: Priority.max,
     );
     const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
     await fln.show(id: 0, title: title, body: body, notificationDetails: platformChannelSpecifics, payload: notificationBody != null ? null : null);
@@ -73,7 +87,7 @@ class NotificationHelper {
       contentTitle: title, htmlFormatContentTitle: true,
     );
     AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      'loklagbe', 'loklagbe', importance: Importance.max,
+      'kikomart_notifications', 'KikoMart Notifications', importance: Importance.max,
       styleInformation: bigTextStyleInformation, priority: Priority.max, playSound: true,
       // sound: const RawResourceAndroidNotificationSound('notification'),
     );

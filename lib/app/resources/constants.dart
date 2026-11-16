@@ -168,7 +168,10 @@ class Constants {
   /// clearing them is only triggered by the user unticking the box.
   static const String rememberMe = 'remember_me';
   static const String rememberedEmail = 'remembered_email';
+  /// Key of the password in secure storage (never in SharedPreferences).
   static const String rememberedPassword = 'remembered_password';
+  /// Where older builds kept the password in plain text; read once to migrate.
+  static const String legacyRememberedPassword = 'remembered_password';
 }
 
 class LanguageModel {

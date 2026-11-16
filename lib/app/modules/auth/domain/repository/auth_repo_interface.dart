@@ -56,7 +56,8 @@ abstract class AuthRepoInterface {
   });
 
   /// Stores the sign-in credentials on the device so the login form can
-  /// prefill them next time. Survives logout by design.
+  /// prefill them next time: the password only in the platform keystore,
+  /// never on web. Survives logout by design.
   Future<void> saveRememberedCredentials({
     required String email,
     required String password,
@@ -65,9 +66,12 @@ abstract class AuthRepoInterface {
   /// Forgets any device-stored credentials (the user unticked "remember me").
   Future<void> clearRememberedCredentials();
 
-  /// The remembered credentials, or null when "remember me" is off. Reads from
-  /// already-loaded local storage, so it is synchronous.
-  ({String email, String password})? getRememberedCredentials();
+  /// The remembered email, or null when "remember me" is off. Synchronous.
+  String? getRememberedEmail();
+
+  /// The remembered credentials, or null when "remember me" is off. The
+  /// password is '' when none is stored (always on web).
+  Future<({String email, String password})?> getRememberedCredentials();
 
   Future<bool> updatePassword({
     required String password,

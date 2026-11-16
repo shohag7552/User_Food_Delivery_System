@@ -9,6 +9,7 @@ import 'package:kikomart_user_app/app/modules/auth/domain/repository/auth_repo_i
 import 'package:kikomart_user_app/app/modules/auth/domain/services/password_reset_failure.dart';
 import 'package:kikomart_user_app/app/resources/constants.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,6 +38,15 @@ class AuthRepository implements AuthRepoInterface {
     return await appwriteService.signOut();
   }
 
+  // Remember me: the email and the on/off flag are not secrets and live in
+  // SharedPreferences. The password goes only to the platform keystore
+  // (Android Keystore / iOS Keychain) and is never stored on web, where
+  // browser storage cannot keep it secret; there the email alone is kept.
+  static const _secureStorage = FlutterSecureStorage(
+    iOptions: IOSOptions(accessibility: KeychainAccessibility.unlocked_this_device),
+    mOptions: MacOsOptions(accessibility: KeychainAccessibility.unlocked_this_device),
+  );
+
   @override
   Future<void> saveRememberedCredentials({
     required String email,
@@ -44,25 +54,62 @@ class AuthRepository implements AuthRepoInterface {
   }) async {
     await sharedPreferences.setBool(Constants.rememberMe, true);
     await sharedPreferences.setString(Constants.rememberedEmail, email);
-    await sharedPreferences.setString(Constants.rememberedPassword, password);
+    await _writePassword(password);
   }
 
   @override
   Future<void> clearRememberedCredentials() async {
     await sharedPreferences.remove(Constants.rememberMe);
     await sharedPreferences.remove(Constants.rememberedEmail);
-    await sharedPreferences.remove(Constants.rememberedPassword);
+    await sharedPreferences.remove(Constants.legacyRememberedPassword);
+    await _writePassword(null);
   }
 
   @override
-  ({String email, String password})? getRememberedCredentials() {
+  String? getRememberedEmail() {
     if (sharedPreferences.getBool(Constants.rememberMe) != true) return null;
+    return sharedPreferences.getString(Constants.rememberedEmail);
+  }
 
-    final email = sharedPreferences.getString(Constants.rememberedEmail);
-    final password = sharedPreferences.getString(Constants.rememberedPassword);
-    if (email == null || password == null) return null;
+  @override
+  Future<({String email, String password})?> getRememberedCredentials() async {
+    final email = getRememberedEmail();
+    if (email == null) return null;
 
-    return (email: email, password: password);
+    // Builds before this one kept the password in plain text: move it into
+    // the keystore (dropped on web) and delete the plain copy.
+    final legacy = sharedPreferences.getString(Constants.legacyRememberedPassword);
+    if (legacy != null) {
+      await _writePassword(legacy);
+      await sharedPreferences.remove(Constants.legacyRememberedPassword);
+    }
+
+    return (email: email, password: await _readPassword() ?? '');
+  }
+
+  /// Writes the password to the keystore, or deletes it when null. A keystore
+  /// failure only costs the prefill; it never blocks signing in.
+  Future<void> _writePassword(String? password) async {
+    if (kIsWeb) return;
+    try {
+      if (password == null) {
+        await _secureStorage.delete(key: Constants.rememberedPassword);
+      } else {
+        await _secureStorage.write(key: Constants.rememberedPassword, value: password);
+      }
+    } catch (e) {
+      log('Remember me: secure storage write failed: $e');
+    }
+  }
+
+  Future<String?> _readPassword() async {
+    if (kIsWeb) return null;
+    try {
+      return await _secureStorage.read(key: Constants.rememberedPassword);
+    } catch (e) {
+      log('Remember me: secure storage read failed: $e');
+      return null;
+    }
   }
 
   @override

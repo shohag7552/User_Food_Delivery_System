@@ -188,7 +188,7 @@ class AppwriteService {
     required String password,
     required String name,
   }) async {
-    log('====> SignUp request- email:$email, name:$name, password:$password');
+    log('====> SignUp request- email:$email, name:$name');
     try {
       final user = await account.create(
         userId: ID.unique(),
@@ -290,7 +290,7 @@ class AppwriteService {
     required String email,
     required String password,
   }) async {
-    log('====> signIn request- email:$email, password:$password');
+    log('====> signIn request- email:$email');
 
     try {
       final response = await account.createEmailPasswordSession(

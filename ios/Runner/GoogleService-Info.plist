@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyCiPmUBx4yPIF0DvGEJJQVs0S-VHLj1QZk</string>
+	<string>AIzaSyD8DpnznxKvf7Vcq6vpfr7P_TkUEzL_KNM</string>
 	<key>GCM_SENDER_ID</key>
-	<string>660606682501</string>
+	<string>232005235395</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.foodUserApp</string>
+	<string>com.kikomart.user</string>
 	<key>PROJECT_ID</key>
-	<string>food-app-c2fe8</string>
+	<string>kiko-mart</string>
 	<key>STORAGE_BUCKET</key>
-	<string>food-app-c2fe8.firebasestorage.app</string>
+	<string>kiko-mart.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:660606682501:ios:551515d56b903be327b0ec</string>
+	<string>1:232005235395:ios:b3fe1395f904fe25802876</string>
 </dict>
 </plist>

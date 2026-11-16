@@ -4,7 +4,6 @@ import 'package:kikomart_user_app/app/appwrite/payment_service.dart';
 import 'package:kikomart_user_app/app/modules/payment/domain/services/pending_payment_store.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:url_launcher/url_launcher.dart';
-import 'package:kikomart_user_app/app/common/widgets/app_map_layers.dart';
 import 'package:kikomart_user_app/app/common/widgets/auth_gate.dart';
 import 'package:kikomart_user_app/app/common/widgets/custom_appbar.dart';
 import 'package:kikomart_user_app/app/common/widgets/web_footer.dart';
@@ -28,15 +27,21 @@ import 'package:kikomart_user_app/app/helper/routes/app_router.dart';
 import 'package:kikomart_user_app/app/models/address_model.dart';
 import 'package:kikomart_user_app/app/models/business_hours_model.dart';
 import 'package:kikomart_user_app/app/modules/checkout/widgets/address_selection_bottomsheet.dart';
+import 'package:kikomart_user_app/app/modules/checkout/domain/services/delivery_fee.dart';
+import 'package:kikomart_user_app/app/modules/checkout/widgets/checkout_address_widgets.dart';
+import 'package:kikomart_user_app/app/modules/checkout/widgets/checkout_coupon_section.dart';
+import 'package:kikomart_user_app/app/modules/checkout/widgets/checkout_delivery_instructions.dart';
+import 'package:kikomart_user_app/app/modules/checkout/widgets/checkout_delivery_schedule_section.dart';
+import 'package:kikomart_user_app/app/modules/checkout/widgets/checkout_payment_method_section.dart';
+import 'package:kikomart_user_app/app/modules/checkout/widgets/checkout_shipping_section.dart';
+import 'package:kikomart_user_app/app/modules/checkout/widgets/checkout_summary_widgets.dart';
 import 'package:kikomart_user_app/app/modules/checkout/widgets/edit_address_info_bottomsheet.dart';
 import 'package:kikomart_user_app/app/modules/checkout/widgets/delivery_schedule_bottomsheet.dart';
-import 'package:kikomart_user_app/app/modules/coupons/widgets/coupon_selection_bottomsheet.dart';
 import 'package:kikomart_user_app/app/modules/payment/payment_webview_screen.dart';
 import 'package:kikomart_user_app/app/resources/colors.dart';
 import 'package:kikomart_user_app/app/resources/constants.dart';
 import 'package:kikomart_user_app/app/resources/text_style.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
@@ -299,71 +304,22 @@ class _CheckoutPageState extends State<CheckoutPage> {
     }
   }
 
-  double? _calculateDistanceKm(SettingsController settingsController) {
-    final businessSetup = settingsController.businessSetup;
-    final address = _selectedAddress;
-
-    if (businessSetup?.storeLatitude == null ||
-        businessSetup?.storeLongitude == null ||
-        address?.latitude == null ||
-        address?.longitude == null) {
-      return null;
-    }
-
-    return const Distance().as(
-      LengthUnit.Kilometer,
-      LatLng(businessSetup!.storeLatitude!, businessSetup.storeLongitude!),
-      LatLng(address!.latitude!, address.longitude!),
-    );
-  }
+  double? _calculateDistanceKm(SettingsController settingsController) =>
+      deliveryDistanceKm(settingsController.businessSetup, _selectedAddress);
 
   double _calculateDeliveryFee(
     CartController cartController,
     SettingsController settingsController,
-  ) {
-    // Ecommerce with shipping methods on: the courier sets the price, so the
-    // fee comes straight off the selected method's own rate table.
-    if (_showsShipping) {
-      return _selectedShipping?.feeFor(cartController.total) ?? 0;
-    }
+  ) => calculateDeliveryFee(
+    businessSetup: settingsController.businessSetup,
+    address: _selectedAddress,
+    orderAmount: cartController.total,
+    showsShipping: _showsShipping,
+    selectedShipping: _selectedShipping,
+  );
 
-    // Everything else falls through to the distance-based rate below: food
-    // orders, and ecommerce orders placed while shipping methods are off.
-    //
-    // With shipping off there are no couriers configured, so the store's own
-    // deliveryman brings the parcel — the same fulfilment as a food order, and
-    // therefore the same pricing: free above `free_delivery_above`, otherwise
-    // distance x `delivery_fee_per_km`, floored at `min_delivery_fee`.
-    final businessSetup = settingsController.businessSetup;
-    final orderAmount = cartController.total;
-    final freeDeliveryAbove = businessSetup?.freeDeliveryAbove;
-
-    if (freeDeliveryAbove != null && orderAmount >= freeDeliveryAbove) {
-      return 0;
-    }
-
-    final distanceKm = _calculateDistanceKm(settingsController);
-    final minFee = businessSetup?.minDeliveryFee ?? 0;
-    final feePerKm = businessSetup?.deliveryFeePerKm ?? 0;
-
-    if (distanceKm == null) {
-      return minFee;
-    }
-
-    final calculatedFee = distanceKm * feePerKm;
-    return calculatedFee < minFee ? minFee : calculatedFee;
-  }
-
-  bool _isOutsideDeliveryRadius(SettingsController settingsController) {
-    final maxRadius = settingsController.businessSetup?.maxDeliveryRadius;
-    final distanceKm = _calculateDistanceKm(settingsController);
-
-    if (maxRadius == null || distanceKm == null) {
-      return false;
-    }
-
-    return distanceKm > maxRadius;
-  }
+  bool _isOutsideDeliveryRadius(SettingsController settingsController) =>
+      isOutsideDeliveryRadius(settingsController.businessSetup, _selectedAddress);
 
   /// Current store availability for immediate ("now") orders, plus a
   /// human-readable next-opening label when closed.
@@ -489,17 +445,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       // to pick. The trailing gap lives inside the branch so
                       // hiding the block does not leave a double space.
                       if (_showsShipping) ...[
-                        _buildShippingSection(),
+                        _shippingSection(),
                         const SizedBox(height: 20),
                       ] else if (!_isEcommerce) ...[
-                        _buildDeliverySchedule(),
+                        _deliveryScheduleSection(),
                         const SizedBox(height: 20),
                       ],
-                      _buildCouponSection(controller),
+                      CheckoutCouponSection(controller: controller),
                       const SizedBox(height: 20),
-                      _buildPaymentMethod(),
+                      _paymentMethodSection(),
                       const SizedBox(height: 20),
-                      _buildDeliveryInstructions(),
+                      CheckoutDeliveryInstructions(controller: _instructionsController),
                       const SizedBox(height: 10),
                     ],
                   ),
@@ -579,15 +535,15 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           const SizedBox(height: 20),
                           // Same rule as the mobile column — see there.
                           if (_showsShipping) ...[
-                            _buildShippingSection(),
+                            _shippingSection(),
                             const SizedBox(height: 20),
                           ] else if (!_isEcommerce) ...[
-                            _buildDeliverySchedule(),
+                            _deliveryScheduleSection(),
                             const SizedBox(height: 20),
                           ],
-                          _buildPaymentMethod(),
+                          _paymentMethodSection(),
                           const SizedBox(height: 20),
-                          _buildDeliveryInstructions(),
+                          CheckoutDeliveryInstructions(controller: _instructionsController),
                         ],
                       ),
                     ),
@@ -597,7 +553,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _buildCouponSection(controller),
+                          CheckoutCouponSection(controller: controller),
                           const SizedBox(height: 20),
                           _buildWebSummaryCard(controller),
                         ],
@@ -642,20 +598,20 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ),
           ),
           const SizedBox(height: 16),
-          _buildSummaryRow(
+          CheckoutSummaryRow(
             '${'cart_items_count'.tr} (${controller.itemCount})',
             controller.originalSubtotal,
           ),
           if (controller.itemDiscountTotal > 0) ...[
             const SizedBox(height: 8),
-            _buildSummaryRow(
+            CheckoutSummaryRow(
               'item_discount'.tr,
               -controller.itemDiscountTotal,
               isDiscount: true,
             ),
           ],
           const SizedBox(height: 8),
-          _buildSummaryRow(
+          CheckoutSummaryRow(
             _showsShipping ? 'shipping'.tr : 'delivery_fee'.tr,
             deliveryFee,
           ),
@@ -670,17 +626,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ),
           ],
           const SizedBox(height: 8),
-          _buildSummaryRow('${'tax'.tr} (${controller.vatPercentageLabel}%)', controller.tax),
+          CheckoutSummaryRow('${'tax'.tr} (${controller.vatPercentageLabel}%)', controller.tax),
           if (controller.appliedCoupon != null) ...[
             const SizedBox(height: 8),
-            _buildSummaryRow(
+            CheckoutSummaryRow(
               'coupon_discount'.tr,
               -controller.discountAmount,
               isDiscount: true,
             ),
           ],
           const Divider(height: 24),
-          _buildSummaryRow('total'.tr, total, isTotal: true),
+          CheckoutSummaryRow('total'.tr, total, isTotal: true),
           const SizedBox(height: 16),
           _buildPlaceOrderButton(
             controller,
@@ -704,7 +660,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         final address = _selectedAddress;
 
         if (address == null) {
-          return _buildNoAddressCard();
+          return CheckoutNoAddressCard(onAdd: _openMapAddressPicker);
         }
 
         final hasLatLng = address.latitude != null && address.longitude != null;
@@ -720,7 +676,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Map preview with marker
-              _buildMapPreview(address, hasLatLng),
+              CheckoutMapPreview(
+                address: address,
+                hasLatLng: hasLatLng,
+                onTap: _openLocationEditor,
+              ),
 
               // Header — tap to expand/collapse
               InkWell(
@@ -785,860 +745,19 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 curve: Curves.easeInOut,
                 alignment: Alignment.topCenter,
                 child: _isAddressExpanded
-                    ? _buildAddressDetails(address, distanceKm, isOutsideRadius)
+                    ? CheckoutAddressDetails(
+                        address: address,
+                        distanceKm: distanceKm,
+                        isOutsideRadius: isOutsideRadius,
+                        onEditDetails: _openEditAddressInfo,
+                        onChangeAddress: _openAddressSelector,
+                      )
                     : const SizedBox(width: double.infinity),
               ),
             ],
           ),
         );
       },
-    );
-  }
-
-  Widget _buildMapPreview(AddressModel address, bool hasLatLng) {
-    if (!hasLatLng) {
-      return GestureDetector(
-        onTap: _openLocationEditor,
-        child: Container(
-          height: 130,
-          width: double.infinity,
-          color: Theme.of(context).disabledColor.withValues(alpha: 0.08),
-          alignment: Alignment.center,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.map_outlined, size: 30, color: context.textLight),
-              const SizedBox(height: 8),
-              Text(
-                'set_location_on_map'.tr,
-                style: poppinsMedium.copyWith(
-                  fontSize: Constants.fontSizeSmall,
-                  color: context.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final point = LatLng(address.latitude!, address.longitude!);
-
-    return GestureDetector(
-      onTap: _openLocationEditor,
-      child: SizedBox(
-        height: 150,
-        width: double.infinity,
-        child: Stack(
-          children: [
-            FlutterMap(
-              key: ValueKey(
-                '${address.id}_${address.latitude}_${address.longitude}',
-              ),
-              options: MapOptions(
-                initialCenter: point,
-                initialZoom: 15.5,
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.none,
-                ),
-              ),
-              children: [
-                const AppTileLayer(),
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: point,
-                      width: 44,
-                      height: 44,
-                      child: Icon(
-                        Icons.location_on,
-                        color: ColorResource.primaryDark,
-                        size: 40,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const PositionedDirectional(
-              bottom: Constants.paddingSizeExtraSmall,
-              start: Constants.paddingSizeExtraSmall,
-              child: MapAttribution(),
-            ),
-            if (address.isDefault)
-              Positioned(top: 8, left: 8, child: _buildDefaultChip()),
-            Positioned(
-              bottom: 8,
-              right: 8,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: context.cardBackground.withValues(alpha: 0.92),
-                  borderRadius: BorderRadius.circular(999),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.edit_location_alt_outlined,
-                      size: 14,
-                      color: ColorResource.primaryDark,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'set_location_on_map'.tr,
-                      style: poppinsMedium.copyWith(
-                        fontSize: Constants.fontSizeExtraSmall,
-                        color: ColorResource.primaryDark,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDefaultChip() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: ColorResource.primaryDark,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        'default'.tr,
-        style: poppinsBold.copyWith(
-          fontSize: Constants.fontSizeExtraSmall,
-          color: ColorResource.textWhite,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAddressDetails(
-    AddressModel address,
-    double? distanceKm,
-    bool isOutsideRadius,
-  ) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Divider(color: context.textLight.withValues(alpha: 0.2)),
-          _buildDetailRow('recipient'.tr, address.name),
-          _buildDetailRow('phone'.tr, address.phone),
-          _buildDetailRow('address'.tr, address.fullAddress),
-          if (distanceKm != null)
-            _buildDetailRow(
-              'distance'.tr,
-              isOutsideRadius
-                  ? '${distanceKm.toStringAsFixed(2)} km • ${'outside_delivery_radius'.tr}'
-                  : '${distanceKm.toStringAsFixed(2)} km',
-              valueColor: isOutsideRadius ? Colors.red : null,
-            ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _openEditAddressInfo,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: ColorResource.primaryDark,
-                    side: BorderSide(
-                      color: ColorResource.primaryDark.withValues(alpha: 0.4),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  icon: const Icon(Icons.edit_outlined, size: 18),
-                  label: Text(
-                    'edit_details'.tr,
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeSmall,
-                      color: ColorResource.primaryDark,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _openAddressSelector,
-                  style: ElevatedButton.styleFrom(
-                    elevation: 0,
-                    backgroundColor: ColorResource.primaryDark,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  icon: const Icon(Icons.swap_horiz_rounded, size: 18),
-                  label: Text(
-                    'change_address'.tr,
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeSmall,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value, {Color? valueColor}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 84,
-            child: Text(
-              label,
-              style: poppinsRegular.copyWith(
-                fontSize: Constants.fontSizeSmall,
-                color: context.textSecondary,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: poppinsMedium.copyWith(
-                fontSize: Constants.fontSizeDefault,
-                color: valueColor ?? context.textPrimary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNoAddressCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.cardBackground,
-        borderRadius: BorderRadius.circular(Constants.radiusLarge),
-        boxShadow: ColorResource.customShadow,
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: ColorResource.primaryDark.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.add_location_alt_outlined,
-              color: ColorResource.primaryDark,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'add_delivery_address'.tr,
-              style: poppinsMedium.copyWith(
-                fontSize: Constants.fontSizeDefault,
-                color: context.textPrimary,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          ElevatedButton(
-            onPressed: _openMapAddressPicker,
-            style: ElevatedButton.styleFrom(
-              elevation: 0,
-              backgroundColor: ColorResource.primaryDark,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Text(
-              'add'.tr,
-              style: poppinsBold.copyWith(
-                fontSize: Constants.fontSizeSmall,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildShippingSection() {
-    return GetBuilder<ShippingController>(
-      builder: (shippingController) {
-        final methods = shippingController.methods;
-        final cartTotal = Get.find<CartController>().total;
-
-        return Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: context.cardBackground,
-            borderRadius: BorderRadius.circular(Constants.radiusLarge),
-            boxShadow: ColorResource.customShadow,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.local_shipping_outlined,
-                    color: ColorResource.primaryDark,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'shipping_method'.tr,
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeLarge,
-                      color: context.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              if (shippingController.isLoading && methods.isEmpty)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: CircularProgressIndicator(),
-                  ),
-                )
-              else if (methods.isEmpty)
-                Text(
-                  'no_shipping_methods'.tr,
-                  style: poppinsRegular.copyWith(
-                    fontSize: Constants.fontSizeSmall,
-                    color: context.textSecondary,
-                  ),
-                )
-              else
-                ...methods.map((m) => _buildShippingTile(m, cartTotal)),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildShippingTile(ShippingMethodModel method, double cartTotal) {
-    final isSelected = _selectedShipping?.id == method.id;
-    final fee = method.feeFor(cartTotal);
-    return GestureDetector(
-      onTap: () => setState(() => _selectedShipping = method),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? ColorResource.primaryDark.withValues(alpha: 0.06)
-              : context.scaffoldBackground,
-          borderRadius: BorderRadius.circular(Constants.radiusDefault),
-          border: Border.all(
-            color: isSelected
-                ? ColorResource.primaryDark
-                : Colors.transparent,
-            width: 1.5,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              isSelected
-                  ? Icons.radio_button_checked
-                  : Icons.radio_button_off,
-              color: isSelected
-                  ? ColorResource.primaryDark
-                  : context.textLight,
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    method.name,
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeDefault,
-                      color: context.textPrimary,
-                    ),
-                  ),
-                  if ((method.estimatedDays ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      method.estimatedDays!,
-                      style: poppinsRegular.copyWith(
-                        fontSize: Constants.fontSizeSmall,
-                        color: context.textSecondary,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            Text(
-              fee <= 0 ? 'free'.tr : CurrencyHelper.formatAmount(fee),
-              style: poppinsBold.copyWith(
-                fontSize: Constants.fontSizeDefault,
-                color: fee <= 0
-                    ? ColorResource.success
-                    : ColorResource.primaryDark,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCouponSection(CartController controller) {
-    return controller.appliedCoupon != null
-        ? _buildAppliedCoupon(controller)
-        : _buildApplyCouponPrompt(controller);
-  }
-
-  Future<void> _openCouponSheet(CartController controller) async {
-    final result = await CouponSelectionBottomSheet.showAdaptive(context);
-    if (result != null) {
-      controller.applyCoupon(result);
-    }
-  }
-
-  Widget _buildApplyCouponPrompt(CartController controller) {
-    return GestureDetector(
-      onTap: () => _openCouponSheet(controller),
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: context.cardBackground,
-          borderRadius: BorderRadius.circular(Constants.radiusLarge),
-          boxShadow: ColorResource.customShadow,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: ColorResource.primaryDark.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.local_offer_rounded,
-                size: 22,
-                color: ColorResource.primaryDark,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'have_a_promo_code'.tr,
-                    style: poppinsBold.copyWith(
-                      fontSize: Constants.fontSizeDefault,
-                      color: context.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'apply_to_save'.tr,
-                    style: poppinsRegular.copyWith(
-                      fontSize: Constants.fontSizeSmall,
-                      color: context.textSecondary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            ElevatedButton(
-              onPressed: () => _openCouponSheet(controller),
-              style: ElevatedButton.styleFrom(
-                elevation: 0,
-                backgroundColor: ColorResource.primaryDark,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                'apply'.tr,
-                style: poppinsBold.copyWith(
-                  fontSize: Constants.fontSizeSmall,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAppliedCoupon(CartController controller) {
-    final coupon = controller.appliedCoupon!;
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: ColorResource.success.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(Constants.radiusLarge),
-        border: Border.all(
-          color: ColorResource.success.withValues(alpha: 0.35),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: ColorResource.success.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.local_offer_rounded,
-              size: 22,
-              color: ColorResource.success,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: context.cardBackground,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: ColorResource.success.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.confirmation_number_outlined,
-                        size: 13,
-                        color: ColorResource.success,
-                      ),
-                      const SizedBox(width: 5),
-                      Text(
-                        coupon.code,
-                        style: poppinsBold.copyWith(
-                          fontSize: Constants.fontSizeSmall,
-                          color: Colors.green.shade700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '${'you_saved_amount'.tr} ${CurrencyHelper.formatAmount(controller.discountAmount)}',
-                  style: poppinsBold.copyWith(
-                    fontSize: Constants.fontSizeSmall,
-                    color: Colors.green.shade700,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          TextButton(
-            onPressed: () => controller.removeCoupon(),
-            style: TextButton.styleFrom(
-              foregroundColor: ColorResource.error,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            ),
-            child: Text(
-              'remove'.tr,
-              style: poppinsBold.copyWith(
-                fontSize: Constants.fontSizeSmall,
-                color: ColorResource.error,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDeliveryInstructions() {
-    return Container(
-      decoration: BoxDecoration(
-        color: context.cardBackground,
-        borderRadius: BorderRadius.circular(Constants.radiusLarge),
-        boxShadow: ColorResource.customShadow,
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'delivery_instructions'.tr,
-            style: poppinsBold.copyWith(
-              fontSize: Constants.fontSizeLarge,
-              color: context.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _instructionsController,
-            decoration: InputDecoration(
-              hintText: 'delivery_instructions_hint'.tr,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(Constants.radiusDefault),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-            maxLines: 3,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPaymentMethod() {
-    final businessSetup = Get.find<SettingsController>().businessSetup;
-    final codActive = businessSetup?.acceptsCash ?? true; // is_cod_active
-    final onlineActive =
-        businessSetup?.acceptsOnlinePayment ?? false; // is_digital_active
-    final walletActive =
-        businessSetup?.acceptsDigitalWallet ?? false; // is_wallet_active
-
-    // Keep the chosen method within what's actually enabled.
-    final available = <PaymentMethod>[
-      if (codActive) PaymentMethod.cod,
-      if (onlineActive) PaymentMethod.online,
-      if (walletActive) PaymentMethod.wallet,
-    ];
-    if (available.isNotEmpty && !available.contains(_selectedPaymentMethod)) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() => _selectedPaymentMethod = available.first);
-      });
-    }
-
-    return Container(
-      decoration: BoxDecoration(
-        color: context.cardBackground,
-        borderRadius: BorderRadius.circular(Constants.radiusLarge),
-        boxShadow: ColorResource.customShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              'payment_method'.tr,
-              style: poppinsBold.copyWith(
-                fontSize: Constants.fontSizeLarge,
-                color: context.textPrimary,
-              ),
-            ),
-          ),
-          const Divider(height: 1),
-          if (codActive) RadioListTile<PaymentMethod>(
-            value: PaymentMethod.cod,
-            groupValue: _selectedPaymentMethod,
-            onChanged: (value) => setState(() => _selectedPaymentMethod = value!),
-            title: Row(
-              children: [
-                Icon(Icons.money, color: Colors.green),
-                const SizedBox(width: 12),
-                Text(
-                  'cash_on_delivery'.tr,
-                  style: poppinsMedium.copyWith(fontSize: Constants.fontSizeDefault),
-                ),
-              ],
-            ),
-            subtitle: Text(
-              'pay_when_you_receive'.tr,
-              style: poppinsRegular.copyWith(
-                fontSize: Constants.fontSizeSmall,
-                color: context.textSecondary,
-              ),
-            ),
-            activeColor: ColorResource.primaryDark,
-          ),
-          if (onlineActive) RadioListTile<PaymentMethod>(
-            value: PaymentMethod.online,
-            groupValue: _selectedPaymentMethod,
-            onChanged: (value) => setState(() => _selectedPaymentMethod = value!),
-            title: Row(
-              children: [
-                Icon(Icons.credit_card, color: _selectedPaymentMethod == PaymentMethod.online ? ColorResource.primaryDark : context.textLight),
-                const SizedBox(width: 12),
-                Text(
-                  'online_payment'.tr,
-                  style: poppinsMedium.copyWith(
-                    fontSize: Constants.fontSizeDefault,
-                    color: _selectedPaymentMethod == PaymentMethod.online ? context.textPrimary : context.textLight,
-                  ),
-                ),
-              ],
-            ),
-            subtitle: Text(
-              'pay_securely_online'.tr,
-              style: poppinsRegular.copyWith(
-                fontSize: Constants.fontSizeSmall,
-                color: _selectedPaymentMethod == PaymentMethod.online ? context.textSecondary : context.textLight,
-              ),
-            ),
-            activeColor: ColorResource.primaryDark,
-          ),
-          // Gateway selection chips — visible when online is selected
-          if (onlineActive) AnimatedSize(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            child: _selectedPaymentMethod == PaymentMethod.online
-                ? Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'choose_gateway'.tr,
-                          style: poppinsMedium.copyWith(
-                            fontSize: Constants.fontSizeSmall,
-                            color: context.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: _enabledGateways.map((gateway) {
-                            final isSelected = _selectedGateway == gateway;
-                            return ChoiceChip(
-                              label: Text(gateway.displayName),
-                              selected: isSelected,
-                              onSelected: (_) => setState(() => _selectedGateway = gateway),
-                              selectedColor: ColorResource.primaryDark.withValues(alpha: 0.15),
-                              backgroundColor: context.scaffoldBackground,
-                              labelStyle: poppinsMedium.copyWith(
-                                fontSize: Constants.fontSizeSmall,
-                                color: isSelected ? ColorResource.primaryDark : context.textSecondary,
-                              ),
-                              side: BorderSide(
-                                color: isSelected ? ColorResource.primaryDark : Colors.grey.shade300,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _selectedGateway.description,
-                          style: poppinsRegular.copyWith(
-                            fontSize: Constants.fontSizeExtraSmall,
-                            color: context.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : const SizedBox.shrink(),
-          ),
-          if (walletActive) GetBuilder<ProfileController>(
-            builder: (profileController) {
-              final walletBalance = profileController.walletBalance;
-              return RadioListTile<PaymentMethod>(
-                value: PaymentMethod.wallet,
-                groupValue: _selectedPaymentMethod,
-                onChanged: (value) => setState(() => _selectedPaymentMethod = value!),
-                title: Row(
-                  children: [
-                    Icon(Icons.account_balance_wallet, color: _selectedPaymentMethod == PaymentMethod.wallet ? ColorResource.primaryDark : context.textLight),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'wallet'.tr,
-                        style: poppinsMedium.copyWith(
-                          fontSize: Constants.fontSizeDefault,
-                          color: _selectedPaymentMethod == PaymentMethod.wallet ? context.textPrimary : context.textLight,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: walletBalance > 0
-                            ? Colors.green.withValues(alpha: 0.1)
-                            : Colors.red.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        CurrencyHelper.formatAmount(walletBalance),
-                        style: poppinsBold.copyWith(
-                          fontSize: Constants.fontSizeSmall,
-                          color: walletBalance > 0 ? Colors.green.shade700 : Colors.red.shade700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                subtitle: Text(
-                  'pay_from_wallet_balance'.tr,
-                  style: poppinsRegular.copyWith(
-                    fontSize: Constants.fontSizeSmall,
-                    color: _selectedPaymentMethod == PaymentMethod.wallet ? context.textSecondary : context.textLight,
-                  ),
-                ),
-                activeColor: ColorResource.primaryDark,
-              );
-            },
-          ),
-        ],
-      ),
     );
   }
 
@@ -1676,13 +795,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
               child: _isPriceExpanded
                   ? Column(
                       children: [
-                        _buildSummaryRow('${'cart_items_count'.tr} (${controller.itemCount})', controller.originalSubtotal),
+                        CheckoutSummaryRow('${'cart_items_count'.tr} (${controller.itemCount})', controller.originalSubtotal),
                         if (controller.itemDiscountTotal > 0) ...[
                           const SizedBox(height: 8),
-                          _buildSummaryRow('item_discount'.tr, -controller.itemDiscountTotal, isDiscount: true),
+                          CheckoutSummaryRow('item_discount'.tr, -controller.itemDiscountTotal, isDiscount: true),
                         ],
                         const SizedBox(height: 8),
-                        _buildSummaryRow(
+                        CheckoutSummaryRow(
                           _showsShipping ? 'shipping'.tr : 'delivery_fee'.tr,
                           deliveryFee,
                         ),
@@ -1700,10 +819,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           ),
                         ],
                         const SizedBox(height: 8),
-                        _buildSummaryRow('${'tax'.tr} (${controller.vatPercentageLabel}%)', controller.tax),
+                        CheckoutSummaryRow('${'tax'.tr} (${controller.vatPercentageLabel}%)', controller.tax),
                         if (controller.appliedCoupon != null) ...[
                           const SizedBox(height: 8),
-                          _buildSummaryRow('coupon_discount'.tr, -controller.discountAmount, isDiscount: true),
+                          CheckoutSummaryRow('coupon_discount'.tr, -controller.discountAmount, isDiscount: true),
                         ],
                         const Divider(height: 20),
                       ],
@@ -1822,12 +941,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     ),
                   )
                 : isOutsideRadius
-                    ? _buildBlockedButtonContent(
+                    ? CheckoutBlockedButtonContent(
                         Icons.location_off_outlined,
                         'cannot_deliver_to_address'.tr,
                       )
                     : blockForClosed
-                        ? _buildBlockedButtonContent(
+                        ? CheckoutBlockedButtonContent(
                             Icons.store_mall_directory_outlined,
                             'store_closed'.tr,
                           )
@@ -1841,50 +960,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildBlockedButtonContent(IconData icon, String label) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, color: ColorResource.textWhite, size: 20),
-        const SizedBox(width: 8),
-        Flexible(
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: poppinsBold.copyWith(
-              fontSize: Constants.fontSizeDefault,
-              color: ColorResource.textWhite,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSummaryRow(String label, double amount, {bool isTotal = false, bool isDiscount = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: (isTotal ? poppinsBold : poppinsRegular).copyWith(
-            fontSize: isTotal ? Constants.fontSizeLarge : Constants.fontSizeDefault,
-            color: isDiscount ? Colors.green : context.textPrimary,
-          ),
-        ),
-        Text(
-          CurrencyHelper.formatAmount(amount),
-          style: (isTotal ? poppinsBold : poppinsMedium).copyWith(
-            fontSize: isTotal ? Constants.fontSizeLarge : Constants.fontSizeDefault,
-            color: isDiscount ? Colors.green : (isTotal ? ColorResource.primaryDark : context.textPrimary),
-          ),
-        ),
-      ],
     );
   }
 
@@ -2265,170 +1340,27 @@ class _CheckoutPageState extends State<CheckoutPage> {
       }
     }
   }
-  /// Build delivery schedule section with bottom sheet
-  Widget _buildDeliverySchedule() {
-    final isNow = _deliveryType == 'now';
-    final storeStatus = _storeStatus();
-    final showClosed = isNow && !storeStatus.isOpenNow;
-    final scheduleTitle = isNow ? 'deliver_now'.tr : 'scheduled_delivery'.tr;
-    // Live ASAP estimate from business setup (falls back when unconfigured).
-    final businessSetup = Get.find<SettingsController>().businessSetup;
-    final asapEstimate =
-        businessSetup?.asapEstimateLabel ?? 'asap_30_45_mins'.tr;
-    final scheduleSubtitle =
-        isNow ? asapEstimate : (_scheduleDisplayText ?? asapEstimate);
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: context.cardBackground,
-        borderRadius: BorderRadius.circular(Constants.radiusLarge),
-        boxShadow: ColorResource.customShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: ColorResource.primaryDark.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  isNow ? Icons.flash_on_rounded : Icons.schedule_rounded,
-                  size: 22,
-                  color: ColorResource.primaryDark,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            scheduleTitle,
-                            style: poppinsBold.copyWith(
-                              fontSize: Constants.fontSizeDefault,
-                              color: context.textPrimary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: ColorResource.primaryDark
-                                .withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            isNow ? 'asap'.tr : 'scheduled'.tr,
-                            style: poppinsBold.copyWith(
-                              fontSize: Constants.fontSizeExtraSmall,
-                              color: ColorResource.primaryDark,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      scheduleSubtitle,
-                      style: poppinsRegular.copyWith(
-                        fontSize: Constants.fontSizeSmall,
-                        color: context.textSecondary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              OutlinedButton(
-                onPressed: _openDeliverySchedulePicker,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: ColorResource.primaryDark,
-                  side: BorderSide(
-                    color: ColorResource.primaryDark.withValues(alpha: 0.4),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Text(
-                  'change'.tr,
-                  style: poppinsBold.copyWith(
-                    fontSize: Constants.fontSizeSmall,
-                    color: ColorResource.primaryDark,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          if (showClosed) ...[
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.orange[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.orange[200]!),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.info_outline, color: Colors.orange[700], size: 18),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'store_is_currently_closed'.tr,
-                          style: poppinsBold.copyWith(
-                            fontSize: Constants.fontSizeSmall,
-                            color: Colors.orange[900],
-                          ),
-                        ),
-                        if (storeStatus.nextOpenLabel != null) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            storeStatus.nextOpenLabel!,
-                            style: poppinsRegular.copyWith(
-                              fontSize: Constants.fontSizeSmall,
-                              color: Colors.orange[900],
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
+  // The sections below are stateless; this page keeps the selections.
+  Widget _shippingSection() => CheckoutShippingSection(
+        selectedShippingId: _selectedShipping?.id,
+        onSelected: (method) => setState(() => _selectedShipping = method),
+      );
 
+  Widget _paymentMethodSection() => CheckoutPaymentMethodSection(
+        selectedMethod: _selectedPaymentMethod,
+        selectedGateway: _selectedGateway,
+        gateways: _enabledGateways,
+        onMethodChanged: (method) {
+          if (mounted) setState(() => _selectedPaymentMethod = method);
+        },
+        onGatewayChanged: (gateway) => setState(() => _selectedGateway = gateway),
+      );
 
-
+  Widget _deliveryScheduleSection() => CheckoutDeliveryScheduleSection(
+        deliveryType: _deliveryType,
+        scheduleDisplayText: _scheduleDisplayText,
+        storeStatus: _storeStatus(),
+        onChange: _openDeliverySchedulePicker,
+      );
 }
