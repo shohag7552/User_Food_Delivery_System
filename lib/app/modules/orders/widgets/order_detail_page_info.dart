@@ -419,6 +419,12 @@ extension _OrderDetailPageInfo on _OrderDetailPageState {
                     ],
                   ),
                 ),
+                if (deliveryman?.phone.trim().isNotEmpty == true)
+                  IconButton(
+                    onPressed: () => _callDeliveryman(deliveryman!.phone),
+                    icon: Icon(Icons.call, color: ColorResource.primaryDark),
+                    tooltip: 'call_deliveryman'.tr,
+                  ),
               ],
             ),
           ),
@@ -429,6 +435,19 @@ extension _OrderDetailPageInfo on _OrderDetailPageState {
         ],
       ),
     );
+  }
+
+  /// Opens the phone dialer; toasts when the device has none (web, tablets).
+  Future<void> _callDeliveryman(String phone) async {
+    try {
+      final opened = await launchUrl(
+        Uri(scheme: 'tel', path: phone.trim()),
+        mode: LaunchMode.externalApplication,
+      );
+      if (!opened) customToster('could_not_open_link'.tr, isSuccess: false);
+    } catch (_) {
+      customToster('could_not_open_link'.tr, isSuccess: false);
+    }
   }
 
   Widget _buildPriceRow(
