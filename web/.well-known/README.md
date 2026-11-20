@@ -50,18 +50,17 @@ Before publishing, add:
 Multiple fingerprints in the array is supported and is how debug, release and
 Play-signed builds are covered simultaneously.
 
-## iOS: blocked on two values
+## iOS: add your Apple Team ID
 
-`apple-app-site-association` currently contains placeholders. It needs:
+`apple-app-site-association` lists the app as
+`YOUR_APPLE_TEAM_ID.com.kikomart.user`. Before publishing:
 
-- The **Apple Team ID** (`DEVELOPMENT_TEAM = U7VLRFHZG7` is already in
-  `ios/Runner.xcodeproj/project.pbxproj` — confirm it owns the App ID).
-- The **real bundle id**. It is still the placeholder
-  `com.example.foodUserApp`; this must change before the App ID can be
-  registered with the Associated Domains capability.
+- Replace `YOUR_APPLE_TEAM_ID` with your Apple Developer Team ID, and set the
+  same team in Xcode (Runner target → Signing & Capabilities).
+- If you changed the bundle id, replace `com.kikomart.user` with yours. The App
+  ID must have the Associated Domains capability.
 
-Until both are filled in, iOS Universal Links will not verify. Android is
-unaffected.
+Until then, iOS Universal Links will not verify. Android is unaffected.
 
 ## Changing the hosting domain
 

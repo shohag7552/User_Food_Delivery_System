@@ -10,6 +10,7 @@ import 'package:kikomart_user_app/app/controllers/order_controller.dart';
 import 'package:kikomart_user_app/app/controllers/review_controller.dart';
 import 'package:kikomart_user_app/app/controllers/settings_controller.dart';
 import 'package:kikomart_user_app/app/helper/dashboard_tab_bus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:kikomart_user_app/app/models/order_model.dart';
 import 'package:kikomart_user_app/app/models/review_model.dart';
 import 'package:kikomart_user_app/app/modules/dashboard/widgets/web_profile_drawer.dart';
