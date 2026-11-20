@@ -36,17 +36,14 @@ class PaymentService {
   /// Creates a payment session for the given [gateway].
   ///
   /// [gateway] — "stripe", "sslcommerz", "bkash", "razorpay", "paypal"
-  /// [orderId] — the pending order id from `start_online_order`. Stripe reads
-  ///             the amount and currency from that server-side row.
-  /// [amount]/[currency] — only for a gateway that still needs them from the
-  ///             client (smallest currency unit); never sent when null.
+  /// [orderId] — the pending order id from `start_online_order`. The payment
+  ///             function reads the amount and currency from that server-side
+  ///             row; the app never sends them (the function refuses them).
   ///
   /// Returns a map with `{ success: true, data: { paymentURL: "..." } }`.
   Future<Map<String, dynamic>> createPayment({
     required String gateway,
-    int? amount,
     required String orderId,
-    String? currency,
     String? customerName,
     String? customerEmail,
     String? customerPhone,
@@ -57,12 +54,8 @@ class PaymentService {
     String? successURL,
     String? cancelURL,
   }) async {
-    final body = <String, dynamic>{
-      'orderId': orderId,
-      'amount': ?amount,
-    };
+    final body = <String, dynamic>{'orderId': orderId};
 
-    if (currency != null) body['currency'] = currency;
     if (customerName != null) body['customerName'] = customerName;
     if (customerEmail != null) body['customerEmail'] = customerEmail;
     if (customerPhone != null) body['customerPhone'] = customerPhone;

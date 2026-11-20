@@ -184,8 +184,20 @@ test/                        widget and controller tests
 ```
 
 Data flows one way: **view → controller → repository interface → repository
-→ AppwriteService**. Views never call Appwrite directly. See `CLAUDE.md` for
-the coding conventions.
+→ AppwriteService**. Views never call Appwrite directly.
+
+### Coding conventions
+
+- Every user-facing string is a translation key (`'key'.tr`) present in each
+  file under `assets/language/`.
+- State and business logic live in controllers (`GetxController`, rebuilt with
+  `GetBuilder`); screens and widgets only render and forward taps.
+- Appwrite calls live only in repositories, behind the interface the controller
+  depends on.
+- A widget used by one feature lives in that feature's `widgets/` folder; shared
+  ones live in `common/widgets/`.
+- Spacing, font sizes and corner radii come from `Constants`; colours come from
+  the theme, so light and dark mode both work.
 
 ```bash
 flutter analyze

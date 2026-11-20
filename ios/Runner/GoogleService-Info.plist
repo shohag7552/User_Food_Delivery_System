@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyD8DpnznxKvf7Vcq6vpfr7P_TkUEzL_KNM</string>
+	<string>AIzaSyREPLACE_WITH_YOUR_IOS_API_KEY_000000</string>
 	<key>GCM_SENDER_ID</key>
-	<string>232005235395</string>
+	<string>000000000000</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.kikomart.user</string>
 	<key>PROJECT_ID</key>
-	<string>kiko-mart</string>
+	<string>your-firebase-project-id</string>
 	<key>STORAGE_BUCKET</key>
-	<string>kiko-mart.firebasestorage.app</string>
+	<string>your-firebase-project-id.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:232005235395:ios:b3fe1395f904fe25802876</string>
+	<string>1:000000000000:ios:0000000000000000000000</string>
 </dict>
 </plist>

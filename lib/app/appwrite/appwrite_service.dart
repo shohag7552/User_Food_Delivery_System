@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:appwrite/appwrite.dart';
-import 'package:appwrite/enums.dart';
 import 'package:appwrite/models.dart';
 import 'package:kikomart_user_app/app/appwrite/appwrite_config.dart';
 import 'package:kikomart_user_app/app/appwrite/backend_exception.dart';
@@ -529,41 +528,6 @@ class AppwriteService {
       log("✅ Store admin order notification sent");
     } catch (e) {
       log("❌ Failed to send store admin notification: $e");
-    }
-  }
-
-  Future<Map<String, dynamic>?> requestStripPayment({
-    required int amount,
-    required String currency,
-    required String userEmail,
-  }) async {
-    // Ensure you have initialized 'client' somewhere globally or pass it in
-    // Functions functions = Functions(client);
-
-    try {
-      debugPrint("====> Requesting Server to send Stripe payment...");
-
-      /// Executing the serverless function directly via the Appwrite SDK
-      final execution = await functions.createExecution(
-        functionId: AppwriteConfig.stripePaymentFunctionId,
-        body: jsonEncode({
-          'amount': amount,
-          'currency': currency,
-          'email': userEmail,
-        }),
-        // body: jsonEncode({'amount': 1500}), // $15.00
-      );
-
-      if (execution.status == ExecutionStatus.completed) {
-        log("✅ Stripe payment request sent to server!");
-        return jsonDecode(execution.responseBody);
-      } else {
-        log("⚠️ Function failed: ${execution.responseBody}");
-        return null;
-      }
-    } catch (e) {
-      log("❌ Failed to trigger Stripe payment function: $e");
-      return null;
     }
   }
 
