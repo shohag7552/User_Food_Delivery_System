@@ -219,3 +219,14 @@ flutter test
 | Paid, but stuck on the payment page | `PAYMENT_SUCCESS_URL` on the Stripe function does not match `webBaseUrl` |
 | No push notifications | Firebase config not replaced (step 3), or notification permission denied |
 | Map shows no tiles in production | OpenStreetMap blocked heavy use — add a LocationIQ key in the store panel |
+
+## AI usage disclosure
+
+KikoMart was designed and built by its author. An AI coding assistant, Anthropic Claude (through Claude Code), was used during development to help with:
+
+- writing and refactoring parts of the Flutter source code of the Customer, Store and Deliveryman apps;
+- writing and changing parts of the two Appwrite functions (the backend function and the Stripe payment function), including the server-side pricing and payment checks;
+- writing automated tests;
+- drafting parts of the documentation, including this README.
+
+The author reviewed, tested and approved every AI-assisted change and is responsible for the code. The apps and functions do not use AI at runtime, and no customer data is sent to an AI service. Images, icons and illustrations are covered by `Licensing/kikomart assets license.pdf` in the package.

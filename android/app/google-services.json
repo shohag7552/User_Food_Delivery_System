@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "232005235395",
-    "project_id": "kiko-mart",
-    "storage_bucket": "kiko-mart.firebasestorage.app"
+    "project_number": "000000000000",
+    "project_id": "your-firebase-project-id",
+    "storage_bucket": "your-firebase-project-id.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:232005235395:android:38895a96220a3074802876",
+        "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
         "android_client_info": {
           "package_name": "com.kikomart.store"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBWr0YygfC2jQtT4fS7FIIBfU3Q0T0tVJ0"
+          "current_key": "AIzaSyREPLACE_WITH_YOUR_ANDROID_API_KEY_00"
         }
       ],
       "services": {
@@ -26,7 +26,7 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:232005235395:android:ff2d6172777e510c802876",
+        "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
         "android_client_info": {
           "package_name": "com.kikomart.user"
         }
@@ -34,7 +34,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBWr0YygfC2jQtT4fS7FIIBfU3Q0T0tVJ0"
+          "current_key": "AIzaSyREPLACE_WITH_YOUR_ANDROID_API_KEY_00"
         }
       ],
       "services": {
