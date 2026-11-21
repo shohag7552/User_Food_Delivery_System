@@ -6,8 +6,7 @@ abstract class OrderRepoInterface {
   /// - `'orderNumber'` — the human-readable sequential number (e.g. "10001")
   /// The server's totals for the customer's cart, as [createOrder] would
   /// charge them: subtotal, item_discount, tax, coupon_discount, delivery_fee,
-  /// total. `enforced` is false while the store is still rolling the backend
-  /// out, when the app's own totals are the ones charged.
+  /// total. These are always the amounts charged; the app's own are not used.
   Future<Map<String, dynamic>> quoteOrder({
     required String addressId,
     String? couponId,

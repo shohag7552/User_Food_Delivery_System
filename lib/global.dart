@@ -28,10 +28,10 @@ class Global {
         if (GetPlatform.isAndroid) {
           await Firebase.initializeApp(
             options: const FirebaseOptions(
-              apiKey: 'AIzaSyBWr0YygfC2jQtT4fS7FIIBfU3Q0T0tVJ0',
-              appId: '1:232005235395:android:ff2d6172777e510c802876',
-              messagingSenderId: '232005235395',
-              projectId: 'kiko-mart',
+              apiKey: 'YOUR_FIREBASE_ANDROID_API_KEY',
+              appId: 'YOUR_FIREBASE_ANDROID_APP_ID',
+              messagingSenderId: 'YOUR_FIREBASE_MESSAGING_SENDER_ID',
+              projectId: 'YOUR_FIREBASE_PROJECT_ID',
             ),
           );
         } else {

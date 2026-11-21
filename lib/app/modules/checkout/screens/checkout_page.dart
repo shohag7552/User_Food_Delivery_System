@@ -1012,20 +1012,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
       return;
     }
 
-    // ─── The price: once the store's server prices orders, its figures are
-    // the ones shown in the confirmation, charged and paid — a cart line keeps
-    // the price it was added at, which a sale ending can make stale. ───
+    // ─── The price: the server's figures are the ones shown in the
+    // confirmation, charged and paid — a cart line keeps the price it was
+    // added at, which a sale ending can make stale. ───
     final quote = await Get.find<OrderController>().quoteOrder(
       address: _selectedAddress!,
       couponId: cartController.appliedCoupon?.id,
       shippingMethodId: _showsShipping ? _selectedShipping?.id : null,
-      fallback: OrderQuote(
-        total: total,
-        deliveryFee: deliveryFee,
-        tax: taxAmount,
-        itemDiscount: cartController.itemDiscountTotal,
-        couponDiscount: cartController.discountAmount,
-      ),
     );
     if (quote == null) {
       customToster(

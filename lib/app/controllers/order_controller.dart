@@ -244,12 +244,9 @@ class OrderController extends GetxController implements GetxService {
   /// What the order costs as the server prices it — the amounts to show,
   /// charge and confirm — or null when they cannot be had (the server is
   /// unreachable, or an item can no longer be priced; [quoteError] says why).
-  ///
-  /// Returns the app's own figures unchanged while the server's are not yet
-  /// binding (`enforced` false during a store's rollout).
+  /// The server's figures are always the binding ones.
   Future<OrderQuote?> quoteOrder({
     required AddressModel address,
-    required OrderQuote fallback,
     String? couponId,
     String? shippingMethodId,
   }) async {
@@ -260,7 +257,6 @@ class OrderController extends GetxController implements GetxService {
         couponId: couponId,
         shippingMethodId: shippingMethodId,
       );
-      if (q['enforced'] != true) return fallback;
       double n(String k) => (q[k] as num?)?.toDouble() ?? 0.0;
       return OrderQuote(
         total: n('total'),
